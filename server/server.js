@@ -1,7 +1,11 @@
 import express from "express";
 import cors from "cors";
 import products from "./data/products.js";
+import connectDB from "./config/db.js";
+
 const app = express();
+
+connectDB();
 
 app.use(cors({ origin: "http://localhost:3000" }));
 app.use(express.urlencoded({ extended: true }));
