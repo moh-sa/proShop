@@ -1,6 +1,10 @@
 import express from "express";
+import cors from "cors";
 import products from "./data/products.js";
 const app = express();
+
+app.use(cors({ origin: "http://localhost:3000" }));
+app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
   res.send("API is running...");
