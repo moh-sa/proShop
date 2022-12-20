@@ -1,3 +1,5 @@
+import * as dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import cors from "cors";
 import connectDB from "./config/db.js";
@@ -24,4 +26,4 @@ app.use(notFound);
 
 app.use(errorHandler);
 
-app.listen(5000, console.log("server running on port 5000"));
+app.listen(process.env.PORT, console.log("server running on port 5000"));
