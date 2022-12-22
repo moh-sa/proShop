@@ -121,7 +121,7 @@ const ProfileScreen = ({ location, history }) => {
                 <th></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody style={{ verticalAlign: "middle" }}>
               {orders.map((order) => (
                 <tr key={order._id}>
                   <td>{order._id}</td>
@@ -131,14 +131,14 @@ const ProfileScreen = ({ location, history }) => {
                     {order.isPaid ? (
                       order.paidAt.substring(0, 10)
                     ) : (
-                      <i className="fas fa-times" styles={{ color: "red" }}></i>
+                      <i className="fas fa-times" style={{ color: "red" }}></i>
                     )}
                   </td>
                   <td>
                     {order.isDelivered ? (
                       order.deliveredAt.substring(0, 10)
                     ) : (
-                      <i className="fas fa-times" styles={{ color: "red" }}></i>
+                      <i className="fas fa-times" style={{ color: "red" }}></i>
                     )}
                   </td>
                   <td>
