@@ -64,8 +64,6 @@ export const getOrderDetails = (id) => async (dispatch, getState) => {
     );
 
     dispatch({ type: ORDER_DETAILS_SUCCESS, payload: data });
-
-    localStorage.setItem("userInfo", JSON.stringify(data));
   } catch (error) {
     console.log(error);
     dispatch({
