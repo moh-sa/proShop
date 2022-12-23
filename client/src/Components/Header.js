@@ -13,7 +13,13 @@ function Header() {
   };
   return (
     <>
-      <div style={{ backgroundColor: "darkgrey", color: "wheat" }}>
+      <div
+        style={{
+          backgroundColor: "darkgrey",
+          color: "white",
+          textAlign: "center",
+        }}
+      >
         ⚠This app is from{" "}
         <a href="https://www.udemy.com/course/mern-ecommerce">Brad Traversy</a>
         's course.⚠ Check the{" "}
