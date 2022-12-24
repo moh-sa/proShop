@@ -76,7 +76,7 @@ const OrderListScreen = ({ history }) => {
                 </td>
 
                 <td style={{ textAlign: "center" }}>
-                  <LinkContainer to={`/admin/order/${order._id}`}>
+                  <LinkContainer to={`/order/${order._id}`}>
                     <Button variant="light" className="btn-sm">
                       Details
                     </Button>
