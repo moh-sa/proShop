@@ -26,7 +26,7 @@ const PlaceOrderScreen = ({ history }) => {
       return Number((0.15 * this.items).toFixed(2));
     },
     total() {
-      return this.items + this.shipping() + this.tax();
+      return Number((this.items + this.shipping() + this.tax()).toFixed(2));
     },
   };
 
