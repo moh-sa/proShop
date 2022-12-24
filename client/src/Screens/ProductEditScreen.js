@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import axios from "axios";
 import { Link } from "react-router-dom";
 import { Form, Button } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,6 +17,7 @@ const ProductEditScreen = ({ match, history }) => {
   const [category, setCategory] = useState("");
   const [countInStock, setCountInStock] = useState(0);
   const [description, setDescription] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   const dispatch = useDispatch();
   const productDetails = useSelector((state) => state.productDetails);
@@ -49,7 +51,37 @@ const ProductEditScreen = ({ match, history }) => {
     }
   }, [dispatch, product, productId, history, successUpdate]);
 
-  const submitHandler = async (e) => {
+  const uploadFileHandler = async (e) => {
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append("image", file);
+    console.log(formData);
+
+    setUploading(true);
+
+    try {
+      const config = {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      };
+
+      const { data } = await axios.post(
+        "http://localhost:5000/api/upload",
+        formData,
+        config
+      );
+
+      setImage(data);
+
+      setUploading(false);
+    } catch (error) {
+      console.log(error);
+      setUploading(false);
+    }
+  };
+
+  const submitHandler = (e) => {
     e.preventDefault();
     dispatch(
       updateProduct({
@@ -130,6 +162,13 @@ const ProductEditScreen = ({ match, history }) => {
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
               ></Form.Control>
+
+              <Form.Label className="mt-3">Upload Image</Form.Label>
+              <Form.Control
+                type="file"
+                onChange={uploadFileHandler}
+              ></Form.Control>
+              {uploading && <Loader />}
             </Form.Group>
 
             <Form.Group controlId="countinstock" className="my-3">
