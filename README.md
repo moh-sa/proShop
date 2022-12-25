@@ -3,9 +3,6 @@
   <h3 align="center">ProShop</h3>
   <p align="center">
     A MERN eCommerce project based on Brad Traversy's course.
-    This site was built using [GitHub Pages](https://pages.github.com/).
-
-
     <br/>
     <br/>
   </p>
