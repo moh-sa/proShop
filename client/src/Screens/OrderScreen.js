@@ -66,7 +66,16 @@ const OrderScreen = ({ match, history }) => {
         setSdkReady(true);
       }
     }
-  }, [dispatch, order, orderId, successPay, successDeliver, match]);
+  }, [
+    dispatch,
+    order,
+    orderId,
+    successPay,
+    successDeliver,
+    match,
+    history,
+    userInfo,
+  ]);
 
   return loading ? (
     <Loader />
