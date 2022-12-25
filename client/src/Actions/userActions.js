@@ -27,6 +27,11 @@ import {
 } from "../constants/userConstants";
 import { ORDER_LIST_MY_RESET } from "../constants/orderConstants";
 
+const baseUrl =
+  process.env.NODE_ENV === "development"
+    ? process.env.REACT_APP_BACK_DEV_URL
+    : process.env.REACT_APP_BACK_URL;
+
 export const login = (email, password) => async (dispatch) => {
   try {
     dispatch({ type: USER_LOGIN_REQUEST });
@@ -34,7 +39,7 @@ export const login = (email, password) => async (dispatch) => {
     const config = { headers: { "Content-Type": "application/json" } };
 
     const { data } = await axios.post(
-      "http://localhost:5000/api/users/login",
+      `${baseUrl}/api/users/login`,
       { email, password },
       config
     );
@@ -67,7 +72,7 @@ export const register = (name, email, password) => async (dispatch) => {
     const config = { headers: { "Content-Type": "application/json" } };
 
     const { data } = await axios.post(
-      "http://localhost:5000/api/users",
+      `${baseUrl}/api/users`,
       { name, email, password },
       config
     );
@@ -102,10 +107,7 @@ export const getUserDetails = (id) => async (dispatch, getState) => {
       },
     };
 
-    const { data } = await axios.get(
-      `http://localhost:5000/api/users/${id}`,
-      config
-    );
+    const { data } = await axios.get(`${baseUrl}/api/users/${id}`, config);
 
     dispatch({ type: USER_DETAILS_SUCCESS, payload: data });
   } catch (error) {
@@ -135,7 +137,7 @@ export const updateUserProfile = (user) => async (dispatch, getState) => {
     };
 
     const { data } = await axios.put(
-      `http://localhost:5000/api/users/profile`,
+      `${baseUrl}/api/users/profile`,
       user,
       config
     );
@@ -170,7 +172,7 @@ export const listUsers = () => async (dispatch, getState) => {
       },
     };
 
-    const { data } = await axios.get(`http://localhost:5000/api/users`, config);
+    const { data } = await axios.get(`${baseUrl}/api/users`, config);
 
     dispatch({ type: USER_LIST_SUCCESS, payload: data });
   } catch (error) {
@@ -198,7 +200,7 @@ export const deleteUser = (id) => async (dispatch, getState) => {
       },
     };
 
-    await axios.delete(`http://localhost:5000/api/users/${id}`, config);
+    await axios.delete(`${baseUrl}/api/users/${id}`, config);
 
     dispatch({ type: USER_DELETE_SUCCESS });
   } catch (error) {
@@ -228,7 +230,7 @@ export const updateUser = (user) => async (dispatch, getState) => {
     };
 
     const { data } = await axios.put(
-      `http://localhost:5000/api/users/${user._id}`,
+      `${baseUrl}/api/users/${user._id}`,
       user,
       config
     );

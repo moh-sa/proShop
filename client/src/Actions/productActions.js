@@ -23,6 +23,11 @@ import {
   PRODUCT_TOP_FAIL,
 } from "../constants/productConsts";
 
+const baseUrl =
+  process.env.NODE_ENV === "development"
+    ? process.env.REACT_APP_BACK_DEV_URL
+    : process.env.REACT_APP_BACK_URL;
+
 export const listProducts =
   (keyword = "", pageNumber = "") =>
   async (dispatch) => {
@@ -30,7 +35,7 @@ export const listProducts =
       dispatch({ type: PRODUCT_LIST_REQUEST });
 
       const { data } = await axios.get(
-        `http://localhost:5000/api/products?keyword=${keyword}&pageNumber=${pageNumber}`
+        `${baseUrl}/api/products?keyword=${keyword}&pageNumber=${pageNumber}`
       );
 
       dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
@@ -49,9 +54,7 @@ export const listProductDetails = (id) => async (dispatch) => {
   try {
     dispatch({ type: PRODUCT_DETAILS_REQUEST });
 
-    const { data } = await axios.get(
-      `http://localhost:5000/api/products/${id}`
-    );
+    const { data } = await axios.get(`${baseUrl}/api/products/${id}`);
 
     dispatch({ type: PRODUCT_DETAILS_SUCCESS, payload: data });
   } catch (error) {
@@ -79,7 +82,7 @@ export const deleteProduct = (id) => async (dispatch, getState) => {
       },
     };
 
-    await axios.delete(`http://localhost:5000/api/products/${id}`, config);
+    await axios.delete(`${baseUrl}/api/products/${id}`, config);
 
     dispatch({ type: PRODUCT_DELETE_SUCCESS });
   } catch (error) {
@@ -107,11 +110,7 @@ export const createProduct = () => async (dispatch, getState) => {
       },
     };
 
-    const { data } = await axios.post(
-      `http://localhost:5000/api/products`,
-      {},
-      config
-    );
+    const { data } = await axios.post(`${baseUrl}/api/products`, {}, config);
 
     dispatch({ type: PRODUCT_CREATE_SUCCESS, payload: data });
   } catch (error) {
@@ -141,7 +140,7 @@ export const updateProduct = (product) => async (dispatch, getState) => {
     };
 
     const { data } = await axios.put(
-      `http://localhost:5000/api/products/${product._id}`,
+      `${baseUrl}/api/products/${product._id}`,
       product,
       config
     );
@@ -175,7 +174,7 @@ export const createProductReview =
       };
 
       await axios.post(
-        `http://localhost:5000/api/products/${productId}/reviews`,
+        `${baseUrl}/api/products/${productId}/reviews`,
         review,
         config
       );
@@ -196,7 +195,7 @@ export const getTopRatedProducts = () => async (dispatch) => {
   try {
     dispatch({ type: PRODUCT_TOP_REQUEST });
 
-    const { data } = await axios.get(`http://localhost:5000/api/products/top`);
+    const { data } = await axios.get(`${baseUrl}/api/products/top`);
     console.log(data);
 
     dispatch({ type: PRODUCT_TOP_SUCCESS, payload: data });

@@ -6,8 +6,14 @@ import {
   CART_SAVE_PAYMENT_METHOD,
 } from "../constants/cartConstants";
 
+const baseUrl =
+  process.env.NODE_ENV === "development"
+    ? process.env.REACT_APP_BACK_DEV_URL
+    : process.env.REACT_APP_BACK_URL;
+
 export const addToCart = (id, qty) => async (dispatch, getState) => {
-  const { data } = await axios.get(`http://localhost:5000/api/products/${id}`);
+  const { data } = await axios.get(`${baseUrl}/api/products/${id}`);
+
   dispatch({
     type: CART_ADD_ITEM,
     payload: {

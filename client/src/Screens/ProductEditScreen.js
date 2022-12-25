@@ -66,8 +66,13 @@ const ProductEditScreen = ({ match, history }) => {
         },
       };
 
+      const baseUrl =
+        process.env.NODE_ENV === "development"
+          ? process.env.REACT_APP_BACK_DEV_URL
+          : process.env.REACT_APP_BACK_URL;
+
       const { data } = await axios.post(
-        "http://localhost:5000/api/upload",
+        `${baseUrl}/api/upload`,
         formData,
         config
       );

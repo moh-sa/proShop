@@ -33,9 +33,12 @@ const OrderScreen = ({ match, history }) => {
   const { userInfo } = userLogin;
 
   const addPayPalScript = async () => {
-    const { data: clientId } = await axios.get(
-      "http://localhost:5000/api/config/paypal"
-    );
+    const baseUrl =
+      process.env.NODE_ENV === "development"
+        ? process.env.REACT_APP_BACK_DEV_URL
+        : process.env.REACT_APP_BACK_URL;
+
+    const { data: clientId } = await axios.get(`${baseUrl}/api/config/paypal`);
     const script = document.createElement("script");
     script.type = "text/javascript";
     script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}`;
