@@ -7,11 +7,17 @@ import Product from "../models/productModel.js";
  * @access public
  */
 const getProducts = asyncHandler(async (req, res) => {
+  const pageSize = 10;
+  const page = Number(req.query.pageNumber) || 1;
+
   const keyword = req.query.keyword;
   const query = keyword ? { name: { $regex: keyword, $options: "i" } } : {};
 
-  const products = await Product.find({ ...query });
-  res.json(products);
+  const count = await Product.countDocuments({ ...query });
+  const products = await Product.find({ ...query })
+    .limit(pageSize)
+    .skip(pageSize * (page - 1));
+  res.json({ products, page, pages: Math.ceil(count / pageSize) });
 });
 
 /**
