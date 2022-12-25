@@ -12,6 +12,10 @@ import uploadRoutes from "./routes/uploadRoutes.js";
 import { notFound, errorHandler } from "./middlewares/errorMiddleware.js";
 
 const app = express();
+const clientURL =
+  process.env.NODE_ENV === "development"
+    ? process.env.CLIENT_URL_DEV
+    : process.env.CLIENT_URL;
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
@@ -20,7 +24,7 @@ if (process.env.NODE_ENV === "development") {
 connectDB();
 
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cors({ origin: clientURL }));
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
