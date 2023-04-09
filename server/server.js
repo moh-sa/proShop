@@ -24,7 +24,7 @@ if (process.env.NODE_ENV === "development") {
 connectDB();
 
 app.use(express.json());
-app.use(cors({ origin: clientURL }));
+app.use(cors({ origin: ["http://localhost:3000", "https://proshop.moh-sa.dev", "https://proshop.tno.dev"] }));
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
