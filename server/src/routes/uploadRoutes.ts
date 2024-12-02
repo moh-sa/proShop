@@ -37,7 +37,10 @@ const upload = multer({
 
 router.route("/").post(upload.single("image"), (req, res) => {
   if (req.file) {
-    res.send(`${process.env.SERVER_URL}/${req.file.path}`);
+    const protocol = req.protocol;
+    const host = req.get("host");
+    const domain = `${protocol}://${host}`;
+    res.send(`${domain}/${req.file.path}`);
   }
   res.status(400).json({ message: "No file uploaded. Please provide a file." });
 });
