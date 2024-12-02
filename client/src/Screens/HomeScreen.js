@@ -1,17 +1,18 @@
 import { useEffect } from "react";
+import { Col, Row } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
-import { Row, Col } from "react-bootstrap";
-import Product from "../Components/Product";
-import Message from "../Components/Message";
-import Loader from "../Components/Loader";
-import Paginate from "../Components/Paginate";
-import ProductCarousel from "../Components/ProductCarousel";
+import { useParams } from "react-router-dom";
 import { listProducts } from "../Actions/productActions";
+import Loader from "../Components/Loader";
+import Message from "../Components/Message";
+import Paginate from "../Components/Paginate";
+import Product from "../Components/Product";
+import ProductCarousel from "../Components/ProductCarousel";
 
-const HomeScreen = ({ match }) => {
-  const keyword = match.params.keyword;
-
-  const pageNumber = match.params.pageNumber || 1;
+const HomeScreen = () => {
+  const params = useParams();
+  const keyword = params.keyword;
+  const pageNumber = params.pageNumber || 1;
 
   const dispatch = useDispatch();
   const productList = useSelector((state) => state.productList);
@@ -28,7 +29,7 @@ const HomeScreen = ({ match }) => {
       {loading ? (
         <Loader />
       ) : error ? (
-        <Message variant="danger">{error}</Message>
+        <Message variant='danger'>{error}</Message>
       ) : (
         <>
           <Row>

@@ -1,31 +1,34 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Form, Button } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import { Button, Form } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
-import Message from "../Components/Message";
-import Loader from "../Components/Loader";
-import FormContainer from "../Components/FormContainer";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { getUserDetails, updateUser } from "../Actions/userActions";
+import FormContainer from "../Components/FormContainer";
+import Loader from "../Components/Loader";
+import Message from "../Components/Message";
 import { USER_UPDATE_RESET } from "../constants/userConstants";
 
-const UserEditScreen = ({ match, history }) => {
+const UserEditScreen = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
 
   const dispatch = useDispatch();
-  const userDetails = useSelector((state) => state.userDetails);
-  const { loading, error, user } = userDetails;
+  const { loading, error, user } = useSelector((state) => state.userDetails);
 
-  const userUpdate = useSelector((state) => state.userUpdate);
-  const { loading: loadingUpdate, error: errorUpdate, success } = userUpdate;
+  const {
+    loading: loadingUpdate,
+    error: errorUpdate,
+    success,
+  } = useSelector((state) => state.userUpdate);
 
-  const userId = match.params.id;
+  const navigate = useNavigate();
+  const { id: userId } = useParams();
 
   useEffect(() => {
     if (success) {
       dispatch({ type: USER_UPDATE_RESET });
-      history.push("/admin/userlist");
+      navigate("/admin/userlist");
     } else {
       if (!user.name || user._id !== userId) {
         dispatch(getUserDetails(userId));
@@ -35,7 +38,7 @@ const UserEditScreen = ({ match, history }) => {
         setIsAdmin(user.isAdmin);
       }
     }
-  }, [dispatch, userId, user, success, history]);
+  }, [dispatch, userId, user, success, navigate]);
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -44,49 +47,49 @@ const UserEditScreen = ({ match, history }) => {
 
   return (
     <>
-      <Link to="/admin/userlist" className="btn btn-light my-3">
+      <Link to='/admin/userlist' className='btn btn-light my-3'>
         Go back
       </Link>
       <FormContainer>
         <h1>Edit User</h1>
         {loadingUpdate && <Loader />}
-        {errorUpdate && <Message variant="danger">{errorUpdate}</Message>}
+        {errorUpdate && <Message variant='danger'>{errorUpdate}</Message>}
         {loading ? (
           <Loader />
         ) : error ? (
-          <Message variant="danger">{error}</Message>
+          <Message variant='danger'>{error}</Message>
         ) : (
           <Form onSubmit={submitHandler}>
-            <Form.Group controlId="name">
+            <Form.Group controlId='name'>
               <Form.Label>Name</Form.Label>
               <Form.Control
-                type="text"
-                placeholder="Enter Name"
+                type='text'
+                placeholder='Enter Name'
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               ></Form.Control>
             </Form.Group>
 
-            <Form.Group controlId="email" className="my-3">
+            <Form.Group controlId='email' className='my-3'>
               <Form.Label>Email Address</Form.Label>
               <Form.Control
-                type="email"
-                placeholder="Enter email"
+                type='email'
+                placeholder='Enter email'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               ></Form.Control>
             </Form.Group>
 
-            <Form.Group controlId="isadmin">
+            <Form.Group controlId='isadmin'>
               <Form.Check
-                type="checkbox"
-                label="Is Admin"
+                type='checkbox'
+                label='Is Admin'
                 checked={isAdmin}
                 onChange={(e) => setIsAdmin(e.target.checked)}
               ></Form.Check>
             </Form.Group>
 
-            <Button type="submit" variant="primary" className="my-3">
+            <Button type='submit' variant='primary' className='my-3'>
               Update
             </Button>
           </Form>

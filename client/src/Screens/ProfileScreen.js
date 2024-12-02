@@ -1,36 +1,40 @@
-import { useState, useEffect } from "react";
-import { Form, Button, Row, Col, Table } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import { Button, Col, Form, Row, Table } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { LinkContainer } from "react-router-bootstrap";
-import Message from "../Components/Message";
-import Loader from "../Components/Loader";
-import { getUserDetails, updateUserProfile } from "../Actions/userActions";
+import { useNavigate } from "react-router-dom";
 import { listMyOrders } from "../Actions/orderActions";
+import { getUserDetails, updateUserProfile } from "../Actions/userActions";
+import Loader from "../Components/Loader";
+import Message from "../Components/Message";
 import { USER_UPDATE_PROFILE_RESET } from "../constants/userConstants";
 
-const ProfileScreen = ({ location, history }) => {
+const ProfileScreen = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassord, setConfirmPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
 
   const dispatch = useDispatch();
   const userDetails = useSelector((state) => state.userDetails);
   const { loading, error, user } = userDetails;
 
-  const userLogin = useSelector((state) => state.userLogin);
-  const { userInfo } = userLogin;
+  const { userInfo } = useSelector((state) => state.userLogin);
 
-  const userUpdateProfile = useSelector((state) => state.userUpdateProfile);
-  const { success } = userUpdateProfile;
+  const { success } = useSelector((state) => state.userUpdateProfile);
 
-  const orderMyList = useSelector((state) => state.orderMyList);
-  const { loading: loadingOrders, error: errorOrders, orders } = orderMyList;
+  const {
+    loading: loadingOrders,
+    error: errorOrders,
+    orders,
+  } = useSelector((state) => state.orderMyList);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!userInfo) {
-      history.push("/login");
+      navigate("/login");
     } else {
       if (!user || !user.name || success) {
         dispatch({ type: USER_UPDATE_PROFILE_RESET });
@@ -41,12 +45,12 @@ const ProfileScreen = ({ location, history }) => {
         setEmail(user.email);
       }
     }
-  }, [dispatch, history, userInfo, user, success]);
+  }, [dispatch, navigate, userInfo, user, success]);
 
   const submitHandler = async (e) => {
     e.preventDefault();
 
-    if (password !== confirmPassord) {
+    if (password !== confirmPassword) {
       setMessage("Passwords do not match");
     } else {
       dispatch(updateUserProfile({ id: user._id, name, email, password }));
@@ -57,48 +61,48 @@ const ProfileScreen = ({ location, history }) => {
     <Row>
       <Col md={3}>
         <h2>User Profile</h2>
-        {message && <Message variant="danger">{message}</Message>}
-        {error && <Message variant="danger">{error}</Message>}
-        {success && <Message variant="success">Profile Updated</Message>}
+        {message && <Message variant='danger'>{message}</Message>}
+        {error && <Message variant='danger'>{error}</Message>}
+        {success && <Message variant='success'>Profile Updated</Message>}
         {loading && <Loader />}
         <Form onSubmit={submitHandler}>
-          <Form.Group controlId="name">
+          <Form.Group controlId='name'>
             <Form.Label>Name</Form.Label>
             <Form.Control
-              type="text"
-              placeholder="Enter Name"
+              type='text'
+              placeholder='Enter Name'
               value={name}
               onChange={(e) => setName(e.target.value)}
             ></Form.Control>
           </Form.Group>
-          <Form.Group controlId="email">
+          <Form.Group controlId='email'>
             <Form.Label>Email Address</Form.Label>
             <Form.Control
-              type="email"
-              placeholder="Enter email"
+              type='email'
+              placeholder='Enter email'
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             ></Form.Control>
           </Form.Group>
-          <Form.Group controlId="password">
+          <Form.Group controlId='password'>
             <Form.Label>Password</Form.Label>
             <Form.Control
-              type="password"
-              placeholder="Enter password"
+              type='password'
+              placeholder='Enter password'
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             ></Form.Control>
           </Form.Group>
-          <Form.Group controlId="confirmPassword">
+          <Form.Group controlId='confirmPassword'>
             <Form.Label>Confirm Password</Form.Label>
             <Form.Control
-              type="password"
-              placeholder="Confirm password"
-              value={confirmPassord}
+              type='password'
+              placeholder='Confirm password'
+              value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             ></Form.Control>
           </Form.Group>
-          <Button type="submit" variant="primary" className="my-3">
+          <Button type='submit' variant='primary' className='my-3'>
             Update
           </Button>
         </Form>
@@ -108,9 +112,9 @@ const ProfileScreen = ({ location, history }) => {
         {loadingOrders ? (
           <Loader />
         ) : errorOrders ? (
-          <Message variant="danger">{errorOrders}</Message>
+          <Message variant='danger'>{errorOrders}</Message>
         ) : (
-          <Table striped bordered hover responsive className="table-sm">
+          <Table striped bordered hover responsive className='table-sm'>
             <thead styles={{ textAlign: "center" }}>
               <tr>
                 <th>ID</th>
@@ -131,19 +135,19 @@ const ProfileScreen = ({ location, history }) => {
                     {order.isPaid ? (
                       order.paidAt.substring(0, 10)
                     ) : (
-                      <i className="fas fa-times" style={{ color: "red" }}></i>
+                      <i className='fas fa-times' style={{ color: "red" }}></i>
                     )}
                   </td>
                   <td>
                     {order.isDelivered ? (
                       order.deliveredAt.substring(0, 10)
                     ) : (
-                      <i className="fas fa-times" style={{ color: "red" }}></i>
+                      <i className='fas fa-times' style={{ color: "red" }}></i>
                     )}
                   </td>
                   <td>
                     <LinkContainer to={`/order/${order._id}`}>
-                      <Button variant="light" className="btn-sm">
+                      <Button variant='light' className='btn-sm'>
                         Details
                       </Button>
                     </LinkContainer>

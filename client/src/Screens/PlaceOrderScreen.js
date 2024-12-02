@@ -1,13 +1,15 @@
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Button, Row, Col, ListGroup, Image, Card } from "react-bootstrap";
+import { Button, Card, Col, Image, ListGroup, Row } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { createOrder } from "../Actions/orderActions";
 import CheckoutSteps from "../Components/CheckoutSteps";
 import Message from "../Components/Message";
-import { createOrder } from "../Actions/orderActions";
 
-const PlaceOrderScreen = ({ history }) => {
+const PlaceOrderScreen = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const cart = useSelector((state) => state.cart);
   const { cartItems, shippingAddress, paymentMethod } = cart;
 
@@ -17,7 +19,9 @@ const PlaceOrderScreen = ({ history }) => {
   //Calculate prices
   const prices = {
     items: Number(
-      cartItems.reduce((acc, item) => acc + item.price * item.qty, 0).toFixed(2)
+      cartItems
+        .reduce((acc, item) => acc + item.price * item.qty, 0)
+        .toFixed(2),
     ),
     shipping() {
       return Number(this.items > 100 ? 0 : 100);
@@ -40,22 +44,22 @@ const PlaceOrderScreen = ({ history }) => {
         shippingPrice: prices.shipping(),
         taxPrice: prices.tax(),
         totalPrice: prices.total(),
-      })
+      }),
     );
   };
 
   useEffect(() => {
     if (success) {
-      history.push(`/order/${order._id} `);
+      navigate(`/order/${order._id} `);
     }
-  }, [history, success, order]);
+  }, [navigate, success, order]);
 
   return (
     <>
       <CheckoutSteps step1 step2 step3 step4 />
       <Row>
         <Col md={8}>
-          <ListGroup variant="flush">
+          <ListGroup variant='flush'>
             <ListGroup.Item>
               <h2>Shipping</h2>
               <p>
@@ -78,7 +82,7 @@ const PlaceOrderScreen = ({ history }) => {
               {cartItems.length === 0 ? (
                 <Message>Your Cart is empty</Message>
               ) : (
-                <ListGroup variant="flush">
+                <ListGroup variant='flush'>
                   {cartItems.map((item, index) => (
                     <ListGroup.Item key={index}>
                       <Row>
@@ -108,7 +112,7 @@ const PlaceOrderScreen = ({ history }) => {
         </Col>
         <Col md={4}>
           <Card>
-            <ListGroup variant="flush">
+            <ListGroup variant='flush'>
               <ListGroup.Item>
                 <h2>Order Summary</h2>
               </ListGroup.Item>
@@ -138,13 +142,13 @@ const PlaceOrderScreen = ({ history }) => {
               </ListGroup.Item>
 
               <ListGroup.Item>
-                {error && <Message variant="danger">{error}</Message>}
+                {error && <Message variant='danger'>{error}</Message>}
               </ListGroup.Item>
 
               <ListGroup.Item>
                 <Button
-                  type="button"
-                  className="btn-block"
+                  type='button'
+                  className='btn-block'
                   disabled={cartItems === 0}
                   onClick={placeOrderHandler}
                 >
