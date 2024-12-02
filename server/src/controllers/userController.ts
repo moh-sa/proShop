@@ -1,5 +1,5 @@
 import asyncHandler from "express-async-handler";
-import User from "../models/userModel";
+import User, { IUser } from "../models/userModel";
 import generateToken from "../utils/generateJwtToken";
 
 /**
@@ -60,7 +60,8 @@ const registerUser = asyncHandler(async (req, res) => {
  * @access private
  */
 const getUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
+  const customReq = req as typeof req & { user: IUser };
+  const user = await User.findById(customReq.user._id);
   if (user) {
     res.json({
       _id: user._id,
@@ -80,7 +81,8 @@ const getUserProfile = asyncHandler(async (req, res) => {
  * @access private
  */
 const updateUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
+  const customReq = req as typeof req & { user: IUser };
+  const user = await User.findById(customReq.user._id);
   if (user) {
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;

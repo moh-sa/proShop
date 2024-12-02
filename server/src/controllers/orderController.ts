@@ -1,5 +1,6 @@
 import asyncHandler from "express-async-handler";
 import Order from "../models/orderModel";
+import { IUser } from "../models/userModel";
 
 /**
  * @description Create new order
@@ -7,6 +8,7 @@ import Order from "../models/orderModel";
  * @access private
  */
 const addOrderItems = asyncHandler(async (req, res) => {
+  const reqWithUser = req as typeof req & { user: IUser };
   const {
     orderItems,
     shippingAddress,
@@ -15,14 +17,14 @@ const addOrderItems = asyncHandler(async (req, res) => {
     shippingPrice,
     taxPrice,
     totalPrice,
-  } = req.body;
+  } = reqWithUser.body;
 
   if (orderItems && orderItems.length === 0) {
     res.status(400);
     throw new Error("No order items");
   } else {
     const order = new Order({
-      user: req.user._id,
+      user: reqWithUser.user._id,
       orderItems,
       shippingAddress,
       paymentMethod,
@@ -31,9 +33,9 @@ const addOrderItems = asyncHandler(async (req, res) => {
       taxPrice,
       totalPrice,
     });
-    const createdorder = await order.save();
+    const createdOrder = await order.save();
 
-    res.status(201).json(createdorder);
+    res.status(201).json(createdOrder);
   }
 });
 
@@ -45,7 +47,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
 const getOrderById = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id).populate(
     "user",
-    "name email"
+    "name email",
   );
 
   if (order) {
@@ -66,7 +68,7 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
 
   if (order) {
     order.isPaid = true;
-    order.paidAt = Date.now();
+    order.paidAt = new Date();
     order.paymentResult = {
       id: req.body.id,
       status: req.body.status,
@@ -89,7 +91,8 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
  * @access private
  */
 const getMyOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ user: req.user._id });
+  const reqWithUser = req as typeof req & { user: IUser };
+  const orders = await Order.find({ user: reqWithUser.user._id });
   res.json(orders);
 });
 
@@ -113,7 +116,7 @@ const updateOrderToDelivered = asyncHandler(async (req, res) => {
 
   if (order) {
     order.isDelivered = true;
-    order.deliveredAt = Date.now();
+    order.deliveredAt = new Date();
 
     const updatedOrder = await order.save();
 

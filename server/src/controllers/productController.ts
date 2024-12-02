@@ -1,5 +1,6 @@
 import asyncHandler from "express-async-handler";
 import Product from "../models/productModel";
+import { IUser } from "../models/userModel";
 
 /**
  * @description Fetch all products
@@ -57,8 +58,9 @@ const deleteProduct = asyncHandler(async (req, res) => {
  * @access private/admin
  */
 const createProduct = asyncHandler(async (req, res) => {
+  const reqWithUser = req as typeof req & { user: IUser };
   const product = new Product({
-    user: req.user._id,
+    user: reqWithUser.user._id,
     name: "Sample Name",
     image: "/images/sample.png",
     brand: "sample brand",
@@ -107,13 +109,15 @@ const updateProduct = asyncHandler(async (req, res) => {
  * @access private
  */
 const createProductReview = asyncHandler(async (req, res) => {
-  const { rating, comment } = req.body;
+  const reqWithUser = req as typeof req & { user: IUser };
 
-  const product = await Product.findById(req.params.id);
+  const { rating, comment } = reqWithUser.body;
+
+  const product = await Product.findById(reqWithUser.params.id);
 
   if (product) {
     const alreadyReviewed = product.reviews.find(
-      (r) => r.user.toString() === req.user._id.toString()
+      (r) => r.user.toString() === reqWithUser.user._id.toString(),
     );
 
     if (alreadyReviewed) {
@@ -122,10 +126,10 @@ const createProductReview = asyncHandler(async (req, res) => {
     }
 
     const review = {
-      name: req.user.name,
+      name: reqWithUser.user.name,
       rating: Number(rating),
       comment,
-      user: req.user._id,
+      user: reqWithUser.user._id,
     };
 
     product.reviews.push(review);
