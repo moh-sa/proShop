@@ -24,7 +24,7 @@ const CartScreen = () => {
   const qty = location.search ? Number(location.search.split("=")[1]) : 1;
 
   useEffect(() => {
-    dispatch(addToCart(productId, qty));
+    if (productId) dispatch(addToCart(productId, qty));
   }, [dispatch, productId, qty]);
 
   const removeFromCartHandler = (id) => {
