@@ -1,14 +1,8 @@
-import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Button, Card, Col, Image, ListGroup, Row } from "react-bootstrap";
-import { PayPalButton } from "react-paypal-button-v2";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import {
-  deliverOrder,
-  getOrderDetails,
-  payOrder,
-} from "../Actions/orderActions";
+import { deliverOrder, getOrderDetails } from "../Actions/orderActions";
 import Loader from "../Components/Loader";
 import Message from "../Components/Message";
 import {
@@ -17,7 +11,7 @@ import {
 } from "../constants/orderConstants";
 
 const OrderScreen = () => {
-  const [sdkReady, setSdkReady] = useState(false);
+  // const [sdkReady, setSdkReady] = useState(false);
 
   const { id: orderId } = useParams();
   const navigate = useNavigate();
@@ -35,24 +29,24 @@ const OrderScreen = () => {
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
-  const addPayPalScript = async () => {
-    const baseUrl =
-      process.env.NODE_ENV === "development"
-        ? process.env.REACT_APP_BACK_DEV_URL
-        : process.env.REACT_APP_BACK_URL;
+  // const addPayPalScript = async () => {
+  //   const baseUrl =
+  //     process.env.NODE_ENV === "development"
+  //       ? process.env.REACT_APP_BACK_DEV_URL
+  //       : process.env.REACT_APP_BACK_URL;
 
-    const { data: clientId } = await axios.get(`${baseUrl}/api/config/paypal`);
-    const script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}`;
-    script.async = true;
-    script.onload = () => setSdkReady(true);
-    document.body.appendChild(script);
-  };
+  //   const { data: clientId } = await axios.get(`${baseUrl}/api/config/paypal`);
+  //   const script = document.createElement("script");
+  //   script.type = "text/javascript";
+  //   script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}`;
+  //   script.async = true;
+  //   script.onload = () => setSdkReady(true);
+  //   document.body.appendChild(script);
+  // };
 
-  const successPaymentHandler = (paymentResult) => {
-    dispatch(payOrder(orderId, paymentResult));
-  };
+  // const successPaymentHandler = (paymentResult) => {
+  //   dispatch(payOrder(orderId, paymentResult));
+  // };
 
   const deliverHandler = () => {
     dispatch(deliverOrder(orderId));
@@ -60,27 +54,22 @@ const OrderScreen = () => {
 
   useEffect(() => {
     if (!userInfo) navigate("/login");
+  }, [navigate, userInfo]);
 
+  useEffect(() => {
     if (!order || successPay || successDeliver) {
       dispatch({ type: ORDER_PAY_RESET });
       dispatch({ type: ORDER_DELIVER_RESET });
       dispatch(getOrderDetails(orderId));
-    } else if (!order.isPaid) {
-      if (!window.paypal) {
-        addPayPalScript();
-      } else {
-        setSdkReady(true);
-      }
     }
-  }, [
-    dispatch,
-    order,
-    orderId,
-    successPay,
-    successDeliver,
-    navigate,
-    userInfo,
-  ]);
+    // else if (!order.isPaid) {
+    //   if (!window.paypal) {
+    //     addPayPalScript();
+    //   } else {
+    //     setSdkReady(true);
+    //   }
+    // }
+  }, [dispatch, order, orderId, successPay, successDeliver]);
 
   return loading ? (
     <Loader />
@@ -196,18 +185,18 @@ const OrderScreen = () => {
               {!order.isPaid && (
                 <ListGroup.Item>
                   {loadingPay && <Loader />}
-                  {!sdkReady ? (
+                  {/* // TODO: implement paypal */}
+                  <Button disabled>PayPal Placeholder</Button>
+                  {/* {!sdkReady ? (
                     <Loader />
                   ) : (
-                    <PayPalButton
-                      amount={order.totalPrice}
-                      onSuccess={successPaymentHandler}
-                    />
-                  )}
+                    
+                  )} */}
                 </ListGroup.Item>
               )}
 
               {loadingDeliver && <Loader />}
+
               {userInfo &&
                 userInfo.isAdmin &&
                 order.isPaid &&
