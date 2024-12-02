@@ -1,8 +1,6 @@
-import { Route } from "react-router-dom";
+import { Container, Nav, Navbar, NavDropdown } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { LinkContainer } from "react-router-bootstrap";
-import { Navbar, Container, Nav, NavDropdown } from "react-bootstrap";
-import SearchBar from "./SearchBar";
 import { logout } from "../Actions/userActions";
 
 function Header() {
@@ -23,35 +21,36 @@ function Header() {
         }}
       >
         ⚠This app is from{" "}
-        <a href="https://www.udemy.com/course/mern-ecommerce">Brad Traversy</a>
+        <a href='https://www.udemy.com/course/mern-ecommerce'>Brad Traversy</a>
         's course.⚠ Check the{" "}
-        <a href="https://github.com/moh-sa/proShop">
-          <i className="fa-brands fa-github"></i> github repo
+        <a href='https://github.com/moh-sa/proShop'>
+          <i className='fa-brands fa-github'></i> github repo
         </a>
         .
       </div>
       <header>
-        <Navbar bg="dark" variant="dark" expand="lg" collapseOnSelect>
+        <Navbar bg='dark' variant='dark' expand='lg' collapseOnSelect>
           <Container>
-            <LinkContainer to="/">
-              <Navbar.Brand href="/">ProShop</Navbar.Brand>
+            <LinkContainer to='/'>
+              <Navbar.Brand href='/'>ProShop</Navbar.Brand>
             </LinkContainer>
 
-            <Navbar.Toggle aria-controls="basic-navbar-nav" />
-            <Navbar.Collapse id="basic-navbar-nav">
+            <Navbar.Toggle aria-controls='basic-navbar-nav' />
+            <Navbar.Collapse id='basic-navbar-nav'>
+              {/* // BUG: fix me
               <Route
                 render={({ history }) => <SearchBar history={history} />}
-              />
+              /> */}
               <Nav style={{ marginLeft: "auto" }}>
-                <LinkContainer to="/cart">
+                <LinkContainer to='/cart'>
                   <Nav.Link>
-                    <i className="fas fa-shopping-cart"></i> Cart
+                    <i className='fas fa-shopping-cart'></i> Cart
                   </Nav.Link>
                 </LinkContainer>
 
                 {userInfo ? (
-                  <NavDropdown title={userInfo.name} id="username">
-                    <LinkContainer to="/profile">
+                  <NavDropdown title={userInfo.name} id='username'>
+                    <LinkContainer to='/profile'>
                       <NavDropdown.Item>Profile</NavDropdown.Item>
                     </LinkContainer>
                     <NavDropdown.Item onClick={logoutHandler}>
@@ -59,21 +58,21 @@ function Header() {
                     </NavDropdown.Item>
                   </NavDropdown>
                 ) : (
-                  <LinkContainer to="/login">
+                  <LinkContainer to='/login'>
                     <Nav.Link>
-                      <i className="fas fa-user"></i> Sign In
+                      <i className='fas fa-user'></i> Sign In
                     </Nav.Link>
                   </LinkContainer>
                 )}
                 {userInfo && userInfo.isAdmin && (
-                  <NavDropdown title="Admin" id="adminmenu">
-                    <LinkContainer to="/admin/userlist">
+                  <NavDropdown title='Admin' id='adminmenu'>
+                    <LinkContainer to='/admin/userlist'>
                       <NavDropdown.Item>Users</NavDropdown.Item>
                     </LinkContainer>
-                    <LinkContainer to="/admin/productList">
+                    <LinkContainer to='/admin/productList'>
                       <NavDropdown.Item>Products</NavDropdown.Item>
                     </LinkContainer>
-                    <LinkContainer to="/admin/orderList">
+                    <LinkContainer to='/admin/orderList'>
                       <NavDropdown.Item>Orders</NavDropdown.Item>
                     </LinkContainer>
                   </NavDropdown>
