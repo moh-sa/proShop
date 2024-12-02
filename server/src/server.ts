@@ -4,12 +4,12 @@ import path from "path";
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
-import connectDB from "./config/db.js";
-import productRoutes from "./routes/productRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
-import orderRoutes from "./routes/orderRoutes.js";
-import uploadRoutes from "./routes/uploadRoutes.js";
-import { notFound, errorHandler } from "./middlewares/errorMiddleware.js";
+import connectDB from "./config/db";
+import productRoutes from "./routes/productRoutes";
+import userRoutes from "./routes/userRoutes";
+import orderRoutes from "./routes/orderRoutes";
+import uploadRoutes from "./routes/uploadRoutes";
+import { notFound, errorHandler } from "./middlewares/errorMiddleware";
 
 const app = express();
 const clientURL =
