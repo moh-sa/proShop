@@ -2,7 +2,6 @@ import cors from "cors";
 import * as dotenv from "dotenv";
 import express, { Request, Response } from "express";
 import morgan from "morgan";
-import path from "path";
 import connectDB from "./config/db";
 import { errorHandler, notFound } from "./middlewares/errorMiddleware";
 import orderRoutes from "./routes/orderRoutes";
@@ -12,10 +11,6 @@ import userRoutes from "./routes/userRoutes";
 dotenv.config();
 
 const app = express();
-const clientURL =
-  process.env.NODE_ENV === "development"
-    ? process.env.CLIENT_URL_DEV
-    : process.env.CLIENT_URL;
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
@@ -40,7 +35,6 @@ app.get("/api/config/paypal", (_req: Request, res: Response) => {
   res.send(process.env.PAYPAL_CLIENT_ID);
 });
 
-const __dirname = path.resolve();
 app.use("/uploads", express.static("uploads"));
 
 app.use(notFound);
