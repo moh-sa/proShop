@@ -1,6 +1,6 @@
 import path from "path";
 import express from "express";
-import multer from "multer";
+import multer, { FileFilterCallback } from "multer";
 
 const router = express.Router();
 
@@ -16,7 +16,7 @@ const storage = multer.diskStorage({
   },
 });
 
-function checkFileType(file, cb) {
+function checkFileType(file: Express.Multer.File, cb: FileFilterCallback) {
   const fileTypes = /jpg|jpeg|png/;
   const extName = fileTypes.test(path.extname(file.originalname).toLowerCase());
   const mimeType = fileTypes.test(file.mimetype);
@@ -24,7 +24,7 @@ function checkFileType(file, cb) {
   if (extName && mimeType) {
     return cb(null, true);
   } else {
-    return cb("images only!");
+    return cb(new Error("Only Images are allowed!"));
   }
 }
 
@@ -36,7 +36,10 @@ const upload = multer({
 });
 
 router.route("/").post(upload.single("image"), (req, res) => {
-  res.send(`${process.env.SERVER_URL}/${req.file.path}`);
+  if (req.file) {
+    res.send(`${process.env.SERVER_URL}/${req.file.path}`);
+  }
+  res.status(400).json({ message: "No file uploaded. Please provide a file." });
 });
 
 export default router;
