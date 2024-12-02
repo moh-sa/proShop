@@ -18,7 +18,7 @@ const protect = asyncHandler(async (req, res, next) => {
       const isUserExist = await User.findById(decoded.id).select("-password");
       if (isUserExist) {
         customReq.user = isUserExist;
-        next();
+        return next();
       }
 
       throw new Error("Not authorized, token failed.");
