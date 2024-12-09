@@ -69,9 +69,9 @@ const ProductEditScreen = () => {
       };
 
       const baseUrl =
-        process.env.NODE_ENV === "development"
-          ? process.env.REACT_APP_BACK_DEV_URL
-          : process.env.REACT_APP_BACK_URL;
+        import.meta.env.DEV === "development"
+          ? import.meta.env.VITE_BACK_DEV_URL
+          : import.meta.env.VITE_BACK_URL;
 
       const { data } = await axios.post(
         `${baseUrl}/api/upload`,

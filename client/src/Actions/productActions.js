@@ -24,9 +24,9 @@ import {
 } from "../constants/productConsts";
 
 const baseUrl =
-  process.env.NODE_ENV === "development"
-    ? process.env.REACT_APP_BACK_DEV_URL
-    : process.env.REACT_APP_BACK_URL;
+  import.meta.env.DEV === "development"
+    ? import.meta.env.VITE_BACK_DEV_URL
+    : import.meta.env.VITE_BACK_URL;
 
 export const listProducts =
   (keyword = "", pageNumber = "") =>

@@ -7,9 +7,9 @@ import {
 } from "../constants/cartConstants";
 
 const baseUrl =
-  process.env.NODE_ENV === "development"
-    ? process.env.REACT_APP_BACK_DEV_URL
-    : process.env.REACT_APP_BACK_URL;
+  import.meta.env.DEV === "development"
+    ? import.meta.env.VITE_BACK_DEV_URL
+    : import.meta.env.VITE_BACK_URL;
 
 export const addToCart = (id, qty) => async (dispatch, getState) => {
   const { data } = await axios.get(`${baseUrl}/api/products/${id}`);
