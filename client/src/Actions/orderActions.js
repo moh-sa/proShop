@@ -1,24 +1,31 @@
-import axios from "axios";
 import {
+  ORDER_CREATE_FAIL,
   ORDER_CREATE_REQUEST,
   ORDER_CREATE_SUCCESS,
-  ORDER_CREATE_FAIL,
-  ORDER_DETAILS_REQUEST,
-  ORDER_DETAILS_SUCCESS,
-  ORDER_DETAILS_FAIL,
-  ORDER_PAY_REQUEST,
-  ORDER_PAY_SUCCESS,
-  ORDER_PAY_FAIL,
-  ORDER_LIST_MY_REQUEST,
-  ORDER_LIST_MY_SUCCESS,
-  ORDER_LIST_MY_FAIL,
-  ORDER_LIST_REQUEST,
-  ORDER_LIST_SUCCESS,
-  ORDER_LIST_FAIL,
+  ORDER_DELIVER_FAIL,
   ORDER_DELIVER_REQUEST,
   ORDER_DELIVER_SUCCESS,
-  ORDER_DELIVER_FAIL,
+  ORDER_DETAILS_FAIL,
+  ORDER_DETAILS_REQUEST,
+  ORDER_DETAILS_SUCCESS,
+  ORDER_LIST_FAIL,
+  ORDER_LIST_MY_FAIL,
+  ORDER_LIST_MY_REQUEST,
+  ORDER_LIST_MY_SUCCESS,
+  ORDER_LIST_REQUEST,
+  ORDER_LIST_SUCCESS,
+  ORDER_PAY_FAIL,
+  ORDER_PAY_REQUEST,
+  ORDER_PAY_SUCCESS,
 } from "../constants/orderConstants";
+import {
+  createOrderAPI,
+  deliverOrderAPI,
+  getOrderDetailsAPI,
+  listMyOrdersAPI,
+  listOrdersAPI,
+  payOrderAPI,
+} from "../services/api";
 
 const baseUrl =
   import.meta.env.DEV === "development"
@@ -33,14 +40,7 @@ export const createOrder = (order) => async (dispatch, getState) => {
       userLogin: { userInfo },
     } = getState();
 
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${userInfo.token}`,
-      },
-    };
-
-    const { data } = await axios.post(`${baseUrl}/api/orders`, order, config);
+    const { data } = await createOrderAPI(order, userInfo.token);
 
     dispatch({ type: ORDER_CREATE_SUCCESS, payload: data });
   } catch (error) {
@@ -63,13 +63,7 @@ export const getOrderDetails = (id) => async (dispatch, getState) => {
       userLogin: { userInfo },
     } = getState();
 
-    const config = {
-      headers: {
-        Authorization: `Bearer ${userInfo.token}`,
-      },
-    };
-
-    const { data } = await axios.get(`${baseUrl}/api/orders/${id}`, config);
+    const { data } = await getOrderDetailsAPI(id, userInfo.token);
 
     dispatch({ type: ORDER_DETAILS_SUCCESS, payload: data });
   } catch (error) {
@@ -93,17 +87,10 @@ export const payOrder =
         userLogin: { userInfo },
       } = getState();
 
-      const config = {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${userInfo.token}`,
-        },
-      };
-
-      const { data } = await axios.put(
-        `${baseUrl}/api/orders/${orderId}/pay`,
+      const { data } = await payOrderAPI(
+        orderId,
         paymentResult,
-        config
+        userInfo.token,
       );
 
       dispatch({ type: ORDER_PAY_SUCCESS, payload: data });
@@ -127,17 +114,7 @@ export const deliverOrder = (orderId) => async (dispatch, getState) => {
       userLogin: { userInfo },
     } = getState();
 
-    const config = {
-      headers: {
-        Authorization: `Bearer ${userInfo.token}`,
-      },
-    };
-
-    const { data } = await axios.put(
-      `${baseUrl}/api/orders/${orderId}/deliver`,
-      {},
-      config
-    );
+    const { data } = await deliverOrderAPI(orderId, userInfo.token);
 
     dispatch({ type: ORDER_DELIVER_SUCCESS, payload: data });
   } catch (error) {
@@ -160,13 +137,7 @@ export const listMyOrders = () => async (dispatch, getState) => {
       userLogin: { userInfo },
     } = getState();
 
-    const config = {
-      headers: {
-        Authorization: `Bearer ${userInfo.token}`,
-      },
-    };
-
-    const { data } = await axios.get(`${baseUrl}/api/orders/myorders`, config);
+    const { data } = await listMyOrdersAPI(userInfo.token);
 
     dispatch({ type: ORDER_LIST_MY_SUCCESS, payload: data });
   } catch (error) {
@@ -189,13 +160,7 @@ export const listOrders = () => async (dispatch, getState) => {
       userLogin: { userInfo },
     } = getState();
 
-    const config = {
-      headers: {
-        Authorization: `Bearer ${userInfo.token}`,
-      },
-    };
-
-    const { data } = await axios.get(`${baseUrl}/api/orders`, config);
+    const { data } = await listOrdersAPI(userInfo.token);
 
     dispatch({ type: ORDER_LIST_SUCCESS, payload: data });
   } catch (error) {

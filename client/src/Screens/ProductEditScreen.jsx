@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,6 +7,7 @@ import FormContainer from "../Components/FormContainer";
 import Loader from "../Components/Loader";
 import Message from "../Components/Message";
 import { PRODUCT_UPDATE_RESET } from "../constants/productConsts";
+import { uploadImageAPI } from "../services/api";
 
 const ProductEditScreen = () => {
   const [name, setName] = useState("");
@@ -62,22 +62,7 @@ const ProductEditScreen = () => {
     setUploading(true);
 
     try {
-      const config = {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      };
-
-      const baseUrl =
-        import.meta.env.DEV === "development"
-          ? import.meta.env.VITE_BACK_DEV_URL
-          : import.meta.env.VITE_BACK_URL;
-
-      const { data } = await axios.post(
-        `${baseUrl}/api/upload`,
-        formData,
-        config,
-      );
+      const { data } = await uploadImageAPI(formData);
 
       setImage(data);
 

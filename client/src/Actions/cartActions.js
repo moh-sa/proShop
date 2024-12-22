@@ -1,10 +1,10 @@
-import axios from "axios";
 import {
   CART_ADD_ITEM,
   CART_REMOVE_ITEM,
-  CART_SAVE_SHIPPING_ADDRESS,
   CART_SAVE_PAYMENT_METHOD,
+  CART_SAVE_SHIPPING_ADDRESS,
 } from "../constants/cartConstants";
+import { addToCartAPI } from "../services/api";
 
 const baseUrl =
   import.meta.env.DEV === "development"
@@ -12,7 +12,7 @@ const baseUrl =
     : import.meta.env.VITE_BACK_URL;
 
 export const addToCart = (id, qty) => async (dispatch, getState) => {
-  const { data } = await axios.get(`${baseUrl}/api/products/${id}`);
+  const { data } = await addToCartAPI(id, qty);
 
   dispatch({
     type: CART_ADD_ITEM,

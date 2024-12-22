@@ -1,27 +1,35 @@
-import axios from "axios";
 import {
-  PRODUCT_LIST_REQUEST,
-  PRODUCT_LIST_SUCCESS,
-  PRODUCT_LIST_FAIL,
-  PRODUCT_DETAILS_REQUEST,
-  PRODUCT_DETAILS_SUCCESS,
-  PRODUCT_DETAILS_FAIL,
-  PRODUCT_DELETE_REQUEST,
-  PRODUCT_DELETE_SUCCESS,
-  PRODUCT_DELETE_FAIL,
-  PRODUCT_CREATE_REQUEST,
-  PRODUCT_CREATE_SUCCESS,
   PRODUCT_CREATE_FAIL,
-  PRODUCT_UPDATE_REQUEST,
-  PRODUCT_UPDATE_SUCCESS,
-  PRODUCT_UPDATE_FAIL,
+  PRODUCT_CREATE_REQUEST,
+  PRODUCT_CREATE_REVIEW_FAIL,
   PRODUCT_CREATE_REVIEW_REQUEST,
   PRODUCT_CREATE_REVIEW_SUCCESS,
-  PRODUCT_CREATE_REVIEW_FAIL,
+  PRODUCT_CREATE_SUCCESS,
+  PRODUCT_DELETE_FAIL,
+  PRODUCT_DELETE_REQUEST,
+  PRODUCT_DELETE_SUCCESS,
+  PRODUCT_DETAILS_FAIL,
+  PRODUCT_DETAILS_REQUEST,
+  PRODUCT_DETAILS_SUCCESS,
+  PRODUCT_LIST_FAIL,
+  PRODUCT_LIST_REQUEST,
+  PRODUCT_LIST_SUCCESS,
+  PRODUCT_TOP_FAIL,
   PRODUCT_TOP_REQUEST,
   PRODUCT_TOP_SUCCESS,
-  PRODUCT_TOP_FAIL,
+  PRODUCT_UPDATE_FAIL,
+  PRODUCT_UPDATE_REQUEST,
+  PRODUCT_UPDATE_SUCCESS,
 } from "../constants/productConsts";
+import {
+  addProductAPI,
+  addProductReviewAPI,
+  deleteProductAPI,
+  getProductByIdAPI,
+  getProductsAPI,
+  getTopRatedProductsAPI,
+  updateProductAPI,
+} from "../services/api";
 
 const baseUrl =
   import.meta.env.DEV === "development"
@@ -34,9 +42,10 @@ export const listProducts =
     try {
       dispatch({ type: PRODUCT_LIST_REQUEST });
 
-      const { data } = await axios.get(
-        `${baseUrl}/api/products?keyword=${keyword}&pageNumber=${pageNumber}`
-      );
+      const { data } = await getProductsAPI({
+        keyword,
+        pageNumber,
+      });
 
       dispatch({ type: PRODUCT_LIST_SUCCESS, payload: data });
     } catch (error) {
@@ -54,7 +63,7 @@ export const listProductDetails = (id) => async (dispatch) => {
   try {
     dispatch({ type: PRODUCT_DETAILS_REQUEST });
 
-    const { data } = await axios.get(`${baseUrl}/api/products/${id}`);
+    const { data } = await getProductByIdAPI(id);
 
     dispatch({ type: PRODUCT_DETAILS_SUCCESS, payload: data });
   } catch (error) {
@@ -76,13 +85,7 @@ export const deleteProduct = (id) => async (dispatch, getState) => {
       userLogin: { userInfo },
     } = getState();
 
-    const config = {
-      headers: {
-        Authorization: `Bearer ${userInfo.token}`,
-      },
-    };
-
-    await axios.delete(`${baseUrl}/api/products/${id}`, config);
+    await deleteProductAPI(id, userInfo.token);
 
     dispatch({ type: PRODUCT_DELETE_SUCCESS });
   } catch (error) {
@@ -104,13 +107,7 @@ export const createProduct = () => async (dispatch, getState) => {
       userLogin: { userInfo },
     } = getState();
 
-    const config = {
-      headers: {
-        Authorization: `Bearer ${userInfo.token}`,
-      },
-    };
-
-    const { data } = await axios.post(`${baseUrl}/api/products`, {}, config);
+    const { data } = await addProductAPI({}, userInfo.token);
 
     dispatch({ type: PRODUCT_CREATE_SUCCESS, payload: data });
   } catch (error) {
@@ -132,18 +129,7 @@ export const updateProduct = (product) => async (dispatch, getState) => {
       userLogin: { userInfo },
     } = getState();
 
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${userInfo.token}`,
-      },
-    };
-
-    const { data } = await axios.put(
-      `${baseUrl}/api/products/${product._id}`,
-      product,
-      config
-    );
+    const { data } = await updateProductAPI(product, userInfo.token);
 
     dispatch({ type: PRODUCT_UPDATE_SUCCESS, payload: data });
   } catch (error) {
@@ -166,18 +152,7 @@ export const createProductReview =
         userLogin: { userInfo },
       } = getState();
 
-      const config = {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${userInfo.token}`,
-        },
-      };
-
-      await axios.post(
-        `${baseUrl}/api/products/${productId}/reviews`,
-        review,
-        config
-      );
+      await addProductReviewAPI(productId, review, userInfo.token);
 
       dispatch({ type: PRODUCT_CREATE_REVIEW_SUCCESS });
     } catch (error) {
@@ -195,7 +170,7 @@ export const getTopRatedProducts = () => async (dispatch) => {
   try {
     dispatch({ type: PRODUCT_TOP_REQUEST });
 
-    const { data } = await axios.get(`${baseUrl}/api/products/top`);
+    const { data } = await getTopRatedProductsAPI();
 
     dispatch({ type: PRODUCT_TOP_SUCCESS, payload: data });
   } catch (error) {
