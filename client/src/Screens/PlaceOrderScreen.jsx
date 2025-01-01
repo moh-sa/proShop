@@ -2,24 +2,26 @@ import { useEffect } from "react";
 import { Button, Card, Col, Image, ListGroup, Row } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { createOrder } from "../Actions/orderActions";
 import CheckoutSteps from "../Components/CheckoutSteps";
 import Message from "../Components/Message";
+import { createOrder } from "../store";
 
 const PlaceOrderScreen = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const cart = useSelector((state) => state.cart);
-  const { cartItems, shippingAddress, paymentMethod } = cart;
+  const cartItemsState = useSelector((state) => state.cart.cartItems);
+  const shippingAddressState = useSelector(
+    (state) => state.cart.shippingAddress,
+  );
+  const paymentMethodState = useSelector((state) => state.cart.paymentMethod);
+  const createState = useSelector((state) => state.orders.create);
 
-  const orderCreate = useSelector((state) => state.orderCreate);
-  const { success, order, error } = orderCreate;
-
+  // TODO: refactor to a helper function
   //Calculate prices
   const prices = {
     items: Number(
-      cartItems
+      cartItemsState
         .reduce((acc, item) => acc + item.price * item.qty, 0)
         .toFixed(2),
     ),
@@ -37,9 +39,9 @@ const PlaceOrderScreen = () => {
   const placeOrderHandler = async () => {
     dispatch(
       createOrder({
-        orderItems: cartItems,
-        shippingAddress,
-        paymentMethod,
+        orderItems: cartItemsState,
+        shippingAddress: shippingAddressState,
+        paymentMethod: paymentMethodState,
         itemsPrice: prices.items,
         shippingPrice: prices.shipping(),
         taxPrice: prices.tax(),
@@ -49,10 +51,8 @@ const PlaceOrderScreen = () => {
   };
 
   useEffect(() => {
-    if (success) {
-      navigate(`/order/${order._id} `);
-    }
-  }, [navigate, success, order]);
+    if (createState.success) navigate(`/order/${createState.order._id}`);
+  }, [navigate, createState.success, createState.order]);
 
   return (
     <>
@@ -64,8 +64,9 @@ const PlaceOrderScreen = () => {
               <h2>Shipping</h2>
               <p>
                 <strong>Address: </strong>
-                {shippingAddress.address}, {shippingAddress.city}{" "}
-                {shippingAddress.postalCode}, {shippingAddress.country}
+                {shippingAddressState.address}, {shippingAddressState.city}{" "}
+                {shippingAddressState.postalCode},{" "}
+                {shippingAddressState.country}
               </p>
             </ListGroup.Item>
 
@@ -73,17 +74,18 @@ const PlaceOrderScreen = () => {
               <h2>Payment Method</h2>
               <p>
                 <strong>Method: </strong>
-                {paymentMethod}
+                {paymentMethodState}
               </p>
             </ListGroup.Item>
 
             <ListGroup.Item>
               <h2>Order Items</h2>
-              {cartItems.length === 0 ? (
+              {cartItemsState.length === 0 && (
                 <Message>Your Cart is empty</Message>
-              ) : (
+              )}
+              {cartItemsState.length > 0 && (
                 <ListGroup variant='flush'>
-                  {cartItems.map((item, index) => (
+                  {cartItemsState.map((item, index) => (
                     <ListGroup.Item key={index}>
                       <Row>
                         <Col md={1}>
@@ -142,14 +144,18 @@ const PlaceOrderScreen = () => {
               </ListGroup.Item>
 
               <ListGroup.Item>
-                {error && <Message variant='danger'>{error}</Message>}
+                {createState.error && (
+                  <Message variant='danger'>
+                    {createState.error.message}
+                  </Message>
+                )}
               </ListGroup.Item>
 
               <ListGroup.Item>
                 <Button
                   type='button'
                   className='btn-block'
-                  disabled={cartItems === 0}
+                  disabled={cartItemsState === 0}
                   onClick={placeOrderHandler}
                 >
                   Place Order

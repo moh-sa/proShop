@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { listProductDetails, updateProduct } from "../Actions/productActions";
 import FormContainer from "../Components/FormContainer";
 import Loader from "../Components/Loader";
 import Message from "../Components/Message";
-import { PRODUCT_UPDATE_RESET } from "../constants/productConsts";
 import { uploadImageAPI } from "../services/api";
+import {
+  fetchProductDetails,
+  resetUpdateProductsState,
+  updateProduct,
+} from "../store";
 
 const ProductEditScreen = () => {
   const [name, setName] = useState("");
@@ -19,53 +22,47 @@ const ProductEditScreen = () => {
   const [description, setDescription] = useState("");
   const [uploading, setUploading] = useState(false);
 
-  const navigate = useNavigate();
-
-  const dispatch = useDispatch();
-  const productDetails = useSelector((state) => state.productDetails);
-  const { loading, error, product } = productDetails;
-
-  const productUpdate = useSelector((state) => state.productUpdate);
-  const {
-    loading: loadingUpdate,
-    error: errorUpdate,
-    success: successUpdate,
-  } = productUpdate;
-
   const { id: productId } = useParams();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const productState = useSelector((state) => state.products.product);
+  const updateState = useSelector((state) => state.products.update);
 
   useEffect(() => {
-    if (successUpdate) {
-      dispatch({ type: PRODUCT_UPDATE_RESET });
+    if (updateState.success) {
+      dispatch(resetUpdateProductsState());
       navigate("/admin/productlist");
-    } else {
-      if (!product.name || product._id !== productId) {
-        dispatch(listProductDetails(productId));
-      } else {
-        setName(product.name);
-        setPrice(product.price);
-        setImage(product.image);
-        setBrand(product.brand);
-        setCategory(product.category);
-        setCountInStock(product.countInStock);
-        setDescription(product.description);
-      }
     }
-  }, [dispatch, product, productId, navigate, successUpdate]);
+  }, [dispatch, navigate, updateState.success]);
+
+  useEffect(() => {
+    if (!productState.data && productId)
+      dispatch(fetchProductDetails({ productId }));
+  }, [dispatch, productState.data, productId]);
+
+  useEffect(() => {
+    if (productState.data) {
+      setName(productState.data.name);
+      setPrice(productState.data.price);
+      setImage(productState.data.image);
+      setBrand(productState.data.brand);
+      setCategory(productState.data.category);
+      setCountInStock(productState.data.countInStock);
+      setDescription(productState.data.description);
+    }
+  }, [productState.data, productId]);
 
   const uploadFileHandler = async (e) => {
     const file = e.target.files[0];
     const formData = new FormData();
     formData.append("image", file);
-    console.log(formData);
 
     setUploading(true);
 
     try {
       const { data } = await uploadImageAPI(formData);
-
       setImage(data);
-
       setUploading(false);
     } catch (error) {
       console.log(error);
@@ -75,18 +72,17 @@ const ProductEditScreen = () => {
 
   const submitHandler = (e) => {
     e.preventDefault();
-    dispatch(
-      updateProduct({
-        _id: product._id,
-        name,
-        price,
-        image,
-        brand,
-        category,
-        countInStock,
-        description,
-      }),
-    );
+    const productData = {
+      _id: productState.data._id,
+      name,
+      price,
+      image,
+      brand,
+      category,
+      countInStock,
+      description,
+    };
+    dispatch(updateProduct(productData));
   };
 
   return (
@@ -97,14 +93,18 @@ const ProductEditScreen = () => {
       <FormContainer>
         <h1>Edit Product</h1>
 
-        {loadingUpdate && <Loader />}
-        {errorUpdate && <Message variant='danger'>{errorUpdate}</Message>}
+        {updateState.loading && <Loader />}
+        {updateState.error && (
+          <Message variant='danger'>{updateState.error.message}</Message>
+        )}
 
-        {loading ? (
-          <Loader />
-        ) : error ? (
-          <Message variant='danger'>{error}</Message>
-        ) : (
+        {productState.loading && <Loader />}
+
+        {productState.error && (
+          <Message variant='danger'>{productState.error.message}</Message>
+        )}
+
+        {!productState.loading && !productState.error && productState.data && (
           <Form onSubmit={submitHandler}>
             <Form.Group controlId='name'>
               <Form.Label>Name</Form.Label>
@@ -183,7 +183,12 @@ const ProductEditScreen = () => {
               ></Form.Control>
             </Form.Group>
 
-            <Button type='submit' variant='primary' className='my-3'>
+            <Button
+              type='submit'
+              variant='primary'
+              className='my-3'
+              onClick={submitHandler}
+            >
               Update
             </Button>
           </Form>

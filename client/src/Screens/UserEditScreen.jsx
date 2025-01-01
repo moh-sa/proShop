@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { getUserDetails, updateUser } from "../Actions/userActions";
 import FormContainer from "../Components/FormContainer";
 import Loader from "../Components/Loader";
 import Message from "../Components/Message";
-import { USER_UPDATE_RESET } from "../constants/userConstants";
+import { fetchUserDetails, resetUpdateUsersState, updateUser } from "../store";
 
 const UserEditScreen = () => {
   const [name, setName] = useState("");
@@ -14,31 +13,40 @@ const UserEditScreen = () => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   const dispatch = useDispatch();
-  const { loading, error, user } = useSelector((state) => state.userDetails);
-
-  const {
-    loading: loadingUpdate,
-    error: errorUpdate,
-    success,
-  } = useSelector((state) => state.userUpdate);
-
   const navigate = useNavigate();
   const { id: userId } = useParams();
 
+  const userState = useSelector((state) => state.users.user);
+  const updateState = useSelector((state) => state.users.update);
+
   useEffect(() => {
-    if (success) {
-      dispatch({ type: USER_UPDATE_RESET });
+    if (updateState.success) {
+      dispatch(resetUpdateUsersState());
       navigate("/admin/userlist");
-    } else {
-      if (!user.name || user._id !== userId) {
-        dispatch(getUserDetails(userId));
-      } else {
-        setName(user.name);
-        setEmail(user.email);
-        setIsAdmin(user.isAdmin);
-      }
     }
-  }, [dispatch, userId, user, success, navigate]);
+  }, [dispatch, navigate, updateState.success]);
+
+  useEffect(() => {
+    if (
+      !userState.data ||
+      !userState.data.name ||
+      userState.data._id !== userId
+    ) {
+      dispatch(fetchUserDetails({ userId }));
+    }
+  }, [dispatch, userState.data, userId]);
+
+  useEffect(() => {
+    if (
+      userState.data &&
+      userState.data.name &&
+      userState.data._id === userId
+    ) {
+      setName(userState.data.name);
+      setEmail(userState.data.email);
+      setIsAdmin(userState.data.isAdmin);
+    }
+  }, [userState.data, userId]);
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -52,13 +60,15 @@ const UserEditScreen = () => {
       </Link>
       <FormContainer>
         <h1>Edit User</h1>
-        {loadingUpdate && <Loader />}
-        {errorUpdate && <Message variant='danger'>{errorUpdate}</Message>}
-        {loading ? (
-          <Loader />
-        ) : error ? (
-          <Message variant='danger'>{error}</Message>
-        ) : (
+        {updateState.loading && <Loader />}
+        {updateState.error && (
+          <Message variant='danger'>{updateState.error.message}</Message>
+        )}
+        {userState.loading && <Loader />}
+        {userState.error && (
+          <Message variant='danger'>{userState.error.message}</Message>
+        )}
+        {name && (
           <Form onSubmit={submitHandler}>
             <Form.Group controlId='name'>
               <Form.Label>Name</Form.Label>

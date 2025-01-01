@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Button, Col, Form, Row } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { register } from "../Actions/userActions";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import FormContainer from "../Components/FormContainer";
 import Loader from "../Components/Loader";
 import Message from "../Components/Message";
+import { register } from "../store";
 
 const RegisterScreen = () => {
   const [name, setName] = useState("");
@@ -15,37 +15,35 @@ const RegisterScreen = () => {
   const [message, setMessage] = useState("");
 
   const dispatch = useDispatch();
-  const { loading, error, userInfo } = useSelector(
-    (state) => state.userRegister,
-  );
-
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const auth = useSelector((state) => state.auth);
 
-  const redirect = location.search ? location.search.split("=")[1] : "/";
+  const redirect = searchParams.get("redirect") ?? "/";
 
   useEffect(() => {
-    if (userInfo) {
-      navigate(`/${redirect}`);
-    }
-  }, [navigate, userInfo, redirect]);
+    if (auth.user) navigate(`/${redirect}`);
+  }, [navigate, auth.user, redirect]);
+
+  function isPasswordMatch(password, confirmPassword) {
+    return password === confirmPassword;
+  }
 
   const submitHandler = async (e) => {
     e.preventDefault();
 
-    if (password !== confirmPassword) {
-      setMessage("Passwords do not match");
-    } else {
-      dispatch(register(name, email, password));
-    }
+    if (!isPasswordMatch(password, confirmPassword))
+      return setMessage("Passwords do not match");
+
+    dispatch(register({ name, email, password }));
   };
 
   return (
     <FormContainer>
       <h1>Sign Up</h1>
       {message && <Message variant='danger'>{message}</Message>}
-      {error && <Message variant='danger'>{error}</Message>}
-      {loading && <Loader />}
+      {auth.error && <Message variant='danger'>{auth.error.message}</Message>}
+      {auth.loading && <Loader />}
       <Form onSubmit={submitHandler}>
         <Form.Group controlId='name'>
           <Form.Label>Name</Form.Label>

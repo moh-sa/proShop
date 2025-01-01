@@ -5,7 +5,7 @@ import { RouterProvider } from "react-router-dom";
 import "./bootstrap.min.css";
 import "./index.css";
 import { router } from "./routes";
-import store from "./store";
+import store from "./store/store";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(

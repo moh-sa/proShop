@@ -1,15 +1,15 @@
 import { Container, Nav, Navbar, NavDropdown } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { LinkContainer } from "react-router-bootstrap";
-import { logout } from "../Actions/userActions";
+import { authLogout } from "../store/auth/auth.slice";
+import SearchBar from "./SearchBar";
 
 function Header() {
   const dispatch = useDispatch();
-  const userLogin = useSelector((state) => state.userLogin);
-  const { userInfo } = userLogin;
+  const userState = useSelector((state) => state.auth.user);
 
   const logoutHandler = async () => {
-    dispatch(logout());
+    dispatch(authLogout());
   };
   return (
     <>
@@ -37,10 +37,7 @@ function Header() {
 
             <Navbar.Toggle aria-controls='basic-navbar-nav' />
             <Navbar.Collapse id='basic-navbar-nav'>
-              {/* // BUG: fix me
-              <Route
-                render={({ history }) => <SearchBar history={history} />}
-              /> */}
+              <SearchBar />
               <Nav style={{ marginLeft: "auto" }}>
                 <LinkContainer to='/cart'>
                   <Nav.Link>
@@ -48,8 +45,8 @@ function Header() {
                   </Nav.Link>
                 </LinkContainer>
 
-                {userInfo ? (
-                  <NavDropdown title={userInfo.name} id='username'>
+                {userState ? (
+                  <NavDropdown title={userState.name} id='username'>
                     <LinkContainer to='/profile'>
                       <NavDropdown.Item>Profile</NavDropdown.Item>
                     </LinkContainer>
@@ -64,7 +61,7 @@ function Header() {
                     </Nav.Link>
                   </LinkContainer>
                 )}
-                {userInfo && userInfo.isAdmin && (
+                {userState && userState.isAdmin && (
                   <NavDropdown title='Admin' id='adminmenu'>
                     <LinkContainer to='/admin/userlist'>
                       <NavDropdown.Item>Users</NavDropdown.Item>

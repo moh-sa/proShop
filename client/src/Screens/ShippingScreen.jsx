@@ -2,24 +2,25 @@ import { useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { saveShippingAddress } from "../Actions/cartActions";
 import CheckoutSteps from "../Components/CheckoutSteps";
 import FormContainer from "../Components/FormContainer";
+import { setShippingAddress } from "../store";
 
 const ShippingScreen = () => {
   const dispatch = useDispatch();
-  const { shippingAddress } = useSelector((state) => state.cart);
-
   const navigate = useNavigate();
+  const shippingAddressState = useSelector(
+    (state) => state.cart.shippingAddress,
+  );
 
-  const [address, setAddress] = useState(shippingAddress.address);
-  const [city, setCity] = useState(shippingAddress.city);
-  const [postalCode, setPostalCode] = useState(shippingAddress.postalCode);
-  const [country, setCountry] = useState(shippingAddress.country);
+  const [address, setAddress] = useState(shippingAddressState.address);
+  const [city, setCity] = useState(shippingAddressState.city);
+  const [postalCode, setPostalCode] = useState(shippingAddressState.postalCode);
+  const [country, setCountry] = useState(shippingAddressState.country);
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    dispatch(saveShippingAddress({ address, city, postalCode, country }));
+    dispatch(setShippingAddress({ address, city, postalCode, country }));
     navigate("/payment");
   };
 

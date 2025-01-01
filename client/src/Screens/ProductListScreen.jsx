@@ -3,69 +3,52 @@ import { Button, Col, Row, Table } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { LinkContainer } from "react-router-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  createProduct,
-  deleteProduct,
-  listProducts,
-} from "../Actions/productActions";
 import Loader from "../Components/Loader";
 import Message from "../Components/Message";
 import Paginate from "../Components/Paginate";
-import { PRODUCT_CREATE_RESET } from "../constants/productConsts";
+import { createProduct, deleteProduct, fetchProducts } from "../store";
 
 const ProductListScreen = () => {
   const params = useParams();
   const navigate = useNavigate();
-  const pageNumber = params.pageNumber || 1;
-
   const dispatch = useDispatch();
 
-  const productList = useSelector((state) => state.productList);
-  const { loading, error, products, page, pages } = productList;
+  const pageNumber = params.pageNumber || 1;
 
-  const productDelete = useSelector((state) => state.productDelete);
-  const {
-    loading: loadingDelete,
-    success: successDelete,
-    error: errorDelete,
-  } = productDelete;
+  const productsState = useSelector((state) => state.products.products);
+  const createState = useSelector((state) => state.products.create);
+  const removeState = useSelector((state) => state.products.delete);
 
-  const productCreate = useSelector((state) => state.productCreate);
-  const {
-    loading: loadingCreate,
-    error: errorCreate,
-    success: successCreate,
-    product: createdProduct,
-  } = productCreate;
-
-  const userLogin = useSelector((state) => state.userLogin);
-  const { userInfo } = userLogin;
-
-  const deleteHandler = (id, name) => {
+  const deleteHandler = (productId, name) => {
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
-      dispatch(deleteProduct(id));
+      dispatch(deleteProduct({ productId }));
+      navigate(0); // refresh the page
     }
   };
 
-  const createProductHandler = () => {
-    dispatch(createProduct());
-  };
+  async function createProductHandler() {
+    // for some reason, I don't see a "createProductScreen" component
+    // and the backend only creates a sample product!
+    // TODO: fix this
+    dispatch(createProduct({ data: { id: "lol" } }));
+  }
 
   useEffect(() => {
-    dispatch({ type: PRODUCT_CREATE_RESET });
+    if (createState.success) {
+      navigate(`/admin/product/${createState.data._id}/edit`);
+    }
+  }, [navigate, createState.success, createState.data]);
 
-    if (!userInfo.isAdmin) navigate("/login");
-    if (successCreate) navigate(`/admin/product/${createdProduct._id}/edit`);
-    else dispatch(listProducts("", pageNumber));
-  }, [
-    dispatch,
-    navigate,
-    userInfo,
-    successCreate,
-    createdProduct,
-    successDelete,
-    pageNumber,
-  ]);
+  useEffect(() => {
+    if (!createState.success) {
+      dispatch(fetchProducts({ keyword: "", pageNumber }));
+    }
+  }, [dispatch, pageNumber, createState.success]);
+
+  // useEffect(() => {
+  // TODO: implement reset create product
+  // dispatch({ type: PRODUCT_CREATE_RESET });
+  // }, [])
 
   return (
     <>
@@ -80,17 +63,21 @@ const ProductListScreen = () => {
         </Col>
       </Row>
 
-      {loadingDelete && <Loader />}
-      {errorDelete && <Message variant='danger'>{errorDelete}</Message>}
+      {removeState.loading && <Loader />}
+      {removeState.error && (
+        <Message variant='danger'>{removeState.error.message}</Message>
+      )}
 
-      {loadingCreate && <Loader />}
-      {errorCreate && <Message variant='danger'>{errorCreate}</Message>}
+      {createState.loading && <Loader />}
+      {createState.error && (
+        <Message variant='danger'>{createState.error.message}</Message>
+      )}
 
-      {loading ? (
-        <Loader />
-      ) : error ? (
-        <Message variant='danger'>{error}</Message>
-      ) : (
+      {productsState.loading && <Loader />}
+      {productsState.error && (
+        <Message variant='danger'>{productsState.error.message}</Message>
+      )}
+      {productsState.data && productsState.data.products.length > 0 && (
         <>
           <Table striped bordered hover responsive className='table-sm'>
             <thead>
@@ -103,7 +90,7 @@ const ProductListScreen = () => {
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => (
+              {productsState.data.products.map((product) => (
                 <tr key={product._id}>
                   <td>{product._id}</td>
 
@@ -133,7 +120,11 @@ const ProductListScreen = () => {
               ))}
             </tbody>
           </Table>
-          <Paginate page={page} pages={pages} isAdmin={true} />
+          <Paginate
+            page={productsState.data.page}
+            pages={productsState.data.pages}
+            isAdmin={true}
+          />
         </>
       )}
     </>

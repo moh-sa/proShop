@@ -8,11 +8,9 @@ const SearchBar = () => {
 
   const submitHandler = (e) => {
     e.preventDefault();
-    if (keyword.trim()) {
-      navigate(`/search/${keyword}`);
-    } else {
-      navigate("/");
-    }
+
+    if (!keyword.trim()) return navigate("/");
+    navigate(`/search/${keyword}`);
   };
 
   return (
@@ -20,6 +18,7 @@ const SearchBar = () => {
       <Form.Control
         type='text'
         name='q'
+        value={keyword}
         onChange={(e) => setKeyword(e.target.value)}
         placeholder='Search Products...'
         className='mr-sm-2 ml-sm-5'
