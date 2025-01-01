@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
+  createProduct,
   createProductReview,
   deleteProduct,
   fetchProductDetails,
@@ -119,6 +120,19 @@ const productSlice = createSlice({
         state.topRated.loading = false;
         state.topRated.success = true;
         state.topRated.data = action.payload;
+      })
+
+      // --> CREATE PRODUCT <--
+      .addCase(createProduct.pending, (state) => {
+        state.create.loading = true;
+      })
+      .addCase(createProduct.rejected, (state, action) => {
+        state.create.loading = false;
+        state.create.error = action.payload;
+      })
+      .addCase(createProduct.fulfilled, (state) => {
+        state.create.loading = false;
+        state.create.success = true;
       })
 
       // --> CREATE PRODUCT REVIEW <--

@@ -1,5 +1,13 @@
 import { api } from "./base";
 
+export function createProductAPI(data, token) {
+  return api.post(`/products`, data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
 export function getProductsAPI({ keyword = "", pageNumber = "" }) {
   return api.get(`/products?keyword=${keyword}&pageNumber=${pageNumber}`);
 }

@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import {
   addProductReviewAPI,
+  createProductAPI,
   deleteProductAPI,
   getProductByIdAPI,
   getProductsAPI,
@@ -73,6 +74,26 @@ export const deleteProduct = createAsyncThunk(
         },
       } = thunkAPI.getState();
       await deleteProductAPI(productId, token);
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data);
+    }
+  },
+);
+
+export const createProduct = createAsyncThunk(
+  "products/create",
+  async ({ data }, thunkAPI) => {
+    console.log(data);
+
+    try {
+      const {
+        auth: {
+          user: { token },
+        },
+      } = thunkAPI.getState();
+      console.log(token);
+
+      await createProductAPI(data, token);
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);
     }
