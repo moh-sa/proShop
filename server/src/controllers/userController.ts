@@ -1,7 +1,6 @@
 import asyncHandler from "express-async-handler";
 import User, { IUser } from "../models/userModel";
-import { handleErrorResponse, isExist } from "../utils";
-import generateToken from "../utils/generateJwtToken";
+import { generateToken, handleErrorResponse, isExist } from "../utils";
 
 /**
  * @desc Auth user & get token
@@ -17,7 +16,7 @@ const authUser = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
-      token: generateToken(user._id),
+      token: generateToken({ id: user._id }),
     });
   } else {
     res.status(401);
@@ -47,7 +46,7 @@ const registerUser = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
-      token: generateToken(user._id),
+      token: generateToken({ id: user._id }),
     });
   } else {
     res.status(400);
@@ -97,7 +96,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     name: updatedUser.name,
     email: updatedUser.email,
     isAdmin: updatedUser.isAdmin,
-    token: generateToken(user._id),
+    token: generateToken({ id: user._id }),
   });
 });
 
