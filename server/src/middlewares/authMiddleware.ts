@@ -1,35 +1,28 @@
 import { NextFunction, Request, Response } from "express";
 import asyncHandler from "express-async-handler";
-import jwt from "jsonwebtoken";
 import User, { IUser } from "../models/userModel";
+import { handleErrorResponse, isExist, verifyJwtToken } from "../utils";
 
 const protect = asyncHandler(async (req, res, next) => {
   const customReq = req as typeof req & { user: IUser };
   const token = customReq.headers.authorization;
-  if (token && token.startsWith("Bearer ")) {
-    try {
-      const decoded = jwt.verify(
-        token.split(" ")[1],
-        process.env.JWT_SECRET!,
-      ) as {
-        id: string;
-      };
 
-      const isUserExist = await User.findById(decoded.id).select("-password");
-      if (isUserExist) {
-        customReq.user = isUserExist;
-        return next();
-      }
+  if (!isExist(token))
+    return handleErrorResponse(res, 401, "Not authorized, no token.");
 
-      throw new Error("Not authorized, token failed.");
-    } catch (error) {
-      console.log(error);
-      res.status(401);
-      throw new Error("Not authorized, token failed.");
-    }
-  } else {
+  try {
+    const decoded = verifyJwtToken(token);
+
+    const isUserExist = await User.findById(decoded.id).select("-password");
+    if (!isExist(isUserExist))
+      return handleErrorResponse(res, 401, "User not found");
+
+    customReq.user = isUserExist;
+    return next();
+  } catch (error) {
+    console.log(error);
     res.status(401);
-    throw new Error("Not authorized, no token.");
+    throw new Error("Not authorized, token failed.");
   }
 });
 
