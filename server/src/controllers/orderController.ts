@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import Order from "../models/orderModel";
 import { IUser } from "../models/userModel";
+import { handleErrorResponse, isExist } from "../utils";
 
 /**
  * @description Create new order
@@ -49,15 +50,10 @@ const getOrderById = asyncHandler(async (req, res) => {
     "user",
     "name email",
   );
+  if (!isExist(order)) return handleErrorResponse(res, 404, "Order not found");
 
-  if (order) {
-    res.json(order);
-  } else {
-    res.status(404);
-    throw new Error("Order not found");
-  }
+  res.json(order);
 });
-
 /**
  * @description Update order to paid
  * @route PUT /api/order/:id/pay
@@ -65,24 +61,20 @@ const getOrderById = asyncHandler(async (req, res) => {
  */
 const updateOrderToPaid = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
+  if (!isExist(order)) return handleErrorResponse(res, 404, "Order not found");
 
-  if (order) {
-    order.isPaid = true;
-    order.paidAt = new Date();
-    order.paymentResult = {
-      id: req.body.id,
-      status: req.body.status,
-      update_time: req.body.update_time,
-      email_address: req.body.payer.email_address,
-    };
+  order.isPaid = true;
+  order.paidAt = new Date();
+  order.paymentResult = {
+    id: req.body.id,
+    status: req.body.status,
+    update_time: req.body.update_time,
+    email_address: req.body.payer.email_address,
+  };
 
-    const updatedOrder = await order.save();
+  const updatedOrder = await order.save();
 
-    res.json(updatedOrder);
-  } else {
-    res.status(404);
-    throw new Error("Order not found");
-  }
+  res.json(updatedOrder);
 });
 
 /**
@@ -113,25 +105,21 @@ const getOrders = asyncHandler(async (req, res) => {
  */
 const updateOrderToDelivered = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
+  if (!isExist(order)) return handleErrorResponse(res, 404, "Order not found");
 
-  if (order) {
-    order.isDelivered = true;
-    order.deliveredAt = new Date();
+  order.isDelivered = true;
+  order.deliveredAt = new Date();
 
-    const updatedOrder = await order.save();
+  const updatedOrder = await order.save();
 
-    res.json(updatedOrder);
-  } else {
-    res.status(404);
-    throw new Error("Order not found");
-  }
+  res.json(updatedOrder);
 });
 
 export {
   addOrderItems,
-  getOrderById,
-  updateOrderToPaid,
-  updateOrderToDelivered,
   getMyOrders,
+  getOrderById,
   getOrders,
+  updateOrderToDelivered,
+  updateOrderToPaid,
 };

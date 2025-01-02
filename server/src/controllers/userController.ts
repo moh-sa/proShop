@@ -1,5 +1,6 @@
 import asyncHandler from "express-async-handler";
 import User, { IUser } from "../models/userModel";
+import { handleErrorResponse, isExist } from "../utils";
 import generateToken from "../utils/generateJwtToken";
 
 /**
@@ -62,17 +63,14 @@ const registerUser = asyncHandler(async (req, res) => {
 const getUserProfile = asyncHandler(async (req, res) => {
   const customReq = req as typeof req & { user: IUser };
   const user = await User.findById(customReq.user._id);
-  if (user) {
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isAdmin: user.isAdmin,
-    });
-  } else {
-    res.status(404);
-    throw new Error("User not found");
-  }
+  if (!isExist(user)) return handleErrorResponse(res, 404, "User not found");
+
+  res.json({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    isAdmin: user.isAdmin,
+  });
 });
 
 /**
@@ -83,27 +81,24 @@ const getUserProfile = asyncHandler(async (req, res) => {
 const updateUserProfile = asyncHandler(async (req, res) => {
   const customReq = req as typeof req & { user: IUser };
   const user = await User.findById(customReq.user._id);
-  if (user) {
-    user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
+  if (!isExist(user)) return handleErrorResponse(res, 404, "User not found");
 
-    if (req.body.password) {
-      user.password = req.body.password;
-    }
+  user.name = req.body.name || user.name;
+  user.email = req.body.email || user.email;
 
-    const updatedUser = await user.save();
-
-    res.json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      isAdmin: updatedUser.isAdmin,
-      token: generateToken(user._id),
-    });
-  } else {
-    res.status(404);
-    throw new Error("User not found");
+  if (req.body.password) {
+    user.password = req.body.password;
   }
+
+  const updatedUser = await user.save();
+
+  res.json({
+    _id: updatedUser._id,
+    name: updatedUser.name,
+    email: updatedUser.email,
+    isAdmin: updatedUser.isAdmin,
+    token: generateToken(user._id),
+  });
 });
 
 /**
@@ -123,13 +118,10 @@ const getUsers = asyncHandler(async (req, res) => {
  */
 const deleteUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
-  if (user) {
-    await user.remove();
-    res.json({ message: "User removed" });
-  } else {
-    res.status(404);
-    throw new Error("User Not Found");
-  }
+  if (!isExist(user)) return handleErrorResponse(res, 404, "User not found");
+
+  await user.remove();
+  res.json({ message: "User removed" });
 });
 
 /**
@@ -139,12 +131,9 @@ const deleteUser = asyncHandler(async (req, res) => {
  */
 const getUserById = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id).select("-password");
-  if (user) {
-    res.json(user);
-  } else {
-    res.status(404);
-    throw new Error("User Not Found");
-  }
+  if (!isExist(user)) return handleErrorResponse(res, 404, "User not found");
+
+  res.json(user);
 });
 
 /**
@@ -154,33 +143,29 @@ const getUserById = asyncHandler(async (req, res) => {
  */
 const updateUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
+  if (!isExist(user)) return handleErrorResponse(res, 404, "User not found");
 
-  if (user) {
-    user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
-    user.isAdmin = req.body.isAdmin ?? user.isAdmin;
+  user.name = req.body.name || user.name;
+  user.email = req.body.email || user.email;
+  user.isAdmin = req.body.isAdmin ?? user.isAdmin;
 
-    const updatedUser = await user.save();
+  const updatedUser = await user.save();
 
-    res.json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      isAdmin: updatedUser.isAdmin,
-    });
-  } else {
-    res.status(404);
-    throw new Error("User not found");
-  }
+  res.json({
+    _id: updatedUser._id,
+    name: updatedUser.name,
+    email: updatedUser.email,
+    isAdmin: updatedUser.isAdmin,
+  });
 });
 
 export {
   authUser,
-  registerUser,
-  getUserProfile,
-  updateUserProfile,
-  getUsers,
   deleteUser,
   getUserById,
+  getUserProfile,
+  getUsers,
+  registerUser,
   updateUser,
+  updateUserProfile,
 };

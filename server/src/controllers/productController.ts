@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import Product from "../models/productModel";
 import { IUser } from "../models/userModel";
+import { handleErrorResponse, isExist } from "../utils";
 import { isReviewed } from "../utils/is-reviewed.util";
 
 /**
@@ -29,12 +30,10 @@ const getProducts = asyncHandler(async (req, res) => {
  */
 const getProductById = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
-  if (product) {
-    res.json(product);
-  } else {
-    res.status(404);
-    throw new Error("Product not found");
-  }
+  if (!isExist(product))
+    return handleErrorResponse(res, 404, "Product not found");
+
+  res.json(product);
 });
 
 /**
@@ -44,13 +43,11 @@ const getProductById = asyncHandler(async (req, res) => {
  */
 const deleteProduct = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
-  if (product) {
-    await product.remove();
-    res.json({ message: "Product removed" });
-  } else {
-    res.status(404);
-    throw new Error("Product not found");
-  }
+  if (!isExist(product))
+    return handleErrorResponse(res, 404, "Product not found");
+
+  await product.remove();
+  res.json({ message: "Product removed" });
 });
 
 /**
@@ -86,22 +83,19 @@ const updateProduct = asyncHandler(async (req, res) => {
     req.body;
 
   const product = await Product.findById(req.params.id);
+  if (!isExist(product))
+    return handleErrorResponse(res, 404, "Product not found");
 
-  if (product) {
-    product.name = name;
-    product.price = price;
-    product.description = description;
-    product.image = image;
-    product.brand = brand;
-    product.category = category;
-    product.countInStock = countInStock;
+  product.name = name;
+  product.price = price;
+  product.description = description;
+  product.image = image;
+  product.brand = brand;
+  product.category = category;
+  product.countInStock = countInStock;
 
-    const updatedProduct = await product.save();
-    res.json(updatedProduct);
-  } else {
-    res.status(404);
-    throw new Error("Product Not Found");
-  }
+  const updatedProduct = await product.save();
+  res.json(updatedProduct);
 });
 
 /**
@@ -115,35 +109,30 @@ const createProductReview = asyncHandler(async (req, res) => {
   const { rating, comment } = reqWithUser.body;
 
   const product = await Product.findById(reqWithUser.params.id);
+  if (!isExist(product))
+    return handleErrorResponse(res, 404, "Product not found");
 
-  if (product) {
-    if (isReviewed(product, reqWithUser)) {
-      res.status(400);
-      throw new Error("Product alrady reviewed");
-    }
+  if (isReviewed(product, reqWithUser))
+    handleErrorResponse(res, 400, "Product already reviewed");
 
-    const review = {
-      name: reqWithUser.user.name,
-      rating: Number(rating),
-      comment,
-      user: reqWithUser.user._id,
-    };
+  const review = {
+    name: reqWithUser.user.name,
+    rating: Number(rating),
+    comment,
+    user: reqWithUser.user._id,
+  };
 
-    product.reviews.push(review);
+  product.reviews.push(review);
 
-    product.numReviews = product.reviews.length;
+  product.numReviews = product.reviews.length;
 
-    product.rating =
-      product.reviews.reduce((acc, item) => item.rating + acc, 0) /
-      product.reviews.length;
+  product.rating =
+    product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+    product.reviews.length;
 
-    await product.save();
+  await product.save();
 
-    res.status(201).json({ message: "reeview added" });
-  } else {
-    res.status(404);
-    throw new Error("Product Not Found");
-  }
+  res.status(201).json({ message: "reeview added" });
 });
 
 /**
@@ -157,11 +146,11 @@ const getTopProducts = asyncHandler(async (req, res) => {
 });
 
 export {
-  getProducts,
-  getProductById,
-  deleteProduct,
   createProduct,
-  updateProduct,
   createProductReview,
+  deleteProduct,
+  getProductById,
+  getProducts,
   getTopProducts,
+  updateProduct,
 };
