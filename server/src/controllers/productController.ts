@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import Product from "../models/productModel";
 import { IUser } from "../models/userModel";
+import { isReviewed } from "../utils/is-reviewed.util";
 
 /**
  * @description Fetch all products
@@ -116,11 +117,7 @@ const createProductReview = asyncHandler(async (req, res) => {
   const product = await Product.findById(reqWithUser.params.id);
 
   if (product) {
-    const alreadyReviewed = product.reviews.find(
-      (r) => r.user.toString() === reqWithUser.user._id.toString(),
-    );
-
-    if (alreadyReviewed) {
+    if (isReviewed(product, reqWithUser)) {
       res.status(400);
       throw new Error("Product alrady reviewed");
     }
