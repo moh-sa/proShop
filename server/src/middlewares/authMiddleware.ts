@@ -5,10 +5,11 @@ import { handleErrorResponse, isExist, verifyJwtToken } from "../utils";
 
 const protect = asyncHandler(async (req, res, next) => {
   const customReq = req as typeof req & { user: IUser };
-  const token = customReq.headers.authorization;
-
-  if (!isExist(token))
+  const authorization = customReq.headers.authorization;
+  if (!isExist(authorization) || !authorization.startsWith("Bearer "))
     return handleErrorResponse(res, 401, "Not authorized, no token.");
+
+  const token = authorization.slice(7);
 
   try {
     const decoded = verifyJwtToken(token);
