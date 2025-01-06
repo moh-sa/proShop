@@ -1,19 +1,28 @@
 import express from "express";
-const router = express.Router();
 import {
   addOrderItems,
   getMyOrders,
   getOrderById,
-  updateOrderToPaid,
-  updateOrderToDelivered,
   getOrders,
+  updateOrderToDelivered,
+  updateOrderToPaid,
 } from "../controllers/orderController";
-import { protect, admin } from "../middlewares/authMiddleware";
+import { getUserByIdMW, isUserAdminMW, verifyTokenMW } from "../middlewares";
+const router = express.Router();
 
-router.route("/").post(protect, addOrderItems).get(protect, admin, getOrders);
-router.route("/myorders").get(protect, getMyOrders);
-router.route("/:id").get(protect, getOrderById);
-router.route("/:id/pay").put(protect, updateOrderToPaid);
-router.route("/:id/deliver").put(protect, admin, updateOrderToDelivered);
+router
+  .route("/")
+  .post(verifyTokenMW, getUserByIdMW, addOrderItems)
+  .get(verifyTokenMW, getUserByIdMW, isUserAdminMW, getOrders);
+
+router.route("/myorders").get(verifyTokenMW, getUserByIdMW, getMyOrders);
+
+router.route("/:id").get(verifyTokenMW, getUserByIdMW, getOrderById);
+
+router.route("/:id/pay").put(verifyTokenMW, getUserByIdMW, updateOrderToPaid);
+
+router
+  .route("/:id/deliver")
+  .put(verifyTokenMW, getUserByIdMW, isUserAdminMW, updateOrderToDelivered);
 
 export default router;

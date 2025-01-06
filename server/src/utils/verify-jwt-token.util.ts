@@ -1,5 +1,4 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { Types } from "mongoose";
 
 type CustomJwtPayload = Required<Pick<JwtPayload, "iat" | "exp">>;
 /**
@@ -8,7 +7,7 @@ type CustomJwtPayload = Required<Pick<JwtPayload, "iat" | "exp">>;
  * @returns return `{T, iat, exp}` type
  */
 export function verifyJwtToken<
-  T extends Record<string, unknown> = { id: Types.ObjectId },
+  T extends Record<string, unknown> = { id: string },
 >(token: string) {
   return jwt.verify(token, process.env.JWT_SECRET!) as T & CustomJwtPayload;
 }

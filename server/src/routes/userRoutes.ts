@@ -1,28 +1,37 @@
 import express from "express";
-const router = express.Router();
 import {
   authUser,
-  registerUser,
-  getUserProfile,
-  updateUserProfile,
-  getUsers,
   deleteUser,
-  getUserById,
+  getUserProfile,
+  getUsers,
+  registerUser,
   updateUser,
+  updateUserProfile,
 } from "../controllers/userController";
-import { protect, admin } from "../middlewares/authMiddleware";
+import {
+  getUserByEmailMW,
+  getUserByIdMW,
+  isUserAdminMW,
+  verifyTokenMW,
+} from "../middlewares";
+const router = express.Router();
 
-router.route("/").get(protect, admin, getUsers).post(registerUser);
-router.route("/login").post(authUser);
+router
+  .route("/")
+  .get(verifyTokenMW, getUserByIdMW, isUserAdminMW, getUsers)
+  .post(getUserByEmailMW, registerUser);
+
+router.route("/login").post(getUserByEmailMW, authUser);
+
 router
   .route("/profile")
-  .get(protect, getUserProfile)
-  .put(protect, updateUserProfile);
+  .get(verifyTokenMW, getUserByIdMW, getUserProfile)
+  .put(verifyTokenMW, getUserByIdMW, updateUserProfile);
 
 router
   .route("/:id")
-  .get(protect, admin, getUserById)
-  .put(protect, admin, updateUser)
-  .delete(protect, admin, deleteUser);
+  .get(verifyTokenMW, getUserByIdMW, isUserAdminMW, getUserByIdMW)
+  .put(verifyTokenMW, getUserByIdMW, isUserAdminMW, updateUser)
+  .delete(verifyTokenMW, getUserByIdMW, isUserAdminMW, deleteUser);
 
 export default router;

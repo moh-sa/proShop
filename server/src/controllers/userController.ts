@@ -1,5 +1,5 @@
 import asyncHandler from "express-async-handler";
-import User, { IUser } from "../models/userModel";
+import User from "../models/userModel";
 import { generateToken, handleErrorResponse, isExist } from "../utils";
 
 /**
@@ -8,20 +8,13 @@ import { generateToken, handleErrorResponse, isExist } from "../utils";
  * @access Public
  */
 const authUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email });
-  if (user && (await user.matchPassword(password))) {
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isAdmin: user.isAdmin,
-      token: generateToken({ id: user._id }),
-    });
-  } else {
-    res.status(401);
-    throw new Error("Invalid email or password.");
-  }
+  res.json({
+    _id: res.locals.user._id,
+    name: res.locals.user.name,
+    email: res.locals.user.email,
+    isAdmin: res.locals.user.isAdmin,
+    token: generateToken({ id: res.locals.user._id }),
+  });
 });
 
 /**
@@ -31,27 +24,15 @@ const authUser = asyncHandler(async (req, res) => {
  */
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
-
-  const userExist = await User.findOne({ email });
-  if (userExist) {
-    res.status(400);
-    throw new Error("User already exists");
-  }
-
   const user = await User.create({ name, email, password });
-  if (user) {
-    res.status(201);
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isAdmin: user.isAdmin,
-      token: generateToken({ id: user._id }),
-    });
-  } else {
-    res.status(400);
-    throw new Error("invalid user data");
-  }
+
+  res.status(201).json({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    isAdmin: user.isAdmin,
+    token: generateToken({ id: user._id }),
+  });
 });
 
 /**
@@ -59,9 +40,8 @@ const registerUser = asyncHandler(async (req, res) => {
  * @route GET /api/users/profile
  * @access private
  */
-const getUserProfile = asyncHandler(async (req, res) => {
-  const customReq = req as typeof req & { user: IUser };
-  const user = await User.findById(customReq.user._id);
+const getUserProfile = asyncHandler(async (_, res) => {
+  const user = await User.findById(res.locals.user._id);
   if (!isExist(user)) return handleErrorResponse(res, 404, "User not found");
 
   res.json({
@@ -78,8 +58,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
  * @access private
  */
 const updateUserProfile = asyncHandler(async (req, res) => {
-  const customReq = req as typeof req & { user: IUser };
-  const user = await User.findById(customReq.user._id);
+  const user = await User.findById(res.locals.user._id);
   if (!isExist(user)) return handleErrorResponse(res, 404, "User not found");
 
   user.name = req.body.name || user.name;
@@ -105,7 +84,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
  * @route GET /api/users
  * @access private/admin
  */
-const getUsers = asyncHandler(async (req, res) => {
+const getUsers = asyncHandler(async (_, res) => {
   const users = await User.find({});
   res.json(users);
 });

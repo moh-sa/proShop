@@ -1,6 +1,5 @@
 import asyncHandler from "express-async-handler";
 import Order from "../models/orderModel";
-import { IUser } from "../models/userModel";
 import { handleErrorResponse, isExist } from "../utils";
 
 /**
@@ -9,7 +8,6 @@ import { handleErrorResponse, isExist } from "../utils";
  * @access private
  */
 const addOrderItems = asyncHandler(async (req, res) => {
-  const reqWithUser = req as typeof req & { user: IUser };
   const {
     orderItems,
     shippingAddress,
@@ -18,14 +16,14 @@ const addOrderItems = asyncHandler(async (req, res) => {
     shippingPrice,
     taxPrice,
     totalPrice,
-  } = reqWithUser.body;
+  } = req.body;
 
   if (orderItems && orderItems.length === 0) {
     res.status(400);
     throw new Error("No order items");
   } else {
     const order = new Order({
-      user: reqWithUser.user._id,
+      user: res.locals.user._id,
       orderItems,
       shippingAddress,
       paymentMethod,
@@ -82,9 +80,8 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
  * @route GET /api/order/myorders
  * @access private
  */
-const getMyOrders = asyncHandler(async (req, res) => {
-  const reqWithUser = req as typeof req & { user: IUser };
-  const orders = await Order.find({ user: reqWithUser.user._id });
+const getMyOrders = asyncHandler(async (_, res) => {
+  const orders = await Order.find({ user: res.locals.user._id });
   res.json(orders);
 });
 
@@ -93,7 +90,7 @@ const getMyOrders = asyncHandler(async (req, res) => {
  * @route GET /api/order/orders
  * @access private/admin
  */
-const getOrders = asyncHandler(async (req, res) => {
+const getOrders = asyncHandler(async (_, res) => {
   const orders = await Order.find({}).populate("user", "id name");
   res.json(orders);
 });
