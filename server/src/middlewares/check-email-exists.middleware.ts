@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import User from "../models/userModel";
+import { userRepository } from "../repositories";
 
 /**
  * Middleware to verify email existence
@@ -12,7 +12,7 @@ export function checkEmailExists(allowExisting = false) {
       res.status(400).json({ message: "required field is missing." });
     }
 
-    const user = await User.findOne({ email });
+    const user = await userRepository.getUserByEmail({ email });
 
     if (user && !allowExisting) {
       return res

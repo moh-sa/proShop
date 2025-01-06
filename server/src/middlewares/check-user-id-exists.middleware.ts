@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import User from "../models/userModel";
+import { userRepository } from "../repositories";
 
 /**
  * Middleware to verify user existence by ID
@@ -14,7 +14,7 @@ export async function checkUserIdExists(
     return res.status(400).json({ message: "required field is missing." });
   }
 
-  const user = await User.findById(userId);
+  const user = await userRepository.getUserById({ userId });
   if (!user) {
     return res.status(400).json({ message: "Invalid email or password." });
   }
