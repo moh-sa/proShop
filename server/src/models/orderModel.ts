@@ -1,43 +1,7 @@
-import mongoose, { model, Schema, Types } from "mongoose";
-import { IProduct } from "./productModel";
+import mongoose, { model, Schema } from "mongoose";
+import { TOrderSchema } from "../types";
 
-interface IOrderItem extends IProduct {
-  qty: number;
-}
-
-interface IShippingAddress {
-  address: string;
-  city: string;
-  postalCode: string;
-  country: string;
-}
-
-interface IPaymentResult {
-  id: string;
-  status: string;
-  update_time: string;
-  email_address: string;
-}
-
-interface IOrder {
-  user: Types.ObjectId;
-  orderItems: Array<IOrderItem>;
-  shippingAddress: IShippingAddress;
-  paymentMethod: string;
-  paymentResult: IPaymentResult;
-  itemsPrice: number;
-  shippingPrice: number;
-  taxPrice: number;
-  totalPrice: number;
-  isPaid: boolean;
-  paidAt: Date;
-  isDelivered: boolean;
-  deliveredAt: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-const orderSchema = new Schema<IOrder>(
+const orderSchema = new Schema<TOrderSchema>(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -115,6 +79,6 @@ const orderSchema = new Schema<IOrder>(
   },
 );
 
-const Order = model<IOrder>("Order", orderSchema);
+const Order = model<TOrderSchema>("Order", orderSchema);
 
 export default Order;

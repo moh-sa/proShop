@@ -1,25 +1,50 @@
 import express from "express";
-const router = express.Router();
 import {
-  getProducts,
-  getProductById,
-  deleteProduct,
   createProduct,
-  updateProduct,
   createProductReview,
+  deleteProduct,
+  getProductById,
+  getProducts,
   getTopProducts,
+  updateProduct,
 } from "../controllers/productController";
-import { protect, admin } from "../middlewares/authMiddleware";
+import {
+  checkIfUserIsAdmin,
+  checkJwtTokenValidation,
+  checkUserIdExists,
+} from "../middlewares";
+const router = express.Router();
 
-router.route("/").get(getProducts).post(protect, admin, createProduct);
+router
+  .route("/")
+  .get(getProducts)
+  .post(
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    checkIfUserIsAdmin,
+    createProduct,
+  );
+
 router.route("/top").get(getTopProducts);
 
 router
   .route("/:id")
   .get(getProductById)
-  .delete(protect, admin, deleteProduct)
-  .put(protect, admin, updateProduct);
+  .delete(
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    checkIfUserIsAdmin,
+    deleteProduct,
+  )
+  .put(
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    checkIfUserIsAdmin,
+    updateProduct,
+  );
 
-router.route("/:id/reviews").post(protect, createProductReview);
+router
+  .route("/:id/reviews")
+  .post(checkJwtTokenValidation, checkUserIdExists, createProductReview);
 
 export default router;

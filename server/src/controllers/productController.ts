@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
+import mongoose from "mongoose";
 import Product from "../models/productModel";
-import { IUser } from "../models/userModel";
+import { TSelectReview } from "../types";
 import { handleErrorResponse, isExist } from "../utils";
 import { isReviewed } from "../utils/is-reviewed.util";
 
@@ -55,10 +56,10 @@ const deleteProduct = asyncHandler(async (req, res) => {
  * @route POST /api/products
  * @access private/admin
  */
-const createProduct = asyncHandler(async (req, res) => {
-  const reqWithUser = req as typeof req & { user: IUser };
+const createProduct = asyncHandler(async (_, res) => {
+  // TODO: wth is this? Create a real product!
   const product = new Product({
-    user: reqWithUser.user._id,
+    user: res.locals.user._id,
     name: "Sample Name",
     image: "/images/sample.png",
     brand: "sample brand",
@@ -104,26 +105,26 @@ const updateProduct = asyncHandler(async (req, res) => {
  * @access private
  */
 const createProductReview = asyncHandler(async (req, res) => {
-  const reqWithUser = req as typeof req & { user: IUser };
+  const { rating, comment } = req.body;
 
-  const { rating, comment } = reqWithUser.body;
-
-  const product = await Product.findById(reqWithUser.params.id);
+  const product = await Product.findById(req.params.id);
   if (!isExist(product))
     return handleErrorResponse(res, 404, "Product not found");
 
-  if (isReviewed(product, reqWithUser))
+  if (isReviewed(product, res.locals.user))
     handleErrorResponse(res, 400, "Product already reviewed");
 
-  const review = {
-    name: reqWithUser.user.name,
+  const review: TSelectReview = {
+    _id: new mongoose.Types.ObjectId(),
+    name: res.locals.user.name,
     rating: Number(rating),
     comment,
-    user: reqWithUser.user._id,
+    user: res.locals.user._id,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   product.reviews.push(review);
-
   product.numReviews = product.reviews.length;
 
   product.rating =
@@ -132,7 +133,7 @@ const createProductReview = asyncHandler(async (req, res) => {
 
   await product.save();
 
-  res.status(201).json({ message: "reeview added" });
+  res.status(201).json({ message: "review added" });
 });
 
 /**
@@ -140,7 +141,7 @@ const createProductReview = asyncHandler(async (req, res) => {
  * @route GET /api/products/top
  * @access public
  */
-const getTopProducts = asyncHandler(async (req, res) => {
+const getTopProducts = asyncHandler(async (_, res) => {
   const products = await Product.find({}).sort({ rating: -1 }).limit(3);
   res.json(products);
 });

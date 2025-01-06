@@ -1,4 +1,4 @@
-import { IUser } from "../models/userModel";
+import { TSelectUser } from "./user.type";
 
 declare global {
   namespace Express {
@@ -8,7 +8,7 @@ declare global {
         iat: number;
         exp: number;
       };
-      user: Omit<IUser, "matchPassword">;
+      user: TSelectUser;
     }
   }
 }

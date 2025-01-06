@@ -1,14 +1,7 @@
-import { Request } from "express";
-import { IProduct } from "../models/productModel";
-import { IUser } from "../models/userModel";
+import { TSelectProduct, TSelectUser } from "../types";
 
-export function isReviewed(
-  product: IProduct,
-  reqWithUser: Request & { user: IUser },
-) {
+export function isReviewed(product: TSelectProduct, user: TSelectUser) {
   return (
-    product.reviews.findIndex(
-      (review) => review.user._id === reqWithUser.user._id,
-    ) > -1
+    product.reviews.findIndex((review) => review.user._id === user._id) > -1
   );
 }

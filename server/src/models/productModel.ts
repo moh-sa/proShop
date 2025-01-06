@@ -1,16 +1,7 @@
-import mongoose, { model, Schema, Types } from "mongoose";
+import mongoose, { model, Schema } from "mongoose";
+import { TProductSchema, TReviewSchema } from "../types";
 
-export interface IReview {
-  _id?: Types.ObjectId;
-  name: string;
-  rating: number;
-  comment: string;
-  user: Types.ObjectId;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-const reviewSchema = new Schema<IReview>(
+const reviewSchema = new Schema<TReviewSchema>(
   {
     name: { type: String, required: true },
     rating: { type: Number, required: true },
@@ -26,24 +17,7 @@ const reviewSchema = new Schema<IReview>(
   },
 );
 
-export interface IProduct {
-  _id?: Types.ObjectId;
-  name: string;
-  image: string;
-  brand: string;
-  category: string;
-  description: string;
-  rating: number;
-  numReviews: number;
-  price: number;
-  countInStock: number;
-  user: Types.ObjectId;
-  reviews: Array<IReview>;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-const productSchema = new Schema<IProduct>(
+const productSchema = new Schema<TProductSchema>(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -97,6 +71,6 @@ const productSchema = new Schema<IProduct>(
   },
 );
 
-const Product = model<IProduct>("Product", productSchema);
+const Product = model<TProductSchema>("Product", productSchema);
 
 export default Product;

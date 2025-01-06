@@ -1,19 +1,34 @@
 import express from "express";
-const router = express.Router();
 import {
   addOrderItems,
   getMyOrders,
   getOrderById,
-  updateOrderToPaid,
-  updateOrderToDelivered,
   getOrders,
+  updateOrderToDelivered,
+  updateOrderToPaid,
 } from "../controllers/orderController";
-import { protect, admin } from "../middlewares/authMiddleware";
+import { checkJwtTokenValidation, checkUserIdExists } from "../middlewares";
+const router = express.Router();
 
-router.route("/").post(protect, addOrderItems).get(protect, admin, getOrders);
-router.route("/myorders").get(protect, getMyOrders);
-router.route("/:id").get(protect, getOrderById);
-router.route("/:id/pay").put(protect, updateOrderToPaid);
-router.route("/:id/deliver").put(protect, admin, updateOrderToDelivered);
+router
+  .route("/")
+  .post(checkJwtTokenValidation, checkUserIdExists, addOrderItems)
+  .get(checkJwtTokenValidation, checkUserIdExists, getOrders);
+
+router
+  .route("/myorders")
+  .get(checkJwtTokenValidation, checkUserIdExists, getMyOrders);
+
+router
+  .route("/:id")
+  .get(checkJwtTokenValidation, checkUserIdExists, getOrderById);
+
+router
+  .route("/:id/pay")
+  .put(checkJwtTokenValidation, checkUserIdExists, updateOrderToPaid);
+
+router
+  .route("/:id/deliver")
+  .put(checkJwtTokenValidation, checkUserIdExists, updateOrderToDelivered);
 
 export default router;

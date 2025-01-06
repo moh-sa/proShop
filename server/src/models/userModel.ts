@@ -1,19 +1,9 @@
 import bcrypt from "bcryptjs";
-import { model, Schema, Types } from "mongoose";
+import { model, Schema } from "mongoose";
+import { TUserSchema } from "../types";
 import { hashData } from "../utils";
 
-export interface IUser {
-  _id: Types.ObjectId;
-  name: string;
-  email: string;
-  password: string;
-  isAdmin: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
-  matchPassword(enteredPassword: string): Promise<boolean>;
-}
-
-const userSchema = new Schema<IUser>(
+const userSchema = new Schema<TUserSchema>(
   {
     name: {
       type: String,
@@ -54,6 +44,6 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-const User = model<IUser>("User", userSchema);
+const User = model<TUserSchema>("User", userSchema);
 
 export default User;
