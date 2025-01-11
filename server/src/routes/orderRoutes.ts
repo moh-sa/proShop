@@ -7,22 +7,28 @@ import {
   updateOrderToDelivered,
   updateOrderToPaid,
 } from "../controllers/orderController";
-import { getUserByIdMW, isUserAdminMW, verifyTokenMW } from "../middlewares";
+import { checkJwtTokenValidation, checkUserIdExists } from "../middlewares";
 const router = express.Router();
 
 router
   .route("/")
-  .post(verifyTokenMW, getUserByIdMW, addOrderItems)
-  .get(verifyTokenMW, getUserByIdMW, isUserAdminMW, getOrders);
+  .post(checkJwtTokenValidation, checkUserIdExists, addOrderItems)
+  .get(checkJwtTokenValidation, checkUserIdExists, getOrders);
 
-router.route("/myorders").get(verifyTokenMW, getUserByIdMW, getMyOrders);
+router
+  .route("/myorders")
+  .get(checkJwtTokenValidation, checkUserIdExists, getMyOrders);
 
-router.route("/:id").get(verifyTokenMW, getUserByIdMW, getOrderById);
+router
+  .route("/:id")
+  .get(checkJwtTokenValidation, checkUserIdExists, getOrderById);
 
-router.route("/:id/pay").put(verifyTokenMW, getUserByIdMW, updateOrderToPaid);
+router
+  .route("/:id/pay")
+  .put(checkJwtTokenValidation, checkUserIdExists, updateOrderToPaid);
 
 router
   .route("/:id/deliver")
-  .put(verifyTokenMW, getUserByIdMW, isUserAdminMW, updateOrderToDelivered);
+  .put(checkJwtTokenValidation, checkUserIdExists, updateOrderToDelivered);
 
 export default router;

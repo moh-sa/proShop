@@ -41,14 +41,11 @@ const registerUser = asyncHandler(async (req, res) => {
  * @access private
  */
 const getUserProfile = asyncHandler(async (_, res) => {
-  const user = await User.findById(res.locals.user._id);
-  if (!isExist(user)) return handleErrorResponse(res, 404, "User not found");
-
   res.json({
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    isAdmin: user.isAdmin,
+    _id: res.locals.user._id,
+    name: res.locals.user.name,
+    email: res.locals.user.email,
+    isAdmin: res.locals.user.isAdmin,
   });
 });
 
@@ -58,7 +55,7 @@ const getUserProfile = asyncHandler(async (_, res) => {
  * @access private
  */
 const updateUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(res.locals.user._id);
+  const user = res.locals.user;
   if (!isExist(user)) return handleErrorResponse(res, 404, "User not found");
 
   user.name = req.body.name || user.name;
@@ -68,6 +65,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     user.password = req.body.password;
   }
 
+  // @ts-ignore - didn't add the 'document' type to res.locals.user
   const updatedUser = await user.save();
 
   res.json({

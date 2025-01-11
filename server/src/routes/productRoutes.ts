@@ -8,24 +8,43 @@ import {
   getTopProducts,
   updateProduct,
 } from "../controllers/productController";
-import { getUserByIdMW, isUserAdminMW, verifyTokenMW } from "../middlewares";
+import {
+  checkIfUserIsAdmin,
+  checkJwtTokenValidation,
+  checkUserIdExists,
+} from "../middlewares";
 const router = express.Router();
 
 router
   .route("/")
   .get(getProducts)
-  .post(verifyTokenMW, getUserByIdMW, isUserAdminMW, createProduct);
+  .post(
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    checkIfUserIsAdmin,
+    createProduct,
+  );
 
 router.route("/top").get(getTopProducts);
 
 router
   .route("/:id")
   .get(getProductById)
-  .delete(verifyTokenMW, getUserByIdMW, isUserAdminMW, deleteProduct)
-  .put(verifyTokenMW, getUserByIdMW, isUserAdminMW, updateProduct);
+  .delete(
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    checkIfUserIsAdmin,
+    deleteProduct,
+  )
+  .put(
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    checkIfUserIsAdmin,
+    updateProduct,
+  );
 
 router
   .route("/:id/reviews")
-  .post(verifyTokenMW, getUserByIdMW, createProductReview);
+  .post(checkJwtTokenValidation, checkUserIdExists, createProductReview);
 
 export default router;

@@ -1,7 +1,9 @@
 import express from "express";
+
 import {
   authUser,
   deleteUser,
+  getUserById,
   getUserProfile,
   getUsers,
   registerUser,
@@ -9,29 +11,47 @@ import {
   updateUserProfile,
 } from "../controllers/userController";
 import {
-  getUserByEmailMW,
-  getUserByIdMW,
-  isUserAdminMW,
-  verifyTokenMW,
+  checkEmailExists,
+  checkIfUserIsAdmin,
+  checkJwtTokenValidation,
+  checkPasswordValidation,
+  checkUserIdExists,
 } from "../middlewares";
 const router = express.Router();
 
 router
   .route("/")
-  .get(verifyTokenMW, getUserByIdMW, isUserAdminMW, getUsers)
-  .post(getUserByEmailMW, registerUser);
+  .get(checkJwtTokenValidation, checkUserIdExists, checkIfUserIsAdmin, getUsers)
+  .post(checkEmailExists, registerUser);
 
-router.route("/login").post(getUserByEmailMW, authUser);
+router
+  .route("/login")
+  .post(checkEmailExists(true), checkPasswordValidation, authUser);
 
 router
   .route("/profile")
-  .get(verifyTokenMW, getUserByIdMW, getUserProfile)
-  .put(verifyTokenMW, getUserByIdMW, updateUserProfile);
+  .get(checkJwtTokenValidation, checkUserIdExists, getUserProfile)
+  .put(checkJwtTokenValidation, checkUserIdExists, updateUserProfile);
 
 router
   .route("/:id")
-  .get(verifyTokenMW, getUserByIdMW, isUserAdminMW, getUserByIdMW)
-  .put(verifyTokenMW, getUserByIdMW, isUserAdminMW, updateUser)
-  .delete(verifyTokenMW, getUserByIdMW, isUserAdminMW, deleteUser);
+  .get(
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    checkIfUserIsAdmin,
+    getUserById,
+  )
+  .put(
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    checkIfUserIsAdmin,
+    updateUser,
+  )
+  .delete(
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    checkIfUserIsAdmin,
+    deleteUser,
+  );
 
 export default router;
