@@ -31,7 +31,7 @@ class UserRepository {
     updateData,
   }: {
     userId: string;
-    updateData: TInsertUser;
+    updateData: Partial<TInsertUser>;
   }): Promise<TSelectUser | null> {
     return User.findByIdAndUpdate(userId, updateData, { new: true });
   }
