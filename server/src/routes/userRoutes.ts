@@ -1,15 +1,5 @@
 import express from "express";
-
-import {
-  authUser,
-  deleteUser,
-  getUserById,
-  getUserProfile,
-  getUsers,
-  registerUser,
-  updateUser,
-  updateUserProfile,
-} from "../controllers/userController";
+import { userController } from "../controllers";
 import {
   checkEmailExists,
   checkIfUserIsAdmin,
@@ -21,17 +11,22 @@ const router = express.Router();
 
 router
   .route("/")
-  .get(checkJwtTokenValidation, checkUserIdExists, checkIfUserIsAdmin, getUsers)
-  .post(checkEmailExists, registerUser);
+  .get(
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    checkIfUserIsAdmin,
+    userController.getAll,
+  )
+  .post(checkEmailExists, userController.signup);
 
 router
   .route("/login")
-  .post(checkEmailExists(true), checkPasswordValidation, authUser);
+  .post(checkEmailExists(true), checkPasswordValidation, userController.signin);
 
 router
   .route("/profile")
-  .get(checkJwtTokenValidation, checkUserIdExists, getUserProfile)
-  .put(checkJwtTokenValidation, checkUserIdExists, updateUserProfile);
+  .get(checkJwtTokenValidation, checkUserIdExists, userController.getById)
+  .put(checkJwtTokenValidation, checkUserIdExists, userController.update);
 
 router
   .route("/:id")
@@ -39,19 +34,19 @@ router
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
-    getUserById,
+    userController.getById,
   )
   .put(
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
-    updateUser,
+    userController.update,
   )
   .delete(
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
-    deleteUser,
+    userController.delete,
   );
 
 export default router;
