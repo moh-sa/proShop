@@ -83,15 +83,12 @@ export const deleteProduct = createAsyncThunk(
 export const createProduct = createAsyncThunk(
   "products/create",
   async ({ data }, thunkAPI) => {
-    console.log(data);
-
     try {
       const {
         auth: {
           user: { token },
         },
       } = thunkAPI.getState();
-      console.log(token);
 
       await createProductAPI(data, token);
     } catch (error) {

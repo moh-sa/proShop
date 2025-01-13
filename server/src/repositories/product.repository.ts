@@ -20,16 +20,16 @@ class ProductRepository {
 
   async updateProduct({
     productId,
-    productData,
+    updateData,
   }: {
     productId: string;
-    productData: TInsertProduct;
+    updateData: Partial<TInsertProduct>;
   }): Promise<TSelectProduct | null> {
-    return Product.findByIdAndUpdate(productId, productData, { new: true });
+    return Product.findByIdAndUpdate(productId, updateData, { new: true });
   }
 
   async deleteProduct({ productId }: { productId: string }): Promise<void> {
-    Product.findByIdAndDelete(productId);
+    await Product.findByIdAndDelete(productId);
   }
 
   async getTopRatedProducts({
@@ -40,8 +40,18 @@ class ProductRepository {
     return Product.find({}).sort({ rating: -1 }).limit(limit);
   }
 
-  async getAllProducts(): Promise<Array<TSelectProduct>> {
-    return Product.find({});
+  async getAllProducts(data: {
+    query: Record<string, unknown>;
+    numberOfProductsPerPage: number;
+    currentPage: number;
+  }): Promise<Array<TSelectProduct>> {
+    return Product.find({ ...data.query })
+      .limit(data.numberOfProductsPerPage)
+      .skip(data.numberOfProductsPerPage * (data.currentPage - 1));
+  }
+
+  async count(query: Record<string, unknown>): Promise<number> {
+    return Product.countDocuments({ ...query });
   }
 }
 

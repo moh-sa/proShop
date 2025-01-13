@@ -70,8 +70,11 @@ const productSlice = createSlice({
     resetUpdateProductsState: (state) => {
       state.update = initialState.update;
     },
-    resetDeleteState: (state) => {
+    resetDeleteProductState: (state) => {
       state.delete = initialState.delete;
+    },
+    resetCreateProductState: (state) => {
+      state.create = initialState.create;
     },
   },
   extraReducers: (builder) => {
@@ -178,11 +181,12 @@ const productSlice = createSlice({
 });
 
 export const {
-  resetDeleteState,
+  resetDeleteProductState,
   resetProductState,
   resetProductsState,
   resetReviewsState,
   resetTopRatedState,
   resetUpdateProductsState,
+  resetCreateProductState,
 } = productSlice.actions;
 export default productSlice.reducer;
