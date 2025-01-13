@@ -40,8 +40,18 @@ class ProductRepository {
     return Product.find({}).sort({ rating: -1 }).limit(limit);
   }
 
-  async getAllProducts(): Promise<Array<TSelectProduct>> {
-    return Product.find({});
+  async getAllProducts(data: {
+    query: Record<string, unknown>;
+    numberOfProductsPerPage: number;
+    currentPage: number;
+  }): Promise<Array<TSelectProduct>> {
+    return Product.find({ ...data.query })
+      .limit(data.numberOfProductsPerPage)
+      .skip(data.numberOfProductsPerPage * (data.currentPage - 1));
+  }
+
+  async count(query: Record<string, unknown>): Promise<number> {
+    return Product.countDocuments({ ...query });
   }
 }
 
