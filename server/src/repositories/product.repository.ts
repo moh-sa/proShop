@@ -29,7 +29,7 @@ class ProductRepository {
   }
 
   async deleteProduct({ productId }: { productId: string }): Promise<void> {
-    Product.findByIdAndDelete(productId);
+    await Product.findByIdAndDelete(productId);
   }
 
   async getTopRatedProducts({
