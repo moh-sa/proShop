@@ -20,12 +20,12 @@ class ProductRepository {
 
   async updateProduct({
     productId,
-    productData,
+    updateData,
   }: {
     productId: string;
-    productData: TInsertProduct;
+    updateData: Partial<TInsertProduct>;
   }): Promise<TSelectProduct | null> {
-    return Product.findByIdAndUpdate(productId, productData, { new: true });
+    return Product.findByIdAndUpdate(productId, updateData, { new: true });
   }
 
   async deleteProduct({ productId }: { productId: string }): Promise<void> {
