@@ -6,7 +6,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import Loader from "../Components/Loader";
 import Message from "../Components/Message";
 import Paginate from "../Components/Paginate";
-import { createProduct, deleteProduct, fetchProducts } from "../store";
+import {
+  createProduct,
+  deleteProduct,
+  fetchProducts,
+  resetCreateProductState,
+  resetDeleteProductState,
+} from "../store";
 
 const ProductListScreen = () => {
   const params = useParams();
@@ -22,33 +28,40 @@ const ProductListScreen = () => {
   const deleteHandler = (productId, name) => {
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
       dispatch(deleteProduct({ productId }));
-      navigate(0); // refresh the page
     }
   };
+
+  useEffect(() => {
+    if (removeState.success) {
+      dispatch(resetDeleteProductState());
+      setTimeout(() => navigate(0), 250); // refresh the page
+    }
+  }, [removeState.success]);
 
   async function createProductHandler() {
     // for some reason, I don't see a "createProductScreen" component
     // and the backend only creates a sample product!
     // TODO: fix this
-    dispatch(createProduct({ data: { id: "lol" } }));
+    const data = {
+      name: "Sample Name",
+      image: "/images/sample.png",
+      brand: "sample brand",
+      category: "sample category",
+      description: "sample description",
+      reviews: [],
+    };
+    dispatch(createProduct({ data }));
   }
 
   useEffect(() => {
     if (createState.success) {
-      navigate(`/admin/product/${createState.data._id}/edit`);
+      dispatch(resetCreateProductState());
     }
-  }, [navigate, createState.success, createState.data]);
+  }, [createState.success]);
 
   useEffect(() => {
-    if (!createState.success) {
-      dispatch(fetchProducts({ keyword: "", pageNumber }));
-    }
-  }, [dispatch, pageNumber, createState.success]);
-
-  // useEffect(() => {
-  // TODO: implement reset create product
-  // dispatch({ type: PRODUCT_CREATE_RESET });
-  // }, [])
+    dispatch(fetchProducts({ keyword: "", pageNumber }));
+  }, [dispatch, pageNumber]);
 
   return (
     <>
