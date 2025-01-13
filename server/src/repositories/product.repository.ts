@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import Product from "../models/productModel";
 import { TInsertProduct, TSelectProduct } from "../types";
 
@@ -52,6 +53,19 @@ class ProductRepository {
 
   async count(query: Record<string, unknown>): Promise<number> {
     return Product.countDocuments({ ...query });
+  }
+
+  async reviewByUserExists({
+    productId,
+    userId,
+  }: {
+    productId: string;
+    userId: string;
+  }): Promise<{ _id: Types.ObjectId } | null> {
+    return Product.exists({
+      _id: productId,
+      "reviews.user": userId,
+    });
   }
 }
 

@@ -1,4 +1,4 @@
-import mongoose, { Document } from "mongoose";
+import mongoose, { Document, Types } from "mongoose";
 import { productRepository } from "../repositories";
 import {
   TInsertProduct,
@@ -107,6 +107,16 @@ class ProductService {
 
   async delete({ productId }: { productId: string }): Promise<void> {
     await this.repository.deleteProduct({ productId });
+  }
+
+  async isReviewedByUser({
+    productId,
+    userId,
+  }: {
+    productId: string;
+    userId: string;
+  }): Promise<{ _id: Types.ObjectId } | null> {
+    return this.repository.reviewByUserExists({ productId, userId });
   }
 }
 
