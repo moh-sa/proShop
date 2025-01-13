@@ -1,5 +1,5 @@
 import express from "express";
-import { userController } from "../controllers";
+import { userController as controller } from "../controllers";
 import {
   checkEmailExists,
   checkIfUserIsAdmin,
@@ -15,18 +15,18 @@ router
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
-    userController.getAll,
+    controller.getAll,
   )
-  .post(checkEmailExists, userController.signup);
+  .post(checkEmailExists, controller.signup);
 
 router
   .route("/login")
-  .post(checkEmailExists(true), checkPasswordValidation, userController.signin);
+  .post(checkEmailExists(true), checkPasswordValidation, controller.signin);
 
 router
   .route("/profile")
-  .get(checkJwtTokenValidation, checkUserIdExists, userController.getById)
-  .put(checkJwtTokenValidation, checkUserIdExists, userController.update);
+  .get(checkJwtTokenValidation, checkUserIdExists, controller.getById)
+  .put(checkJwtTokenValidation, checkUserIdExists, controller.update);
 
 router
   .route("/:id")
@@ -34,19 +34,19 @@ router
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
-    userController.getById,
+    controller.getById,
   )
   .put(
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
-    userController.update,
+    controller.update,
   )
   .delete(
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
-    userController.delete,
+    controller.delete,
   );
 
 export default router;
