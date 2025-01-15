@@ -21,7 +21,7 @@ export function payOrderAPI(orderId, paymentResult, token) {
   return api.put(`/orders/${orderId}/pay`, paymentResult, {
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${userInfo.token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 }
