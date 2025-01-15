@@ -15,7 +15,7 @@ class OrderRepository {
   }: {
     orderId: string;
   }): Promise<TSelectOrder | null> {
-    return Order.findById(orderId);
+    return Order.findById(orderId).populate("user", "name email");
   }
 
   async updateOrderToDelivered({
