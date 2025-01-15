@@ -46,8 +46,8 @@ const OrderScreen = () => {
   };
 
   useEffect(() => {
-    if (!orderState.data && orderId) dispatch(fetchOrderDetails({ orderId }));
-  }, [dispatch, orderState.data, orderId]);
+    dispatch(fetchOrderDetails({ orderId }));
+  }, [dispatch, orderId]);
 
   useEffect(() => {
     if (payState.success || deliverState.success) {
