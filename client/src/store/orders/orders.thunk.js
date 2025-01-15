@@ -61,19 +61,23 @@ export const fetchUserOrders = createAsyncThunk(
   },
 );
 
-export const payOrder = createAsyncThunk("orders/pay", async (_, thunkAPI) => {
-  try {
-    const {
-      auth: {
-        user: { token },
-      },
-    } = thunkAPI.getState();
-    const { data } = await payOrderAPI(token);
-    return data;
-  } catch (error) {
-    return thunkAPI.rejectWithValue(error.response.data);
-  }
-});
+export const payOrder = createAsyncThunk(
+  "orders/pay",
+  async ({ orderId }, thunkAPI) => {
+    try {
+      const {
+        auth: {
+          user: { token },
+        },
+      } = thunkAPI.getState();
+
+      const { data } = await payOrderAPI(orderId, token);
+      return data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data);
+    }
+  },
+);
 
 export const createOrder = createAsyncThunk(
   "orders/create",
