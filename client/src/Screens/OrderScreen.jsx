@@ -66,7 +66,7 @@ const OrderScreen = () => {
   if (orderState.loading) return <Loader />;
 
   if (orderState.error)
-    return <Message variant='danger'>{orderState.orderError.message}</Message>;
+    return <Message variant='danger'>{orderState.error.message}</Message>;
 
   if (orderState && orderState.data) {
     return (
