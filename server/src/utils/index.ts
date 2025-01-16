@@ -1,3 +1,4 @@
+export * from "./format-zod-errors.util";
 export * from "./generate-salt.util";
 export * from "./generateJwtToken";
 export * from "./handle-error-response.util";
