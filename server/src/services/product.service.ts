@@ -10,7 +10,11 @@ import {
 class ProductService {
   private readonly repository = productRepository;
 
-  async getById({ productId }: { productId: string }): Promise<TSelectProduct> {
+  async getById({
+    productId,
+  }: {
+    productId: Types.ObjectId;
+  }): Promise<TSelectProduct> {
     const product = await this.repository.getProductById({ productId });
     if (!product) throw new Error("Product not found.");
 
@@ -55,7 +59,7 @@ class ProductService {
 
   async createReview(data: {
     user: TSelectUser;
-    productId: string;
+    productId: Types.ObjectId;
     rating: number;
     comment: string;
   }): Promise<void> {
@@ -94,7 +98,7 @@ class ProductService {
     productId,
     updateData,
   }: {
-    productId: string;
+    productId: Types.ObjectId;
     updateData: Partial<TInsertProduct>;
   }): Promise<TSelectProduct> {
     const updatedProduct = await this.repository.updateProduct({
@@ -105,7 +109,7 @@ class ProductService {
     return updatedProduct;
   }
 
-  async delete({ productId }: { productId: string }): Promise<void> {
+  async delete({ productId }: { productId: Types.ObjectId }): Promise<void> {
     await this.repository.deleteProduct({ productId });
   }
 
@@ -113,8 +117,8 @@ class ProductService {
     productId,
     userId,
   }: {
-    productId: string;
-    userId: string;
+    productId: Types.ObjectId;
+    userId: Types.ObjectId;
   }): Promise<{ _id: Types.ObjectId } | null> {
     return this.repository.reviewByUserExists({ productId, userId });
   }

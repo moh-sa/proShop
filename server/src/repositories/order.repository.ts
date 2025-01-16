@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import Order from "../models/orderModel";
 import { TInsertOrder, TSelectOrder } from "../types";
 
@@ -13,7 +14,7 @@ class OrderRepository {
   async getOrderById({
     orderId,
   }: {
-    orderId: string;
+    orderId: Types.ObjectId;
   }): Promise<TSelectOrder | null> {
     return Order.findById(orderId).populate("user", "name email");
   }
@@ -21,7 +22,7 @@ class OrderRepository {
   async updateOrderToDelivered({
     orderId,
   }: {
-    orderId: string;
+    orderId: Types.ObjectId;
   }): Promise<TSelectOrder | null> {
     return Order.findByIdAndUpdate(
       orderId,
@@ -38,7 +39,7 @@ class OrderRepository {
   async updateOrderToPaid({
     orderId,
   }: {
-    orderId: string;
+    orderId: Types.ObjectId;
   }): Promise<TSelectOrder | null> {
     return Order.findByIdAndUpdate(
       orderId,
@@ -57,7 +58,7 @@ class OrderRepository {
   async getUserOrders({
     userId,
   }: {
-    userId: string;
+    userId: Types.ObjectId;
   }): Promise<Array<TSelectOrder>> {
     return Order.find({ user: userId }).populate("user", "name email");
   }

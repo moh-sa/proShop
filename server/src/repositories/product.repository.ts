@@ -14,7 +14,7 @@ class ProductRepository {
   async getProductById({
     productId,
   }: {
-    productId: string;
+    productId: Types.ObjectId;
   }): Promise<TSelectProduct | null> {
     return Product.findById(productId);
   }
@@ -23,13 +23,17 @@ class ProductRepository {
     productId,
     updateData,
   }: {
-    productId: string;
+    productId: Types.ObjectId;
     updateData: Partial<TInsertProduct>;
   }): Promise<TSelectProduct | null> {
     return Product.findByIdAndUpdate(productId, updateData, { new: true });
   }
 
-  async deleteProduct({ productId }: { productId: string }): Promise<void> {
+  async deleteProduct({
+    productId,
+  }: {
+    productId: Types.ObjectId;
+  }): Promise<void> {
     await Product.findByIdAndDelete(productId);
   }
 
@@ -59,8 +63,8 @@ class ProductRepository {
     productId,
     userId,
   }: {
-    productId: string;
-    userId: string;
+    productId: Types.ObjectId;
+    userId: Types.ObjectId;
   }): Promise<{ _id: Types.ObjectId } | null> {
     return Product.exists({
       _id: productId,

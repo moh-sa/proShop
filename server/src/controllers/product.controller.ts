@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { Types } from "mongoose";
 import { productService } from "../services";
 import { TInsertProduct } from "../types";
 
@@ -7,7 +8,7 @@ class ProductController {
 
   getById = async (req: Request, res: Response) => {
     try {
-      const productId = req.params.id;
+      const productId = req.params.id as unknown as Types.ObjectId;
       const product = await this.service.getById({ productId });
       res.status(200).json(product);
     } catch (error) {
@@ -73,7 +74,7 @@ class ProductController {
 
   createReview = async (req: Request, res: Response) => {
     const { rating, comment } = req.body;
-    const productId = req.params.id;
+    const productId = req.params.id as unknown as Types.ObjectId;
     const user = res.locals.user;
 
     try {
@@ -94,7 +95,7 @@ class ProductController {
   };
 
   update = async (req: Request, res: Response) => {
-    const productId = req.params.id;
+    const productId = req.params.id as unknown as Types.ObjectId;
     const updateData = req.body;
 
     try {
@@ -113,7 +114,7 @@ class ProductController {
   };
 
   delete = async (req: Request, res: Response) => {
-    const productId = req.params.id;
+    const productId = req.params.id as unknown as Types.ObjectId;
 
     try {
       await this.service.delete({ productId });

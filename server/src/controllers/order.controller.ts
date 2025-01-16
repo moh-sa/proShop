@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { Types } from "mongoose";
 import { orderService } from "../services";
 import { TInsertOrder } from "../types";
 
@@ -23,7 +24,7 @@ class OrderController {
   };
 
   getById = async (req: Request, res: Response) => {
-    const orderId = req.params.id;
+    const orderId = req.params.id as unknown as Types.ObjectId;
     try {
       const order = await this.service.getById({ orderId });
       res.status(200).json(order);
@@ -50,7 +51,7 @@ class OrderController {
   };
 
   getUser = async (req: Request, res: Response) => {
-    const userId = res.locals.user._id as unknown as string; // TODO: fix type
+    const userId = res.locals.user._id as unknown as Types.ObjectId; // TODO: fix type
     try {
       const orders = await this.service.getUserOrders({ userId });
       res.status(200).json(orders);
@@ -64,7 +65,7 @@ class OrderController {
   };
 
   updateToPaid = async (req: Request, res: Response) => {
-    const orderId = req.params.id;
+    const orderId = req.params.id as unknown as Types.ObjectId;
     try {
       const order = await this.service.updateToPaid({ orderId });
       res.status(200).json(order);
@@ -78,7 +79,7 @@ class OrderController {
   };
 
   updateToDelivered = async (req: Request, res: Response) => {
-    const orderId = req.params.id;
+    const orderId = req.params.id as unknown as Types.ObjectId;
     try {
       const order = await this.service.updateToDelivered({ orderId });
       res.status(200).json(order);

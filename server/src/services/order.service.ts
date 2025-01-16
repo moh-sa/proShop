@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { orderRepository } from "../repositories";
 import { TInsertOrder, TSelectOrder } from "../types";
 
@@ -12,7 +13,11 @@ class OrderService {
     return await this.repository.createOrder({ orderData: data });
   }
 
-  async getById({ orderId }: { orderId: string }): Promise<TSelectOrder> {
+  async getById({
+    orderId,
+  }: {
+    orderId: Types.ObjectId;
+  }): Promise<TSelectOrder> {
     const order = await this.repository.getOrderById({ orderId });
     if (!order) throw new Error("Order not found.");
     return order;
@@ -25,12 +30,16 @@ class OrderService {
   async getUserOrders({
     userId,
   }: {
-    userId: string;
+    userId: Types.ObjectId;
   }): Promise<Array<TSelectOrder>> {
     return this.repository.getUserOrders({ userId });
   }
 
-  async updateToPaid({ orderId }: { orderId: string }): Promise<TSelectOrder> {
+  async updateToPaid({
+    orderId,
+  }: {
+    orderId: Types.ObjectId;
+  }): Promise<TSelectOrder> {
     const updatedOrder = await this.repository.updateOrderToPaid({ orderId });
     if (!updatedOrder) throw new Error("Order not found.");
     return updatedOrder;
@@ -39,7 +48,7 @@ class OrderService {
   async updateToDelivered({
     orderId,
   }: {
-    orderId: string;
+    orderId: Types.ObjectId;
   }): Promise<TSelectOrder> {
     const updatedOrder = await this.repository.updateOrderToDelivered({
       orderId,

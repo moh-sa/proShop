@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { Types } from "mongoose";
 import { userService } from "../services";
 import { TInsertUser } from "../types";
 
@@ -24,7 +25,8 @@ class UserController {
   };
 
   getById = async (req: Request, res: Response) => {
-    const userId = req.params.id || res.locals.user._id.toString(); // TODO: fix type
+    const userId = (req.params.id ||
+      res.locals.user._id) as unknown as Types.ObjectId;
     const response = await this.service.getById({ userId });
     res.status(200).json(response);
   };
@@ -35,7 +37,8 @@ class UserController {
   };
 
   update = async (req: Request, res: Response) => {
-    const userId = req.params.id || res.locals.user._id.toString(); // TODO: fix type
+    const userId = (req.params.id ||
+      res.locals.user._id) as unknown as Types.ObjectId;
     const updateData = req.body as Partial<TInsertUser>;
     const response = await this.service.updateById({ userId, updateData });
 
@@ -43,7 +46,7 @@ class UserController {
   };
 
   delete = async (req: Request, res: Response) => {
-    const userId = req.params.id;
+    const userId = req.params.id as unknown as Types.ObjectId;
     await this.service.delete({ userId });
     res.status(204).json({ message: "User removed" });
   };

@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { userRepository } from "../repositories";
 import { TInsertUser, TSelectUser } from "../types";
 import { generateToken } from "../utils";
@@ -26,7 +27,7 @@ class UserService {
     return this.createResponse(user, true);
   }
 
-  async getById({ userId }: { userId: string }) {
+  async getById({ userId }: { userId: Types.ObjectId }) {
     const user = await this.repository.getUserById({ userId });
     if (!user) throw new Error("User not found.");
     return this.createResponse(user);
@@ -41,7 +42,7 @@ class UserService {
     userId,
     updateData,
   }: {
-    userId: string;
+    userId: Types.ObjectId;
     updateData: Partial<TInsertUser>;
   }) {
     const updatedUser = await this.repository.updateUser({
@@ -52,7 +53,7 @@ class UserService {
     return this.createResponse(updatedUser);
   }
 
-  async delete({ userId }: { userId: string }) {
+  async delete({ userId }: { userId: Types.ObjectId }) {
     await this.repository.deleteUser({ userId });
   }
 }
