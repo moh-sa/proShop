@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { formatZodErrors, verifyJwtToken } from "../utils";
-import { authHeaderValidator } from "../validators";
+import { authHeaderValidator, jwtValidator } from "../validators";
 
 /**
  * Middleware to validate JWT token
@@ -17,7 +17,14 @@ export async function checkJwtTokenValidation(
     });
   }
 
-  const decoded = verifyJwtToken(authParsed.data);
+  const tokenParsed = jwtValidator.safeParse(authParsed.data);
+  if (!tokenParsed.success) {
+    return res.status(401).json({
+      message: formatZodErrors(tokenParsed.error),
+    });
+  }
+
+  const decoded = verifyJwtToken(tokenParsed.data);
   res.locals.token = decoded;
   next();
 }

@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 import { z } from "zod";
-import { emailValidator, passwordValidator } from "../validators";
+import { emailValidator, jwtValidator, passwordValidator } from "../validators";
 
 const baseUserSchema = z.object({
   name: z.string().min(1, { message: "Name is required." }),
@@ -15,11 +15,7 @@ export const selectUserSchema = baseUserSchema.extend({
   _id: z.instanceof(Types.ObjectId, { message: "Invalid ObjectId format." }),
   createdAt: z.date(),
   updatedAt: z.date(),
-  token: z
-    .string()
-    .min(1, { message: "Token is required." })
-    .jwt({ message: "Invalid jwt token format." })
-    .optional(),
+  token: jwtValidator.optional(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
