@@ -12,9 +12,9 @@ const UsersListScreen = () => {
   const usersState = useSelector((state) => state.users.users);
   const removeState = useSelector((state) => state.users.delete);
 
-  const deleteHandler = (id, name) => {
+  const deleteHandler = (userId, name) => {
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
-      dispatch(deleteUser(id));
+      dispatch(deleteUser({ userId }));
     }
   };
 
