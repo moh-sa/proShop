@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 import { userRepository } from "../repositories";
-import { TInsertUser, TSelectUser } from "../types";
+import { TInsertUser, TSelectUser, RequiredBy } from "../types";
 import { generateToken } from "../utils";
 
 class UserService {
@@ -18,7 +18,7 @@ class UserService {
     return response;
   }
 
-  signin(data: Pick<TInsertUser, "email" | "password">) {
+  signin(data: RequiredBy<InsertUser, "email" | "password">) {
     return this.createResponse(data, true);
   }
 
