@@ -10,10 +10,11 @@ export async function checkPasswordValidation(
   res: Response,
   next: NextFunction,
 ) {
-  const passwordConfirmationParsed = passwordConfirmationValidator.safeParse({
-    request: req.body.password,
-    encrypted: res.locals.user.password,
-  });
+  const passwordConfirmationParsed =
+    await passwordConfirmationValidator.safeParseAsync({
+      request: req.body.password,
+      encrypted: res.locals.user.password,
+    });
 
   if (!passwordConfirmationParsed.success) {
     return res.status(400).json({
