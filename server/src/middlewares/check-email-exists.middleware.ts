@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { userRepository } from "../repositories";
+import { formatZodErrors } from "../utils";
+import { emailValidator } from "../validators";
 
 /**
  * Middleware to verify email existence
@@ -7,12 +9,16 @@ import { userRepository } from "../repositories";
  */
 export function checkEmailExists(allowExisting = false) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const email = req.body.email;
-    if (!email) {
-      res.status(400).json({ message: "required field is missing." });
+    const emailParsed = emailValidator.safeParse(req.body.email);
+    if (!emailParsed.success) {
+      return res
+        .status(400)
+        .json({ message: formatZodErrors(emailParsed.error) });
     }
 
-    const user = await userRepository.getUserByEmail({ email });
+    const user = await userRepository.getUserByEmail({
+      email: emailParsed.data,
+    });
 
     if (user && !allowExisting) {
       return res
