@@ -8,10 +8,7 @@ export async function checkIfUserIsAdmin(
   res: Response,
   next: NextFunction,
 ) {
-  const user = res.locals?.user;
-  if (!user) {
-    return res.status(400).json({ message: "Unauthorized access." });
-  }
+  const user = res.locals.user;
 
   if (!user.isAdmin) {
     return res.status(401).json({ message: "Admin access required." });
