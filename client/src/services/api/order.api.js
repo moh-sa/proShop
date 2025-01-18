@@ -18,12 +18,16 @@ export function getOrderDetailsAPI(orderId, token) {
 }
 
 export function payOrderAPI(orderId, token) {
-  return api.put(`/orders/${orderId}/pay`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+  return api.put(
+    `/orders/${orderId}/pay`,
+    {},
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
 }
 
 export function deliverOrderAPI(orderId, token) {
