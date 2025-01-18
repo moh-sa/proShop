@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import { isPasswordValid } from "../utils";
+import { formatZodErrors } from "../utils";
+import { passwordConfirmationValidator } from "../validators";
 
 /**
  * Middleware to validate password
@@ -9,17 +10,15 @@ export async function checkPasswordValidation(
   res: Response,
   next: NextFunction,
 ) {
-  const user = res.locals.user;
-  const enteredPassword = req.body.password;
-  const databasePassword = res.locals.user?.password;
+  const passwordConfirmationParsed = passwordConfirmationValidator.safeParse({
+    request: req.body.password,
+    encrypted: res.locals.user.password,
+  });
 
-  if (!user || !enteredPassword || !databasePassword) {
-    return res.status(400).json({ message: "Invalid email or password." });
-  }
-
-  const isValid = await isPasswordValid(enteredPassword, databasePassword);
-  if (!isValid) {
-    return res.status(400).json({ message: "Invalid email or password." });
+  if (!passwordConfirmationParsed.success) {
+    return res.status(400).json({
+      message: formatZodErrors(passwordConfirmationParsed.error),
+    });
   }
 
   next();
