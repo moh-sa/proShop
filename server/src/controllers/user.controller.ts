@@ -49,7 +49,16 @@ class UserController {
       return res.status(400).json({ message: formatZodErrors(idParsed.error) });
     }
 
-    const updateDataParsed = insertUserSchema.partial().safeParse(req.body);
+    const transformedBody = Object.fromEntries(
+      Object.entries(req.body).map(([key, value]) => [
+        key,
+        value === "" ? undefined : value,
+      ]),
+    );
+
+    const updateDataParsed = insertUserSchema
+      .partial()
+      .safeParse(transformedBody);
     if (!updateDataParsed.success) {
       return res.status(400).json({
         message: formatZodErrors(updateDataParsed.error),
