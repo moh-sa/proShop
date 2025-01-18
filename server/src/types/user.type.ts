@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { z } from "zod";
+import { passwordValidator } from "../validators";
 
 const baseUserSchema = z.object({
   name: z.string().min(1, { message: "Name is required." }),
@@ -7,7 +8,7 @@ const baseUserSchema = z.object({
     .string()
     .min(1, { message: "Email is required." })
     .email({ message: "Invalid email format." }),
-  password: z.string().min(6, { message: "Password is required." }),
+  password: passwordValidator,
   isAdmin: z.boolean().default(false),
 });
 
