@@ -1,12 +1,12 @@
 import { Types } from "mongoose";
 import { userRepository } from "../repositories";
-import { TInsertUser, TSelectUser, RequiredBy } from "../types";
+import { InsertUser, RequiredBy, SelectUser } from "../types";
 import { generateToken } from "../utils";
 
 class UserService {
   private readonly repository = userRepository;
 
-  private createResponse(user: Partial<TSelectUser>, includeToken = false) {
+  private createResponse(user: Partial<SelectUser>, includeToken = false) {
     const response: typeof user & { token?: string } = {
       _id: user._id,
       name: user.name,
@@ -22,7 +22,7 @@ class UserService {
     return this.createResponse(data, true);
   }
 
-  async signup(data: TInsertUser) {
+  async signup(data: InsertUser) {
     const user = await this.repository.createUser({ userData: data });
     return this.createResponse(user, true);
   }
@@ -43,7 +43,7 @@ class UserService {
     updateData,
   }: {
     userId: Types.ObjectId;
-    updateData: Partial<TInsertUser>;
+    updateData: Partial<InsertUser>;
   }) {
     const updatedUser = await this.repository.updateUser({
       userId,

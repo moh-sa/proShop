@@ -1,10 +1,10 @@
 import mongoose, { Document, Types } from "mongoose";
 import { productRepository } from "../repositories";
 import {
+  SelectUser,
   TInsertProduct,
   TSelectProduct,
   TSelectReview,
-  TSelectUser,
 } from "../types";
 
 class ProductService {
@@ -58,7 +58,7 @@ class ProductService {
   }
 
   async createReview(data: {
-    user: TSelectUser;
+    user: SelectUser;
     productId: Types.ObjectId;
     rating: number;
     comment: string;

@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { TPaymentResult } from "./payment-result.type";
 import { TShippingAddress } from "./shipping-address.type";
-import { TSelectUser } from "./user.type";
+import { SelectUser } from "./user.type";
 
 interface BaseOrder {
   orderItems: Array<Types.ObjectId>;
@@ -24,7 +24,7 @@ export interface TInsertOrder extends BaseOrder {
 
 export interface TSelectOrder extends BaseOrder {
   _id: Types.ObjectId;
-  user: TSelectUser;
+  user: SelectUser;
   createdAt: Date;
   updatedAt: Date;
 }

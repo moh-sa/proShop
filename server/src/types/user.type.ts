@@ -1,20 +1,31 @@
 import { Types } from "mongoose";
+import { z } from "zod";
 
-interface BaseUser {
-  name: string;
-  email: string;
-  password: string;
-  isAdmin: boolean;
-}
+const baseUserSchema = z.object({
+  name: z.string().min(1, { message: "Name is required." }),
+  email: z
+    .string()
+    .min(1, { message: "Email is required." })
+    .email({ message: "Invalid email format." }),
+  password: z.string().min(6, { message: "Password is required." }),
+  isAdmin: z.boolean().default(false),
+});
 
-export interface TInsertUser extends BaseUser {}
+export const insertUserSchema = baseUserSchema;
 
-export interface TSelectUser extends BaseUser {
-  _id: Types.ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export const selectUserSchema = baseUserSchema.extend({
+  _id: z.instanceof(Types.ObjectId, { message: "Invalid ObjectId format." }),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  token: z
+    .string()
+    .min(1, { message: "Token is required." })
+    .jwt({ message: "Invalid jwt token format." })
+    .optional(),
+});
 
-export interface TUserSchema extends TSelectUser {
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type SelectUser = z.infer<typeof selectUserSchema>;
+export type UserSchema = SelectUser & {
   matchPassword: (enteredPassword: string) => Promise<boolean>;
-}
+};

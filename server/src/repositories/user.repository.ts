@@ -1,13 +1,13 @@
 import { Types } from "mongoose";
 import User from "../models/userModel";
-import { TInsertUser, TSelectUser } from "../types";
+import { InsertUser, SelectUser } from "../types";
 
 class UserRepository {
   async createUser({
     userData,
   }: {
-    userData: TInsertUser;
-  }): Promise<TSelectUser> {
+    userData: InsertUser;
+  }): Promise<SelectUser> {
     return User.create(userData);
   }
 
@@ -15,7 +15,7 @@ class UserRepository {
     userId,
   }: {
     userId: Types.ObjectId;
-  }): Promise<TSelectUser | null> {
+  }): Promise<SelectUser | null> {
     return User.findById(userId);
   }
 
@@ -23,7 +23,7 @@ class UserRepository {
     email,
   }: {
     email: string;
-  }): Promise<TSelectUser | null> {
+  }): Promise<SelectUser | null> {
     return User.findOne({ email });
   }
 
@@ -32,8 +32,8 @@ class UserRepository {
     updateData,
   }: {
     userId: Types.ObjectId;
-    updateData: Partial<TInsertUser>;
-  }): Promise<TSelectUser | null> {
+    updateData: Partial<InsertUser>;
+  }): Promise<SelectUser | null> {
     return User.findByIdAndUpdate(userId, updateData, { new: true });
   }
 
@@ -41,7 +41,7 @@ class UserRepository {
     await User.findByIdAndDelete(userId);
   }
 
-  async getAllUsers(): Promise<Array<TSelectUser>> {
+  async getAllUsers(): Promise<Array<SelectUser>> {
     return User.find({});
   }
 }

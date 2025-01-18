@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { Types } from "mongoose";
 import { userService } from "../services";
-import { TInsertUser } from "../types";
+import { insertUserSchema } from "../types";
+import { formatZodErrors } from "../utils";
 
 class UserController {
   private readonly service = userService;
@@ -13,14 +14,14 @@ class UserController {
   };
 
   signup = (req: Request, res: Response) => {
-    type TBody = { name: string; email: string; password: string };
-    const { name, email, password } = req.body as TBody;
-    const response = this.service.signup({
-      name,
-      email,
-      password,
-      isAdmin: false,
-    });
+    const bodyParsed = insertUserSchema.safeParse(req.body);
+    if (!bodyParsed.success) {
+      return res
+        .status(400)
+        .json({ message: formatZodErrors(bodyParsed.error) });
+    }
+
+    const response = this.service.signup(bodyParsed.data);
     res.status(201).json(response);
   };
 
@@ -39,8 +40,21 @@ class UserController {
   update = async (req: Request, res: Response) => {
     const userId = (req.params.id ||
       res.locals.user._id) as unknown as Types.ObjectId;
-    const updateData = req.body as Partial<TInsertUser>;
-    const response = await this.service.updateById({ userId, updateData });
+
+    const updateDataParsed = insertUserSchema
+      .partial()
+      .strip()
+      .safeParse(req.body);
+    if (!updateDataParsed.success) {
+      return res.status(400).json({
+        message: formatZodErrors(updateDataParsed.error),
+      });
+    }
+
+    const response = await this.service.updateById({
+      userId,
+      updateData: updateDataParsed.data,
+    });
 
     res.status(200).json(response);
   };

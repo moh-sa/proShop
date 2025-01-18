@@ -1,9 +1,9 @@
 import bcrypt from "bcryptjs";
 import { model, Schema } from "mongoose";
-import { TUserSchema } from "../types";
+import { UserSchema } from "../types";
 import { hashData } from "../utils";
 
-const userSchema = new Schema<TUserSchema>(
+const userSchema = new Schema<UserSchema>(
   {
     name: {
       type: String,
@@ -44,6 +44,6 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-const User = model<TUserSchema>("User", userSchema);
+const User = model<UserSchema>("User", userSchema);
 
 export default User;

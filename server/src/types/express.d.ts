@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { TSelectUser } from "./user.type";
+import { SelectUser } from "./user.type";
 
 declare global {
   namespace Express {
@@ -9,7 +9,7 @@ declare global {
         iat: number;
         exp: number;
       };
-      user: TSelectUser;
+      user: SelectUser;
     }
   }
 }
