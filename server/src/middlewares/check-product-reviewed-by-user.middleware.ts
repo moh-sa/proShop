@@ -1,13 +1,21 @@
 import { NextFunction, Request, Response } from "express";
 import { productService } from "../services";
+import { objectIdValidator } from "../validators";
 
 export async function checkProductReviewedByUser(
   req: Request,
   res: Response,
   next: NextFunction,
 ) {
-  const productId = req.params.id;
-  const userId = res.locals.user._id as unknown as string; // TODO: fix type
+  const productIdParsed = objectIdValidator.safeParse(req.params.id);
+  if (!productIdParsed.success) {
+    return res.status(400).json({
+      message: "Invalid user id format.",
+    });
+  }
+
+  const productId = productIdParsed.data;
+  const userId = res.locals.user._id;
 
   const isReviewed = await productService.isReviewedByUser({
     productId,

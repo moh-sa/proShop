@@ -1,15 +1,14 @@
 import { Request, Response } from "express";
-import { Types } from "mongoose";
 import { userService } from "../services";
 import { insertUserSchema } from "../types";
 import { formatZodErrors } from "../utils";
+import { objectIdValidator } from "../validators";
 
 class UserController {
   private readonly service = userService;
 
   signin = async (req: Request, res: Response) => {
-    const { email, password } = res.locals.user;
-    const response = await this.service.signin({ email, password });
+    const response = await this.service.signin(res.locals.user);
     res.status(200).json(response);
   };
 
@@ -26,9 +25,15 @@ class UserController {
   };
 
   getById = async (req: Request, res: Response) => {
-    const userId = (req.params.id ||
-      res.locals.user._id) as unknown as Types.ObjectId;
-    const response = await this.service.getById({ userId });
+    const idRaw = req.params.id || res.locals.user._id;
+
+    const idParsed = objectIdValidator.safeParse(idRaw);
+    if (!idParsed.success) {
+      return res.status(400).json({ message: formatZodErrors(idParsed.error) });
+    }
+
+    const response = await this.service.getById({ userId: idParsed.data });
+
     res.status(200).json(response);
   };
 
@@ -38,8 +43,11 @@ class UserController {
   };
 
   update = async (req: Request, res: Response) => {
-    const userId = (req.params.id ||
-      res.locals.user._id) as unknown as Types.ObjectId;
+    const idRaw = req.params.id || res.locals.user._id;
+    const idParsed = objectIdValidator.safeParse(idRaw);
+    if (!idParsed.success) {
+      return res.status(400).json({ message: formatZodErrors(idParsed.error) });
+    }
 
     const updateDataParsed = insertUserSchema
       .partial()
@@ -52,7 +60,7 @@ class UserController {
     }
 
     const response = await this.service.updateById({
-      userId,
+      userId: idParsed.data,
       updateData: updateDataParsed.data,
     });
 
@@ -60,8 +68,14 @@ class UserController {
   };
 
   delete = async (req: Request, res: Response) => {
-    const userId = req.params.id as unknown as Types.ObjectId;
-    await this.service.delete({ userId });
+    const idRaw = req.params.id;
+    const idParsed = objectIdValidator.safeParse(idRaw);
+    if (!idParsed.success) {
+      return res.status(400).json({ message: formatZodErrors(idParsed.error) });
+    }
+
+    await this.service.delete({ userId: idParsed.data });
+
     res.status(204).json({ message: "User removed" });
   };
 }
