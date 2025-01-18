@@ -17,7 +17,7 @@ router
     checkIfUserIsAdmin,
     controller.getAll,
   )
-  .post(checkEmailExists, controller.signup);
+  .post(checkEmailExists(), controller.signup);
 
 router
   .route("/login")
