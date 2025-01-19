@@ -1,21 +1,25 @@
 import { Request, Response } from "express";
-import { Types } from "mongoose";
+import { ZodError } from "zod";
+import { insertOrderSchema } from "../schemas";
 import { orderService } from "../services";
-import { InsertOrder } from "../types";
+import { formatZodErrors } from "../utils";
+import { objectIdValidator } from "../validators";
 
 class OrderController {
   private readonly service = orderService;
 
   create = async (req: Request, res: Response) => {
-    const data: InsertOrder = {
-      ...req.body,
-      user: res.locals.user._id,
-    };
+    const tempData = { ...req.body, user: res.locals.user._id };
     try {
+      const data = insertOrderSchema.parse(tempData);
       const createdOrder = await this.service.create(data);
+
       res.status(201).json(createdOrder);
     } catch (error) {
       console.error(error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: formatZodErrors(error) });
+      }
       if (error instanceof Error) {
         return res.status(400).json({ message: error.message });
       }
@@ -24,12 +28,16 @@ class OrderController {
   };
 
   getById = async (req: Request, res: Response) => {
-    const orderId = req.params.id as unknown as Types.ObjectId;
     try {
+      const orderId = objectIdValidator.parse(req.params.id);
       const order = await this.service.getById({ orderId });
+
       res.status(200).json(order);
     } catch (error) {
       console.error(error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: formatZodErrors(error) });
+      }
       if (error instanceof Error) {
         return res.status(400).json({ message: error.message });
       }
@@ -40,6 +48,7 @@ class OrderController {
   getAll = async (req: Request, res: Response) => {
     try {
       const orders = await this.service.getAll();
+
       res.status(200).json(orders);
     } catch (error) {
       console.error(error);
@@ -51,9 +60,10 @@ class OrderController {
   };
 
   getUser = async (req: Request, res: Response) => {
-    const userId = res.locals.user._id as unknown as Types.ObjectId; // TODO: fix type
+    const userId = res.locals.user._id;
     try {
       const orders = await this.service.getUserOrders({ userId });
+
       res.status(200).json(orders);
     } catch (error) {
       console.error(error);
@@ -65,12 +75,16 @@ class OrderController {
   };
 
   updateToPaid = async (req: Request, res: Response) => {
-    const orderId = req.params.id as unknown as Types.ObjectId;
     try {
+      const orderId = objectIdValidator.parse(req.params.id);
       const order = await this.service.updateToPaid({ orderId });
+
       res.status(200).json(order);
     } catch (error) {
       console.error(error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: formatZodErrors(error) });
+      }
       if (error instanceof Error) {
         return res.status(400).json({ message: error.message });
       }
@@ -79,12 +93,16 @@ class OrderController {
   };
 
   updateToDelivered = async (req: Request, res: Response) => {
-    const orderId = req.params.id as unknown as Types.ObjectId;
     try {
+      const orderId = objectIdValidator.parse(req.params.id);
       const order = await this.service.updateToDelivered({ orderId });
+
       res.status(200).json(order);
     } catch (error) {
       console.error(error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: formatZodErrors(error) });
+      }
       if (error instanceof Error) {
         return res.status(400).json({ message: error.message });
       }
