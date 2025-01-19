@@ -1,21 +1,30 @@
-import { Types } from "mongoose";
-import { SelectUser } from "./user.type";
+import { z } from "zod";
+import { objectIdValidator } from "../validators";
+import { selectUserSchema } from "./user.type";
 
-interface BaseReview {
-  name: string;
-  rating: number;
-  comment: string;
-}
+const baseReviewSchema = z.object({
+  name: z.string().min(1, { message: "Name is required." }),
 
-export interface TInsertReview extends BaseReview {
-  user: Types.ObjectId;
-}
+  rating: z.coerce
+    .number()
+    .positive({ message: "Rating must be a positive number." })
+    .min(0, { message: "Rating is required." })
+    .max(5, { message: "Rating must be between 1 and 5." }),
 
-export interface TSelectReview extends BaseReview {
-  _id: Types.ObjectId;
-  user: SelectUser;
-  createdAt: Date;
-  updatedAt: Date;
-}
+  comment: z.string().min(1, { message: "Comment is required." }),
+});
 
-export interface TReviewSchema extends TSelectReview {}
+export const insertReviewSchema = baseReviewSchema.extend({
+  user: objectIdValidator,
+});
+
+export const selectReviewSchema = baseReviewSchema.extend({
+  _id: objectIdValidator,
+  user: selectUserSchema,
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type InsertReview = z.infer<typeof insertReviewSchema>;
+export type SelectReview = z.infer<typeof selectReviewSchema>;
+export type ReviewSchema = SelectReview;

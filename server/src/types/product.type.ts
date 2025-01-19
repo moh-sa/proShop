@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { TSelectReview } from "./review.type";
+import { SelectReview } from "./review.type";
 import { SelectUser } from "./user.type";
 
 interface BaseProduct {
@@ -22,7 +22,7 @@ export interface TInsertProduct extends BaseProduct {
 export interface TSelectProduct extends BaseProduct {
   _id: Types.ObjectId;
   user: SelectUser;
-  reviews: Array<TSelectReview>;
+  reviews: Array<SelectReview>;
   createdAt: Date;
   updatedAt: Date;
 }

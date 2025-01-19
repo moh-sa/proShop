@@ -1,7 +1,7 @@
 import mongoose, { model, Schema } from "mongoose";
-import { TProductSchema, TReviewSchema } from "../types";
+import { ReviewSchema, TProductSchema } from "../types";
 
-const reviewSchema = new Schema<TReviewSchema>(
+const reviewSchema = new Schema<ReviewSchema>(
   {
     name: { type: String, required: true },
     rating: { type: Number, required: true },

@@ -1,10 +1,10 @@
 import mongoose, { Document, Types } from "mongoose";
 import { productRepository } from "../repositories";
 import {
+  SelectReview,
   SelectUser,
   TInsertProduct,
   TSelectProduct,
-  TSelectReview,
 } from "../types";
 
 class ProductService {
@@ -70,7 +70,7 @@ class ProductService {
     if (!product) throw new Error("Product not found.");
 
     // TODO: create a review model
-    const review: TSelectReview = {
+    const review: SelectReview = {
       _id: new mongoose.Types.ObjectId(),
       name: data.user.name,
       rating: Number(data.rating),
