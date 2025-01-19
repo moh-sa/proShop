@@ -1,5 +1,6 @@
-import { SelectProduct } from "./product.type";
+import { z } from "zod";
+import { selectProductSchema } from "./product.type";
 
-export interface TOrderItem extends SelectProduct {
-  qty: number;
-}
+export const orderItemSchema = selectProductSchema.extend({
+  qty: z.number().int().min(1).default(1),
+});
