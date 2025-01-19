@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
+import { insertUserSchema } from "../schemas";
 import { userService } from "../services";
-import { insertUserSchema } from "../types";
 import { formatZodErrors } from "../utils";
 import { objectIdValidator } from "../validators";
 

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { z, ZodError } from "zod";
+import { insertProductSchema, insertReviewSchema } from "../schemas";
 import { productService } from "../services";
-import { insertProductSchema, insertReviewSchema } from "../types";
 import { formatZodErrors } from "../utils";
 import { objectIdValidator } from "../validators";
 
