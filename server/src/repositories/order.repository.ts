@@ -1,13 +1,13 @@
 import { Types } from "mongoose";
 import Order from "../models/orderModel";
-import { TInsertOrder, TSelectOrder } from "../types";
+import { InsertOrder, SelectOrder } from "../types";
 
 class OrderRepository {
   async createOrder({
     orderData,
   }: {
-    orderData: TInsertOrder;
-  }): Promise<TSelectOrder> {
+    orderData: InsertOrder;
+  }): Promise<SelectOrder> {
     return Order.create(orderData);
   }
 
@@ -15,7 +15,7 @@ class OrderRepository {
     orderId,
   }: {
     orderId: Types.ObjectId;
-  }): Promise<TSelectOrder | null> {
+  }): Promise<SelectOrder | null> {
     return Order.findById(orderId).populate("user", "name email");
   }
 
@@ -23,7 +23,7 @@ class OrderRepository {
     orderId,
   }: {
     orderId: Types.ObjectId;
-  }): Promise<TSelectOrder | null> {
+  }): Promise<SelectOrder | null> {
     return Order.findByIdAndUpdate(
       orderId,
       {
@@ -40,7 +40,7 @@ class OrderRepository {
     orderId,
   }: {
     orderId: Types.ObjectId;
-  }): Promise<TSelectOrder | null> {
+  }): Promise<SelectOrder | null> {
     return Order.findByIdAndUpdate(
       orderId,
       {
@@ -59,11 +59,11 @@ class OrderRepository {
     userId,
   }: {
     userId: Types.ObjectId;
-  }): Promise<Array<TSelectOrder>> {
+  }): Promise<Array<SelectOrder>> {
     return Order.find({ user: userId }).populate("user", "name email");
   }
 
-  async getAllOrders(): Promise<Array<TSelectOrder>> {
+  async getAllOrders(): Promise<Array<SelectOrder>> {
     return Order.find({}).populate("user", "id name");
   }
 }

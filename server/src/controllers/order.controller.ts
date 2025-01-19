@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import { Types } from "mongoose";
 import { orderService } from "../services";
-import { TInsertOrder } from "../types";
+import { InsertOrder } from "../types";
 
 class OrderController {
   private readonly service = orderService;
 
   create = async (req: Request, res: Response) => {
-    const data: TInsertOrder = {
+    const data: InsertOrder = {
       ...req.body,
       user: res.locals.user._id,
     };

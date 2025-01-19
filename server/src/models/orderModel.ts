@@ -1,7 +1,7 @@
 import mongoose, { model, Schema } from "mongoose";
-import { TOrderSchema } from "../types";
+import { OrderSchema } from "../types";
 
-const orderSchema = new Schema<TOrderSchema>(
+const orderSchema = new Schema<OrderSchema>(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -79,6 +79,6 @@ const orderSchema = new Schema<TOrderSchema>(
   },
 );
 
-const Order = model<TOrderSchema>("Order", orderSchema);
+const Order = model<OrderSchema>("Order", orderSchema);
 
 export default Order;

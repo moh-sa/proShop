@@ -1,32 +1,44 @@
-import { Types } from "mongoose";
-import { TPaymentResult } from "./payment-result.type";
-import { TShippingAddress } from "./shipping-address.type";
-import { SelectUser } from "./user.type";
+import { z } from "zod";
+import { objectIdValidator } from "../validators";
+import { paymentResultSchema } from "./payment-result.type";
+import { shippingAddressSchema } from "./shipping-address.type";
+import { selectUserSchema } from "./user.type";
 
-interface BaseOrder {
-  orderItems: Array<Types.ObjectId>;
-  shippingAddress: TShippingAddress;
-  paymentMethod: string;
-  paymentResult: TPaymentResult;
-  itemsPrice: number;
-  shippingPrice: number;
-  taxPrice: number;
-  totalPrice: number;
-  isPaid: boolean;
-  paidAt: Date; // TODO: create a "pre save" to automatically update the date. Ensure that the flag is true AND this field doesn't have a value before updating
-  isDelivered: boolean;
-  deliveredAt: Date; // TODO: create a "pre save" to automatically update the date. Ensure that the flag is true AND this field doesn't have a value before updating
-}
+const baseOrderSchema = z.object({
+  orderItems: z.array(objectIdValidator),
+  shippingAddress: shippingAddressSchema,
+  paymentMethod: z.enum(["PayPal", "Stripe"]).default("PayPal"),
+  paymentResult: paymentResultSchema,
+  itemsPrice: z
+    .number()
+    .min(0, { message: "Items price is required." })
+    .default(0),
+  shippingPrice: z
+    .number()
+    .min(0, { message: "Shipping price is required." })
+    .default(0),
+  taxPrice: z.number().min(0, { message: "Tax price is required." }).default(0),
+  totalPrice: z
+    .number()
+    .min(0, { message: "Total price is required." })
+    .default(0),
+  isPaid: z.boolean().default(false),
+  paidAt: z.date(),
+  isDelivered: z.boolean().default(false),
+  deliveredAt: z.date(),
+});
 
-export interface TInsertOrder extends BaseOrder {
-  user: Types.ObjectId;
-}
+export const insertOrderSchema = baseOrderSchema.extend({
+  user: objectIdValidator,
+});
 
-export interface TSelectOrder extends BaseOrder {
-  _id: Types.ObjectId;
-  user: SelectUser;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export const selectOrderSchema = baseOrderSchema.extend({
+  _id: objectIdValidator,
+  user: selectUserSchema,
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
 
-export interface TOrderSchema extends TSelectOrder {}
+export type InsertOrder = z.infer<typeof insertOrderSchema>;
+export type SelectOrder = z.infer<typeof selectOrderSchema>;
+export type OrderSchema = SelectOrder;
