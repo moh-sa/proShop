@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { Types } from "mongoose";
 import { productService } from "../services";
-import { TInsertProduct } from "../types";
+import { InsertProduct } from "../types";
 
 class ProductController {
   private readonly service = productService;
@@ -57,7 +57,7 @@ class ProductController {
   create = async (req: Request, res: Response) => {
     const data = req.body;
     try {
-      const tempProduct: TInsertProduct = {
+      const tempProduct: InsertProduct = {
         ...data,
         user: res.locals.user._id,
       };

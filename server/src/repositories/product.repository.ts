@@ -1,13 +1,13 @@
 import { Types } from "mongoose";
 import Product from "../models/productModel";
-import { TInsertProduct, TSelectProduct } from "../types";
+import { InsertProduct, SelectProduct } from "../types";
 
 class ProductRepository {
   async createProduct({
     productData,
   }: {
-    productData: TInsertProduct;
-  }): Promise<TSelectProduct> {
+    productData: InsertProduct;
+  }): Promise<SelectProduct> {
     return Product.create(productData);
   }
 
@@ -15,7 +15,7 @@ class ProductRepository {
     productId,
   }: {
     productId: Types.ObjectId;
-  }): Promise<TSelectProduct | null> {
+  }): Promise<SelectProduct | null> {
     return Product.findById(productId);
   }
 
@@ -24,8 +24,8 @@ class ProductRepository {
     updateData,
   }: {
     productId: Types.ObjectId;
-    updateData: Partial<TInsertProduct>;
-  }): Promise<TSelectProduct | null> {
+    updateData: Partial<InsertProduct>;
+  }): Promise<SelectProduct | null> {
     return Product.findByIdAndUpdate(productId, updateData, { new: true });
   }
 
@@ -41,7 +41,7 @@ class ProductRepository {
     limit = 3,
   }: {
     limit?: number;
-  }): Promise<Array<TSelectProduct>> {
+  }): Promise<Array<SelectProduct>> {
     return Product.find({}).sort({ rating: -1 }).limit(limit);
   }
 
@@ -49,7 +49,7 @@ class ProductRepository {
     query: Record<string, unknown>;
     numberOfProductsPerPage: number;
     currentPage: number;
-  }): Promise<Array<TSelectProduct>> {
+  }): Promise<Array<SelectProduct>> {
     return Product.find({ ...data.query })
       .limit(data.numberOfProductsPerPage)
       .skip(data.numberOfProductsPerPage * (data.currentPage - 1));

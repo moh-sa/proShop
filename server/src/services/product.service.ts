@@ -1,10 +1,10 @@
 import mongoose, { Document, Types } from "mongoose";
 import { productRepository } from "../repositories";
 import {
+  InsertProduct,
+  SelectProduct,
   SelectReview,
   SelectUser,
-  TInsertProduct,
-  TSelectProduct,
 } from "../types";
 
 class ProductService {
@@ -14,7 +14,7 @@ class ProductService {
     productId,
   }: {
     productId: Types.ObjectId;
-  }): Promise<TSelectProduct> {
+  }): Promise<SelectProduct> {
     const product = await this.repository.getProductById({ productId });
     if (!product) throw new Error("Product not found.");
 
@@ -22,7 +22,7 @@ class ProductService {
   }
 
   async getAll(data: { keyword: string; currentPage: number }): Promise<{
-    products: Array<TSelectProduct>;
+    products: Array<SelectProduct>;
     currentPage: number;
     numberOfPages: number;
   }> {
@@ -49,11 +49,11 @@ class ProductService {
     };
   }
 
-  async getTopRated(): Promise<Array<TSelectProduct>> {
+  async getTopRated(): Promise<Array<SelectProduct>> {
     return await this.repository.getTopRatedProducts({});
   }
 
-  async create(data: TInsertProduct): Promise<TSelectProduct> {
+  async create(data: InsertProduct): Promise<SelectProduct> {
     return this.repository.createProduct({ productData: data });
   }
 
@@ -66,7 +66,7 @@ class ProductService {
     // TODO: check the best way to do this type union.
     const product = (await this.repository.getProductById({
       productId: data.productId,
-    })) as unknown as TSelectProduct & Document;
+    })) as unknown as SelectProduct & Document;
     if (!product) throw new Error("Product not found.");
 
     // TODO: create a review model
@@ -99,8 +99,8 @@ class ProductService {
     updateData,
   }: {
     productId: Types.ObjectId;
-    updateData: Partial<TInsertProduct>;
-  }): Promise<TSelectProduct> {
+    updateData: Partial<InsertProduct>;
+  }): Promise<SelectProduct> {
     const updatedProduct = await this.repository.updateProduct({
       productId,
       updateData,

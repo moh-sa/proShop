@@ -1,5 +1,5 @@
-import { TSelectProduct } from "./product.type";
+import { SelectProduct } from "./product.type";
 
-export interface TOrderItem extends TSelectProduct {
+export interface TOrderItem extends SelectProduct {
   qty: number;
 }

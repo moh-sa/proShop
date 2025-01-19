@@ -1,5 +1,5 @@
 import mongoose, { model, Schema } from "mongoose";
-import { ReviewSchema, TProductSchema } from "../types";
+import { ProductSchema, ReviewSchema } from "../types";
 
 const reviewSchema = new Schema<ReviewSchema>(
   {
@@ -17,7 +17,7 @@ const reviewSchema = new Schema<ReviewSchema>(
   },
 );
 
-const productSchema = new Schema<TProductSchema>(
+const productSchema = new Schema<ProductSchema>(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -71,6 +71,6 @@ const productSchema = new Schema<TProductSchema>(
   },
 );
 
-const Product = model<TProductSchema>("Product", productSchema);
+const Product = model<ProductSchema>("Product", productSchema);
 
 export default Product;
