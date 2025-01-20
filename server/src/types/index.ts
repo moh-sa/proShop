@@ -1,3 +1,4 @@
+export * from "./error.type";
 export * from "./order.type";
 export * from "./partial-by.type";
 export * from "./product.type";
