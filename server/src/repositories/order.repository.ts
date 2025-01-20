@@ -55,16 +55,9 @@ class OrderRepository {
     );
   }
 
-  async getUserOrders({
-    userId,
-  }: {
-    userId: Types.ObjectId;
-  }): Promise<Array<SelectOrder>> {
-    return Order.find({ user: userId }).populate("user", "name email");
-  }
-
-  async getAllOrders(): Promise<Array<SelectOrder>> {
-    return Order.find({}).populate("user", "id name");
+  async getAll(userId?: Types.ObjectId): Promise<Array<SelectOrder>> {
+    const options = userId ? { user: userId } : {};
+    return Order.find(options);
   }
 }
 
