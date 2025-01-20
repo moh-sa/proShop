@@ -3,7 +3,7 @@ import * as dotenv from "dotenv";
 import express, { Request, Response } from "express";
 import morgan from "morgan";
 import connectDB from "./config/db";
-import { errorHandler, notFound } from "./middlewares/errorMiddleware";
+import { errorHandler } from "./middlewares/error-handler.middleware";
 import orderRoutes from "./routes/orderRoutes";
 import productRoutes from "./routes/productRoutes";
 import uploadRoutes from "./routes/uploadRoutes";
@@ -40,8 +40,6 @@ app.get("/api/config/paypal", (_req: Request, res: Response) => {
 });
 
 app.use("/uploads", express.static("uploads"));
-
-app.use(notFound);
 
 app.use(errorHandler);
 
