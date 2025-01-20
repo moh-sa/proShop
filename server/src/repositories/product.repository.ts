@@ -42,7 +42,10 @@ class ProductRepository {
   }: {
     limit?: number;
   }): Promise<Array<SelectProduct>> {
-    return Product.find({}).sort({ rating: -1 }).limit(limit);
+    return Product.find({})
+      .select("id name price image")
+      .sort({ rating: -1 })
+      .limit(limit);
   }
 
   async getAllProducts(data: {
@@ -51,6 +54,7 @@ class ProductRepository {
     currentPage: number;
   }): Promise<Array<SelectProduct>> {
     return Product.find({ ...data.query })
+      .select("id name brand category price rating numReviews image")
       .limit(data.numberOfProductsPerPage)
       .skip(data.numberOfProductsPerPage * (data.currentPage - 1));
   }

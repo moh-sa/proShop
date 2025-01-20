@@ -57,7 +57,9 @@ class OrderRepository {
 
   async getAll(userId?: Types.ObjectId): Promise<Array<SelectOrder>> {
     const options = userId ? { user: userId } : {};
-    return Order.find(options);
+    return Order.find(options).select(
+      "id createdAt isPaid paidAt isDelivered deliveredAt totalPrice",
+    );
   }
 }
 
