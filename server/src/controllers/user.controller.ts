@@ -1,53 +1,41 @@
-import { Request, Response } from "express";
 import { insertUserSchema } from "../schemas";
 import { userService } from "../services";
-import { formatZodErrors } from "../utils";
+import { asyncHandler } from "../utils";
 import { objectIdValidator } from "../validators";
 
 class UserController {
   private readonly service = userService;
 
-  signin = async (req: Request, res: Response) => {
+  signin = asyncHandler(async (req, res) => {
     const response = await this.service.signin(res.locals.user);
+
     res.status(200).json(response);
-  };
+  });
 
-  signup = (req: Request, res: Response) => {
-    const bodyParsed = insertUserSchema.safeParse(req.body);
-    if (!bodyParsed.success) {
-      return res
-        .status(400)
-        .json({ message: formatZodErrors(bodyParsed.error) });
-    }
+  signup = asyncHandler(async (req, res) => {
+    const response = this.service.signup(req.body);
 
-    const response = this.service.signup(bodyParsed.data);
     res.status(201).json(response);
-  };
+  });
 
-  getById = async (req: Request, res: Response) => {
-    const idRaw = req.params.id || res.locals.user._id;
+  getById = asyncHandler(async (req, res) => {
+    const idReq = req.params.id || res.locals.user._id;
+    const userId = objectIdValidator.parse(idReq);
 
-    const idParsed = objectIdValidator.safeParse(idRaw);
-    if (!idParsed.success) {
-      return res.status(400).json({ message: formatZodErrors(idParsed.error) });
-    }
-
-    const response = await this.service.getById({ userId: idParsed.data });
+    const response = await this.service.getById({ userId });
 
     res.status(200).json(response);
-  };
+  });
 
-  getAll = async (req: Request, res: Response) => {
+  getAll = asyncHandler(async (req, res) => {
     const response = await this.service.getAll();
-    res.status(200).json(response);
-  };
 
-  update = async (req: Request, res: Response) => {
-    const idRaw = req.params.id || res.locals.user._id;
-    const idParsed = objectIdValidator.safeParse(idRaw);
-    if (!idParsed.success) {
-      return res.status(400).json({ message: formatZodErrors(idParsed.error) });
-    }
+    res.status(200).json(response);
+  });
+
+  update = asyncHandler(async (req, res) => {
+    const idReq = req.params.id || res.locals.user._id;
+    const userId = objectIdValidator.parse(idReq);
 
     const transformedBody = Object.fromEntries(
       Object.entries(req.body).map(([key, value]) => [
@@ -55,35 +43,24 @@ class UserController {
         value === "" ? undefined : value,
       ]),
     );
-
-    const updateDataParsed = insertUserSchema
-      .partial()
-      .safeParse(transformedBody);
-    if (!updateDataParsed.success) {
-      return res.status(400).json({
-        message: formatZodErrors(updateDataParsed.error),
-      });
-    }
+    const updateData = insertUserSchema.partial().parse(transformedBody);
 
     const response = await this.service.updateById({
-      userId: idParsed.data,
-      updateData: updateDataParsed.data,
+      userId,
+      updateData,
     });
 
     res.status(200).json(response);
-  };
+  });
 
-  delete = async (req: Request, res: Response) => {
-    const idRaw = req.params.id;
-    const idParsed = objectIdValidator.safeParse(idRaw);
-    if (!idParsed.success) {
-      return res.status(400).json({ message: formatZodErrors(idParsed.error) });
-    }
+  delete = asyncHandler(async (req, res) => {
+    const idReq = req.params.id;
+    const userId = objectIdValidator.parse(idReq);
 
-    await this.service.delete({ userId: idParsed.data });
+    await this.service.delete({ userId });
 
     res.status(204).json({ message: "User removed" });
-  };
+  });
 }
 
 export const userController = new UserController();

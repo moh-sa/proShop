@@ -1,3 +1,4 @@
+export * from "./async-handler.util";
 export * from "./format-zod-errors.util";
 export * from "./generate-salt.util";
 export * from "./generateJwtToken";

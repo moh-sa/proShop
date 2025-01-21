@@ -1,14 +1,10 @@
-import { NextFunction, Request, Response } from "express";
 import { userRepository } from "../repositories";
+import { asyncHandler } from "../utils";
 
 /**
  * Middleware to verify user existence by ID
  */
-export async function checkUserIdExists(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export const checkUserIdExists = asyncHandler(async (req, res, next) => {
   const userId = res.locals.token.id;
   const user = await userRepository.getUserById({ userId });
   if (!user) {
@@ -18,4 +14,4 @@ export async function checkUserIdExists(
   res.locals.user = user;
 
   next();
-}
+});

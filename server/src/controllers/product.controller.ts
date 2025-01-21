@@ -1,163 +1,93 @@
-import { Request, Response } from "express";
-import { z, ZodError } from "zod";
+import { z } from "zod";
+import { NotFoundError } from "../errors";
 import { insertProductSchema, insertReviewSchema } from "../schemas";
 import { productService } from "../services";
-import { formatZodErrors } from "../utils";
+import { asyncHandler } from "../utils";
 import { objectIdValidator } from "../validators";
 
 class ProductController {
   private readonly service = productService;
 
-  getById = async (req: Request, res: Response) => {
-    try {
-      const idRaw = req.params.id;
-      const productId = objectIdValidator.parse(idRaw);
-      const product = await this.service.getById({ productId });
+  getById = asyncHandler(async (req, res) => {
+    const productId = objectIdValidator.parse(req.params.id);
 
-      res.status(200).json(product);
-    } catch (error) {
-      console.error(error);
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: formatZodErrors(error) });
-      }
-      if (error instanceof Error) {
-        return res.status(400).json({ message: error.message });
-      }
-      return res.status(500).json({ message: "Internal server error." });
-    }
-  };
+    const product = await this.service.getById({ productId });
+    if (!product) throw new NotFoundError("Product");
 
-  getAll = async (req: Request, res: Response) => {
+    res.status(200).json(product);
+  });
+
+  getAll = asyncHandler(async (req, res) => {
     // TODO: add types to the req.query
-    try {
-      const query = z
-        .object({
-          keyword: z.string(),
-          currentPage: z.coerce.number().int().positive().min(1).default(1),
-        })
-        .parse(req.query);
+    const query = z
+      .object({
+        keyword: z.string(),
+        currentPage: z.coerce.number().int().positive().default(1),
+      })
+      .parse(req.query);
 
-      const data = await this.service.getAll(query);
+    const data = await this.service.getAll(query);
 
-      res.status(200).json({
-        products: data.products,
-        page: data.currentPage, // TODO: rename to pageNumber
-        pages: data.numberOfPages, // TODO: rename to numberOfPages
-      });
-    } catch (error) {
-      console.error(error);
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: formatZodErrors(error) });
-      }
-      if (error instanceof Error) {
-        return res.status(400).json({ message: error.message });
-      }
-      return res.status(500).json({ message: "Internal server error." });
-    }
-  };
+    res.status(200).json({
+      products: data.products,
+      page: data.currentPage, // TODO: rename to pageNumber
+      pages: data.numberOfPages, // TODO: rename to numberOfPages
+    });
+  });
 
-  getTopRated = async (req: Request, res: Response) => {
-    try {
-      const products = await this.service.getTopRated();
+  getTopRated = asyncHandler(async (req, res) => {
+    const products = await this.service.getTopRated();
 
-      res.status(200).json(products);
-    } catch (error) {
-      console.error(error);
-      if (error instanceof Error) {
-        return res.status(400).json({ message: error.message });
-      }
-      return res.status(500).json({ message: "Internal server error." });
-    }
-  };
+    res.status(200).json(products);
+  });
 
-  create = async (req: Request, res: Response) => {
-    const tempData = { ...req.body, user: res.locals.user._id };
-    try {
-      const data = insertProductSchema.parse(tempData);
-      const newProduct = await this.service.create(data);
+  create = asyncHandler(async (req, res) => {
+    const data = insertProductSchema.parse({
+      ...req.body,
+      user: res.locals.user._id,
+    });
 
-      res.status(201).json(newProduct);
-    } catch (error) {
-      console.error(error);
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: formatZodErrors(error) });
-      }
-      if (error instanceof Error) {
-        return res.status(400).json({ message: error.message });
-      }
-      return res.status(500).json({ message: "Internal server error." });
-    }
-  };
+    const newProduct = await this.service.create(data);
 
-  createReview = async (req: Request, res: Response) => {
+    res.status(201).json(newProduct);
+  });
+
+  createReview = asyncHandler(async (req, res) => {
     const user = res.locals.user;
-    try {
-      const productId = objectIdValidator.parse(req.params.id);
+    const productId = objectIdValidator.parse(req.params.id);
+    const { comment, rating } = insertReviewSchema
+      .pick({ rating: true, comment: true })
+      .parse({ rating: req.body.rating, comment: req.body.comment });
 
-      const data = insertReviewSchema
-        .pick({ rating: true, comment: true })
-        .parse({ rating: req.body.rating, comment: req.body.comment });
+    await this.service.createReview({
+      user,
+      productId,
+      rating,
+      comment,
+    });
 
-      await this.service.createReview({
-        user,
-        productId,
-        rating: data.rating,
-        comment: data.comment,
-      });
+    res.status(201).json({ message: "review added" });
+  });
 
-      res.status(201).json({ message: "review added" });
-    } catch (error) {
-      console.error(error);
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: formatZodErrors(error) });
-      }
-      if (error instanceof Error) {
-        return res.status(400).json({ message: error.message });
-      }
-      return res.status(500).json({ message: "Internal server error." });
-    }
-  };
+  update = asyncHandler(async (req, res) => {
+    const productId = objectIdValidator.parse(req.params.id);
+    const updateData = insertProductSchema.partial().parse(req.body);
 
-  update = async (req: Request, res: Response) => {
-    try {
-      const productId = objectIdValidator.parse(req.params.id);
-      const updateData = insertProductSchema.partial().parse(req.body);
+    const updatedProduct = await this.service.update({
+      productId,
+      updateData,
+    });
 
-      const updatedProduct = await this.service.update({
-        productId,
-        updateData,
-      });
+    res.status(200).json(updatedProduct);
+  });
 
-      res.status(200).json(updatedProduct);
-    } catch (error) {
-      console.error(error);
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: formatZodErrors(error) });
-      }
-      if (error instanceof Error) {
-        return res.status(400).json({ message: error.message });
-      }
-      return res.status(500).json({ message: "Internal server error." });
-    }
-  };
+  delete = asyncHandler(async (req, res) => {
+    const productId = objectIdValidator.parse(req.params.id);
 
-  delete = async (req: Request, res: Response) => {
-    try {
-      const productId = objectIdValidator.parse(req.params.id);
-      await this.service.delete({ productId });
+    await this.service.delete({ productId });
 
-      res.status(200).json({ message: "Product removed" });
-    } catch (error) {
-      console.error(error);
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: formatZodErrors(error) });
-      }
-      if (error instanceof Error) {
-        return res.status(400).json({ message: error.message });
-      }
-      return res.status(500).json({ message: "Internal server error." });
-    }
-  };
+    res.status(200).json({ message: "Product removed" });
+  });
 }
 
 export const productController = new ProductController();

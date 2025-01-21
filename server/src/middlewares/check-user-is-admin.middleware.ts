@@ -1,13 +1,9 @@
-import { NextFunction, Request, Response } from "express";
+import { asyncHandler } from "../utils";
 
 /**
  * Middleware to check admin privileges
  */
-export async function checkIfUserIsAdmin(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export const checkIfUserIsAdmin = asyncHandler(async (req, res, next) => {
   const user = res.locals.user;
 
   if (!user.isAdmin) {
@@ -15,4 +11,4 @@ export async function checkIfUserIsAdmin(
   }
 
   return next();
-}
+});

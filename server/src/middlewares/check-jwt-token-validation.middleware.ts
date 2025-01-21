@@ -1,5 +1,4 @@
-import { NextFunction, Request, Response } from "express";
-import { formatZodErrors, verifyJwtToken } from "../utils";
+import { asyncHandler, verifyJwtToken } from "../utils";
 import {
   authHeaderValidator,
   jwtValidator,
@@ -9,39 +8,16 @@ import {
 /**
  * Middleware to validate JWT token
  */
-export async function checkJwtTokenValidation(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  const authParsed = authHeaderValidator.safeParse(req.headers.authorization);
-  if (!authParsed.success) {
-    return res.status(401).json({
-      message: formatZodErrors(authParsed.error),
-    });
-  }
+export const checkJwtTokenValidation = asyncHandler(async (req, res, next) => {
+  const authHeader = authHeaderValidator.parse(req.headers.authorization);
+  const token = jwtValidator.parse(authHeader);
+  const decoded = verifyJwtToken(token);
+  const userId = objectIdValidator.parse(decoded.id);
 
-  const tokenParsed = jwtValidator.safeParse(authParsed.data);
-  if (!tokenParsed.success) {
-    return res.status(401).json({
-      message: formatZodErrors(tokenParsed.error),
-    });
-  }
-
-  const decoded = verifyJwtToken(tokenParsed.data);
-
-  const objectIdParsed = objectIdValidator.safeParse(decoded.id);
-  if (!objectIdParsed.success) {
-    return res.status(401).json({
-      message: formatZodErrors(objectIdParsed.error),
-    });
-  }
-
-  const token = {
+  res.locals.token = {
     ...decoded,
-    id: objectIdParsed.data,
+    id: userId,
   };
 
-  res.locals.token = token;
   next();
-}
+});
