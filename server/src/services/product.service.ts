@@ -54,7 +54,7 @@ class ProductService {
   }
 
   async create(data: InsertProduct): Promise<SelectProduct> {
-    return this.repository.createProduct({ productData: data });
+    return await this.repository.createProduct({ productData: data });
   }
 
   async createReview(data: {
@@ -120,7 +120,11 @@ class ProductService {
     productId: Types.ObjectId;
     userId: Types.ObjectId;
   }): Promise<{ _id: Types.ObjectId } | null> {
-    return this.repository.reviewByUserExists({ productId, userId });
+    const isReviewed = await this.repository.reviewByUserExists({
+      productId,
+      userId,
+    });
+    return isReviewed;
   }
 }
 

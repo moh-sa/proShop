@@ -24,7 +24,7 @@ class OrderService {
   }
 
   async getAll(): Promise<Array<SelectOrder>> {
-    return this.repository.getAll();
+    return await this.repository.getAll();
   }
 
   async getUserOrders({
@@ -32,7 +32,7 @@ class OrderService {
   }: {
     userId: Types.ObjectId;
   }): Promise<Array<SelectOrder>> {
-    return this.repository.getAll(userId);
+    return await this.repository.getAll(userId);
   }
 
   async updateToPaid({
