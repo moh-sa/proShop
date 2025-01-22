@@ -1,4 +1,5 @@
-import { Types } from "mongoose";
+import { MongooseError, Types } from "mongoose";
+import { DatabaseError } from "../errors";
 import Product from "../models/productModel";
 import { InsertProduct, SelectProduct } from "../types";
 
@@ -8,7 +9,11 @@ class ProductRepository {
   }: {
     productData: InsertProduct;
   }): Promise<SelectProduct> {
-    return Product.create(productData);
+    try {
+      return await Product.create(productData);
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
   async getProductById({
@@ -16,7 +21,11 @@ class ProductRepository {
   }: {
     productId: Types.ObjectId;
   }): Promise<SelectProduct | null> {
-    return Product.findById(productId);
+    try {
+      return await Product.findById(productId);
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
   async updateProduct({
@@ -26,15 +35,21 @@ class ProductRepository {
     productId: Types.ObjectId;
     updateData: Partial<InsertProduct>;
   }): Promise<SelectProduct | null> {
-    return Product.findByIdAndUpdate(productId, updateData, { new: true });
+    try {
+      return await Product.findByIdAndUpdate(productId, updateData, {
+        new: true,
+      });
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
-  async deleteProduct({
-    productId,
-  }: {
-    productId: Types.ObjectId;
-  }): Promise<void> {
-    await Product.findByIdAndDelete(productId);
+  async deleteProduct({ productId }: { productId: Types.ObjectId }) {
+    try {
+      return await Product.findByIdAndDelete(productId);
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
   async getTopRatedProducts({
@@ -42,10 +57,14 @@ class ProductRepository {
   }: {
     limit?: number;
   }): Promise<Array<SelectProduct>> {
-    return Product.find({})
-      .select("id name price image")
-      .sort({ rating: -1 })
-      .limit(limit);
+    try {
+      return await Product.find({})
+        .select("id name price image")
+        .sort({ rating: -1 })
+        .limit(limit);
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
   async getAllProducts(data: {
@@ -53,14 +72,22 @@ class ProductRepository {
     numberOfProductsPerPage: number;
     currentPage: number;
   }): Promise<Array<SelectProduct>> {
-    return Product.find({ ...data.query })
-      .select("id name brand category price rating numReviews image")
-      .limit(data.numberOfProductsPerPage)
-      .skip(data.numberOfProductsPerPage * (data.currentPage - 1));
+    try {
+      return await Product.find({ ...data.query })
+        .select("id name brand category price rating numReviews image")
+        .limit(data.numberOfProductsPerPage)
+        .skip(data.numberOfProductsPerPage * (data.currentPage - 1));
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
   async count(query: Record<string, unknown>): Promise<number> {
-    return Product.countDocuments({ ...query });
+    try {
+      return await Product.countDocuments({ ...query });
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
   async reviewByUserExists({
@@ -70,10 +97,21 @@ class ProductRepository {
     productId: Types.ObjectId;
     userId: Types.ObjectId;
   }): Promise<{ _id: Types.ObjectId } | null> {
-    return Product.exists({
-      _id: productId,
-      "reviews.user": userId,
-    });
+    try {
+      return Product.exists({
+        _id: productId,
+        "reviews.user": userId,
+      });
+    } catch (error) {
+      this.errorHandler(error);
+    }
+  }
+
+  private errorHandler(error: unknown): never {
+    if (error instanceof MongooseError) {
+      throw new DatabaseError(error.message);
+    }
+    throw new DatabaseError();
   }
 }
 

@@ -1,4 +1,5 @@
-import { Types } from "mongoose";
+import { MongooseError, Types } from "mongoose";
+import { DatabaseError } from "../errors";
 import Order from "../models/orderModel";
 import { InsertOrder, SelectOrder } from "../types";
 
@@ -8,7 +9,11 @@ class OrderRepository {
   }: {
     orderData: InsertOrder;
   }): Promise<SelectOrder> {
-    return Order.create(orderData);
+    try {
+      return await Order.create(orderData);
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
   async getOrderById({
@@ -16,7 +21,11 @@ class OrderRepository {
   }: {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder | null> {
-    return Order.findById(orderId).populate("user", "name email");
+    try {
+      return await Order.findById(orderId).populate("user", "name email");
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
   async updateOrderToDelivered({
@@ -24,16 +33,20 @@ class OrderRepository {
   }: {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder | null> {
-    return Order.findByIdAndUpdate(
-      orderId,
-      {
-        $set: {
-          isDelivered: true,
-          deliveredAt: new Date(),
+    try {
+      return await Order.findByIdAndUpdate(
+        orderId,
+        {
+          $set: {
+            isDelivered: true,
+            deliveredAt: new Date(),
+          },
         },
-      },
-      { new: true },
-    );
+        { new: true },
+      );
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
   async updateOrderToPaid({
@@ -41,25 +54,40 @@ class OrderRepository {
   }: {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder | null> {
-    return Order.findByIdAndUpdate(
-      orderId,
-      {
-        $set: {
-          isPaid: true,
-          paidAt: new Date(),
+    try {
+      return await Order.findByIdAndUpdate(
+        orderId,
+        {
+          $set: {
+            isPaid: true,
+            paidAt: new Date(),
+          },
         },
-      },
-      {
-        new: true,
-      },
-    );
+        {
+          new: true,
+        },
+      );
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
   async getAll(userId?: Types.ObjectId): Promise<Array<SelectOrder>> {
-    const options = userId ? { user: userId } : {};
-    return Order.find(options).select(
-      "id createdAt isPaid paidAt isDelivered deliveredAt totalPrice",
-    );
+    try {
+      const options = userId ? { user: userId } : {};
+      return await Order.find(options).select(
+        "id createdAt isPaid paidAt isDelivered deliveredAt totalPrice",
+      );
+    } catch (error) {
+      this.errorHandler(error);
+    }
+  }
+
+  private errorHandler(error: unknown): never {
+    if (error instanceof MongooseError) {
+      throw new DatabaseError(error.message);
+    }
+    throw new DatabaseError();
   }
 }
 

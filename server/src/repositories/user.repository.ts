@@ -1,4 +1,5 @@
-import { Types } from "mongoose";
+import { MongooseError, Types } from "mongoose";
+import { DatabaseError } from "../errors";
 import User from "../models/userModel";
 import { InsertUser, SelectUser } from "../types";
 
@@ -8,7 +9,11 @@ class UserRepository {
   }: {
     userData: InsertUser;
   }): Promise<SelectUser> {
-    return User.create(userData);
+    try {
+      return await User.create(userData);
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
   async getUserById({
@@ -16,7 +21,11 @@ class UserRepository {
   }: {
     userId: Types.ObjectId;
   }): Promise<SelectUser | null> {
-    return User.findById(userId);
+    try {
+      return await User.findById(userId);
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
   async getUserByEmail({
@@ -24,7 +33,11 @@ class UserRepository {
   }: {
     email: string;
   }): Promise<SelectUser | null> {
-    return User.findOne({ email });
+    try {
+      return await User.findOne({ email });
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
   async updateUser({
@@ -34,15 +47,34 @@ class UserRepository {
     userId: Types.ObjectId;
     updateData: Partial<InsertUser>;
   }): Promise<SelectUser | null> {
-    return User.findByIdAndUpdate(userId, updateData, { new: true });
+    try {
+      return await User.findByIdAndUpdate(userId, updateData, { new: true });
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
   async deleteUser({ userId }: { userId: Types.ObjectId }): Promise<void> {
-    await User.findByIdAndDelete(userId);
+    try {
+      await User.findByIdAndDelete(userId);
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
   async getAllUsers(): Promise<Array<SelectUser>> {
-    return User.find({});
+    try {
+      return await User.find({});
+    } catch (error) {
+      this.errorHandler(error);
+    }
+  }
+
+  private errorHandler(error: unknown): never {
+    if (error instanceof MongooseError) {
+      throw new DatabaseError(error.message);
+    }
+    throw new DatabaseError();
   }
 }
 
