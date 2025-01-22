@@ -8,6 +8,7 @@ export enum ErrorType {
   BAD_REQUEST = "BAD_REQUEST",
   RATE_LIMIT = "RATE_LIMIT",
   DATABASE_ERROR = "DATABASE_ERROR",
+  EMPTY_CART = "EMPTY_CART",
 }
 
 export interface ErrorResponse {

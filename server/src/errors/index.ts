@@ -3,6 +3,8 @@ export * from "./authorization.error";
 export * from "./base.error";
 export * from "./conflict.error";
 export * from "./database.error";
+export * from "./empty-cart.error";
 export * from "./internal.error";
 export * from "./not-found.error";
+export * from "./rate-limit.error";
 export * from "./validation.error";
