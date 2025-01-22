@@ -1,4 +1,4 @@
-import { userRepository } from "../repositories";
+import { userService } from "../services";
 import { asyncHandler } from "../utils";
 import { emailValidator } from "../validators";
 
@@ -10,7 +10,7 @@ export const checkEmailExists = (allowExisting = false) =>
   asyncHandler(async (req, res, next) => {
     const email = emailValidator.parse(req.body.email);
 
-    const user = await userRepository.getUserByEmail({ email });
+    const user = await userService.getByEmail({ email });
 
     if (user && !allowExisting) {
       return res
