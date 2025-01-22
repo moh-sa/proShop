@@ -1,4 +1,5 @@
 import mongoose, { Document, Types } from "mongoose";
+import { ConflictError, NotFoundError } from "../errors";
 import { productRepository } from "../repositories";
 import {
   InsertProduct,
@@ -16,7 +17,7 @@ class ProductService {
     productId: Types.ObjectId;
   }): Promise<SelectProduct> {
     const product = await this.repository.getProductById({ productId });
-    if (!product) throw new Error("Product not found.");
+    if (!product) throw new NotFoundError("Product");
 
     return product;
   }
@@ -105,7 +106,8 @@ class ProductService {
       productId,
       updateData,
     });
-    if (!updatedProduct) throw new Error("Product not found.");
+    if (!updatedProduct) throw new NotFoundError("Product");
+
     return updatedProduct;
   }
 
@@ -119,11 +121,13 @@ class ProductService {
   }: {
     productId: Types.ObjectId;
     userId: Types.ObjectId;
-  }): Promise<{ _id: Types.ObjectId } | null> {
+  }): Promise<null> {
     const isReviewed = await this.repository.reviewByUserExists({
       productId,
       userId,
     });
+    if (isReviewed) throw new ConflictError("Product already reviewed");
+
     return isReviewed;
   }
 }

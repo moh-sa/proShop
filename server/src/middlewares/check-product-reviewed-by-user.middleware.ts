@@ -12,9 +12,6 @@ export const checkProductReviewedByUser = asyncHandler(
       userId,
     });
 
-    if (isReviewed) {
-      return res.status(400).json({ message: "Product already reviewed" });
-    }
-    next();
+    if (!isReviewed) next();
   },
 );

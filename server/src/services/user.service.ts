@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import { NotFoundError } from "../errors";
 import { userRepository } from "../repositories";
 import { InsertUser, RequiredBy, SelectUser } from "../types";
 import { generateToken } from "../utils";
@@ -24,17 +25,20 @@ class UserService {
 
   async signup(data: InsertUser) {
     const user = await this.repository.createUser({ userData: data });
+
     return this.createResponse(user, true);
   }
 
   async getById({ userId }: { userId: Types.ObjectId }) {
     const user = await this.repository.getUserById({ userId });
-    if (!user) throw new Error("User not found.");
+    if (!user) throw new NotFoundError("User");
+
     return this.createResponse(user);
   }
 
   async getAll() {
     const users = await this.repository.getAllUsers();
+
     return users.map((user) => this.createResponse(user));
   }
 
@@ -49,7 +53,8 @@ class UserService {
       userId,
       updateData,
     });
-    if (!updatedUser) throw new Error("User not found.");
+    if (!updatedUser) throw new NotFoundError("User");
+
     return this.createResponse(updatedUser);
   }
 
