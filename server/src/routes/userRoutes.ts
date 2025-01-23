@@ -6,43 +6,67 @@ import {
   checkJwtTokenValidation,
   checkPasswordValidation,
   checkUserIdExists,
+  RateLimiterMiddleware,
 } from "../middlewares";
 const router = express.Router();
 
 router
   .route("/")
   .get(
+    RateLimiterMiddleware.adminLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
     controller.getAll,
   )
-  .post(checkEmailExists(), controller.signup);
+  .post(
+    RateLimiterMiddleware.authLimiter(),
+    checkEmailExists(),
+    controller.signup,
+  );
 
 router
   .route("/login")
-  .post(checkEmailExists(true), checkPasswordValidation, controller.signin);
+  .post(
+    RateLimiterMiddleware.authLimiter(),
+    checkEmailExists(true),
+    checkPasswordValidation,
+    controller.signin,
+  );
 
 router
   .route("/profile")
-  .get(checkJwtTokenValidation, checkUserIdExists, controller.getById)
-  .put(checkJwtTokenValidation, checkUserIdExists, controller.update);
+  .get(
+    RateLimiterMiddleware.defaultLimiter(),
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    controller.getById,
+  )
+  .put(
+    RateLimiterMiddleware.strictLimiter(),
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    controller.update,
+  );
 
 router
   .route("/:id")
   .get(
+    RateLimiterMiddleware.adminLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
     controller.getById,
   )
   .put(
+    RateLimiterMiddleware.adminLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
     controller.update,
   )
   .delete(
+    RateLimiterMiddleware.adminLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,

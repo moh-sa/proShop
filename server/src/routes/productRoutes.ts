@@ -5,31 +5,37 @@ import {
   checkJwtTokenValidation,
   checkProductReviewedByUser,
   checkUserIdExists,
+  RateLimiterMiddleware,
 } from "../middlewares";
 const router = express.Router();
 
 router
   .route("/")
-  .get(controller.getAll)
+  .get(RateLimiterMiddleware.defaultLimiter(), controller.getAll)
   .post(
+    RateLimiterMiddleware.adminLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
     controller.create,
   );
 
-router.route("/top").get(controller.getTopRated);
+router
+  .route("/top")
+  .get(RateLimiterMiddleware.defaultLimiter(), controller.getTopRated);
 
 router
   .route("/:id")
-  .get(controller.getById)
+  .get(RateLimiterMiddleware.defaultLimiter(), controller.getById)
   .delete(
+    RateLimiterMiddleware.adminLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
     controller.delete,
   )
   .put(
+    RateLimiterMiddleware.adminLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
@@ -39,6 +45,7 @@ router
 router
   .route("/:id/reviews")
   .post(
+    RateLimiterMiddleware.strictLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     checkProductReviewedByUser,
