@@ -1,10 +1,10 @@
 import express from "express";
-import { orderController as controller } from "../controllers";
+import { orderController as controller } from "../../controllers";
 import {
   checkJwtTokenValidation,
   checkUserIdExists,
   RateLimiterMiddleware,
-} from "../middlewares";
+} from "../../middlewares";
 const router = express.Router();
 
 router

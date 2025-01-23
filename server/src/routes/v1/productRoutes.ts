@@ -1,12 +1,12 @@
 import express from "express";
-import { productController as controller } from "../controllers";
+import { productController as controller } from "../../controllers";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
   checkProductReviewedByUser,
   checkUserIdExists,
   RateLimiterMiddleware,
-} from "../middlewares";
+} from "../../middlewares";
 const router = express.Router();
 
 router

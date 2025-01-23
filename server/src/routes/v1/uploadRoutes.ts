@@ -1,8 +1,8 @@
 import express from "express";
 import multer from "multer";
 import path from "path";
-import { RateLimiterMiddleware } from "../middlewares";
-import { validateFileType } from "../utils";
+import { RateLimiterMiddleware } from "../../middlewares";
+import { validateFileType } from "../../utils";
 
 const router = express.Router();
 

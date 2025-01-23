@@ -1,5 +1,5 @@
 import express from "express";
-import { userController as controller } from "../controllers";
+import { userController as controller } from "../../controllers";
 import {
   checkEmailExists,
   checkIfUserIsAdmin,
@@ -7,7 +7,7 @@ import {
   checkPasswordValidation,
   checkUserIdExists,
   RateLimiterMiddleware,
-} from "../middlewares";
+} from "../../middlewares";
 const router = express.Router();
 
 router

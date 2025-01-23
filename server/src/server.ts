@@ -4,10 +4,7 @@ import express, { Request, Response } from "express";
 import morgan from "morgan";
 import connectDB from "./config/db";
 import { errorHandler } from "./middlewares/error-handler.middleware";
-import orderRoutes from "./routes/orderRoutes";
-import productRoutes from "./routes/productRoutes";
-import uploadRoutes from "./routes/uploadRoutes";
-import userRoutes from "./routes/userRoutes";
+import routes from "./routes";
 dotenv.config();
 
 const app = express();
@@ -30,10 +27,7 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-app.use("/api/products", productRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/upload", uploadRoutes);
+app.use(routes);
 
 app.get("/api/config/paypal", (_req: Request, res: Response) => {
   res.send(process.env.PAYPAL_CLIENT_ID);
