@@ -19,7 +19,7 @@ export function getOrderDetailsAPI(orderId, token) {
 
 export function payOrderAPI(orderId, token) {
   return api.put(
-    `/orders/${orderId}/pay`,
+    `/orders/${orderId}/payment`,
     {},
     {
       headers: {

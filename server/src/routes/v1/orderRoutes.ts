@@ -45,7 +45,7 @@ router
   );
 
 router
-  .route("/:orderId/pay")
+  .route("/:orderId/payment")
   .put(
     RateLimiterMiddleware.strictLimiter(),
     checkJwtTokenValidation,
