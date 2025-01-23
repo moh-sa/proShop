@@ -26,7 +26,7 @@ router
 
 // /user/:userId
 router
-  .route("/myorders")
+  .route("/user/:userId")
   .get(
     RateLimiterMiddleware.defaultLimiter(),
     checkJwtTokenValidation,

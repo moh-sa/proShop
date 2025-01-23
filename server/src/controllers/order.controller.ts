@@ -32,7 +32,7 @@ class OrderController {
   });
 
   getUser = asyncHandler(async (req, res) => {
-    const userId = res.locals.user._id;
+    const userId = objectIdValidator.parse(req.params.userId);
 
     const orders = await this.service.getUserOrders({ userId });
 

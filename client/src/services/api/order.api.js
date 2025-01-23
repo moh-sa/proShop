@@ -42,8 +42,8 @@ export function deliverOrderAPI(orderId, token) {
   );
 }
 
-export function listMyOrdersAPI(token) {
-  return api.get(`/orders/myorders`, {
+export function getOrdersByUserIdAPI(userId, token) {
+  return api.get(`/orders/user/${userId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

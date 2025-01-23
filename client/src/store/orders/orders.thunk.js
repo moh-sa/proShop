@@ -3,7 +3,7 @@ import {
   createOrderAPI,
   deliverOrderAPI,
   getOrderDetailsAPI,
-  listMyOrdersAPI,
+  getOrdersByUserIdAPI,
   listOrdersAPI,
   payOrderAPI,
 } from "../../services/api";
@@ -45,7 +45,7 @@ export const fetchAdminOrders = createAsyncThunk(
 
 export const fetchUserOrders = createAsyncThunk(
   "orders/userList",
-  async (_, thunkAPI) => {
+  async ({ userId }, thunkAPI) => {
     try {
       const {
         auth: {
@@ -53,7 +53,7 @@ export const fetchUserOrders = createAsyncThunk(
         },
       } = thunkAPI.getState();
 
-      const { data } = await listMyOrdersAPI(token);
+      const { data } = await getOrdersByUserIdAPI(userId, token);
       return data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);

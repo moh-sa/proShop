@@ -20,7 +20,7 @@ const ProfileScreen = () => {
   const isProfileUpdated = useSelector((state) => state.users.update.success);
 
   useEffect(() => {
-    dispatch(fetchUserOrders());
+    dispatch(fetchUserOrders({ userId: authState.user._id }));
   }, [dispatch]);
 
   useEffect(() => {
