@@ -7,8 +7,10 @@ import {
   checkUserIdExists,
   RateLimiterMiddleware,
 } from "../../middlewares";
+
 const router = express.Router();
 
+// /
 router
   .route("/")
   .get(RateLimiterMiddleware.defaultLimiter(), controller.getAll)
@@ -20,10 +22,12 @@ router
     controller.create,
   );
 
+// /top-rated
 router
-  .route("/top")
+  .route("/top-rated")
   .get(RateLimiterMiddleware.defaultLimiter(), controller.getTopRated);
 
+// /:productId
 router
   .route("/:productId")
   .get(RateLimiterMiddleware.defaultLimiter(), controller.getById)
@@ -42,6 +46,7 @@ router
     controller.update,
   );
 
+// /:productId/reviews
 router
   .route("/:productId/reviews")
   .post(

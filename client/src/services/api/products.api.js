@@ -51,7 +51,7 @@ export function addProductReviewAPI(productId, review, token) {
 }
 
 export function getTopRatedProductsAPI() {
-  return api.get(`/products/top`);
+  return api.get(`/products/top-rated`);
 }
 
 export function uploadImageAPI(formData) {
