@@ -8,6 +8,7 @@ import {
   checkUserIdExists,
   RateLimiterMiddleware,
 } from "../../middlewares";
+
 const router = express.Router();
 
 router
@@ -50,7 +51,7 @@ router
   );
 
 router
-  .route("/:id")
+  .route("/:userId")
   .get(
     RateLimiterMiddleware.adminLimiter(),
     checkJwtTokenValidation,
