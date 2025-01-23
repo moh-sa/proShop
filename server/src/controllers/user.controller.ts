@@ -19,7 +19,7 @@ class UserController {
   });
 
   getById = asyncHandler(async (req, res) => {
-    const idReq = req.params.id || res.locals.user._id;
+    const idReq = req.params.userId || res.locals.user._id;
     const userId = objectIdValidator.parse(idReq);
 
     const response = await this.service.getById({ userId });
@@ -34,7 +34,7 @@ class UserController {
   });
 
   update = asyncHandler(async (req, res) => {
-    const idReq = req.params.id || res.locals.user._id;
+    const idReq = req.params.userId || res.locals.user._id;
     const userId = objectIdValidator.parse(idReq);
 
     const transformedBody = Object.fromEntries(
@@ -54,7 +54,7 @@ class UserController {
   });
 
   delete = asyncHandler(async (req, res) => {
-    const idReq = req.params.id;
+    const idReq = req.params.userId;
     const userId = objectIdValidator.parse(idReq);
 
     await this.service.delete({ userId });
