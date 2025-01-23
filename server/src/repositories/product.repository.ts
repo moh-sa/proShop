@@ -1,15 +1,27 @@
 import { MongooseError, Types } from "mongoose";
 import { DatabaseError } from "../errors";
+import { CacheManager } from "../managers";
 import Product from "../models/productModel";
 import { InsertProduct, SelectProduct } from "../types";
 
 class ProductRepository {
+  private cache: CacheManager;
+
+  constructor() {
+    this.cache = new CacheManager("product");
+  }
+
   async createProduct({
     productData,
   }: {
     productData: InsertProduct;
   }): Promise<SelectProduct> {
     try {
+      const product = await Product.create(productData);
+
+      const cacheKey = this.cache.generateKey({ id: product._id.toString() });
+      this.cache.set({ key: cacheKey, value: product });
+
       return await Product.create(productData);
     } catch (error) {
       this.errorHandler(error);
@@ -21,8 +33,17 @@ class ProductRepository {
   }: {
     productId: Types.ObjectId;
   }): Promise<SelectProduct | null> {
+    const cacheKey = this.cache.generateKey({ id: productId.toString() });
+    const cachedProduct = this.cache.get<SelectProduct>({ key: cacheKey });
+    if (cachedProduct) return cachedProduct;
+
     try {
-      return await Product.findById(productId);
+      const product = await Product.findById(productId);
+      if (product) {
+        this.cache.set({ key: cacheKey, value: product });
+      }
+
+      return product;
     } catch (error) {
       this.errorHandler(error);
     }
@@ -36,9 +57,15 @@ class ProductRepository {
     updateData: Partial<InsertProduct>;
   }): Promise<SelectProduct | null> {
     try {
-      return await Product.findByIdAndUpdate(productId, updateData, {
+      const product = await Product.findByIdAndUpdate(productId, updateData, {
         new: true,
       });
+
+      if (product) {
+        this.invalidateProductCache({ id: productId.toString() });
+      }
+
+      return product;
     } catch (error) {
       this.errorHandler(error);
     }
@@ -46,7 +73,8 @@ class ProductRepository {
 
   async deleteProduct({ productId }: { productId: Types.ObjectId }) {
     try {
-      return await Product.findByIdAndDelete(productId);
+      await Product.findByIdAndDelete(productId);
+      this.invalidateProductCache({ id: productId.toString() });
     } catch (error) {
       this.errorHandler(error);
     }
@@ -57,11 +85,23 @@ class ProductRepository {
   }: {
     limit?: number;
   }): Promise<Array<SelectProduct>> {
+    const cacheKey = this.cache.generateKey({ id: "top-rated" });
+    const cachedProducts = this.cache.get<Array<SelectProduct>>({
+      key: cacheKey,
+    });
+    if (cachedProducts) return cachedProducts;
+
     try {
-      return await Product.find({})
+      const products = await Product.find({})
         .select("id name price image")
         .sort({ rating: -1 })
         .limit(limit);
+
+      if (products) {
+        this.cache.set({ key: cacheKey, value: products });
+      }
+
+      return products;
     } catch (error) {
       this.errorHandler(error);
     }
@@ -72,6 +112,12 @@ class ProductRepository {
     numberOfProductsPerPage: number;
     currentPage: number;
   }): Promise<Array<SelectProduct>> {
+    const cacheKey = this.cache.generateKey({ id: `all-${data.currentPage}` });
+    const cachedProducts = this.cache.get<Array<SelectProduct>>({
+      key: cacheKey,
+    });
+    if (cachedProducts) return cachedProducts;
+
     try {
       return await Product.find({ ...data.query })
         .select("id name brand category price rating numReviews image")
@@ -97,11 +143,23 @@ class ProductRepository {
     productId: Types.ObjectId;
     userId: Types.ObjectId;
   }): Promise<{ _id: Types.ObjectId } | null> {
+    const cacheKey = this.cache.generateKey({
+      id: `${productId}:${userId}`,
+    });
+    const cachedReview = this.cache.get<{ _id: Types.ObjectId } | null>({
+      key: cacheKey,
+    });
+    if (cachedReview) return cachedReview;
+
     try {
-      return Product.exists({
+      const isReviewed = Product.exists({
         _id: productId,
         "reviews.user": userId,
       });
+
+      this.cache.set({ key: cacheKey, value: isReviewed });
+
+      return isReviewed;
     } catch (error) {
       this.errorHandler(error);
     }
@@ -112,6 +170,21 @@ class ProductRepository {
       throw new DatabaseError(error.message);
     }
     throw new DatabaseError();
+  }
+
+  private invalidateProductCache({ id }: { id: string }): void {
+    // Delete specific product cache
+    const cacheKey = this.cache.generateKey({ id });
+    this.cache.delete({ keys: cacheKey });
+
+    // Delete all top-rated caches as they might be affected
+    const stats = this.cache.stats();
+    const keys = Object.keys(stats).filter((key) =>
+      key.startsWith("product:top-rated"),
+    );
+    if (keys.length > 0) {
+      this.cache.delete({ keys });
+    }
   }
 }
 
