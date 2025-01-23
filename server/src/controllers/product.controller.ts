@@ -9,7 +9,7 @@ class ProductController {
   private readonly service = productService;
 
   getById = asyncHandler(async (req, res) => {
-    const productId = objectIdValidator.parse(req.params.id);
+    const productId = objectIdValidator.parse(req.params.productId);
 
     const product = await this.service.getById({ productId });
     if (!product) throw new NotFoundError("Product");
@@ -18,7 +18,6 @@ class ProductController {
   });
 
   getAll = asyncHandler(async (req, res) => {
-    // TODO: add types to the req.query
     const query = z
       .object({
         keyword: z.string(),
@@ -30,8 +29,8 @@ class ProductController {
 
     res.status(200).json({
       products: data.products,
-      page: data.currentPage, // TODO: rename to pageNumber
-      pages: data.numberOfPages, // TODO: rename to numberOfPages
+      page: data.currentPage,
+      pages: data.numberOfPages,
     });
   });
 
@@ -54,7 +53,7 @@ class ProductController {
 
   createReview = asyncHandler(async (req, res) => {
     const user = res.locals.user;
-    const productId = objectIdValidator.parse(req.params.id);
+    const productId = objectIdValidator.parse(req.params.productId);
     const { comment, rating } = insertReviewSchema
       .pick({ rating: true, comment: true })
       .parse({ rating: req.body.rating, comment: req.body.comment });
