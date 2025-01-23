@@ -5,7 +5,7 @@ import { passwordConfirmationValidator } from "../validators";
  * Middleware to validate password
  */
 export const checkPasswordValidation = asyncHandler(async (req, res, next) => {
-  passwordConfirmationValidator.parse({
+  await passwordConfirmationValidator.parseAsync({
     request: req.body.password,
     encrypted: res.locals.user.password,
   });
