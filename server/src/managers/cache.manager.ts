@@ -3,7 +3,7 @@ import { DatabaseError } from "../errors";
 
 const MAX_CACHE_SIZE = 1000;
 
-type Namespace = "product" | "user" | "order";
+type Namespace = "product" | "user" | "order" | "rate-limit";
 
 interface CacheConfig {
   stdTTL: number;
