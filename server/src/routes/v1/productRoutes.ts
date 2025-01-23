@@ -25,7 +25,7 @@ router
   .get(RateLimiterMiddleware.defaultLimiter(), controller.getTopRated);
 
 router
-  .route("/:id")
+  .route("/:productId")
   .get(RateLimiterMiddleware.defaultLimiter(), controller.getById)
   .delete(
     RateLimiterMiddleware.adminLimiter(),
@@ -43,7 +43,7 @@ router
   );
 
 router
-  .route("/:id/reviews")
+  .route("/:productId/reviews")
   .post(
     RateLimiterMiddleware.strictLimiter(),
     checkJwtTokenValidation,
