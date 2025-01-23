@@ -32,7 +32,7 @@ export function payOrderAPI(orderId, token) {
 
 export function deliverOrderAPI(orderId, token) {
   return api.put(
-    `/orders/${orderId}/deliver`,
+    `/orders/${orderId}/delivery`,
     {},
     {
       headers: {
