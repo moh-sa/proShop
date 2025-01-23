@@ -18,7 +18,7 @@ class OrderController {
   });
 
   getById = asyncHandler(async (req, res) => {
-    const orderId = objectIdValidator.parse(req.params.id);
+    const orderId = objectIdValidator.parse(req.params.orderId);
 
     const order = await this.service.getById({ orderId });
 
@@ -40,7 +40,7 @@ class OrderController {
   });
 
   updateToPaid = asyncHandler(async (req, res) => {
-    const orderId = objectIdValidator.parse(req.params.id);
+    const orderId = objectIdValidator.parse(req.params.orderId);
 
     const order = await this.service.updateToPaid({ orderId });
 
@@ -48,7 +48,7 @@ class OrderController {
   });
 
   updateToDelivered = asyncHandler(async (req, res) => {
-    const orderId = objectIdValidator.parse(req.params.id);
+    const orderId = objectIdValidator.parse(req.params.orderId);
 
     const order = await this.service.updateToDelivered({ orderId });
 

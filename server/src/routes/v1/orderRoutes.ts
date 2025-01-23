@@ -5,8 +5,10 @@ import {
   checkUserIdExists,
   RateLimiterMiddleware,
 } from "../../middlewares";
+
 const router = express.Router();
 
+// /
 router
   .route("/")
   .post(
@@ -22,6 +24,7 @@ router
     controller.getAll,
   );
 
+// /user/:userId
 router
   .route("/myorders")
   .get(
@@ -31,8 +34,9 @@ router
     controller.getUser,
   );
 
+// /:orderId
 router
-  .route("/:id")
+  .route("/:orderId")
   .get(
     RateLimiterMiddleware.defaultLimiter(),
     checkJwtTokenValidation,
@@ -41,7 +45,7 @@ router
   );
 
 router
-  .route("/:id/pay")
+  .route("/:orderId/pay")
   .put(
     RateLimiterMiddleware.strictLimiter(),
     checkJwtTokenValidation,
@@ -50,7 +54,7 @@ router
   );
 
 router
-  .route("/:id/deliver")
+  .route("/:orderId/deliver")
   .put(
     RateLimiterMiddleware.strictLimiter(),
     checkJwtTokenValidation,
