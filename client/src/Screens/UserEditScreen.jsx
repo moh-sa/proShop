@@ -22,7 +22,9 @@ const UserEditScreen = () => {
   useEffect(() => {
     if (updateState.success) {
       dispatch(resetUpdateUsersState());
-      navigate("/admin/userlist");
+      navigate({
+        pathname: "/admin/userlist",
+      });
     }
   }, [dispatch, navigate, updateState.success]);
 

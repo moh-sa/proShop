@@ -9,8 +9,15 @@ const SearchBar = () => {
   const submitHandler = (e) => {
     e.preventDefault();
 
-    if (!keyword.trim()) return navigate("/");
-    navigate(`/search/${keyword}`);
+    if (!keyword.trim()) {
+      return navigate({
+        pathname: "/",
+      });
+    } else {
+      return navigate({
+        pathname: `/search/${keyword}`,
+      });
+    }
   };
 
   return (

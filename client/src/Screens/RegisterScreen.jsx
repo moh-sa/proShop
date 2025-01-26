@@ -22,7 +22,11 @@ const RegisterScreen = () => {
   const redirect = searchParams.get("redirect") ?? "/";
 
   useEffect(() => {
-    if (auth.user) navigate(`/${redirect}`);
+    if (auth.user) {
+      navigate({
+        pathname: `/${redirect}`,
+      });
+    }
   }, [navigate, auth.user, redirect]);
 
   function isPasswordMatch(password, confirmPassword) {

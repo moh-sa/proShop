@@ -21,7 +21,9 @@ const ShippingScreen = () => {
   const submitHandler = async (e) => {
     e.preventDefault();
     dispatch(setShippingAddress({ address, city, postalCode, country }));
-    navigate("/payment");
+    navigate({
+      pathname: "/payment",
+    });
   };
 
   return (

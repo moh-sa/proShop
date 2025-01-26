@@ -10,6 +10,7 @@ import {
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  createSearchParams,
   Link,
   useNavigate,
   useParams,
@@ -58,7 +59,10 @@ const CartScreen = () => {
   };
 
   const checkoutHandler = () => {
-    navigate("/login?redirect=shipping");
+    navigate({
+      pathname: "/login",
+      search: createSearchParams({ redirect: "/shipping" }).toString(),
+    });
   };
 
   useEffect(() => {

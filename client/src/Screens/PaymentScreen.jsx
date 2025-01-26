@@ -14,12 +14,18 @@ const PaymentScreen = () => {
   const shippingAddressState = useSelector(
     (state) => state.cart.shippingAddress,
   );
-  if (!shippingAddressState) return navigate("/shipping");
+  if (!shippingAddressState) {
+    return navigate({
+      pathname: "/shipping",
+    });
+  }
 
   const submitHandler = async (e) => {
     e.preventDefault();
     dispatch(savePaymentMethod(paymentMethod));
-    navigate("/placeorder");
+    navigate({
+      pathname: "/placeorder",
+    });
   };
 
   return (

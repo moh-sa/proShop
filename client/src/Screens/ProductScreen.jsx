@@ -9,7 +9,12 @@ import {
   Row,
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  createSearchParams,
+  Link,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import Loader from "../Components/Loader";
 import Message from "../Components/Message";
 import Rating from "../Components/Rating";
@@ -33,7 +38,10 @@ const ProductScreen = () => {
   const reviewsState = useSelector((state) => state.products.reviews);
 
   const addToCartHandler = async () => {
-    navigate(`/cart/${productId}?qty=${qty}`);
+    navigate({
+      pathname: `/cart/${productId}`,
+      search: createSearchParams({ qty }).toString(),
+    });
   };
 
   const createReviewHandler = (e) => {
