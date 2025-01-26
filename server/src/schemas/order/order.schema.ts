@@ -23,9 +23,9 @@ const baseOrderSchema = z.object({
     .min(0, { message: "Total price is required." })
     .default(0),
   isPaid: z.boolean().default(false),
-  paidAt: z.date(),
+  paidAt: z.date().optional(),
   isDelivered: z.boolean().default(false),
-  deliveredAt: z.date(),
+  deliveredAt: z.date().optional(),
 });
 
 export const insertOrderSchema = baseOrderSchema.extend({
