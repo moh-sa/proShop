@@ -1,6 +1,20 @@
 import { z } from "zod";
-import { selectProductSchema } from "../product/product.schema";
+import { objectIdValidator } from "../../validators";
+import {
+  insertProductSchema,
+  selectProductSchema,
+} from "../product/product.schema";
 
-export const orderItemSchema = selectProductSchema.extend({
-  qty: z.number().int().min(1).default(1),
+const baseOrderItemSchema = insertProductSchema
+  .pick({ name: true, image: true, price: true })
+  .extend({
+    qty: z.number().int().min(1).default(1),
+  });
+
+export const insertOrderItemSchema = baseOrderItemSchema.extend({
+  product: objectIdValidator,
+});
+
+export const selectOrderItemSchema = baseOrderItemSchema.extend({
+  product: selectProductSchema,
 });
