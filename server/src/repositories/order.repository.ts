@@ -1,4 +1,4 @@
-import { MongooseError, Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { DatabaseError } from "../errors";
 import Order from "../models/orderModel";
 import { InsertOrder, SelectOrder } from "../types";
@@ -84,7 +84,7 @@ class OrderRepository {
   }
 
   private errorHandler(error: unknown): never {
-    if (error instanceof MongooseError) {
+    if (error instanceof mongoose.Error) {
       throw new DatabaseError(error.message);
     }
     throw new DatabaseError();
