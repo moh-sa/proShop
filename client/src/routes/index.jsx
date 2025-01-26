@@ -1,4 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
+import { GlobalErrorBoundary } from "../Components/error-boundary";
 import RootRouteLayout from "../Components/root.layout";
 import HomeScreen from "../Screens/HomeScreen";
 import adminProtectedRoutes from "./admin-protected-routes";
@@ -9,6 +10,7 @@ export const router = createBrowserRouter([
   {
     path: "/",
     element: <RootRouteLayout />,
+    errorElement: <GlobalErrorBoundary />,
     children: [
       {
         index: true,
