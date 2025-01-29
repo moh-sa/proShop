@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
+import { env } from "process";
 import { ZodError } from "zod";
 import { BaseError } from "../errors";
 import { ErrorResponse, ErrorType } from "../types";
@@ -62,7 +63,7 @@ export function errorHandler(
   };
 
   // In development, include the error stack
-  if (process.env.NODE_ENV === "development") {
+  if (env.NODE_ENV === "development") {
     response.details = {
       stack: error.stack,
     };

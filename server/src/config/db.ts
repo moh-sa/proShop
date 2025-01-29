@@ -1,10 +1,11 @@
 import mongoose from "mongoose";
+import { env } from "./env";
 
 const options = { useNewUrlParser: true, useUnifiedTopology: true };
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URL!);
+    const conn = await mongoose.connect(env.DB_URL);
     console.log(`mongodb connected: ${conn.connection.host}`);
   } catch (error) {
     if (error instanceof mongoose.Error) {
