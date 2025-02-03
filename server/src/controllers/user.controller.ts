@@ -1,3 +1,4 @@
+import { NotFoundError } from "../errors";
 import { insertUserSchema } from "../schemas";
 import { userService } from "../services";
 import { asyncHandler } from "../utils";
@@ -56,7 +57,8 @@ class UserController {
     const idReq = req.params.userId;
     const userId = objectIdValidator.parse(idReq);
 
-    await this.service.delete({ userId });
+    const response = await this.service.delete({ userId });
+    if (!response) throw new NotFoundError("User");
 
     res.status(204).json({ message: "User removed" });
   });
