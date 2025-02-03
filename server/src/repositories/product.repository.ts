@@ -1,4 +1,4 @@
-import { MongooseError, Types } from "mongoose";
+import mongoose, { Error as MongooseError, Types } from "mongoose";
 import { DatabaseError } from "../errors";
 import { CacheManager } from "../managers";
 import Product from "../models/productModel";
@@ -166,7 +166,10 @@ class ProductRepository {
   }
 
   private errorHandler(error: unknown): never {
-    if (error instanceof MongooseError) {
+    if (
+      error instanceof MongooseError ||
+      error instanceof mongoose.mongo.MongoError
+    ) {
       throw new DatabaseError(error.message);
     }
     throw new DatabaseError();

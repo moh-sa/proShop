@@ -1,4 +1,4 @@
-import { MongooseError, Types } from "mongoose";
+import mongoose, { Error as MongooseError, Types } from "mongoose";
 import { DatabaseError } from "../errors";
 import User from "../models/userModel";
 import { InsertUser, SelectUser } from "../types";
@@ -75,7 +75,10 @@ class UserRepository {
   }
 
   private errorHandler(error: unknown): never {
-    if (error instanceof MongooseError) {
+    if (
+      error instanceof MongooseError ||
+      error instanceof mongoose.mongo.MongoError
+    ) {
       throw new DatabaseError(error.message);
     }
     throw new DatabaseError();
