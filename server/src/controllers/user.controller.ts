@@ -13,8 +13,7 @@ class UserController {
   });
 
   signup = asyncHandler(async (req, res) => {
-    const response = this.service.signup(req.body);
-
+    const response = await this.service.signup(req.body);
     res.status(201).json(response);
   });
 
