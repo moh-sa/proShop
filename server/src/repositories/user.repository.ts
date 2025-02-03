@@ -54,9 +54,13 @@ class UserRepository {
     }
   }
 
-  async deleteUser({ userId }: { userId: Types.ObjectId }): Promise<void> {
+  async deleteUser({
+    userId,
+  }: {
+    userId: Types.ObjectId;
+  }): Promise<SelectUser | null> {
     try {
-      await User.findByIdAndDelete(userId);
+      return await User.findByIdAndDelete(userId);
     } catch (error) {
       this.errorHandler(error);
     }

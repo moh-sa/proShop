@@ -65,8 +65,12 @@ class UserService {
     return this.createResponse(updatedUser);
   }
 
-  async delete({ userId }: { userId: Types.ObjectId }) {
-    await this.repository.deleteUser({ userId });
+  async delete({
+    userId,
+  }: {
+    userId: Types.ObjectId;
+  }): Promise<SelectUser | null> {
+    return await this.repository.deleteUser({ userId });
   }
 }
 
