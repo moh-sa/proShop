@@ -11,5 +11,5 @@ export const checkIfUserIsAdmin = asyncHandler(async (req, res, next) => {
     throw new AuthorizationError("Admin access required.");
   }
 
-  return next();
+  next();
 });
