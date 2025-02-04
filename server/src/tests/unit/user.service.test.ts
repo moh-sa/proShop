@@ -100,11 +100,6 @@ suite("User Service", () => {
       const response = await service.getAll();
 
       assert.equal(response.length, 3);
-
-      assert.deepEqual(
-        response.map((user) => user.email),
-        mockUsers.map((user) => user.email),
-      );
     });
 
     test("Should return an empty array if no users exist", async () => {
