@@ -1,5 +1,5 @@
 import { ConflictError } from "../errors";
-import { userService } from "../services";
+import { userRepository } from "../repositories";
 import { asyncHandler } from "../utils";
 import { emailValidator } from "../validators";
 
@@ -11,7 +11,7 @@ export const checkEmailExists = (allowExisting = false) =>
   asyncHandler(async (req, res, next) => {
     const email = emailValidator.parse(req.body.email);
 
-    const user = await userService.getByEmail({ email });
+    const user = await userRepository.getUserByEmail({ email });
 
     if (user && !allowExisting) {
       throw new ConflictError("An account with this email already exists.");
