@@ -1,10 +1,11 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 import { ZodError } from "zod";
-import { checkJwtTokenValidation } from "../../middlewares";
+import { AuthenticationError } from "../../errors";
+import { checkJwtTokenValidation, checkUserIdExists } from "../../middlewares";
 import User from "../../models/userModel";
 import { generateToken } from "../../utils";
-import { mockObjectid1 } from "../mocks";
+import { mockObjectid1, mockUser1 } from "../mocks";
 import { createMockExpressContext, dbClose, dbConnect } from "../utils";
 
 before(async () => await dbConnect());
@@ -68,6 +69,33 @@ suite("Middlewares Unit Tests", () => {
         assert.ok(error instanceof ZodError);
         assert.equal(error.issues.length, 1);
         assert.equal(error.issues[0].message, "Invalid ObjectId format.");
+      }
+    });
+  });
+
+  describe("checkUserIdExists", () => {
+    test("Should find user by id and set res.locals.user", async () => {
+      const { req, res, next } = createMockExpressContext();
+
+      const user = await User.create(mockUser1.insert);
+      res.locals.token = { id: user._id, iat: 123, exp: 456 };
+
+      await checkUserIdExists(req, res, next);
+
+      assert.ok(res.locals.user);
+      assert.equal(res.locals.user._id.toString(), user._id.toString());
+    });
+
+    test("Should throw 'AuthenticationError' if user does not exist", async () => {
+      const { req, res, next } = createMockExpressContext();
+      res.locals.token = { id: mockObjectid1, iat: 123, exp: 456 };
+
+      try {
+        await checkUserIdExists(req, res, next);
+      } catch (error) {
+        assert.ok(error instanceof AuthenticationError);
+        assert.equal(error.statusCode, 401);
+        assert.equal(error.message, "Authentication required");
       }
     });
   });
