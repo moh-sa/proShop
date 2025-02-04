@@ -3,17 +3,19 @@ import test, { after, before, beforeEach, describe, suite } from "node:test";
 import { ZodError } from "zod";
 import {
   AuthenticationError,
+  AuthorizationError,
   ConflictError,
   NotFoundError,
 } from "../../errors";
 import {
   checkEmailExists,
+  checkIfUserIsAdmin,
   checkJwtTokenValidation,
   checkUserIdExists,
 } from "../../middlewares";
 import User from "../../models/userModel";
 import { generateToken } from "../../utils";
-import { mockObjectid1, mockUser1 } from "../mocks";
+import { mockAdminUser1, mockObjectid1, mockUser1 } from "../mocks";
 import { createMockExpressContext, dbClose, dbConnect } from "../utils";
 
 before(async () => await dbConnect());
@@ -161,6 +163,28 @@ suite("Middlewares Unit Tests", () => {
         assert.ok(error instanceof NotFoundError);
         assert.equal(error.statusCode, 404);
         assert.equal(error.message, "User not found");
+      }
+    });
+  });
+
+  describe("checkIfUserIsAdmin", () => {
+    test("Should allow admin access", async () => {
+      const { req, res, next } = createMockExpressContext();
+      res.locals.user = mockAdminUser1.select;
+
+      await checkIfUserIsAdmin(req, res, next);
+    });
+
+    test("Should throw 'AuthorizationError' if user is not admin", async () => {
+      const { req, res, next } = createMockExpressContext();
+      res.locals.user = mockUser1.select;
+
+      try {
+        await checkIfUserIsAdmin(req, res, next);
+      } catch (error) {
+        assert.ok(error instanceof AuthorizationError);
+        assert.equal(error.statusCode, 403);
+        assert.equal(error.message, "Admin access required.");
       }
     });
   });
