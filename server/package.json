@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "test": "glob -c \"tsx --test --test-reporter spec\" \"./src/**/*.test.ts\"",
+    "test": "glob -c \"tsx --test --test-reporter spec\" \"./src/tests/**/*.test.ts\"",
     "predev": "npm run test",
     "dev": "ts-node src/server.ts",
     "start": "node dist/server.js",

@@ -1,12 +1,12 @@
 import { Types } from "mongoose";
 import assert from "node:assert/strict";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
-import { DatabaseError } from "../errors";
+import { DatabaseError } from "../../errors";
+import User from "../../models/userModel";
+import { userRepository } from "../../repositories";
+import { InsertUser } from "../../types";
 import { mockUser1, mockUser2, mockUser3 } from "../mocks";
-import User from "../models/userModel";
-import { InsertUser } from "../types";
 import { dbClose, dbConnect } from "../utils";
-import { userRepository } from "./user.repository";
 
 before(async () => dbConnect());
 after(async () => dbClose());

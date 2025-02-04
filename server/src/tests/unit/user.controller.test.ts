@@ -1,11 +1,11 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { ZodError } from "zod";
-import { DatabaseError, NotFoundError } from "../errors";
+import { userController } from "../../controllers";
+import { DatabaseError, NotFoundError } from "../../errors";
+import User from "../../models/userModel";
 import { mockUser1, mockUser2, mockUser3 } from "../mocks";
-import User from "../models/userModel";
 import { createMockExpressContext, dbClose, dbConnect } from "../utils";
-import { userController } from "./user.controller";
 
 before(async () => dbConnect());
 after(async () => dbClose());
