@@ -1,8 +1,16 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 import { ZodError } from "zod";
-import { AuthenticationError } from "../../errors";
-import { checkJwtTokenValidation, checkUserIdExists } from "../../middlewares";
+import {
+  AuthenticationError,
+  ConflictError,
+  NotFoundError,
+} from "../../errors";
+import {
+  checkEmailExists,
+  checkJwtTokenValidation,
+  checkUserIdExists,
+} from "../../middlewares";
 import User from "../../models/userModel";
 import { generateToken } from "../../utils";
 import { mockObjectid1, mockUser1 } from "../mocks";
@@ -96,6 +104,63 @@ suite("Middlewares Unit Tests", () => {
         assert.ok(error instanceof AuthenticationError);
         assert.equal(error.statusCode, 401);
         assert.equal(error.message, "Authentication required");
+      }
+    });
+  });
+
+  describe("checkEmailExists", () => {
+    test("Should find user by email and set res.locals.user", async () => {
+      const { req, res, next } = createMockExpressContext();
+
+      const user = await User.create(mockUser1.insert);
+      req.body.email = user.email;
+
+      await checkEmailExists(true)(req, res, next);
+
+      assert.ok(res.locals.user);
+      assert.equal(res.locals.user._id.toString(), user._id.toString());
+    });
+
+    test("Should find user by email and throw 'ConflictError' if allowExisting is false", async () => {
+      const { req, res, next } = createMockExpressContext();
+      const user = await User.create(mockUser1.insert);
+      req.body.email = user.email;
+
+      try {
+        await checkEmailExists(false)(req, res, next);
+      } catch (error) {
+        assert.ok(error instanceof ConflictError);
+        assert.equal(error.statusCode, 409);
+        assert.equal(
+          error.message,
+          "An account with this email already exists.",
+        );
+      }
+    });
+
+    test("Should throw 'ZodError' if email is invalid", async () => {
+      const { req, res, next } = createMockExpressContext();
+      req.body.email = "RANDOM_EMAIL";
+
+      try {
+        await checkEmailExists()(req, res, next);
+      } catch (error) {
+        assert.ok(error instanceof ZodError);
+        assert.equal(error.issues.length, 1);
+        assert.equal(error.issues[0].message, "Invalid email format.");
+      }
+    });
+
+    test("Should throw 'NotFoundError' if user does not exist", async () => {
+      const { req, res, next } = createMockExpressContext();
+      req.body.email = mockUser1.insert.email;
+
+      try {
+        await checkEmailExists()(req, res, next);
+      } catch (error) {
+        assert.ok(error instanceof NotFoundError);
+        assert.equal(error.statusCode, 404);
+        assert.equal(error.message, "User not found");
       }
     });
   });
