@@ -1,16 +1,7 @@
 import NodeCache from "node-cache";
+import { MAX_CACHE_SIZE } from "../config";
 import { DatabaseError } from "../errors";
-
-const MAX_CACHE_SIZE = 1000;
-
-type Namespace = "product" | "user" | "order" | "rate-limit";
-
-interface CacheConfig {
-  stdTTL: number;
-  checkperiod: number;
-  useClones: boolean;
-  deleteOnExpire: boolean;
-}
+import { CacheConfig, Namespace } from "../types";
 
 interface ICache {
   get<T>({ key }: { key: string }): T | undefined;
