@@ -1,30 +1,23 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 import Product from "../../models/productModel";
-import User from "../../models/userModel";
 import { productRepository } from "../../repositories/product.repository";
 import {
   generateMockObjectId,
   generateMockProduct,
   generateMockProducts,
-  generateMockUsers,
 } from "../mocks";
 import { dbClose, dbConnect, findTopRatedProduct } from "../utils";
 
 const repo = productRepository;
-const mockUsers = generateMockUsers(4);
 
-before(async () => {
-  await dbConnect();
-  await User.insertMany(mockUsers);
-});
+before(async () => await dbConnect());
+after(async () => await dbClose());
 
 beforeEach(async () => {
   repo._invalidateCache();
   await Product.deleteMany({});
 });
-
-after(async () => await dbClose());
 
 suite("Product Repository", () => {
   describe("Create Product", () => {
