@@ -2,7 +2,11 @@ import mongoose, { Error as MongooseError, Types } from "mongoose";
 import { DatabaseError } from "../errors";
 import { CacheManager } from "../managers";
 import Product from "../models/productModel";
-import { InsertProduct, SelectProduct } from "../types";
+import {
+  InsertProduct,
+  SelectProduct,
+  TopRatedProduct,
+} from "../types";
 
 class ProductRepository {
   private cache: CacheManager;
@@ -84,9 +88,9 @@ class ProductRepository {
     limit = 3,
   }: {
     limit?: number;
-  }): Promise<Array<SelectProduct>> {
+  }): Promise<Array<TopRatedProduct>> {
     const cacheKey = this.cache.generateKey({ id: "top-rated" });
-    const cachedProducts = this.cache.get<Array<SelectProduct>>({
+    const cachedProducts = this.cache.get<Array<TopRatedProduct>>({
       key: cacheKey,
     });
     if (cachedProducts) return cachedProducts;

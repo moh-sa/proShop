@@ -6,6 +6,7 @@ import {
   SelectProduct,
   SelectReview,
   SelectUser,
+  TopRatedProduct,
 } from "../types";
 
 class ProductService {
@@ -50,7 +51,7 @@ class ProductService {
     };
   }
 
-  async getTopRated(): Promise<Array<SelectProduct>> {
+  async getTopRated(): Promise<Array<TopRatedProduct>> {
     return await this.repository.getTopRatedProducts({});
   }
 
