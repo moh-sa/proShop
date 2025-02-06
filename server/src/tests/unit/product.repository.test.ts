@@ -254,5 +254,14 @@ suite("Product Repository", () => {
       const product = await Product.findById(created._id);
       assert.equal(product, null);
     });
+
+    test("Should return 'null' if product does not exist", async () => {
+      const mockId = generateMockObjectId();
+      const deletedProduct = await repo.deleteProduct({
+        productId: mockId,
+      });
+
+      assert.equal(deletedProduct, null);
+    });
   });
 });
