@@ -37,8 +37,8 @@ suite("User Service", () => {
         await service.signup(mockUser);
       } catch (error) {
         assert.ok(error instanceof DatabaseError);
-        assert.equal(error.type, "DATABASE_ERROR");
         assert.equal(error.statusCode, 500);
+        assert.ok(error.message.includes("E11000")); // error code for duplication
       }
     });
   });
@@ -121,7 +121,7 @@ suite("User Service", () => {
   });
 
   describe("Update User", () => {
-    test("Should find and update sure, ensure the return match the mock data and without token", async () => {
+    test("Should find and update user, ensure the return match the mock data and without token", async () => {
       const [mockUser1, mockUser2] = generateMockUsers(2);
 
       const created = await service.signup(mockUser1);
