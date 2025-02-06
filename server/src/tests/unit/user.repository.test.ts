@@ -5,25 +5,25 @@ import { DatabaseError } from "../../errors";
 import User from "../../models/userModel";
 import { userRepository } from "../../repositories";
 import { InsertUser } from "../../types";
-import { mockUser1, mockUser2, mockUser3 } from "../mocks";
+import { generateMockUser, generateMockUsers } from "../mocks";
 import { dbClose, dbConnect } from "../utils";
 
 before(async () => dbConnect());
 after(async () => dbClose());
+beforeEach(async () => await User.deleteMany({}));
+const repo = userRepository;
 
 suite("User Repository", () => {
-  beforeEach(async () => await User.deleteMany({}));
-
-  const repo = userRepository;
-
   describe("Create User", () => {
     test("Should create new user in the database", async () => {
-      const user = await repo.createUser({ userData: mockUser1.insert });
+      const mockUser = generateMockUser();
+
+      const user = await repo.createUser({ userData: mockUser });
 
       assert.ok(user);
 
-      assert.equal(user.name, mockUser1.insert.name);
-      assert.equal(user.email, mockUser1.insert.email);
+      assert.equal(user.name, mockUser.name);
+      assert.equal(user.email, mockUser.email);
 
       assert.ok(user.createdAt instanceof Date);
       assert.ok(user.updatedAt instanceof Date);
@@ -31,11 +31,13 @@ suite("User Repository", () => {
     });
 
     test("Should throw 'DatabaseError' if email already exists", async () => {
-      await repo.createUser({ userData: mockUser1.insert });
+      const mockUser = generateMockUser();
+
+      await repo.createUser({ userData: mockUser });
 
       try {
         // creating new user with the same email
-        await repo.createUser({ userData: mockUser1.insert });
+        await repo.createUser({ userData: mockUser });
       } catch (error) {
         assert.ok(error instanceof DatabaseError);
         assert.equal(error.type, "DATABASE_ERROR");
@@ -46,12 +48,14 @@ suite("User Repository", () => {
 
   describe("Retrieve User By ID", () => {
     test("Should retrieve a user by ID", async () => {
-      const created = await repo.createUser({ userData: mockUser1.insert });
+      const mockUser = generateMockUser();
+
+      const created = await repo.createUser({ userData: mockUser });
       const user = await repo.getUserById({ userId: created._id });
 
       assert.ok(user);
 
-      assert.equal(user.email, mockUser1.insert.email);
+      assert.equal(user.email, mockUser.email);
     });
 
     test("Should return 'null' if user does not exist", async () => {
@@ -62,12 +66,14 @@ suite("User Repository", () => {
 
   describe("Retrieve User By Email", () => {
     test("Should retrieve a user by Email", async () => {
-      const created = await repo.createUser({ userData: mockUser1.insert });
+      const mockUser = generateMockUser();
+
+      const created = await repo.createUser({ userData: mockUser });
       const user = await repo.getUserByEmail({ email: created.email });
 
       assert.ok(user);
 
-      assert.equal(user.email, mockUser1.insert.email);
+      assert.equal(user.email, mockUser.email);
     });
 
     test("Should return 'null' if user does not exist", async () => {
@@ -78,15 +84,16 @@ suite("User Repository", () => {
 
   describe("Retrieve Users", () => {
     test("Should retrieve all users", async () => {
-      await repo.createUser({ userData: mockUser1.insert });
-      await repo.createUser({ userData: mockUser2.insert });
-      await repo.createUser({ userData: mockUser3.insert });
+      const numberOfUsers = 5;
+      const mockUsers = generateMockUsers(numberOfUsers);
+
+      await User.insertMany(mockUsers);
 
       const users = await repo.getAllUsers();
 
       assert.ok(users);
 
-      assert.equal(users.length, 3);
+      assert.equal(users.length, numberOfUsers);
     });
 
     test("Should return an empty array if no users exist", async () => {
@@ -97,9 +104,15 @@ suite("User Repository", () => {
 
   describe("Update User", () => {
     test("Should find and update a user by ID", async () => {
-      const created = await repo.createUser({ userData: mockUser1.insert });
+      const mockUser = generateMockUser();
 
-      const updateData: Partial<InsertUser> = { name: mockUser2.insert.name };
+      const created = await repo.createUser({
+        userData: mockUser,
+      });
+
+      const updateData: Partial<InsertUser> = {
+        name: "RANDOM_NAME",
+      };
       const updatedUser = await repo.updateUser({
         userId: created._id,
         updateData,
@@ -111,17 +124,16 @@ suite("User Repository", () => {
     });
 
     test("Should throw 'DatabaseError' if updated with an existing email", async () => {
-      await repo.createUser({
-        userData: mockUser2.insert,
-      });
-      const created = await repo.createUser({ userData: mockUser1.insert });
+      const mockUsers = generateMockUsers(2);
+
+      const users = await User.insertMany(mockUsers);
 
       const updateData: Partial<InsertUser> = {
-        email: mockUser2.insert.email,
+        email: users[1].email,
       };
       try {
         await repo.updateUser({
-          userId: created._id,
+          userId: users[0]._id,
           updateData,
         });
       } catch (error) {
@@ -145,7 +157,11 @@ suite("User Repository", () => {
 
   describe("Delete User", () => {
     test("Should find and delete a user by ID", async () => {
-      const created = await repo.createUser({ userData: mockUser1.insert });
+      const mockUser = generateMockUser();
+
+      const created = await repo.createUser({
+        userData: mockUser,
+      });
 
       const deletedUser = await repo.deleteUser({
         userId: created._id,

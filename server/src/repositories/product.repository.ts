@@ -27,7 +27,7 @@ class ProductRepository {
       const cacheKey = this.cache.generateKey({ id: product._id.toString() });
       this.cache.set({ key: cacheKey, value: product });
 
-      return await Product.create(productData);
+      return product;
     } catch (error) {
       this.errorHandler(error);
     }

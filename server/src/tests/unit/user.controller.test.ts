@@ -4,35 +4,40 @@ import { ZodError } from "zod";
 import { userController } from "../../controllers";
 import { DatabaseError, NotFoundError } from "../../errors";
 import User from "../../models/userModel";
-import { mockUser1, mockUser2, mockUser3 } from "../mocks";
+import {
+  generateMockObjectId,
+  generateMockUser,
+  generateMockUsers,
+} from "../mocks";
 import { createMockExpressContext, dbClose, dbConnect } from "../utils";
 
 before(async () => dbConnect());
 after(async () => dbClose());
+beforeEach(async () => await User.deleteMany({}));
+const controller = userController;
 
 suite("User Controller", () => {
-  beforeEach(async () => await User.deleteMany({}));
-
-  const controller = userController;
-
   describe("Register User", () => {
     test("Should register a user and return 201 with data", async () => {
       const { req, res, next } = createMockExpressContext();
+      const mockUser = generateMockUser();
 
-      req.body = mockUser1.insert;
+      req.body = mockUser;
 
       await controller.signup(req, res, next);
 
       const data = res._getJSONData();
       assert.equal(res.statusCode, 201);
-      assert.equal(data.name, mockUser1.insert.name);
-      assert.equal(data.email, mockUser1.insert.email);
+      assert.equal(data.name, mockUser.name);
+      assert.equal(data.email, mockUser.email);
     });
 
     test("Should throw 'DatabaseError' if user already exists", async () => {
       const { req, res, next } = createMockExpressContext();
-      await User.create(mockUser1.insert);
-      req.body = mockUser1.insert;
+      const mockUser = generateMockUser();
+
+      await User.create(mockUser);
+      req.body = mockUser;
       try {
         await controller.signup(req, res, next);
       } catch (error) {
@@ -46,35 +51,38 @@ suite("User Controller", () => {
   describe("Authenticate User", () => {
     test("Should authenticate a user and return 200 with data", async () => {
       const { req, res, next } = createMockExpressContext();
+      const mockUser = generateMockUser();
 
-      const user = await User.create(mockUser1.insert);
+      const user = await User.create(mockUser);
       res.locals.user = user;
 
       await controller.signin(req, res, next);
       const data = res._getJSONData();
 
       assert.equal(res.statusCode, 200);
-      assert.equal(data.email, mockUser1.insert.email);
+      assert.equal(data.email, mockUser.email);
     });
   });
 
   describe("Retrieve User By ID", () => {
     test("Should retrieve user by ID and return 200 with data", async () => {
       const { req, res, next } = createMockExpressContext();
-      const user = await User.create(mockUser1.insert);
+      const mockUser = generateMockUser();
+
+      const user = await User.create(mockUser);
       req.params.userId = user._id.toString();
 
       await controller.getById(req, res, next);
       const data = res._getJSONData();
 
       assert.equal(res.statusCode, 200);
-      assert.equal(data.email, mockUser1.select.email);
-      assert.equal(data.name, mockUser1.select.name);
+      assert.equal(data.email, mockUser.email);
+      assert.equal(data.name, mockUser.name);
     });
 
     test("Should throw 'NotFoundError' if user does not exist", async () => {
       const { req, res, next } = createMockExpressContext();
-      req.params.userId = "5f81e7e1b8b3c6f0c8a9a1e0";
+      req.params.userId = generateMockObjectId().toString();
 
       try {
         await controller.getById(req, res, next);
@@ -89,8 +97,9 @@ suite("User Controller", () => {
   describe("Retrieve Users", () => {
     test("Should retrieve all users and return 200 with array of data", async () => {
       const { req, res, next } = createMockExpressContext();
+      const mockUsers = generateMockUsers(3);
 
-      await User.create([mockUser1.insert, mockUser2.insert, mockUser3.insert]);
+      await User.insertMany(mockUsers);
 
       await controller.getAll(req, res, next);
       const data = res._getJSONData();
@@ -113,22 +122,26 @@ suite("User Controller", () => {
   describe("Update User", () => {
     test("Should update user and return 200 with updated data", async () => {
       const { req, res, next } = createMockExpressContext();
-      const user = await User.create(mockUser1.insert);
+      const [mockUser1, mockUser2] = generateMockUsers(2);
+
+      const user = await User.create(mockUser1);
       req.params.userId = user._id.toString();
-      req.body = { name: mockUser2.insert.name };
+      req.body = { name: mockUser2.name };
 
       await controller.update(req, res, next);
       const data = res._getJSONData();
 
       assert.equal(res.statusCode, 200);
-      assert.equal(data.email, mockUser1.select.email);
-      assert.equal(data.name, mockUser2.insert.name);
+      assert.equal(data.email, mockUser1.email);
+      assert.equal(data.name, mockUser2.name);
     });
 
     test("Should throw 'NotFoundError' if user does not exist", async () => {
       const { req, res, next } = createMockExpressContext();
-      req.params.userId = mockUser1.select._id.toString();
-      req.body = { name: mockUser2.insert.name };
+      const [mockUser1, mockUser2] = generateMockUsers(2);
+
+      req.params.userId = mockUser1._id.toString();
+      req.body = { name: mockUser2.name };
       try {
         await controller.update(req, res, next);
       } catch (error) {
@@ -152,7 +165,9 @@ suite("User Controller", () => {
 
     test("Should throw 'ZodError' if the update data is not a valid", async () => {
       const { req, res, next } = createMockExpressContext();
-      const user = await User.create(mockUser1.insert);
+      const mockUser = generateMockUser();
+
+      const user = await User.create(mockUser);
       req.params.userId = user._id.toString();
       req.body = { email: "RANDOM_EMAIL" };
 
@@ -168,8 +183,9 @@ suite("User Controller", () => {
   describe("Delete User", () => {
     test("Should delete user and return 204 with message", async () => {
       const { req, res, next } = createMockExpressContext();
+      const mockUser = generateMockUser();
 
-      const user = await User.create(mockUser1.insert);
+      const user = await User.create(mockUser);
       req.params.userId = user._id.toString();
 
       await controller.delete(req, res, next);
@@ -181,7 +197,8 @@ suite("User Controller", () => {
 
     test("Should throw 'NotFoundError' if user does not exist", async () => {
       const { req, res, next } = createMockExpressContext();
-      req.params.userId = mockUser1.select._id.toString();
+
+      req.params.userId = generateMockObjectId().toString();
 
       try {
         await controller.delete(req, res, next);

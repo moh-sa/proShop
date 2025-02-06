@@ -15,7 +15,7 @@ import {
 } from "../../middlewares";
 import User from "../../models/userModel";
 import { generateToken } from "../../utils";
-import { mockAdminUser1, mockObjectid1, mockUser1 } from "../mocks";
+import { generateMockObjectId, generateMockUser } from "../mocks";
 import { createMockExpressContext, dbClose, dbConnect } from "../utils";
 
 before(async () => await dbConnect());
@@ -26,7 +26,8 @@ suite("Middlewares Unit Tests", () => {
   describe("checkJwtTokenValidation", () => {
     test("Should parse JWT and set set decoded data in res.locals.token", async () => {
       const { req, res, next } = createMockExpressContext();
-      const jwt = generateToken({ id: mockObjectid1 });
+      const mockId = generateMockObjectId();
+      const jwt = generateToken({ id: mockId });
 
       req.headers.authorization = `Bearer ${jwt}`;
 
@@ -37,7 +38,7 @@ suite("Middlewares Unit Tests", () => {
 
       assert.ok(res.locals.token);
       assert.equal(Object.keys(res.locals.token).length, 3);
-      assert.equal(res.locals.token.id.toString(), mockObjectid1);
+      assert.equal(res.locals.token.id.toString(), mockId);
     });
 
     test("Should throw 'ZodError' if req.headers.authorization is empty", async () => {
@@ -86,8 +87,9 @@ suite("Middlewares Unit Tests", () => {
   describe("checkUserIdExists", () => {
     test("Should find user by id and set res.locals.user", async () => {
       const { req, res, next } = createMockExpressContext();
+      const mockUser = generateMockUser();
 
-      const user = await User.create(mockUser1.insert);
+      const user = await User.create(mockUser);
       res.locals.token = { id: user._id, iat: 123, exp: 456 };
 
       await checkUserIdExists(req, res, next);
@@ -98,7 +100,9 @@ suite("Middlewares Unit Tests", () => {
 
     test("Should throw 'AuthenticationError' if user does not exist", async () => {
       const { req, res, next } = createMockExpressContext();
-      res.locals.token = { id: mockObjectid1, iat: 123, exp: 456 };
+      const mockId = generateMockObjectId();
+
+      res.locals.token = { id: mockId, iat: 123, exp: 456 };
 
       try {
         await checkUserIdExists(req, res, next);
@@ -113,8 +117,9 @@ suite("Middlewares Unit Tests", () => {
   describe("checkEmailExists", () => {
     test("Should find user by email and set res.locals.user", async () => {
       const { req, res, next } = createMockExpressContext();
+      const mockUser = generateMockUser();
 
-      const user = await User.create(mockUser1.insert);
+      const user = await User.create(mockUser);
       req.body.email = user.email;
 
       await checkEmailExists(true)(req, res, next);
@@ -125,7 +130,9 @@ suite("Middlewares Unit Tests", () => {
 
     test("Should find user by email and throw 'ConflictError' if allowExisting is false", async () => {
       const { req, res, next } = createMockExpressContext();
-      const user = await User.create(mockUser1.insert);
+      const mockUser = generateMockUser();
+
+      const user = await User.create(mockUser);
       req.body.email = user.email;
 
       try {
@@ -155,7 +162,9 @@ suite("Middlewares Unit Tests", () => {
 
     test("Should throw 'NotFoundError' if user does not exist", async () => {
       const { req, res, next } = createMockExpressContext();
-      req.body.email = mockUser1.insert.email;
+      const mockUser = generateMockUser();
+
+      req.body.email = mockUser.email;
 
       try {
         await checkEmailExists()(req, res, next);
@@ -170,14 +179,18 @@ suite("Middlewares Unit Tests", () => {
   describe("checkIfUserIsAdmin", () => {
     test("Should allow admin access", async () => {
       const { req, res, next } = createMockExpressContext();
-      res.locals.user = mockAdminUser1.select;
+      const mockUser = generateMockUser(true);
+
+      res.locals.user = mockUser;
 
       await checkIfUserIsAdmin(req, res, next);
     });
 
     test("Should throw 'AuthorizationError' if user is not admin", async () => {
       const { req, res, next } = createMockExpressContext();
-      res.locals.user = mockUser1.select;
+      const mockUser = generateMockUser(true);
+
+      res.locals.user = mockUser;
 
       try {
         await checkIfUserIsAdmin(req, res, next);

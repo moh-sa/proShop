@@ -3,7 +3,7 @@ import test, { describe, suite } from "node:test";
 import { formatZodErrors } from "../../utils";
 import { generateToken } from "../../utils/generateJwtToken";
 import { verifyJwtToken } from "../../utils/verify-jwt-token.util";
-import { mockUser1, mockZodError1, mockZodErrors } from "../mocks";
+import { generateMockUser, mockZodError1, mockZodErrors } from "../mocks";
 
 suite("Util Functions Unit Tests", () => {
   describe("verifyJwtToken", () => {
@@ -18,16 +18,18 @@ suite("Util Functions Unit Tests", () => {
     });
 
     test("Should return user data object", () => {
-      const jwt = generateToken(mockUser1.insert);
-      const token = verifyJwtToken<typeof mockUser1.insert>(jwt);
+      const mockUser = generateMockUser();
+
+      const jwt = generateToken(mockUser);
+      const token = verifyJwtToken<typeof mockUser>(jwt);
 
       assert.ok(token);
-      assert.ok(Object.keys(token).length === 6);
+      assert.ok(Object.keys(token).length === 10);
 
-      assert.equal(token.name, mockUser1.insert.name);
-      assert.equal(token.email, mockUser1.insert.email);
-      assert.equal(token.password, mockUser1.insert.password);
-      assert.equal(token.isAdmin, mockUser1.insert.isAdmin);
+      assert.equal(token.name, mockUser.name);
+      assert.equal(token.email, mockUser.email);
+      assert.equal(token.password, mockUser.password);
+      assert.equal(token.isAdmin, mockUser.isAdmin);
     });
   });
 
@@ -35,7 +37,6 @@ suite("Util Functions Unit Tests", () => {
     test("Should return 1 error required name", () => {
       //@ts-expect-error - it expect the full ZodError object.
       const result = formatZodErrors(mockZodError1);
-
       assert.ok(result);
       assert.equal(result, "user.name Name is required");
     });
@@ -43,9 +44,7 @@ suite("Util Functions Unit Tests", () => {
     test("Should return 3 errors", () => {
       //@ts-expect-error - it expect the full ZodError object.
       const result = formatZodErrors(mockZodErrors);
-
       assert.ok(result);
-
       const errors = result.split("; ");
       assert.equal(errors.length, 3);
       assert.equal(errors[0], "user.name Name is required");
