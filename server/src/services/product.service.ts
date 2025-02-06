@@ -2,6 +2,7 @@ import mongoose, { Document, Types } from "mongoose";
 import { ConflictError, NotFoundError } from "../errors";
 import { productRepository } from "../repositories";
 import {
+  AllProducts,
   InsertProduct,
   SelectProduct,
   SelectReview,
@@ -24,7 +25,7 @@ class ProductService {
   }
 
   async getAll(data: { keyword: string; currentPage: number }): Promise<{
-    products: Array<SelectProduct>;
+    products: Array<AllProducts>;
     currentPage: number;
     numberOfPages: number;
   }> {

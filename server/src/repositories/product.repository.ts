@@ -3,6 +3,7 @@ import { DatabaseError } from "../errors";
 import { CacheManager } from "../managers";
 import Product from "../models/productModel";
 import {
+  AllProducts,
   InsertProduct,
   SelectProduct,
   TopRatedProduct,
@@ -115,9 +116,9 @@ class ProductRepository {
     query: Record<string, unknown>;
     numberOfProductsPerPage: number;
     currentPage: number;
-  }): Promise<Array<SelectProduct>> {
+  }): Promise<Array<AllProducts>> {
     const cacheKey = this.cache.generateKey({ id: `all-${data.currentPage}` });
-    const cachedProducts = this.cache.get<Array<SelectProduct>>({
+    const cachedProducts = this.cache.get<Array<AllProducts>>({
       key: cacheKey,
     });
     if (cachedProducts) return cachedProducts;
