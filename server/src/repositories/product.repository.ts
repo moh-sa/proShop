@@ -194,6 +194,10 @@ class ProductRepository {
       this.cache.delete({ keys });
     }
   }
+  /** Created for testing purposes only. */
+  _invalidateCache() {
+    this.cache.flush();
+  }
 }
 
 export const productRepository = new ProductRepository();
