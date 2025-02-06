@@ -9,7 +9,7 @@ import {
   generateMockProducts,
   generateMockUsers,
 } from "../mocks";
-import { dbClose, dbConnect } from "../utils";
+import { dbClose, dbConnect, findTopRatedProduct } from "../utils";
 
 const repo = productRepository;
 const mockUsers = generateMockUsers(4);
@@ -71,9 +71,7 @@ suite("Product Repository", () => {
       assert.ok(products);
       assert.equal(products.length, 3);
 
-      const topRatedProduct = mockProducts.reduce((highest, product) => {
-        return product.rating > highest.rating ? product : highest;
-      });
+      const topRatedProduct = findTopRatedProduct(mockProducts);
       assert.equal(products[0].name, topRatedProduct.name);
     });
 
