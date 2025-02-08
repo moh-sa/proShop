@@ -5,6 +5,7 @@ const EnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]),
   PORT: z.coerce.number().min(1),
   DB_URL: z.string().min(1),
+  SENTRY_DNS: z.string().min(1).url(),
   JWT_SECRET: z.string().min(1),
   SALT_ROUNDS: z.coerce.number().min(1),
   PAYPAL_CLIENT_ID: z.string().min(1),

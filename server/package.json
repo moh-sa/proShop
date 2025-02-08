@@ -4,7 +4,6 @@
   "main": "server.js",
   "scripts": {
     "test": "glob -c \"tsx --test --test-reporter spec\" \"./src/tests/**/*.test.ts\"",
-    "predev": "npm run test",
     "dev": "ts-node src/server.ts",
     "start": "node dist/server.js",
     "build": "tsc",
@@ -12,6 +11,8 @@
     "data:destroy": "node seeder -d"
   },
   "dependencies": {
+    "@sentry/node": "^8.54.0",
+    "@sentry/profiling-node": "^8.54.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",

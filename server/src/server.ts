@@ -1,3 +1,6 @@
+import "./config/sentry.config";
+
+import * as Sentry from "@sentry/node";
 import cors from "cors";
 import express, { Request, Response } from "express";
 import morgan from "morgan";
@@ -34,6 +37,8 @@ app.get("/api/config/paypal", (_req: Request, res: Response) => {
 });
 
 app.use("/uploads", express.static("uploads"));
+
+Sentry.setupExpressErrorHandler(app);
 
 app.use(errorHandler);
 
