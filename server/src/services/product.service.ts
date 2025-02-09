@@ -1,12 +1,10 @@
-import mongoose, { Document, Types } from "mongoose";
-import { ConflictError, NotFoundError } from "../errors";
+import { Types } from "mongoose";
+import { NotFoundError } from "../errors";
 import { productRepository } from "../repositories";
 import {
   AllProducts,
   InsertProduct,
   SelectProduct,
-  SelectReview,
-  SelectUser,
   TopRatedProduct,
 } from "../types";
 
@@ -60,43 +58,6 @@ class ProductService {
     return await this.repository.createProduct({ productData: data });
   }
 
-  async createReview(data: {
-    user: SelectUser;
-    productId: Types.ObjectId;
-    rating: number;
-    comment: string;
-  }): Promise<void> {
-    // TODO: check the best way to do this type union.
-    const product = (await this.repository.getProductById({
-      productId: data.productId,
-    })) as unknown as SelectProduct & Document;
-    if (!product) throw new Error("Product not found.");
-
-    // TODO: create a review model
-    const review: SelectReview = {
-      _id: new mongoose.Types.ObjectId(),
-      name: data.user.name,
-      rating: Number(data.rating),
-      comment: data.comment,
-      user: data.user,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    product.reviews.push(review);
-
-    const numberOfReviews = product.reviews.length;
-    const totalRating = product.reviews.reduce(
-      (acc, item) => item.rating + acc,
-      0,
-    );
-    const averageRating = totalRating / numberOfReviews;
-
-    product.numReviews = numberOfReviews;
-    product.rating = averageRating;
-    await product.save();
-  }
-
   async update({
     productId,
     updateData,
@@ -115,22 +76,6 @@ class ProductService {
 
   async delete({ productId }: { productId: Types.ObjectId }): Promise<void> {
     await this.repository.deleteProduct({ productId });
-  }
-
-  async isReviewedByUser({
-    productId,
-    userId,
-  }: {
-    productId: Types.ObjectId;
-    userId: Types.ObjectId;
-  }): Promise<null> {
-    const isReviewed = await this.repository.reviewByUserExists({
-      productId,
-      userId,
-    });
-    if (isReviewed) throw new ConflictError("Product already reviewed");
-
-    return isReviewed;
   }
 }
 

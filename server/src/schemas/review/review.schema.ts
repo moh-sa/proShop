@@ -16,6 +16,7 @@ const baseReviewSchema = z.object({
 
 export const insertReviewSchema = baseReviewSchema.extend({
   user: objectIdValidator,
+  product: objectIdValidator,
 });
 
 export const selectReviewSchema = baseReviewSchema.extend({

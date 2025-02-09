@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { NotFoundError } from "../errors";
-import { insertProductSchema, insertReviewSchema } from "../schemas";
+import { insertProductSchema } from "../schemas";
 import { productService } from "../services";
 import { asyncHandler } from "../utils";
 import { objectIdValidator } from "../validators";
@@ -49,23 +49,6 @@ class ProductController {
     const newProduct = await this.service.create(data);
 
     res.status(201).json(newProduct);
-  });
-
-  createReview = asyncHandler(async (req, res) => {
-    const user = res.locals.user;
-    const productId = objectIdValidator.parse(req.params.productId);
-    const { comment, rating } = insertReviewSchema
-      .pick({ rating: true, comment: true })
-      .parse({ rating: req.body.rating, comment: req.body.comment });
-
-    await this.service.createReview({
-      user,
-      productId,
-      rating,
-      comment,
-    });
-
-    res.status(201).json({ message: "review added" });
   });
 
   update = asyncHandler(async (req, res) => {

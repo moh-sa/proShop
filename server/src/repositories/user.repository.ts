@@ -4,13 +4,15 @@ import User from "../models/userModel";
 import { InsertUser, SelectUser } from "../types";
 
 class UserRepository {
+  private readonly db = User;
+
   async createUser({
     userData,
   }: {
     userData: InsertUser;
   }): Promise<SelectUser> {
     try {
-      return await User.create(userData);
+      return await this.db.create(userData);
     } catch (error) {
       this.errorHandler(error);
     }
@@ -22,7 +24,7 @@ class UserRepository {
     userId: Types.ObjectId;
   }): Promise<SelectUser | null> {
     try {
-      return await User.findById(userId);
+      return await this.db.findById(userId);
     } catch (error) {
       this.errorHandler(error);
     }
@@ -34,7 +36,7 @@ class UserRepository {
     email: string;
   }): Promise<SelectUser | null> {
     try {
-      return await User.findOne({ email });
+      return await this.db.findOne({ email });
     } catch (error) {
       this.errorHandler(error);
     }
@@ -48,7 +50,7 @@ class UserRepository {
     updateData: Partial<InsertUser>;
   }): Promise<SelectUser | null> {
     try {
-      return await User.findByIdAndUpdate(userId, updateData, { new: true });
+      return await this.db.findByIdAndUpdate(userId, updateData, { new: true });
     } catch (error) {
       this.errorHandler(error);
     }
@@ -60,7 +62,7 @@ class UserRepository {
     userId: Types.ObjectId;
   }): Promise<SelectUser | null> {
     try {
-      return await User.findByIdAndDelete(userId);
+      return await this.db.findByIdAndDelete(userId);
     } catch (error) {
       this.errorHandler(error);
     }
@@ -68,7 +70,7 @@ class UserRepository {
 
   async getAllUsers(): Promise<Array<SelectUser>> {
     try {
-      return await User.find({});
+      return await this.db.find({});
     } catch (error) {
       this.errorHandler(error);
     }

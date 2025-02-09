@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { objectIdValidator } from "../../validators";
-import { selectReviewSchema } from "../review/review.schema";
 import { selectUserSchema } from "../user/user.schema";
 
 const baseProductSchema = z.object({
@@ -37,13 +36,11 @@ const baseProductSchema = z.object({
 
 export const insertProductSchema = baseProductSchema.extend({
   user: objectIdValidator,
-  reviews: z.array(objectIdValidator),
 });
 
 export const selectProductSchema = baseProductSchema.extend({
   _id: objectIdValidator,
   user: selectUserSchema,
-  reviews: z.array(selectReviewSchema),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

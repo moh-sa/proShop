@@ -3,7 +3,6 @@ import { productController as controller } from "../../controllers";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
-  checkProductReviewedByUser,
   checkUserIdExists,
   RateLimiterMiddleware,
 } from "../../middlewares";
@@ -44,17 +43,6 @@ router
     checkUserIdExists,
     checkIfUserIsAdmin,
     controller.update,
-  );
-
-// /:productId/reviews
-router
-  .route("/:productId/reviews")
-  .post(
-    RateLimiterMiddleware.strictLimiter(),
-    checkJwtTokenValidation,
-    checkUserIdExists,
-    checkProductReviewedByUser,
-    controller.createReview,
   );
 
 export default router;

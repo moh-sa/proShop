@@ -12,12 +12,5 @@ export type TopRatedProduct = Pick<
 
 export type AllProducts = Pick<
   SelectProduct,
-  | "_id"
-  | "name"
-  | "brand"
-  | "category"
-  | "price"
-  | "rating"
-  | "numReviews"
-  | "image"
+  "_id" | "name" | "brand" | "category" | "price" | "rating" | "image"
 >;
