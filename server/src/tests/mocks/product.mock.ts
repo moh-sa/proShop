@@ -14,7 +14,6 @@ export function generateMockProduct() {
     countInStock: faker.number.int({ min: 0, max: 20 }),
     rating: 0,
     numReviews: 0,
-    reviews: [],
     user: generateMockObjectId(),
     createdAt: new Date(),
     updatedAt: new Date(),
