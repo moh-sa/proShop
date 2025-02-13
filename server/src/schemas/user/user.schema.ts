@@ -7,7 +7,7 @@ import {
 } from "../../validators";
 
 const baseUserSchema = z.object({
-  name: z.string().min(1, { message: "Name is required." }),
+  name: z.string().trim().min(1, { message: "Name is required" }),
   email: emailValidator,
   password: passwordValidator,
   isAdmin: z.boolean().default(false),
