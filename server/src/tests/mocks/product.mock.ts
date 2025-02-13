@@ -1,8 +1,9 @@
 import { faker } from "@faker-js/faker";
 import { Types } from "mongoose";
+import { SelectProduct } from "../../types";
 import { generateMockObjectId } from "./objectid.mock";
 
-export function generateMockProduct() {
+export function generateMockProduct(): SelectProduct {
   return {
     _id: new Types.ObjectId(),
     name: faker.commerce.productName(),
@@ -20,6 +21,6 @@ export function generateMockProduct() {
   };
 }
 
-export function generateMockProducts(count: number) {
+export function generateMockProducts(count: number): Array<SelectProduct> {
   return faker.helpers.uniqueArray(generateMockProduct, count);
 }

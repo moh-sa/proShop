@@ -1,7 +1,8 @@
 import { faker } from "@faker-js/faker";
 import { Types } from "mongoose";
+import { SelectOrder } from "../../types";
 
-export function generateMockOrder() {
+export function generateMockOrder(): SelectOrder {
   const itemsPrice = faker.number.int({ min: 1, max: 100 });
   const shippingPrice = faker.number.int({ min: 5, max: 50 });
   const taxPrice = itemsPrice * 0.1; // 10% tax
@@ -51,7 +52,6 @@ export function generateMockOrder() {
   };
 }
 
-
-export function generateMockOrders(count: number) {
+export function generateMockOrders(count: number): Array<SelectOrder> {
   return faker.helpers.uniqueArray(generateMockOrder, count);
 }
