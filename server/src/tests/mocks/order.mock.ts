@@ -51,13 +51,6 @@ export function generateMockOrder() {
   };
 }
 
-/*
-name: string;
-    image: string;
-    price: number;
-    qty: number;
-    product: Types.ObjectId;
-*/
 
 export function generateMockOrders(count: number) {
   return faker.helpers.uniqueArray(generateMockOrder, count);
