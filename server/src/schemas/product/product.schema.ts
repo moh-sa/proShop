@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { objectIdValidator } from "../../validators";
-import { selectUserSchema } from "../user/user.schema";
 
 const baseProductSchema = z.object({
+  user: objectIdValidator,
+
   name: z.string().min(1, { message: "Name is required." }),
 
   image: z.string().min(1, { message: "Image is required." }),
@@ -34,13 +35,10 @@ const baseProductSchema = z.object({
     .default(0),
 });
 
-export const insertProductSchema = baseProductSchema.extend({
-  user: objectIdValidator,
-});
+export const insertProductSchema = baseProductSchema;
 
 export const selectProductSchema = baseProductSchema.extend({
   _id: objectIdValidator,
-  user: selectUserSchema,
   createdAt: z.date(),
   updatedAt: z.date(),
 });
