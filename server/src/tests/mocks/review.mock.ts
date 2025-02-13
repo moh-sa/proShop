@@ -8,6 +8,7 @@ export function generateMockReview(): SelectReview {
 
   return {
     _id: new Types.ObjectId(),
+    user: user._id,
     name: user.name,
     rating: faker.number.int({ min: 1, max: 5 }),
     comment: faker.lorem.sentence(),
