@@ -3,6 +3,7 @@ import { objectIdValidator } from "../../validators";
 
 const baseReviewSchema = z.object({
   user: objectIdValidator,
+  product: objectIdValidator,
 
   name: z.string().min(1, { message: "Name is required." }),
 
