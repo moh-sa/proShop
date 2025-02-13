@@ -1,8 +1,8 @@
-import { Types } from "mongoose";
 import { z } from "zod";
 import {
   emailValidator,
   jwtValidator,
+  objectIdValidator,
   passwordValidator,
 } from "../../validators";
 
@@ -14,9 +14,8 @@ const baseUserSchema = z.object({
 });
 
 export const insertUserSchema = baseUserSchema;
-
 export const selectUserSchema = baseUserSchema.extend({
-  _id: z.instanceof(Types.ObjectId, { message: "Invalid ObjectId format." }),
+  _id: objectIdValidator,
   createdAt: z.date(),
   updatedAt: z.date(),
   token: jwtValidator.optional(),
