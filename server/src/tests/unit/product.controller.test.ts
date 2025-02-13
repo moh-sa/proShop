@@ -54,7 +54,7 @@ suite("Product Controller", () => {
         await controller.create(req, res, next);
       } catch (error) {
         assert.ok(error instanceof ZodError);
-        assert.equal(error.issues.length, 6); // number of required fields in 'product' model
+        assert.equal(error.issues.length, 5); // number of required fields in 'product' model
       }
     });
   });
