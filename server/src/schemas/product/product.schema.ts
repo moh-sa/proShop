@@ -14,18 +14,6 @@ const baseProductSchema = z.object({
 
   description: z.string().min(1, { message: "Description is required." }),
 
-  rating: z
-    .number()
-    .min(0, { message: "Rating is required." })
-    .max(5, { message: "Rating must be between 1 and 5." })
-    .default(0),
-
-  numReviews: z
-    .number()
-    .int()
-    .min(0, { message: "Number of reviews is required." })
-    .default(0),
-
   price: z.number().min(0, { message: "Price is required." }).default(0),
 
   countInStock: z
@@ -39,6 +27,15 @@ export const insertProductSchema = baseProductSchema;
 
 export const selectProductSchema = baseProductSchema.extend({
   _id: objectIdValidator,
+
+  rating: z
+    .number()
+    .min(0, { message: "Rating is required." })
+    .max(5, { message: "Rating must be between 1 and 5." }),
+  numReviews: z
+    .number()
+    .int()
+    .min(0, { message: "Number of reviews is required." }),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
