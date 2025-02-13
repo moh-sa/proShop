@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { objectIdValidator } from "../../validators";
-import { selectUserSchema } from "../user/user.schema";
 
 const baseReviewSchema = z.object({
+  user: objectIdValidator,
+
   name: z.string().min(1, { message: "Name is required." }),
 
   rating: z.coerce
@@ -14,13 +15,10 @@ const baseReviewSchema = z.object({
   comment: z.string().min(1, { message: "Comment is required." }),
 });
 
-export const insertReviewSchema = baseReviewSchema.extend({
-  user: objectIdValidator,
-});
+export const insertReviewSchema = baseReviewSchema;
 
 export const selectReviewSchema = baseReviewSchema.extend({
   _id: objectIdValidator,
-  user: selectUserSchema,
   createdAt: z.date(),
   updatedAt: z.date(),
 });
