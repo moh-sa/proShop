@@ -31,5 +31,8 @@ const reviewSchema = new Schema<ReviewSchema>(
   },
 );
 
+// Compound index to ensure ONE review per user per product
+reviewSchema.index({ user: 1, product: 1 }, { unique: true });
+
 const Review = model("Review", reviewSchema);
 export default Review;
