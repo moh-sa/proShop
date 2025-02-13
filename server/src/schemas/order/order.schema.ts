@@ -2,13 +2,14 @@ import { z } from "zod";
 import { objectIdValidator } from "../../validators";
 import { paymentResultSchema } from "../payment/payment-result.schema";
 import { shippingAddressSchema } from "../shipping/shipping-address.schema";
-import { selectUserSchema } from "../user/user.schema";
 import {
   insertOrderItemSchema,
   selectOrderItemSchema,
 } from "./order-item.schema";
 
 const baseOrderSchema = z.object({
+  user: objectIdValidator,
+
   shippingAddress: shippingAddressSchema,
   paymentMethod: z.enum(["PayPal", "Stripe"]).default("PayPal"),
   paymentResult: paymentResultSchema,
@@ -32,13 +33,11 @@ const baseOrderSchema = z.object({
 });
 
 export const insertOrderSchema = baseOrderSchema.extend({
-  user: objectIdValidator,
   orderItems: z.array(insertOrderItemSchema),
 });
 
 export const selectOrderSchema = baseOrderSchema.extend({
   _id: objectIdValidator,
-  user: selectUserSchema,
   createdAt: z.date(),
   updatedAt: z.date(),
   orderItems: z.array(selectOrderItemSchema),
