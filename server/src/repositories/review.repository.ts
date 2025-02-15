@@ -100,6 +100,20 @@ class ReviewRepository {
     }
   }
 
+  async existsById({
+    reviewId,
+  }: {
+    reviewId: Types.ObjectId;
+  }): Promise<{ _id: Types.ObjectId } | null> {
+    try {
+      return await this.db.exists({
+        _id: reviewId,
+      });
+    } catch (error) {
+      this.errorHandler(error);
+    }
+  }
+
   private errorHandler(error: unknown): never {
     if (
       error instanceof MongooseError ||
