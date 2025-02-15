@@ -72,6 +72,14 @@ class ReviewRepository {
     }
   }
 
+  async count(): Promise<number> {
+    try {
+      return await this.db.countDocuments();
+    } catch (error) {
+      this.errorHandler(error);
+    }
+  }
+
   private errorHandler(error: unknown): never {
     if (
       error instanceof MongooseError ||
