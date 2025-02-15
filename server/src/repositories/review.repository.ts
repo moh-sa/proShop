@@ -114,6 +114,23 @@ class ReviewRepository {
     }
   }
 
+  async existsByUserIdAndProductId({
+    userId,
+    productId,
+  }: {
+    userId: Types.ObjectId;
+    productId: Types.ObjectId;
+  }): Promise<{ _id: Types.ObjectId } | null> {
+    try {
+      return await this.db.exists({
+        user: userId,
+        product: productId,
+      });
+    } catch (error) {
+      this.errorHandler(error);
+    }
+  }
+
   private errorHandler(error: unknown): never {
     if (
       error instanceof MongooseError ||
