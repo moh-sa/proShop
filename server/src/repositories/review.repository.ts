@@ -88,6 +88,18 @@ class ReviewRepository {
     }
   }
 
+  async countByProductId({
+    productId,
+  }: {
+    productId: Types.ObjectId;
+  }): Promise<number> {
+    try {
+      return await this.db.countDocuments({ product: productId });
+    } catch (error) {
+      this.errorHandler(error);
+    }
+  }
+
   private errorHandler(error: unknown): never {
     if (
       error instanceof MongooseError ||
