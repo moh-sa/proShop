@@ -34,6 +34,18 @@ class ReviewRepository {
     }
   }
 
+  async getAllByUserId({
+    userId,
+  }: {
+    userId: Types.ObjectId;
+  }): Promise<Array<SelectReview>> {
+    try {
+      return await this.db.find({ user: userId });
+    } catch (error) {
+      this.errorHandler(error);
+    }
+  }
+
   async update({
     reviewId,
     data,
