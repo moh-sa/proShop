@@ -80,6 +80,14 @@ class ReviewRepository {
     }
   }
 
+  async countByUserId({ userId }: { userId: Types.ObjectId }): Promise<number> {
+    try {
+      return await this.db.countDocuments({ user: userId });
+    } catch (error) {
+      this.errorHandler(error);
+    }
+  }
+
   private errorHandler(error: unknown): never {
     if (
       error instanceof MongooseError ||
