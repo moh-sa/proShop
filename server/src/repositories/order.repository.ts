@@ -4,13 +4,15 @@ import Order from "../models/orderModel";
 import { InsertOrder, SelectOrder } from "../types";
 
 class OrderRepository {
+  private readonly db = Order;
+
   async createOrder({
     orderData,
   }: {
     orderData: InsertOrder;
   }): Promise<SelectOrder> {
     try {
-      return await Order.create(orderData);
+      return await this.db.create(orderData);
     } catch (error) {
       this.errorHandler(error);
     }
@@ -22,7 +24,7 @@ class OrderRepository {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder | null> {
     try {
-      return await Order.findById(orderId).populate("user", "name email");
+      return await this.db.findById(orderId).populate("user", "name email");
     } catch (error) {
       this.errorHandler(error);
     }
@@ -34,7 +36,7 @@ class OrderRepository {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder | null> {
     try {
-      return await Order.findByIdAndUpdate(
+      return await this.db.findByIdAndUpdate(
         orderId,
         {
           $set: {
@@ -55,7 +57,7 @@ class OrderRepository {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder | null> {
     try {
-      return await Order.findByIdAndUpdate(
+      return await this.db.findByIdAndUpdate(
         orderId,
         {
           $set: {
@@ -75,9 +77,11 @@ class OrderRepository {
   async getAll(userId?: Types.ObjectId): Promise<Array<SelectOrder>> {
     try {
       const options = userId ? { user: userId } : {};
-      return await Order.find(options).select(
-        "id createdAt isPaid paidAt isDelivered deliveredAt totalPrice",
-      );
+      return await this.db
+        .find(options)
+        .select(
+          "id createdAt isPaid paidAt isDelivered deliveredAt totalPrice",
+        );
     } catch (error) {
       this.errorHandler(error);
     }
