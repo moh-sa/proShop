@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { ConflictError, NotFoundError } from "../errors";
+import { NotFoundError } from "../errors";
 import { productRepository } from "../repositories";
 import {
   AllProducts,
@@ -76,22 +76,6 @@ class ProductService {
 
   async delete({ productId }: { productId: Types.ObjectId }): Promise<void> {
     await this.repository.deleteProduct({ productId });
-  }
-
-  async isReviewedByUser({
-    productId,
-    userId,
-  }: {
-    productId: Types.ObjectId;
-    userId: Types.ObjectId;
-  }): Promise<null> {
-    const isReviewed = await this.repository.reviewByUserExists({
-      productId,
-      userId,
-    });
-    if (isReviewed) throw new ConflictError("Product already reviewed");
-
-    return isReviewed;
   }
 }
 
