@@ -7,6 +7,7 @@ import User from "../../models/userModel";
 import { reviewService } from "../../services";
 import {
   generateMockObjectId,
+  generateMockProduct,
   generateMockReview,
   generateMockReviews,
 } from "../mocks";
@@ -132,6 +133,35 @@ suite("Review Service", () => {
         userId: generateMockObjectId(),
       });
       assert.equal(response.length, 0);
+    });
+  });
+
+  describe("Retrieve Reviews By Product ID", () => {
+    test("Should retrieve all (2) reviews for a specific product", async () => {
+      const mockProduct = generateMockProduct();
+      const mockReviews = generateMockReviews(6);
+      mockReviews[0].product = mockProduct._id;
+      mockReviews[1].product = mockProduct._id;
+
+      await Review.insertMany(mockReviews);
+
+      const reviews = await service.getAllByProductId({
+        productId: mockProduct._id,
+      });
+
+      assert.ok(reviews);
+      assert.equal(reviews.length, 2);
+    });
+
+    test("Should return an empty array if no reviews exist", async () => {
+      const mockReviews = generateMockReviews(4);
+      await Review.insertMany(mockReviews);
+
+      const reviews = await service.getAllByProductId({
+        productId: generateMockObjectId(),
+      });
+
+      assert.equal(reviews.length, 0);
     });
   });
 
