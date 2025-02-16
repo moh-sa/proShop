@@ -33,6 +33,14 @@ class ReviewService {
     return await this.repository.getAllByUserId({ userId });
   }
 
+  async getAllByProductId({
+    productId,
+  }: {
+    productId: Types.ObjectId;
+  }): Promise<Array<SelectReview>> {
+    return await this.repository.getAllByProductId({ productId });
+  }
+
   async update({
     reviewId,
     data,
