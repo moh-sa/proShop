@@ -46,6 +46,18 @@ class ReviewRepository {
     }
   }
 
+  async getAllByProductId({
+    productId,
+  }: {
+    productId: Types.ObjectId;
+  }): Promise<Array<SelectReview>> {
+    try {
+      return await this.db.find({ product: productId });
+    } catch (error) {
+      this.errorHandler(error);
+    }
+  }
+
   async update({
     reviewId,
     data,
