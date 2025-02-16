@@ -167,6 +167,35 @@ suite("Review Repository", () => {
     });
   });
 
+  describe("Retrieve Reviews By Product ID", () => {
+    test("Should retrieve all (2) reviews for a specific product", async () => {
+      const mockProduct = generateMockProduct();
+      const mockReviews = generateMockReviews(6);
+      mockReviews[0].product = mockProduct._id;
+      mockReviews[1].product = mockProduct._id;
+
+      await Review.insertMany(mockReviews);
+
+      const reviews = await repo.getAllByProductId({
+        productId: mockProduct._id,
+      });
+
+      assert.ok(reviews);
+      assert.equal(reviews.length, 2);
+    });
+
+    test("Should return an empty array if no reviews exist", async () => {
+      const mockReviews = generateMockReviews(4);
+      await Review.insertMany(mockReviews);
+
+      const reviews = await repo.getAllByProductId({
+        productId: generateMockObjectId(),
+      });
+
+      assert.equal(reviews.length, 0);
+    });
+  });
+
   describe("Update Review", () => {
     test("Should find and update a review by ID", async () => {
       const mockReview = generateMockReview();
