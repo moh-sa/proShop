@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import { SelectReview } from "./review.type";
 import { SelectUser } from "./user.type";
 
 declare global {
@@ -10,6 +11,7 @@ declare global {
         exp: number;
       };
       user: SelectUser;
+      review: SelectReview;
     }
   }
 }
