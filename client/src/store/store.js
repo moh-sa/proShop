@@ -3,6 +3,7 @@ import auth from "./auth/auth.slice";
 import cart from "./cart/cart.slice";
 import orders from "./orders/orders.slice";
 import products from "./products/products.slice";
+import reviews from "./reviews/review.slice";
 import users from "./users/users.slice";
 
 const reducers = {
@@ -11,6 +12,7 @@ const reducers = {
   orders,
   products,
   users,
+  reviews,
 };
 
 const store = configureStore({
