@@ -9,7 +9,7 @@ export function generateMockProduct(): SelectProduct {
     name: faker.commerce.productName(),
     description: faker.commerce.productDescription(),
     price: faker.number.int({ min: 1, max: 100 }),
-    image: faker.image.urlLoremFlickr(),
+    image: faker.image.urlLoremFlickr({ width: 372, height: 296 }),
     category: faker.commerce.department(),
     brand: faker.commerce.product(),
     countInStock: faker.number.int({ min: 0, max: 20 }),
