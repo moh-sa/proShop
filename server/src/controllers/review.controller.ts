@@ -10,6 +10,7 @@ class ReviewController {
     const data = insertReviewSchema.parse({
       ...req.body,
       user: res.locals.user._id,
+      name: res.locals.user.name,
     });
 
     const newReview = await this.service.create({ data });
