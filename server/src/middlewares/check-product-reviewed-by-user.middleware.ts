@@ -1,4 +1,4 @@
-import { reviewRepository } from "../repositories";
+import { reviewService } from "../services";
 import { asyncHandler } from "../utils";
 import { objectIdValidator } from "../validators";
 
@@ -7,11 +7,12 @@ export const checkProductReviewedByUser = asyncHandler(
     const userId = res.locals.user._id;
     const productId = objectIdValidator.parse(req.params.productId);
 
-    const isReviewed = await reviewRepository.exists({
+    // Will throw 'NotFound' error if doesn't exist
+    await reviewService.existsByUserIdAndProductId({
       userId,
       productId,
     });
 
-    if (!isReviewed) next();
+    next();
   },
 );
