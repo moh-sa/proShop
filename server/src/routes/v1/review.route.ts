@@ -15,6 +15,8 @@ router.route("/:userId").get(controller.getAllByUserId);
 
 router.route("/count/:productId").get(controller.count);
 
-router.route("/exists/:userId/:productId").get(controller.exists);
+router
+  .route("/exists/:userId/:productId")
+  .get(controller.existsByUserIdAndProductId);
 
 export default router;
