@@ -1,27 +1,55 @@
 import express from "express";
 import { reviewController as controller } from "../../controllers";
+import { RateLimiterMiddleware } from "../../middlewares";
 
 const router = express.Router();
 
-router.get("/", controller.getAll); // admin
-router.post("/", controller.create); // user
+router
+  .route("/")
+  .get(RateLimiterMiddleware.adminLimiter(), controller.getAll)
+  .post(RateLimiterMiddleware.strictLimiter(), controller.create);
 
-router.get("/user/:userId", controller.getAllByUserId); // user
+router.get(
+  "/user/:userId",
+  RateLimiterMiddleware.defaultLimiter(),
+  controller.getAllByUserId,
+);
 
-router.get("/product/:productId", controller.getAllByProductId); // public
+router.get(
+  "/product/:productId",
+  RateLimiterMiddleware.defaultLimiter(),
+  controller.getAllByProductId,
+);
 
-router.get("/count", controller.count); // admin
-router.get("/count/user/:userId", controller.countByUserId); // user
-router.get("/count/product/:productId", controller.countByProductId); // public
+router.get("/count", RateLimiterMiddleware.adminLimiter(), controller.count);
 
-router.get("/exists/:reviewId", controller.existsById); // admin
+router.get(
+  "/count/user/:userId",
+  RateLimiterMiddleware.defaultLimiter(),
+  controller.countByUserId,
+);
+router.get(
+  "/count/product/:productId",
+  RateLimiterMiddleware.defaultLimiter(),
+  controller.countByProductId,
+);
+
+router.get(
+  "/exists/:reviewId",
+  RateLimiterMiddleware.adminLimiter(),
+  controller.existsById,
+);
+
 router.get(
   "/exists/user/:userId/product/:productId",
+  RateLimiterMiddleware.defaultLimiter(),
   controller.existsByUserIdAndProductId,
-); // user
+);
 
-router.get("/:reviewId", controller.getById); // admin
-router.put("/:reviewId", controller.update); // user
-router.delete("/:reviewId", controller.delete); // user
+router
+  .route("/:reviewId")
+  .get(RateLimiterMiddleware.adminLimiter(), controller.getById)
+  .put(RateLimiterMiddleware.strictLimiter(), controller.update)
+  .delete(RateLimiterMiddleware.defaultLimiter(), controller.delete);
 
 export default router;
