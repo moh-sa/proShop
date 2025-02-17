@@ -12,10 +12,16 @@ import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
   checkUserIdExists,
+  verifyReviewOwnership,
 } from "../../middlewares";
+import Review from "../../models/review.model";
 import User from "../../models/userModel";
 import { generateToken } from "../../utils";
-import { generateMockObjectId, generateMockUser } from "../mocks";
+import {
+  generateMockObjectId,
+  generateMockReview,
+  generateMockUser,
+} from "../mocks";
 import { createMockExpressContext, dbClose, dbConnect } from "../utils";
 
 before(async () => await dbConnect());
@@ -198,6 +204,43 @@ suite("Middlewares Unit Tests", () => {
         assert.ok(error instanceof AuthorizationError);
         assert.equal(error.statusCode, 403);
         assert.equal(error.message, "Admin access required.");
+      }
+    });
+  });
+
+  describe("verifyReviewOwnership", () => {
+    test("Should allow access if 'review.user' matches 'req.params.userId'", async () => {
+      const { req, res, next } = createMockExpressContext();
+      const mockUser = generateMockUser();
+      res.locals.user = mockUser;
+
+      const mockReview = generateMockReview();
+      const created = await Review.create({
+        ...mockReview,
+        user: mockUser._id,
+      });
+      req.params.reviewId = created._id.toString();
+
+      await verifyReviewOwnership(req, res, next);
+
+      assert.equal(res.locals.review._id.toString(), mockReview._id.toString());
+      assert.equal(res.locals.review.comment, mockReview.comment);
+    });
+
+    test("Should throw 'AuthorizationError' if user is not the owner", async () => {
+      const { req, res, next } = createMockExpressContext();
+      const mockUser = generateMockUser();
+      res.locals.user = mockUser;
+
+      const mockReview = generateMockReview();
+      await Review.create(mockReview);
+      req.params.reviewId = mockReview._id.toString();
+
+      try {
+        await verifyReviewOwnership(req, res, next);
+        assert.fail("Should throw 'AuthorizationError'");
+      } catch (error) {
+        assert.ok(error instanceof AuthorizationError);
       }
     });
   });
