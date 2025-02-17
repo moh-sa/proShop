@@ -1,17 +1,36 @@
 import express from "express";
 import { reviewController as controller } from "../../controllers";
-import { RateLimiterMiddleware } from "../../middlewares";
+import {
+  checkIfUserIsAdmin,
+  checkJwtTokenValidation,
+  checkUserIdExists,
+  RateLimiterMiddleware,
+  verifyReviewOwnership,
+} from "../../middlewares";
 
 const router = express.Router();
 
 router
   .route("/")
-  .get(RateLimiterMiddleware.adminLimiter(), controller.getAll)
-  .post(RateLimiterMiddleware.strictLimiter(), controller.create);
+  .get(
+    RateLimiterMiddleware.adminLimiter(),
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    checkIfUserIsAdmin,
+    controller.getAll,
+  )
+  .post(
+    RateLimiterMiddleware.strictLimiter(),
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    controller.create,
+  );
 
 router.get(
   "/user/:userId",
   RateLimiterMiddleware.defaultLimiter(),
+  checkJwtTokenValidation,
+  checkUserIdExists,
   controller.getAllByUserId,
 );
 
@@ -21,11 +40,20 @@ router.get(
   controller.getAllByProductId,
 );
 
-router.get("/count", RateLimiterMiddleware.adminLimiter(), controller.count);
+router.get(
+  "/count",
+  RateLimiterMiddleware.adminLimiter(),
+  checkJwtTokenValidation,
+  checkUserIdExists,
+  checkIfUserIsAdmin,
+  controller.count,
+);
 
 router.get(
   "/count/user/:userId",
   RateLimiterMiddleware.defaultLimiter(),
+  checkJwtTokenValidation,
+  checkUserIdExists,
   controller.countByUserId,
 );
 router.get(
@@ -37,19 +65,42 @@ router.get(
 router.get(
   "/exists/:reviewId",
   RateLimiterMiddleware.adminLimiter(),
+  checkJwtTokenValidation,
+  checkUserIdExists,
+  checkIfUserIsAdmin,
   controller.existsById,
 );
 
 router.get(
   "/exists/user/:userId/product/:productId",
   RateLimiterMiddleware.defaultLimiter(),
+  checkJwtTokenValidation,
+  checkUserIdExists,
   controller.existsByUserIdAndProductId,
 );
 
 router
   .route("/:reviewId")
-  .get(RateLimiterMiddleware.adminLimiter(), controller.getById)
-  .put(RateLimiterMiddleware.strictLimiter(), controller.update)
-  .delete(RateLimiterMiddleware.defaultLimiter(), controller.delete);
+  .get(
+    RateLimiterMiddleware.adminLimiter(),
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    checkIfUserIsAdmin,
+    controller.getById,
+  )
+  .put(
+    RateLimiterMiddleware.strictLimiter(),
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    verifyReviewOwnership,
+    controller.update,
+  )
+  .delete(
+    RateLimiterMiddleware.defaultLimiter(),
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    verifyReviewOwnership,
+    controller.delete,
+  );
 
 export default router;
