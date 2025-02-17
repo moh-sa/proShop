@@ -18,11 +18,11 @@ import {
 import Loader from "../Components/Loader";
 import Message from "../Components/Message";
 import Rating from "../Components/Rating";
+import { fetchProductDetails } from "../store";
 import {
-  createProductReview,
-  fetchProductDetails,
-  resetReviewsState,
-} from "../store";
+  createReviewThunk,
+  getReviewsByProductIdThunk,
+} from "../store/reviews/reviews.thunk";
 
 const ProductScreen = () => {
   const [qty, setQty] = useState(1);
@@ -35,7 +35,8 @@ const ProductScreen = () => {
 
   const userState = useSelector((state) => state.auth.user);
   const productState = useSelector((state) => state.products.product);
-  const reviewsState = useSelector((state) => state.products.reviews);
+  const reviewsState = useSelector((state) => state.reviews.reviews);
+  const createReviewState = useSelector((state) => state.reviews.create);
 
   const addToCartHandler = async () => {
     navigate({
@@ -47,19 +48,18 @@ const ProductScreen = () => {
   const createReviewHandler = (e) => {
     e.preventDefault();
     dispatch(
-      createProductReview({
-        productId,
-        review: { rating, comment },
+      createReviewThunk({
+        product: productId,
+        rating,
+        comment,
       }),
     );
+    setRating(1);
+    setComment("");
   };
 
   useEffect(() => {
-    if (reviewsState.success) navigate(0);
-  }, [navigate, reviewsState.success]);
-
-  useEffect(() => {
-    dispatch(resetReviewsState());
+    dispatch(getReviewsByProductIdThunk({ productId }));
     dispatch(fetchProductDetails({ productId }));
   }, [dispatch, productId]);
 
@@ -172,23 +172,25 @@ const ProductScreen = () => {
           <Row>
             <Col md={6}>
               <h2>Reviews</h2>
-              {productState.data.reviews.length === 0 && (
+              {reviewsState.data && reviewsState.data.length === 0 && (
                 <Message>No Reviews</Message>
               )}
               <ListGroup variant='flush'>
-                {productState.data.reviews.map((review) => (
-                  <ListGroup.Item key={review._id}>
-                    <strong>{review.name}</strong>
-                    <Rating value={review.rating} />
-                    <p>{review.createdAt.substring(0, 10)}</p>
-                    <p>{review.comment}</p>
-                  </ListGroup.Item>
-                ))}
+                {reviewsState.data &&
+                  reviewsState.data.length > 0 &&
+                  reviewsState.data.map((review) => (
+                    <ListGroup.Item key={review._id}>
+                      <strong>{review.name}</strong>
+                      <Rating value={review.rating} />
+                      <p>{review.createdAt.substring(0, 10)}</p>
+                      <p>{review.comment}</p>
+                    </ListGroup.Item>
+                  ))}
                 <ListGroup.Item>
                   <h2>Write a Review</h2>
-                  {reviewsState.error && (
+                  {createReviewState.error && (
                     <Message variant='danger'>
-                      {reviewsState.error.message}
+                      {createReviewState.error.message}
                     </Message>
                   )}
                   {!userState && (
