@@ -39,7 +39,7 @@ suite("Review Controller", () => {
       assert.equal(res.statusCode, 201);
 
       const data = res._getJSONData();
-      assert.equal(data.name, mockReview.name);
+      assert.equal(data.name, mockUser.name);
       assert.equal(data.comment, mockReview.comment);
     });
 
