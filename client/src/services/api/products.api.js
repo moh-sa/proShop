@@ -41,15 +41,6 @@ export function updateProductAPI(product, token) {
   });
 }
 
-export function addProductReviewAPI(productId, review, token) {
-  return api.post(`/products/${productId}/reviews`, review, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
 export function getTopRatedProductsAPI() {
   return api.get(`/products/top-rated`);
 }

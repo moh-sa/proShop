@@ -1,7 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
   createProduct,
-  createProductReview,
   deleteProduct,
   fetchProductDetails,
   fetchProducts,
@@ -24,11 +23,6 @@ const initialState = {
   },
   topRated: {
     data: undefined,
-    loading: false,
-    success: false,
-    error: undefined,
-  },
-  reviews: {
     loading: false,
     success: false,
     error: undefined,
@@ -63,9 +57,6 @@ const productSlice = createSlice({
     },
     resetTopRatedState: (state) => {
       state.topRated = initialState.topRated;
-    },
-    resetReviewsState: (state) => {
-      state.reviews = initialState.reviews;
     },
     resetUpdateProductsState: (state) => {
       state.update = initialState.update;
@@ -138,19 +129,6 @@ const productSlice = createSlice({
         state.create.success = true;
       })
 
-      // --> CREATE PRODUCT REVIEW <--
-      .addCase(createProductReview.pending, (state) => {
-        state.reviews.loading = true;
-      })
-      .addCase(createProductReview.rejected, (state, action) => {
-        state.reviews.loading = false;
-        state.reviews.error = action.payload;
-      })
-      .addCase(createProductReview.fulfilled, (state) => {
-        state.reviews.loading = false;
-        state.reviews.success = true;
-      })
-
       // --> UPDATE PRODUCT <--
       .addCase(updateProduct.pending, (state) => {
         state.update.loading = true;
@@ -184,7 +162,6 @@ export const {
   resetDeleteProductState,
   resetProductState,
   resetProductsState,
-  resetReviewsState,
   resetTopRatedState,
   resetUpdateProductsState,
   resetCreateProductState,
