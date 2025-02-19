@@ -12,7 +12,7 @@ class OrderRepository {
     orderData: InsertOrder;
   }): Promise<SelectOrder> {
     try {
-      return await this.db.create(orderData);
+      return (await this.db.create(orderData)).toObject();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -24,7 +24,10 @@ class OrderRepository {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder | null> {
     try {
-      return await this.db.findById(orderId).populate("user", "name email");
+      return await this.db
+        .findById(orderId)
+        .populate("user", "name email")
+        .lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -36,16 +39,18 @@ class OrderRepository {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder | null> {
     try {
-      return await this.db.findByIdAndUpdate(
-        orderId,
-        {
-          $set: {
-            isDelivered: true,
-            deliveredAt: new Date(),
+      return await this.db
+        .findByIdAndUpdate(
+          orderId,
+          {
+            $set: {
+              isDelivered: true,
+              deliveredAt: new Date(),
+            },
           },
-        },
-        { new: true },
-      );
+          { new: true },
+        )
+        .lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -57,18 +62,20 @@ class OrderRepository {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder | null> {
     try {
-      return await this.db.findByIdAndUpdate(
-        orderId,
-        {
-          $set: {
-            isPaid: true,
-            paidAt: new Date(),
+      return await this.db
+        .findByIdAndUpdate(
+          orderId,
+          {
+            $set: {
+              isPaid: true,
+              paidAt: new Date(),
+            },
           },
-        },
-        {
-          new: true,
-        },
-      );
+          {
+            new: true,
+          },
+        )
+        .lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -79,9 +86,8 @@ class OrderRepository {
       const options = userId ? { user: userId } : {};
       return await this.db
         .find(options)
-        .select(
-          "id createdAt isPaid paidAt isDelivered deliveredAt totalPrice",
-        );
+        .select("id createdAt isPaid paidAt isDelivered deliveredAt totalPrice")
+        .lean();
     } catch (error) {
       this.errorHandler(error);
     }

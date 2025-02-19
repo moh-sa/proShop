@@ -8,7 +8,7 @@ class ReviewRepository {
 
   async create({ data }: { data: InsertReview }): Promise<SelectReview> {
     try {
-      return await this.db.create(data);
+      return (await this.db.create(data)).toObject();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -20,7 +20,7 @@ class ReviewRepository {
     reviewId: Types.ObjectId;
   }): Promise<SelectReview | null> {
     try {
-      return this.db.findById(reviewId);
+      return this.db.findById(reviewId).lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -28,7 +28,7 @@ class ReviewRepository {
 
   async getAll(): Promise<Array<SelectReview>> {
     try {
-      return await this.db.find({});
+      return await this.db.find({}).lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -40,7 +40,7 @@ class ReviewRepository {
     userId: Types.ObjectId;
   }): Promise<Array<SelectReview>> {
     try {
-      return await this.db.find({ user: userId });
+      return await this.db.find({ user: userId }).lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -52,7 +52,7 @@ class ReviewRepository {
     productId: Types.ObjectId;
   }): Promise<Array<SelectReview>> {
     try {
-      return await this.db.find({ product: productId });
+      return await this.db.find({ product: productId }).lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -66,7 +66,9 @@ class ReviewRepository {
     data: Partial<InsertReview>;
   }): Promise<SelectReview | null> {
     try {
-      return await this.db.findByIdAndUpdate(reviewId, data, { new: true });
+      return await this.db
+        .findByIdAndUpdate(reviewId, data, { new: true })
+        .lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -78,7 +80,7 @@ class ReviewRepository {
     reviewId: Types.ObjectId;
   }): Promise<SelectReview | null> {
     try {
-      return await this.db.findByIdAndDelete(reviewId);
+      return await this.db.findByIdAndDelete(reviewId).lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -86,7 +88,7 @@ class ReviewRepository {
 
   async count(): Promise<number> {
     try {
-      return await this.db.countDocuments();
+      return await this.db.countDocuments().lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -94,7 +96,7 @@ class ReviewRepository {
 
   async countByUserId({ userId }: { userId: Types.ObjectId }): Promise<number> {
     try {
-      return await this.db.countDocuments({ user: userId });
+      return await this.db.countDocuments({ user: userId }).lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -106,7 +108,7 @@ class ReviewRepository {
     productId: Types.ObjectId;
   }): Promise<number> {
     try {
-      return await this.db.countDocuments({ product: productId });
+      return await this.db.countDocuments({ product: productId }).lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -118,9 +120,11 @@ class ReviewRepository {
     reviewId: Types.ObjectId;
   }): Promise<{ _id: Types.ObjectId } | null> {
     try {
-      return await this.db.exists({
-        _id: reviewId,
-      });
+      return await this.db
+        .exists({
+          _id: reviewId,
+        })
+        .lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -134,10 +138,12 @@ class ReviewRepository {
     productId: Types.ObjectId;
   }): Promise<{ _id: Types.ObjectId } | null> {
     try {
-      return await this.db.exists({
-        user: userId,
-        product: productId,
-      });
+      return await this.db
+        .exists({
+          user: userId,
+          product: productId,
+        })
+        .lean();
     } catch (error) {
       this.errorHandler(error);
     }

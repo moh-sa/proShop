@@ -23,7 +23,7 @@ class ProductRepository {
     productData: InsertProduct;
   }): Promise<SelectProduct> {
     try {
-      const product = await this.db.create(productData);
+      const product = (await this.db.create(productData)).toObject();
 
       const cacheKey = this.cache.generateKey({ id: product._id.toString() });
       this.cache.set({ key: cacheKey, value: product });
@@ -44,7 +44,7 @@ class ProductRepository {
     if (cachedProduct) return cachedProduct;
 
     try {
-      const product = await this.db.findById(productId);
+      const product = await this.db.findById(productId).lean();
       if (product) {
         this.cache.set({ key: cacheKey, value: product });
       }
@@ -63,9 +63,11 @@ class ProductRepository {
     updateData: Partial<InsertProduct>;
   }): Promise<SelectProduct | null> {
     try {
-      const product = await this.db.findByIdAndUpdate(productId, updateData, {
-        new: true,
-      });
+      const product = await this.db
+        .findByIdAndUpdate(productId, updateData, {
+          new: true,
+        })
+        .lean();
 
       if (product) {
         this.invalidateProductCache({ id: productId.toString() });
@@ -79,7 +81,7 @@ class ProductRepository {
 
   async deleteProduct({ productId }: { productId: Types.ObjectId }) {
     try {
-      await this.db.findByIdAndDelete(productId);
+      await this.db.findByIdAndDelete(productId).lean();
       this.invalidateProductCache({ id: productId.toString() });
     } catch (error) {
       this.errorHandler(error);
@@ -102,7 +104,8 @@ class ProductRepository {
         .find({})
         .select("id name price image")
         .sort({ rating: -1 })
-        .limit(limit);
+        .limit(limit)
+        .lean();
 
       if (products) {
         this.cache.set({ key: cacheKey, value: products });
@@ -130,7 +133,8 @@ class ProductRepository {
         .find({ ...data.query })
         .select("id name brand category price rating numReviews image")
         .limit(data.numberOfProductsPerPage)
-        .skip(data.numberOfProductsPerPage * (data.currentPage - 1));
+        .skip(data.numberOfProductsPerPage * (data.currentPage - 1))
+        .lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -138,7 +142,7 @@ class ProductRepository {
 
   async count(query: Record<string, unknown>): Promise<number> {
     try {
-      return await this.db.countDocuments({ ...query });
+      return await this.db.countDocuments({ ...query }).lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -160,10 +164,12 @@ class ProductRepository {
     if (cachedReview) return cachedReview;
 
     try {
-      const isReviewed = Product.exists({
-        _id: productId,
-        "reviews.user": userId,
-      });
+      const isReviewed = await this.db
+        .exists({
+          _id: productId,
+          "reviews.user": userId,
+        })
+        .lean();
 
       this.cache.set({ key: cacheKey, value: isReviewed });
 

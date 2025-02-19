@@ -12,7 +12,7 @@ class UserRepository {
     userData: InsertUser;
   }): Promise<SelectUser> {
     try {
-      return await this.db.create(userData);
+      return (await this.db.create(userData)).toObject();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -24,7 +24,7 @@ class UserRepository {
     userId: Types.ObjectId;
   }): Promise<SelectUser | null> {
     try {
-      return await this.db.findById(userId);
+      return await this.db.findById(userId).lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -36,7 +36,7 @@ class UserRepository {
     email: string;
   }): Promise<SelectUser | null> {
     try {
-      return await this.db.findOne({ email });
+      return await this.db.findOne({ email }).lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -50,7 +50,9 @@ class UserRepository {
     updateData: Partial<InsertUser>;
   }): Promise<SelectUser | null> {
     try {
-      return await this.db.findByIdAndUpdate(userId, updateData, { new: true });
+      return await this.db
+        .findByIdAndUpdate(userId, updateData, { new: true })
+        .lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -62,7 +64,7 @@ class UserRepository {
     userId: Types.ObjectId;
   }): Promise<SelectUser | null> {
     try {
-      return await this.db.findByIdAndDelete(userId);
+      return await this.db.findByIdAndDelete(userId).lean();
     } catch (error) {
       this.errorHandler(error);
     }
@@ -70,7 +72,7 @@ class UserRepository {
 
   async getAllUsers(): Promise<Array<SelectUser>> {
     try {
-      return await this.db.find({});
+      return await this.db.find({}).lean();
     } catch (error) {
       this.errorHandler(error);
     }
