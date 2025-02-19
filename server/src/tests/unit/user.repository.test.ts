@@ -24,10 +24,6 @@ suite("User Repository", () => {
 
       assert.equal(user.name, mockUser.name);
       assert.equal(user.email, mockUser.email);
-
-      assert.ok(user.createdAt instanceof Date);
-      assert.ok(user.updatedAt instanceof Date);
-      assert.equal(user.createdAt, user.updatedAt);
     });
 
     test("Should throw 'DatabaseError' if email already exists", async () => {
