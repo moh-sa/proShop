@@ -66,8 +66,8 @@ suite("Review Repository", () => {
       assert.ok(review2);
 
       assert.notEqual(review1._id, review2._id);
-      assert.equal(review1.user, mockUser1._id);
-      assert.equal(review2.user, mockUser2._id);
+      assert.equal(review1.user.toString(), mockUser1._id.toString());
+      assert.equal(review2.user.toString(), mockUser2._id.toString());
     });
 
     test("Should throw 'DatabaseError' if 'user' and 'product' already exist", async () => {

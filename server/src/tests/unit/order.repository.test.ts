@@ -28,7 +28,7 @@ suite("Order Repository", () => {
 
       assert.ok(order);
       assert.equal(order.totalPrice, mockOrder.totalPrice);
-      assert.equal(order.user._id, mockOrder.user);
+      assert.equal(order.user._id.toString(), mockOrder.user.toString());
     });
 
     test("Should throw 'DatabaseError' if userId is not a valid ObjectId", async () => {

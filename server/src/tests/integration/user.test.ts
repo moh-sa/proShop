@@ -30,7 +30,7 @@ suite("User Integration Tests", () => {
       checkEmailExists()(step1.req, step1.res, step1.next);
 
       // 1.2) Create user
-      const user = await User.create(mockUser1);
+      const user = (await User.create(mockUser1)).toObject();
       assert.ok(user);
       assert.ok(user._id);
       assert.equal(user.email, mockUser1.email);
