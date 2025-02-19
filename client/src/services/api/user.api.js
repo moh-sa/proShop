@@ -1,36 +1,5 @@
 import { api } from "./base";
 
-export function loginAPI(email, password) {
-  return api.post(
-    `/users/login`,
-    {
-      email,
-      password,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    },
-  );
-}
-
-export function registerAPI(name, email, password) {
-  return api.post(
-    `/users`,
-    {
-      name,
-      email,
-      password,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    },
-  );
-}
-
 export function getUserDetailsAPI(userId, token) {
   return api.get(`/users/${userId}`, {
     headers: {

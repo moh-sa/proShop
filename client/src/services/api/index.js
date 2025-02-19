@@ -1,3 +1,4 @@
+export * from "./auth.api";
 export * from "./cart.api";
 export * from "./order.api";
 export * from "./products.api";

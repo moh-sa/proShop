@@ -1,10 +1,8 @@
 import express from "express";
 import { userController as controller } from "../../controllers";
 import {
-  checkEmailExists,
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
-  checkPasswordValidation,
   checkUserIdExists,
   RateLimiterMiddleware,
 } from "../../middlewares";
@@ -19,20 +17,6 @@ router
     checkUserIdExists,
     checkIfUserIsAdmin,
     controller.getAll,
-  )
-  .post(
-    RateLimiterMiddleware.authLimiter(),
-    checkEmailExists(),
-    controller.signup,
-  );
-
-router
-  .route("/login")
-  .post(
-    RateLimiterMiddleware.authLimiter(),
-    checkEmailExists(true),
-    checkPasswordValidation,
-    controller.signin,
   );
 
 router

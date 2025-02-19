@@ -1,16 +1,18 @@
 import { Router } from "express";
-import orderRoute from "./order.routes";
-import productRoute from "./product.routes";
-import reviewRoute from "./reviews.routes";
-import uploadRoute from "./upload.routes";
-import userRoute from "./user.routes";
+import authRoutes from "./auth.routes";
+import orderRoutes from "./order.routes";
+import productRoutes from "./product.routes";
+import reviewRoutes from "./reviews.routes";
+import uploadRoutes from "./upload.routes";
+import userRoutes from "./user.routes";
 
 const router = Router();
 
-router.use("/products", productRoute);
-router.use("/users", userRoute);
-router.use("/orders", orderRoute);
-router.use("/uploads", uploadRoute);
-router.use("/reviews", reviewRoute);
+router.use("/products", productRoutes);
+router.use("/users", userRoutes);
+router.use("/orders", orderRoutes);
+router.use("/uploads", uploadRoutes);
+router.use("/reviews", reviewRoutes);
+router.use("/auth", authRoutes);
 
 export default router;
