@@ -1,5 +1,5 @@
 import express from "express";
-import { userController as controller } from "../../controllers";
+import { authController as controller } from "../../controllers";
 import {
   checkEmailExists,
   checkPasswordValidation,

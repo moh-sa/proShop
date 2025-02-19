@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
-import { userController } from "../../controllers";
+import { authController, userController } from "../../controllers";
 import {
   checkEmailExists,
   checkJwtTokenValidation,
@@ -16,7 +16,6 @@ import { createMockExpressContext, dbClose, dbConnect } from "../utils";
 before(async () => await dbConnect());
 after(async () => await dbClose());
 beforeEach(async () => await User.deleteMany({}));
-const controller = userController;
 
 suite("User Integration Tests", () => {
   describe("User Lifecycle", () => {
@@ -52,7 +51,7 @@ suite("User Integration Tests", () => {
 
       // 3.3) Signin
       step3.res.locals.user = user;
-      await controller.signin(step3.req, step3.res, step3.next);
+      await authController.signin(step3.req, step3.res, step3.next);
       const signinResponse = step3.res._getJSONData() as SelectUser;
       assert.ok(signinResponse);
       assert.equal(signinResponse.email, user.email);
@@ -68,7 +67,7 @@ suite("User Integration Tests", () => {
       await checkUserIdExists(call4.req, call4.res, call4.next);
 
       // 4.3) Fetch the user data
-      await controller.getById(call4.req, call4.res, call4.next);
+      await userController.getById(call4.req, call4.res, call4.next);
       const profileResponse = call4.res._getJSONData() as SelectUser;
       assert.ok(profileResponse);
       assert.equal(profileResponse.email, user.email);
@@ -84,7 +83,7 @@ suite("User Integration Tests", () => {
 
       // 5.3) update
       call5.req.body.name = mockUser2.name;
-      await controller.update(call5.req, call5.res, call5.next);
+      await userController.update(call5.req, call5.res, call5.next);
       const updatedData = call5.res._getJSONData() as SelectUser;
       assert.ok(updatedData);
       assert.equal(updatedData.name, mockUser2.name);

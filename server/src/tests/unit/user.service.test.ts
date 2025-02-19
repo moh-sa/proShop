@@ -16,48 +16,6 @@ beforeEach(async () => await User.deleteMany({}));
 const service = userService;
 
 suite("User Service", () => {
-  describe("Register User", () => {
-    test("Should register a new user and return user data with token and without password", async () => {
-      const mockUser = generateMockUser();
-
-      const response = await service.signup(mockUser);
-
-      assert.ok(response.token);
-      assert.equal(response.email, mockUser.email);
-      assert.equal(response.name, mockUser.name);
-      assert.ok(!response.password);
-    });
-
-    test("Should throw 'DatabaseError' if the user's email already exists", async () => {
-      const mockUser = generateMockUser();
-
-      await service.signup(mockUser);
-      try {
-        // add duplicate user
-        await service.signup(mockUser);
-      } catch (error) {
-        assert.ok(error instanceof DatabaseError);
-        assert.equal(error.statusCode, 500);
-        assert.ok(error.message.includes("E11000")); // error code for duplication
-      }
-    });
-  });
-
-  describe("Authenticate User", () => {
-    test("Should authenticate user and return user data and token", async () => {
-      const mockUser = generateMockUser();
-
-      const user = await User.create(mockUser);
-      const response = await service.signin({
-        email: user.email,
-        password: user.password,
-      });
-
-      assert.ok(response.token);
-      assert.equal(response.email, user.email);
-    });
-  });
-
   describe("Retrieve User By ID", () => {
     test("Should retrieve user data by ID without password or token", async () => {
       const mockUser = generateMockUser();
@@ -124,7 +82,7 @@ suite("User Service", () => {
     test("Should find and update user, ensure the return match the mock data and without token", async () => {
       const [mockUser1, mockUser2] = generateMockUsers(2);
 
-      const created = await service.signup(mockUser1);
+      const created = await User.create(mockUser1);
 
       const updateData = { name: mockUser2.name };
       const updatedUser = await service.updateById({
@@ -142,8 +100,8 @@ suite("User Service", () => {
     test("Should throw 'DatabaseError' if updated with an existing email", async () => {
       const [mockUser1, mockUser2] = generateMockUsers(2);
 
-      await service.signup(mockUser1);
-      const created = await service.signup(mockUser2);
+      await User.create(mockUser1);
+      const created = await User.create(mockUser2);
 
       const updateData = {
         email: mockUser2.email,
@@ -182,7 +140,7 @@ suite("User Service", () => {
     test("Should delete user and throw 'NotFoundError' to ensure the user is deleted", async () => {
       const mockUser = generateMockUser();
 
-      const created = await service.signup(mockUser);
+      const created = await User.create(mockUser);
 
       await service.delete({
         userId: created._id!,

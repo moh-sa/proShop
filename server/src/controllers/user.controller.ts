@@ -7,17 +7,6 @@ import { objectIdValidator } from "../validators";
 class UserController {
   private readonly service = userService;
 
-  signin = asyncHandler(async (req, res) => {
-    const response = await this.service.signin(res.locals.user);
-
-    res.status(200).json(response);
-  });
-
-  signup = asyncHandler(async (req, res) => {
-    const response = await this.service.signup(req.body);
-    res.status(201).json(response);
-  });
-
   getById = asyncHandler(async (req, res) => {
     const idReq = req.params.userId || res.locals.user._id;
     const userId = objectIdValidator.parse(idReq);

@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { NotFoundError } from "../errors";
 import { userRepository } from "../repositories";
-import { InsertUser, RequiredBy, SelectUser } from "../types";
+import { InsertUser, SelectUser } from "../types";
 import { generateToken } from "../utils";
 
 class UserService {
@@ -17,16 +17,6 @@ class UserService {
 
     if (includeToken) response.token = generateToken({ id: user._id });
     return response;
-  }
-
-  signin(data: RequiredBy<InsertUser, "email" | "password">) {
-    return this.createResponse(data, true);
-  }
-
-  async signup(data: InsertUser) {
-    const user = await this.repository.createUser({ userData: data });
-
-    return this.createResponse(user, true);
   }
 
   async getById({ userId }: { userId: Types.ObjectId }) {
