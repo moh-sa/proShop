@@ -7,18 +7,23 @@ import {
   RateLimiterMiddleware,
 } from "../../middlewares";
 
-const router = express.Router();
+const baseRouter = express.Router();
 
-router
+const publicRouter = express.Router();
+
+const protectedRoutes = express.Router();
+const adminRouter = express.Router();
+
+publicRouter
   .route("/")
   .get(RateLimiterMiddleware.defaultLimiter(), controller.getAll);
 
-router
+publicRouter
   .route("/top-rated")
   .get(RateLimiterMiddleware.defaultLimiter(), controller.getTopRated);
 
-router
-  .route("/admin")
+adminRouter
+  .route("/")
   .post(
     RateLimiterMiddleware.adminLimiter(),
     checkJwtTokenValidation,
@@ -27,8 +32,8 @@ router
     controller.create,
   );
 
-router
-  .route("/admin/:productId")
+adminRouter
+  .route("/:productId")
   .get(RateLimiterMiddleware.defaultLimiter(), controller.getById)
   .delete(
     RateLimiterMiddleware.adminLimiter(),
@@ -45,4 +50,9 @@ router
     controller.update,
   );
 
-export default router;
+protectedRoutes.use("/admin", adminRouter);
+
+baseRouter.use("/", publicRouter);
+baseRouter.use("/", protectedRoutes);
+
+export default baseRouter;
