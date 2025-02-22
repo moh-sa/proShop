@@ -7,9 +7,12 @@ import {
   RateLimiterMiddleware,
 } from "../../middlewares";
 
-const router = express.Router();
+const baseRouter = express.Router();
+const protectedRoutes = express.Router();
+const userRouter = express.Router();
+const adminRouter = express.Router();
 
-router
+userRouter
   .route("/")
   .post(
     RateLimiterMiddleware.strictLimiter(),
@@ -18,7 +21,7 @@ router
     controller.create,
   );
 
-router
+userRouter
   .route("/user/:userId")
   .get(
     RateLimiterMiddleware.defaultLimiter(),
@@ -27,8 +30,7 @@ router
     controller.getUser,
   );
 
-// /:orderId
-router
+userRouter
   .route("/:orderId")
   .get(
     RateLimiterMiddleware.defaultLimiter(),
@@ -37,8 +39,8 @@ router
     controller.getById,
   );
 
-router
-  .route("/admin")
+adminRouter
+  .route("/")
   .get(
     RateLimiterMiddleware.defaultLimiter(),
     checkJwtTokenValidation,
@@ -47,8 +49,8 @@ router
     controller.getAll,
   );
 
-router
-  .route("/admin/:orderId/payment")
+adminRouter
+  .route("/:orderId/payment")
   .patch(
     RateLimiterMiddleware.strictLimiter(),
     checkJwtTokenValidation,
@@ -57,8 +59,8 @@ router
     controller.updateToPaid,
   );
 
-router
-  .route("/admin/:orderId/delivery")
+adminRouter
+  .route("/:orderId/delivery")
   .patch(
     RateLimiterMiddleware.strictLimiter(),
     checkJwtTokenValidation,
@@ -67,4 +69,9 @@ router
     controller.updateToDelivered,
   );
 
-export default router;
+protectedRoutes.use("/", userRouter);
+protectedRoutes.use("/admin", adminRouter);
+
+baseRouter.use("/", protectedRoutes);
+
+export default baseRouter;
