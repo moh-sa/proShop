@@ -7,7 +7,7 @@ import { asyncHandler } from "../utils";
  */
 export const checkUserIdExists = asyncHandler(async (req, res, next) => {
   const userId = res.locals.token.id;
-  const user = await userRepository.getUserById({ userId });
+  const user = await userRepository.getById({ userId });
   if (!user) throw new AuthenticationError();
 
   res.locals.user = user;

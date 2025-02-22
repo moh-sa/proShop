@@ -11,7 +11,7 @@ class OrderService {
       throw new EmptyCartError();
     }
 
-    return await this.repository.createOrder({ orderData: data });
+    return await this.repository.create({ orderData: data });
   }
 
   async getById({
@@ -19,7 +19,7 @@ class OrderService {
   }: {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder> {
-    const order = await this.repository.getOrderById({ orderId });
+    const order = await this.repository.getById({ orderId });
     if (!order) throw new NotFoundError("Order");
 
     return order;
@@ -29,7 +29,7 @@ class OrderService {
     return await this.repository.getAll();
   }
 
-  async getUserOrders({
+  async getAllByUserId({
     userId,
   }: {
     userId: Types.ObjectId;
@@ -42,7 +42,7 @@ class OrderService {
   }: {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder> {
-    const updatedOrder = await this.repository.updateOrderToPaid({ orderId });
+    const updatedOrder = await this.repository.updateToPaid({ orderId });
     if (!updatedOrder) throw new NotFoundError("Order");
 
     return updatedOrder;
@@ -53,7 +53,7 @@ class OrderService {
   }: {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder> {
-    const updatedOrder = await this.repository.updateOrderToDelivered({
+    const updatedOrder = await this.repository.updateToDelivered({
       orderId,
     });
     if (!updatedOrder) throw new NotFoundError("Order");

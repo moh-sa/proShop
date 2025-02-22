@@ -141,7 +141,7 @@ suite("Order Controller", () => {
       await Order.insertMany(mockOrders);
       req.params.userId = mockOrders[0].user.toString();
 
-      await controller.getUser(req, res, next);
+      await controller.getAllByUserId(req, res, next);
 
       const data = res._getJSONData();
       assert.equal(res.statusCode, 200);
@@ -153,7 +153,7 @@ suite("Order Controller", () => {
 
       req.params.userId = generateMockOrder().user.toString();
 
-      await controller.getUser(req, res, next);
+      await controller.getAllByUserId(req, res, next);
 
       const data = res._getJSONData();
       assert.equal(res.statusCode, 200);
@@ -165,7 +165,7 @@ suite("Order Controller", () => {
       req.params.userId = "RANDOM_STRING";
 
       try {
-        await controller.getUser(req, res, next);
+        await controller.getAllByUserId(req, res, next);
       } catch (error) {
         assert.ok(error instanceof ZodError);
         assert.equal(error.issues.length, 1);

@@ -31,10 +31,10 @@ class OrderController {
     res.status(200).json(orders);
   });
 
-  getUser = asyncHandler(async (req, res) => {
+  getAllByUserId = asyncHandler(async (req, res) => {
     const userId = objectIdValidator.parse(req.params.userId);
 
-    const orders = await this.service.getUserOrders({ userId });
+    const orders = await this.service.getAllByUserId({ userId });
 
     res.status(200).json(orders);
   });

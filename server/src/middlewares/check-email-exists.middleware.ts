@@ -11,7 +11,7 @@ export const checkEmailExists = (allowExisting = false) =>
   asyncHandler(async (req, res, next) => {
     const email = emailValidator.parse(req.body.email);
 
-    const user = await userRepository.getUserByEmail({ email });
+    const user = await userRepository.getByEmail({ email });
 
     if (user && !allowExisting) {
       throw new ConflictError("An account with this email already exists.");

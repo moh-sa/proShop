@@ -18,7 +18,7 @@ suite("User Repository", () => {
     test("Should create new user in the database", async () => {
       const mockUser = generateMockUser();
 
-      const user = await repo.createUser({ userData: mockUser });
+      const user = await repo.create({ userData: mockUser });
 
       assert.ok(user);
 
@@ -29,11 +29,11 @@ suite("User Repository", () => {
     test("Should throw 'DatabaseError' if email already exists", async () => {
       const mockUser = generateMockUser();
 
-      await repo.createUser({ userData: mockUser });
+      await repo.create({ userData: mockUser });
 
       try {
         // creating new user with the same email
-        await repo.createUser({ userData: mockUser });
+        await repo.create({ userData: mockUser });
       } catch (error) {
         assert.ok(error instanceof DatabaseError);
         assert.equal(error.type, "DATABASE_ERROR");
@@ -46,8 +46,8 @@ suite("User Repository", () => {
     test("Should retrieve a user by ID", async () => {
       const mockUser = generateMockUser();
 
-      const created = await repo.createUser({ userData: mockUser });
-      const user = await repo.getUserById({ userId: created._id });
+      const created = await repo.create({ userData: mockUser });
+      const user = await repo.getById({ userId: created._id });
 
       assert.ok(user);
 
@@ -55,7 +55,7 @@ suite("User Repository", () => {
     });
 
     test("Should return 'null' if user does not exist", async () => {
-      const user = await repo.getUserById({ userId: new Types.ObjectId() });
+      const user = await repo.getById({ userId: new Types.ObjectId() });
       assert.equal(user, null);
     });
   });
@@ -64,8 +64,8 @@ suite("User Repository", () => {
     test("Should retrieve a user by Email", async () => {
       const mockUser = generateMockUser();
 
-      const created = await repo.createUser({ userData: mockUser });
-      const user = await repo.getUserByEmail({ email: created.email });
+      const created = await repo.create({ userData: mockUser });
+      const user = await repo.getByEmail({ email: created.email });
 
       assert.ok(user);
 
@@ -73,7 +73,7 @@ suite("User Repository", () => {
     });
 
     test("Should return 'null' if user does not exist", async () => {
-      const user = await repo.getUserByEmail({ email: "RANDOM_EMAIL" });
+      const user = await repo.getByEmail({ email: "RANDOM_EMAIL" });
       assert.equal(user, null);
     });
   });
@@ -85,7 +85,7 @@ suite("User Repository", () => {
 
       await User.insertMany(mockUsers);
 
-      const users = await repo.getAllUsers();
+      const users = await repo.getAll();
 
       assert.ok(users);
 
@@ -93,7 +93,7 @@ suite("User Repository", () => {
     });
 
     test("Should return an empty array if no users exist", async () => {
-      const users = await repo.getAllUsers();
+      const users = await repo.getAll();
       assert.equal(users.length, 0);
     });
   });
@@ -102,14 +102,14 @@ suite("User Repository", () => {
     test("Should find and update a user by ID", async () => {
       const mockUser = generateMockUser();
 
-      const created = await repo.createUser({
+      const created = await repo.create({
         userData: mockUser,
       });
 
       const updateData: Partial<InsertUser> = {
         name: "RANDOM_NAME",
       };
-      const updatedUser = await repo.updateUser({
+      const updatedUser = await repo.update({
         userId: created._id,
         updateData,
       });
@@ -128,7 +128,7 @@ suite("User Repository", () => {
         email: users[1].email,
       };
       try {
-        await repo.updateUser({
+        await repo.update({
           userId: users[0]._id,
           updateData,
         });
@@ -142,7 +142,7 @@ suite("User Repository", () => {
     });
 
     test("Should return 'null' if user does not exist", async () => {
-      const updatedUser = await repo.updateUser({
+      const updatedUser = await repo.update({
         userId: new Types.ObjectId(),
         updateData: { name: "John Doe" },
       });
@@ -155,23 +155,23 @@ suite("User Repository", () => {
     test("Should find and delete a user by ID", async () => {
       const mockUser = generateMockUser();
 
-      const created = await repo.createUser({
+      const created = await repo.create({
         userData: mockUser,
       });
 
-      const deletedUser = await repo.deleteUser({
+      const deletedUser = await repo.delete({
         userId: created._id,
       });
 
       // Validate the user is deleted
-      const getUser = await repo.getUserById({ userId: created._id });
+      const getUser = await repo.getById({ userId: created._id });
 
       assert.notEqual(deletedUser, null); // returns the deleted user if successful
       assert.equal(getUser, null);
     });
 
     test("Should return 'null' if user does not exist", async () => {
-      const deletedUser = await repo.deleteUser({
+      const deletedUser = await repo.delete({
         userId: new Types.ObjectId(),
       });
 

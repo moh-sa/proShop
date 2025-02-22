@@ -17,7 +17,7 @@ class ProductRepository {
     this.cache = new CacheManager("product");
   }
 
-  async createProduct({
+  async create({
     productData,
   }: {
     productData: InsertProduct;
@@ -34,7 +34,7 @@ class ProductRepository {
     }
   }
 
-  async getProductById({
+  async getById({
     productId,
   }: {
     productId: Types.ObjectId;
@@ -55,7 +55,7 @@ class ProductRepository {
     }
   }
 
-  async updateProduct({
+  async update({
     productId,
     updateData,
   }: {
@@ -79,7 +79,7 @@ class ProductRepository {
     }
   }
 
-  async deleteProduct({ productId }: { productId: Types.ObjectId }) {
+  async delete({ productId }: { productId: Types.ObjectId }) {
     try {
       await this.db.findByIdAndDelete(productId).lean();
       this.invalidateProductCache({ id: productId.toString() });
@@ -88,7 +88,7 @@ class ProductRepository {
     }
   }
 
-  async getTopRatedProducts({
+  async getTopRated({
     limit = 3,
   }: {
     limit?: number;
@@ -117,7 +117,7 @@ class ProductRepository {
     }
   }
 
-  async getAllProducts(data: {
+  async getAll(data: {
     query: Record<string, unknown>;
     numberOfProductsPerPage: number;
     currentPage: number;

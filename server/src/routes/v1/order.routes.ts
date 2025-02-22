@@ -27,7 +27,7 @@ userRouter
     RateLimiterMiddleware.defaultLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
-    controller.getUser,
+    controller.getAllByUserId,
   );
 
 userRouter

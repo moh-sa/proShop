@@ -20,21 +20,21 @@ class UserService {
   }
 
   async getById({ userId }: { userId: Types.ObjectId }) {
-    const user = await this.repository.getUserById({ userId });
+    const user = await this.repository.getById({ userId });
     if (!user) throw new NotFoundError("User");
 
     return this.createResponse(user);
   }
 
   async getByEmail({ email }: { email: string }): Promise<SelectUser> {
-    const user = await this.repository.getUserByEmail({ email });
+    const user = await this.repository.getByEmail({ email });
     if (!user) throw new NotFoundError("User");
 
     return user;
   }
 
   async getAll() {
-    const users = await this.repository.getAllUsers();
+    const users = await this.repository.getAll();
 
     return users.map((user) => this.createResponse(user));
   }
@@ -46,7 +46,7 @@ class UserService {
     userId: Types.ObjectId;
     updateData: Partial<InsertUser>;
   }) {
-    const updatedUser = await this.repository.updateUser({
+    const updatedUser = await this.repository.update({
       userId,
       updateData,
     });
@@ -60,7 +60,7 @@ class UserService {
   }: {
     userId: Types.ObjectId;
   }): Promise<SelectUser | null> {
-    return await this.repository.deleteUser({ userId });
+    return await this.repository.delete({ userId });
   }
 }
 

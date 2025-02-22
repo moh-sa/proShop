@@ -88,7 +88,7 @@ suite("Order Service", () => {
 
       await Order.insertMany(mockOrders);
 
-      const orders = await service.getUserOrders({
+      const orders = await service.getAllByUserId({
         userId: mockOrders[0].user,
       });
 
@@ -98,7 +98,7 @@ suite("Order Service", () => {
     });
 
     test("Should return an empty array if no orders exist", async () => {
-      const orders = await service.getUserOrders({
+      const orders = await service.getAllByUserId({
         userId: generateMockObjectId(),
       });
 

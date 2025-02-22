@@ -6,7 +6,7 @@ import { InsertOrder, SelectOrder } from "../types";
 class OrderRepository {
   private readonly db = Order;
 
-  async createOrder({
+  async create({
     orderData,
   }: {
     orderData: InsertOrder;
@@ -18,7 +18,7 @@ class OrderRepository {
     }
   }
 
-  async getOrderById({
+  async getById({
     orderId,
   }: {
     orderId: Types.ObjectId;
@@ -33,7 +33,7 @@ class OrderRepository {
     }
   }
 
-  async updateOrderToDelivered({
+  async updateToDelivered({
     orderId,
   }: {
     orderId: Types.ObjectId;
@@ -56,7 +56,7 @@ class OrderRepository {
     }
   }
 
-  async updateOrderToPaid({
+  async updateToPaid({
     orderId,
   }: {
     orderId: Types.ObjectId;

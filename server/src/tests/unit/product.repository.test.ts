@@ -24,7 +24,7 @@ suite("Product Repository", () => {
     test("Should create new product in the database", async () => {
       const mockProduct = generateMockProduct();
 
-      const product = await repo.createProduct({
+      const product = await repo.create({
         productData: mockProduct,
       });
 
@@ -41,13 +41,13 @@ suite("Product Repository", () => {
 
       const created = await Product.create(mockProduct);
 
-      const product = await repo.getProductById({ productId: created._id });
+      const product = await repo.getById({ productId: created._id });
       assert.ok(product);
       assert.equal(product.name, created.name);
     });
 
     test("Should return null if product does not exist", async () => {
-      const product = await repo.getProductById({
+      const product = await repo.getById({
         productId: generateMockObjectId(),
       });
       assert.equal(product, null);
@@ -60,7 +60,7 @@ suite("Product Repository", () => {
 
       await Product.insertMany(mockProducts);
 
-      const products = await repo.getTopRatedProducts({ limit: 3 });
+      const products = await repo.getTopRated({ limit: 3 });
       assert.ok(products);
       assert.equal(products.length, 3);
 
@@ -69,7 +69,7 @@ suite("Product Repository", () => {
     });
 
     test("Should return an empty array if no products exist", async () => {
-      const products = await repo.getTopRatedProducts({ limit: 3 });
+      const products = await repo.getTopRated({ limit: 3 });
 
       assert.ok(products);
       assert.equal(products.length, 0);
@@ -82,7 +82,7 @@ suite("Product Repository", () => {
 
       await Product.insertMany(mockProducts);
 
-      const products = await repo.getAllProducts({
+      const products = await repo.getAll({
         query: {},
         currentPage: 1,
         numberOfProductsPerPage: 4,
@@ -97,7 +97,7 @@ suite("Product Repository", () => {
 
       await Product.insertMany(mockProducts);
 
-      const firstPage = await repo.getAllProducts({
+      const firstPage = await repo.getAll({
         query: {},
         currentPage: 1,
         numberOfProductsPerPage: 2,
@@ -106,7 +106,7 @@ suite("Product Repository", () => {
       assert.ok(firstPage);
       assert.equal(firstPage.length, 2);
 
-      const secondPage = await repo.getAllProducts({
+      const secondPage = await repo.getAll({
         query: {},
         currentPage: 2,
         numberOfProductsPerPage: 2,
@@ -121,7 +121,7 @@ suite("Product Repository", () => {
 
       await Product.insertMany(mockProducts);
 
-      const firstPage = await repo.getAllProducts({
+      const firstPage = await repo.getAll({
         query: {},
         currentPage: 1,
         numberOfProductsPerPage: 10,
@@ -130,7 +130,7 @@ suite("Product Repository", () => {
       assert.ok(firstPage);
       assert.equal(firstPage.length, 4);
 
-      const secondPage = await repo.getAllProducts({
+      const secondPage = await repo.getAll({
         query: {},
         currentPage: 2,
         numberOfProductsPerPage: 10,
@@ -145,7 +145,7 @@ suite("Product Repository", () => {
 
       await Product.insertMany(mockProducts);
 
-      const products = await repo.getAllProducts({
+      const products = await repo.getAll({
         query: { name: mockProducts[0].name },
         currentPage: 1,
         numberOfProductsPerPage: 10,
@@ -157,7 +157,7 @@ suite("Product Repository", () => {
     });
 
     test("Should return empty array", async () => {
-      const products = await repo.getAllProducts({
+      const products = await repo.getAll({
         query: {},
         currentPage: 1,
         numberOfProductsPerPage: 4,
@@ -209,7 +209,7 @@ suite("Product Repository", () => {
 
       const created = await Product.create(mockProduct1);
 
-      const updatedProduct = await repo.updateProduct({
+      const updatedProduct = await repo.update({
         productId: created._id,
         updateData: {
           name: mockProduct2.name,
@@ -223,7 +223,7 @@ suite("Product Repository", () => {
     test("Should return 'null' if product does not exist", async () => {
       const mockProduct = generateMockProduct();
 
-      const updatedProduct = await repo.updateProduct({
+      const updatedProduct = await repo.update({
         productId: mockProduct._id,
         updateData: {
           name: mockProduct.name,
@@ -240,7 +240,7 @@ suite("Product Repository", () => {
 
       const created = await Product.create(mockProduct);
 
-      await repo.deleteProduct({
+      await repo.delete({
         productId: created._id,
       });
 
@@ -250,7 +250,7 @@ suite("Product Repository", () => {
 
     test("Should return 'null' if product does not exist", async () => {
       const mockId = generateMockObjectId();
-      const deletedProduct = await repo.deleteProduct({
+      const deletedProduct = await repo.delete({
         productId: mockId,
       });
 

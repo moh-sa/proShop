@@ -6,11 +6,7 @@ import { InsertUser, SelectUser } from "../types";
 class UserRepository {
   private readonly db = User;
 
-  async createUser({
-    userData,
-  }: {
-    userData: InsertUser;
-  }): Promise<SelectUser> {
+  async create({ userData }: { userData: InsertUser }): Promise<SelectUser> {
     try {
       return (await this.db.create(userData)).toObject();
     } catch (error) {
@@ -18,7 +14,7 @@ class UserRepository {
     }
   }
 
-  async getUserById({
+  async getById({
     userId,
   }: {
     userId: Types.ObjectId;
@@ -30,11 +26,7 @@ class UserRepository {
     }
   }
 
-  async getUserByEmail({
-    email,
-  }: {
-    email: string;
-  }): Promise<SelectUser | null> {
+  async getByEmail({ email }: { email: string }): Promise<SelectUser | null> {
     try {
       return await this.db.findOne({ email }).lean();
     } catch (error) {
@@ -42,7 +34,7 @@ class UserRepository {
     }
   }
 
-  async updateUser({
+  async update({
     userId,
     updateData,
   }: {
@@ -58,7 +50,7 @@ class UserRepository {
     }
   }
 
-  async deleteUser({
+  async delete({
     userId,
   }: {
     userId: Types.ObjectId;
@@ -70,7 +62,7 @@ class UserRepository {
     }
   }
 
-  async getAllUsers(): Promise<Array<SelectUser>> {
+  async getAll(): Promise<Array<SelectUser>> {
     try {
       return await this.db.find({}).lean();
     } catch (error) {

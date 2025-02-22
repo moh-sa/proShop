@@ -22,7 +22,7 @@ suite("Order Repository", () => {
     test("Should create new order in the database", async () => {
       const mockOrder = generateMockOrder();
 
-      const order = await repo.createOrder({
+      const order = await repo.create({
         orderData: mockOrder,
       });
 
@@ -35,7 +35,7 @@ suite("Order Repository", () => {
       const mockOrder = generateMockOrder();
 
       try {
-        await repo.createOrder({
+        await repo.create({
           orderData: {
             ...mockOrder,
             // @ts-expect-error - testing invalid userId
@@ -55,14 +55,14 @@ suite("Order Repository", () => {
 
       const created = await Order.create(mockOrder);
 
-      const order = await repo.getOrderById({ orderId: created._id });
+      const order = await repo.getById({ orderId: created._id });
 
       assert.ok(order);
       assert.equal(order.totalPrice, created.totalPrice);
     });
 
     test("Should return 'null' if order does not exist", async () => {
-      const order = await repo.getOrderById({
+      const order = await repo.getById({
         orderId: generateMockObjectId(),
       });
       assert.equal(order, null);
@@ -106,7 +106,7 @@ suite("Order Repository", () => {
 
       const created = await Order.create(mockOrder);
 
-      const updatedOrder = await repo.updateOrderToPaid({
+      const updatedOrder = await repo.updateToPaid({
         orderId: created._id,
       });
 
@@ -117,7 +117,7 @@ suite("Order Repository", () => {
     });
 
     test("Should return 'null' if order does not exist", async () => {
-      const order = await repo.updateOrderToPaid({
+      const order = await repo.updateToPaid({
         orderId: generateMockObjectId(),
       });
       assert.equal(order, null);
@@ -130,7 +130,7 @@ suite("Order Repository", () => {
 
       const created = await Order.create(mockOrder);
 
-      const updatedOrder = await repo.updateOrderToDelivered({
+      const updatedOrder = await repo.updateToDelivered({
         orderId: created._id,
       });
 
@@ -141,7 +141,7 @@ suite("Order Repository", () => {
     });
 
     test("Should return 'null' if order does not exist", async () => {
-      const order = await repo.updateOrderToDelivered({
+      const order = await repo.updateToDelivered({
         orderId: generateMockObjectId(),
       });
       assert.equal(order, null);

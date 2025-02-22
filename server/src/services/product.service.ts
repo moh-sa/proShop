@@ -16,7 +16,7 @@ class ProductService {
   }: {
     productId: Types.ObjectId;
   }): Promise<SelectProduct> {
-    const product = await this.repository.getProductById({ productId });
+    const product = await this.repository.getById({ productId });
     if (!product) throw new NotFoundError("Product");
 
     return product;
@@ -37,7 +37,7 @@ class ProductService {
     const numberOfProducts = await this.repository.count(query);
     const numberOfPages = Math.ceil(numberOfProducts / numberOfProductsPerPage);
 
-    const products = await this.repository.getAllProducts({
+    const products = await this.repository.getAll({
       query,
       numberOfProductsPerPage,
       currentPage,
@@ -51,11 +51,11 @@ class ProductService {
   }
 
   async getTopRated(): Promise<Array<TopRatedProduct>> {
-    return await this.repository.getTopRatedProducts({});
+    return await this.repository.getTopRated({});
   }
 
   async create(data: InsertProduct): Promise<SelectProduct> {
-    return await this.repository.createProduct({ productData: data });
+    return await this.repository.create({ productData: data });
   }
 
   async update({
@@ -65,7 +65,7 @@ class ProductService {
     productId: Types.ObjectId;
     updateData: Partial<InsertProduct>;
   }): Promise<SelectProduct> {
-    const updatedProduct = await this.repository.updateProduct({
+    const updatedProduct = await this.repository.update({
       productId,
       updateData,
     });
@@ -75,7 +75,7 @@ class ProductService {
   }
 
   async delete({ productId }: { productId: Types.ObjectId }): Promise<void> {
-    await this.repository.deleteProduct({ productId });
+    await this.repository.delete({ productId });
   }
 }
 
