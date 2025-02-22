@@ -148,37 +148,6 @@ class ProductRepository {
     }
   }
 
-  async reviewByUserExists({
-    productId,
-    userId,
-  }: {
-    productId: Types.ObjectId;
-    userId: Types.ObjectId;
-  }): Promise<{ _id: Types.ObjectId } | null> {
-    const cacheKey = this.cache.generateKey({
-      id: `${productId}:${userId}`,
-    });
-    const cachedReview = this.cache.get<{ _id: Types.ObjectId } | null>({
-      key: cacheKey,
-    });
-    if (cachedReview) return cachedReview;
-
-    try {
-      const isReviewed = await this.db
-        .exists({
-          _id: productId,
-          "reviews.user": userId,
-        })
-        .lean();
-
-      this.cache.set({ key: cacheKey, value: isReviewed });
-
-      return isReviewed;
-    } catch (error) {
-      this.errorHandler(error);
-    }
-  }
-
   private errorHandler(error: unknown): never {
     if (
       error instanceof MongooseError ||
