@@ -12,13 +12,6 @@ const router = express.Router();
 
 router
   .route("/")
-  .get(
-    RateLimiterMiddleware.adminLimiter(),
-    checkJwtTokenValidation,
-    checkUserIdExists,
-    checkIfUserIsAdmin,
-    controller.getAll,
-  )
   .post(
     RateLimiterMiddleware.strictLimiter(),
     checkJwtTokenValidation,
@@ -41,15 +34,6 @@ router.get(
 );
 
 router.get(
-  "/count",
-  RateLimiterMiddleware.adminLimiter(),
-  checkJwtTokenValidation,
-  checkUserIdExists,
-  checkIfUserIsAdmin,
-  controller.count,
-);
-
-router.get(
   "/count/user/:userId",
   RateLimiterMiddleware.defaultLimiter(),
   checkJwtTokenValidation,
@@ -63,15 +47,6 @@ router.get(
 );
 
 router.get(
-  "/exists/:reviewId",
-  RateLimiterMiddleware.adminLimiter(),
-  checkJwtTokenValidation,
-  checkUserIdExists,
-  checkIfUserIsAdmin,
-  controller.existsById,
-);
-
-router.get(
   "/exists/user/:userId/product/:productId",
   RateLimiterMiddleware.defaultLimiter(),
   checkJwtTokenValidation,
@@ -79,8 +54,35 @@ router.get(
   controller.existsByUserIdAndProductId,
 );
 
+router.get(
+  "/admin",
+  RateLimiterMiddleware.adminLimiter(),
+  checkJwtTokenValidation,
+  checkUserIdExists,
+  checkIfUserIsAdmin,
+  controller.getAll,
+);
+
+router.get(
+  "/admin/count",
+  RateLimiterMiddleware.adminLimiter(),
+  checkJwtTokenValidation,
+  checkUserIdExists,
+  checkIfUserIsAdmin,
+  controller.count,
+);
+
+router.get(
+  "/admin/exists/:reviewId",
+  RateLimiterMiddleware.adminLimiter(),
+  checkJwtTokenValidation,
+  checkUserIdExists,
+  checkIfUserIsAdmin,
+  controller.existsById,
+);
+
 router
-  .route("/:reviewId")
+  .route("admin/:reviewId")
   .get(
     RateLimiterMiddleware.adminLimiter(),
     checkJwtTokenValidation,
