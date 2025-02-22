@@ -28,7 +28,7 @@ router
 
 // /:productId
 router
-  .route("/:productId")
+  .route("/admin/:productId")
   .get(RateLimiterMiddleware.defaultLimiter(), controller.getById)
   .delete(
     RateLimiterMiddleware.adminLimiter(),

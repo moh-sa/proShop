@@ -13,11 +13,11 @@ export function getProductsAPI({ keyword = "", pageNumber = "" }) {
 }
 
 export function getProductByIdAPI(productId) {
-  return api.get(`/products/${productId}`);
+  return api.get(`/products/admin/${productId}`);
 }
 
 export function deleteProductAPI(productId, token) {
-  return api.delete(`/products/${productId}`, {
+  return api.delete(`/products/admin/${productId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -33,7 +33,7 @@ export function addProductAPI(product, token) {
 }
 
 export function updateProductAPI(product, token) {
-  return api.patch(`/products/${product._id}`, product, {
+  return api.patch(`/products/admin/${product._id}`, product, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
