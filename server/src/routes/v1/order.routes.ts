@@ -1,6 +1,7 @@
 import express from "express";
 import { orderController as controller } from "../../controllers";
 import {
+  checkIfUserIsAdmin,
   checkJwtTokenValidation,
   checkUserIdExists,
   RateLimiterMiddleware,
@@ -21,6 +22,7 @@ router
     RateLimiterMiddleware.defaultLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
+    checkIfUserIsAdmin,
     controller.getAll,
   );
 
@@ -50,6 +52,7 @@ router
     RateLimiterMiddleware.strictLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
+    checkIfUserIsAdmin,
     controller.updateToPaid,
   );
 
@@ -59,6 +62,7 @@ router
     RateLimiterMiddleware.strictLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
+    checkIfUserIsAdmin,
     controller.updateToDelivered,
   );
 
