@@ -9,10 +9,16 @@ import {
 
 const router = express.Router();
 
-// /
 router
   .route("/")
-  .get(RateLimiterMiddleware.defaultLimiter(), controller.getAll)
+  .get(RateLimiterMiddleware.defaultLimiter(), controller.getAll);
+
+router
+  .route("/top-rated")
+  .get(RateLimiterMiddleware.defaultLimiter(), controller.getTopRated);
+
+router
+  .route("/admin")
   .post(
     RateLimiterMiddleware.adminLimiter(),
     checkJwtTokenValidation,
@@ -21,12 +27,6 @@ router
     controller.create,
   );
 
-// /top-rated
-router
-  .route("/top-rated")
-  .get(RateLimiterMiddleware.defaultLimiter(), controller.getTopRated);
-
-// /:productId
 router
   .route("/admin/:productId")
   .get(RateLimiterMiddleware.defaultLimiter(), controller.getById)

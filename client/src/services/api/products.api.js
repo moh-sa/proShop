@@ -1,7 +1,7 @@
 import { api } from "./base";
 
 export function createProductAPI(data, token) {
-  return api.post(`/products`, data, {
+  return api.post(`/products/admin`, data, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
