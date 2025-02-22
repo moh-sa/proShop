@@ -18,7 +18,7 @@ export function getOrderDetailsAPI(orderId, token) {
 }
 
 export function payOrderAPI(orderId, token) {
-  return api.put(
+  return api.patch(
     `/orders/${orderId}/payment`,
     {},
     {
@@ -31,7 +31,7 @@ export function payOrderAPI(orderId, token) {
 }
 
 export function deliverOrderAPI(orderId, token) {
-  return api.put(
+  return api.patch(
     `/orders/${orderId}/delivery`,
     {},
     {

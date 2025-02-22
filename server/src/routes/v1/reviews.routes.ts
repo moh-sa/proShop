@@ -88,7 +88,7 @@ router
     checkIfUserIsAdmin,
     controller.getById,
   )
-  .put(
+  .patch(
     RateLimiterMiddleware.strictLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,

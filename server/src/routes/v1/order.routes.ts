@@ -46,7 +46,7 @@ router
 
 router
   .route("/:orderId/payment")
-  .put(
+  .patch(
     RateLimiterMiddleware.strictLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
@@ -55,7 +55,7 @@ router
 
 router
   .route("/:orderId/delivery")
-  .put(
+  .patch(
     RateLimiterMiddleware.strictLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,

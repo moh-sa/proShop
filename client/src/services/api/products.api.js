@@ -33,7 +33,7 @@ export function addProductAPI(product, token) {
 }
 
 export function updateProductAPI(product, token) {
-  return api.put(`/products/${product._id}`, product, {
+  return api.patch(`/products/${product._id}`, product, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,

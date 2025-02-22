@@ -37,7 +37,7 @@ router
     checkIfUserIsAdmin,
     controller.delete,
   )
-  .put(
+  .patch(
     RateLimiterMiddleware.adminLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,

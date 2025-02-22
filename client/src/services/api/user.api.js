@@ -10,7 +10,7 @@ export function getUserDetailsAPI(userId, token) {
 }
 
 export function updateUserProfileAPI(user, token) {
-  return api.put(`/users/profile`, user, {
+  return api.patch(`/users/profile`, user, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
@@ -35,7 +35,7 @@ export function deleteUserAPI(userId, token) {
 }
 
 export function updateUserAPI(user, token) {
-  return api.put(`/users/${user._id}`, user, {
+  return api.patch(`/users/${user._id}`, user, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,

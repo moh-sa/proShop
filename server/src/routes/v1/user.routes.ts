@@ -27,7 +27,7 @@ router
     checkUserIdExists,
     controller.getById,
   )
-  .put(
+  .patch(
     RateLimiterMiddleware.strictLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
@@ -43,7 +43,7 @@ router
     checkIfUserIsAdmin,
     controller.getById,
   )
-  .put(
+  .patch(
     RateLimiterMiddleware.adminLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
