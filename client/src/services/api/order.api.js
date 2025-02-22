@@ -19,7 +19,7 @@ export function getOrderDetailsAPI(orderId, token) {
 
 export function payOrderAPI(orderId, token) {
   return api.patch(
-    `/orders/${orderId}/payment`,
+    `/orders/admin/${orderId}/payment`,
     {},
     {
       headers: {
@@ -32,7 +32,7 @@ export function payOrderAPI(orderId, token) {
 
 export function deliverOrderAPI(orderId, token) {
   return api.patch(
-    `/orders/${orderId}/delivery`,
+    `/orders/admin/${orderId}/delivery`,
     {},
     {
       headers: {
@@ -51,7 +51,7 @@ export function getOrdersByUserIdAPI(userId, token) {
 }
 
 export function listOrdersAPI(token) {
-  return api.get(`/orders`, {
+  return api.get(`/orders/admin`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

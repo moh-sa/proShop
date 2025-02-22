@@ -9,7 +9,6 @@ import {
 
 const router = express.Router();
 
-// /
 router
   .route("/")
   .post(
@@ -17,16 +16,8 @@ router
     checkJwtTokenValidation,
     checkUserIdExists,
     controller.create,
-  )
-  .get(
-    RateLimiterMiddleware.defaultLimiter(),
-    checkJwtTokenValidation,
-    checkUserIdExists,
-    checkIfUserIsAdmin,
-    controller.getAll,
   );
 
-// /user/:userId
 router
   .route("/user/:userId")
   .get(
@@ -47,7 +38,17 @@ router
   );
 
 router
-  .route("/:orderId/payment")
+  .route("/admin")
+  .get(
+    RateLimiterMiddleware.defaultLimiter(),
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    checkIfUserIsAdmin,
+    controller.getAll,
+  );
+
+router
+  .route("/admin/:orderId/payment")
   .patch(
     RateLimiterMiddleware.strictLimiter(),
     checkJwtTokenValidation,
@@ -57,7 +58,7 @@ router
   );
 
 router
-  .route("/:orderId/delivery")
+  .route("/admin/:orderId/delivery")
   .patch(
     RateLimiterMiddleware.strictLimiter(),
     checkJwtTokenValidation,
