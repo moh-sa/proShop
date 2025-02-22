@@ -19,7 +19,7 @@ export function updateUserProfileAPI(user, token) {
 }
 
 export function listUsersAPI(token) {
-  return api.get(`/users`, {
+  return api.get(`/users/admin`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

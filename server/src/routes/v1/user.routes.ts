@@ -10,16 +10,6 @@ import {
 const router = express.Router();
 
 router
-  .route("/")
-  .get(
-    RateLimiterMiddleware.adminLimiter(),
-    checkJwtTokenValidation,
-    checkUserIdExists,
-    checkIfUserIsAdmin,
-    controller.getAll,
-  );
-
-router
   .route("/profile")
   .get(
     RateLimiterMiddleware.defaultLimiter(),
@@ -32,6 +22,16 @@ router
     checkJwtTokenValidation,
     checkUserIdExists,
     controller.update,
+  );
+
+router
+  .route("/admin")
+  .get(
+    RateLimiterMiddleware.adminLimiter(),
+    checkJwtTokenValidation,
+    checkUserIdExists,
+    checkIfUserIsAdmin,
+    controller.getAll,
   );
 
 router
