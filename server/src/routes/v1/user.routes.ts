@@ -35,7 +35,7 @@ router
   );
 
 router
-  .route("/:userId")
+  .route("/admin/:userId")
   .get(
     RateLimiterMiddleware.adminLimiter(),
     checkJwtTokenValidation,

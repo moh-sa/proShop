@@ -1,7 +1,7 @@
 import { api } from "./base";
 
 export function getUserDetailsAPI(userId, token) {
-  return api.get(`/users/${userId}`, {
+  return api.get(`/users/admin/${userId}`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
@@ -27,7 +27,7 @@ export function listUsersAPI(token) {
 }
 
 export function deleteUserAPI(userId, token) {
-  return api.delete(`/users/${userId}`, {
+  return api.delete(`/users/admin/${userId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -35,7 +35,7 @@ export function deleteUserAPI(userId, token) {
 }
 
 export function updateUserAPI(user, token) {
-  return api.patch(`/users/${user._id}`, user, {
+  return api.patch(`/users/admin/${user._id}`, user, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
