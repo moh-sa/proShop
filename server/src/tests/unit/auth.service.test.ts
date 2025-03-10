@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
-import { DatabaseError } from "../../errors";
+import { ConflictError } from "../../errors";
 import User from "../../models/userModel";
 import { authService } from "../../services";
 import { generateMockUser } from "../mocks";
@@ -16,41 +16,62 @@ suite("Auth Service", () => {
     test("Should register a new user and return user data with token and without password", async () => {
       const mockUser = generateMockUser();
 
-      const response = await authService.signup(mockUser);
+      const response = await service.signup(mockUser);
 
-      assert.ok(response.token);
-      assert.equal(response.email, mockUser.email);
+      assert.ok(response);
       assert.equal(response.name, mockUser.name);
+      assert.equal(response.email, mockUser.email);
+      assert.ok(response.token);
       assert.ok(!Object.keys(response).includes("password"));
     });
 
-    test("Should throw 'DatabaseError' if the user's email already exists", async () => {
+    test("Should throw 'ConflictError' if user already exists", async () => {
       const mockUser = generateMockUser();
+      await User.create(mockUser);
 
-      await authService.signup(mockUser);
       try {
-        // add duplicate user
-        await authService.signup(mockUser);
+        await service.signup(mockUser);
+        assert.fail("Should throw 'ConflictError'");
       } catch (error) {
-        assert.ok(error instanceof DatabaseError);
-        assert.equal(error.statusCode, 500);
-        assert.ok(error.message.includes("E11000")); // error code for duplication
+        assert.ok(error instanceof ConflictError);
+        assert.equal(error.statusCode, 409);
+        assert.equal(
+          error.message,
+          "An account with this email already exists.",
+        );
       }
     });
   });
 
   describe("Signin User", () => {
-    test("Should authenticate user and return user data and token", async () => {
+    test("Should authenticate user and return user data with token and without password", async () => {
       const mockUser = generateMockUser();
+      await User.create(mockUser);
 
-      const user = await User.create(mockUser);
-      const response = await authService.signin({
-        email: user.email,
-        password: user.password,
+      const response = await service.signin({
+        email: mockUser.email,
+        password: mockUser.password,
       });
 
+      assert.ok(response);
+      assert.equal(response.name, mockUser.name);
+      assert.equal(response.email, mockUser.email);
       assert.ok(response.token);
-      assert.equal(response.email, user.email);
+      assert.ok(!Object.keys(response).includes("password"));
+    });
+
+    test("Should throw 'ConflictError' if email does not exist", async () => {
+      try {
+        await service.signin({
+          email: "test@test.com",
+          password: "test",
+        });
+        assert.fail("Should throw 'ConflictError'");
+      } catch (error) {
+        assert.ok(error instanceof ConflictError);
+        assert.equal(error.statusCode, 409);
+        assert.equal(error.message, "Invalid email or password.");
+      }
     });
   });
 });
