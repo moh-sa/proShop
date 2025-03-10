@@ -6,7 +6,7 @@ import { InsertUser, SelectUser } from "../types";
 class UserRepository {
   private readonly db = User;
 
-  async create(data: InsertUser): Promise<SelectUser> {
+  async create(data: InsertUser): Promise<Omit<SelectUser, "token">> {
     try {
       return (await this.db.create(data)).toObject();
     } catch (error) {
