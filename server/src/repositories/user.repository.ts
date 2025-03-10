@@ -70,6 +70,18 @@ class UserRepository {
     }
   }
 
+  async existsByEmail({
+    email,
+  }: {
+    email: string;
+  }): Promise<{ _id: Types.ObjectId } | null> {
+    try {
+      return await this.db.exists({ email }).lean();
+    } catch (error) {
+      this.errorHandler(error);
+    }
+  }
+
   private errorHandler(error: unknown): never {
     if (
       error instanceof MongooseError ||
