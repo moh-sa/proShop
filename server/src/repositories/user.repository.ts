@@ -6,9 +6,9 @@ import { InsertUser, SelectUser } from "../types";
 class UserRepository {
   private readonly db = User;
 
-  async create({ userData }: { userData: InsertUser }): Promise<SelectUser> {
+  async create(data: InsertUser): Promise<SelectUser> {
     try {
-      return (await this.db.create(userData)).toObject();
+      return (await this.db.create(data)).toObject();
     } catch (error) {
       this.errorHandler(error);
     }

@@ -18,7 +18,7 @@ suite("User Repository", () => {
     test("Should create new user in the database", async () => {
       const mockUser = generateMockUser();
 
-      const user = await repo.create({ userData: mockUser });
+      const user = await repo.create(mockUser);
 
       assert.ok(user);
 
@@ -29,11 +29,11 @@ suite("User Repository", () => {
     test("Should throw 'DatabaseError' if email already exists", async () => {
       const mockUser = generateMockUser();
 
-      await repo.create({ userData: mockUser });
+      await repo.create(mockUser);
 
       try {
         // creating new user with the same email
-        await repo.create({ userData: mockUser });
+        await repo.create(mockUser);
       } catch (error) {
         assert.ok(error instanceof DatabaseError);
         assert.equal(error.type, "DATABASE_ERROR");
@@ -46,7 +46,7 @@ suite("User Repository", () => {
     test("Should retrieve a user by ID", async () => {
       const mockUser = generateMockUser();
 
-      const created = await repo.create({ userData: mockUser });
+      const created = await repo.create(mockUser);
       const user = await repo.getById({ userId: created._id });
 
       assert.ok(user);
@@ -64,7 +64,7 @@ suite("User Repository", () => {
     test("Should retrieve a user by Email", async () => {
       const mockUser = generateMockUser();
 
-      const created = await repo.create({ userData: mockUser });
+      const created = await repo.create(mockUser);
       const user = await repo.getByEmail({ email: created.email });
 
       assert.ok(user);
@@ -102,9 +102,7 @@ suite("User Repository", () => {
     test("Should find and update a user by ID", async () => {
       const mockUser = generateMockUser();
 
-      const created = await repo.create({
-        userData: mockUser,
-      });
+      const created = await repo.create(mockUser);
 
       const updateData: Partial<InsertUser> = {
         name: "RANDOM_NAME",
@@ -155,9 +153,7 @@ suite("User Repository", () => {
     test("Should find and delete a user by ID", async () => {
       const mockUser = generateMockUser();
 
-      const created = await repo.create({
-        userData: mockUser,
-      });
+      const created = await repo.create(mockUser);
 
       const deletedUser = await repo.delete({
         userId: created._id,
