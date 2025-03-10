@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { authController } from "../../controllers";
-import { DatabaseError } from "../../errors";
+import { ConflictError } from "../../errors";
 import User from "../../models/userModel";
 import { generateMockUser } from "../mocks";
 import { createMockExpressContext, dbClose, dbConnect } from "../utils";
@@ -27,7 +27,7 @@ suite("Auth Controller", () => {
       assert.equal(data.email, mockUser.email);
     });
 
-    test("Should throw 'DatabaseError' if user already exists", async () => {
+    test("Should throw 'ConflictError' if user already exists", async () => {
       const { req, res, next } = createMockExpressContext();
       const mockUser = generateMockUser();
 
@@ -36,9 +36,12 @@ suite("Auth Controller", () => {
       try {
         await controller.signup(req, res, next);
       } catch (error) {
-        assert.ok(error instanceof DatabaseError);
-        assert.equal(error.statusCode, 500);
-        assert.ok(error.message.includes("E11000")); // error code for duplication
+        assert.ok(error instanceof ConflictError);
+        assert.equal(error.statusCode, 409);
+        assert.equal(
+          error.message,
+          "An account with this email already exists.",
+        );
       }
     });
   });
@@ -48,8 +51,8 @@ suite("Auth Controller", () => {
       const { req, res, next } = createMockExpressContext();
       const mockUser = generateMockUser();
 
-      const user = (await User.create(mockUser)).toObject();
-      res.locals.user = user;
+      await User.create(mockUser);
+      res.locals.user = mockUser;
 
       await controller.signin(req, res, next);
       const data = res._getJSONData();

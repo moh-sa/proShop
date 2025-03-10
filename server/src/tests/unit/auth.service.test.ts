@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
-import { ConflictError } from "../../errors";
+import { ConflictError, ValidationError } from "../../errors";
 import User from "../../models/userModel";
 import { authService } from "../../services";
 import { generateMockUser } from "../mocks";
@@ -70,6 +70,23 @@ suite("Auth Service", () => {
       } catch (error) {
         assert.ok(error instanceof ConflictError);
         assert.equal(error.statusCode, 409);
+        assert.equal(error.message, "Invalid email or password.");
+      }
+    });
+
+    test("Should throw 'ValidationError' if password does not match", async () => {
+      const mockUser = generateMockUser();
+      await User.create(mockUser);
+
+      try {
+        await service.signin({
+          email: mockUser.email,
+          password: "INVALID_PASSWORD",
+        });
+        assert.fail("Should throw 'ValidationError'");
+      } catch (error) {
+        assert.ok(error instanceof ValidationError);
+        assert.equal(error.statusCode, 400);
         assert.equal(error.message, "Invalid email or password.");
       }
     });

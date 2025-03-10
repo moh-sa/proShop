@@ -1,9 +1,6 @@
 import express from "express";
 import { authController as controller } from "../../controllers";
-import {
-  checkPasswordValidation,
-  RateLimiterMiddleware,
-} from "../../middlewares";
+import { RateLimiterMiddleware } from "../../middlewares";
 const router = express.Router();
 
 router
@@ -12,10 +9,6 @@ router
 
 router
   .route("/signin")
-  .post(
-    RateLimiterMiddleware.authLimiter(),
-    checkPasswordValidation,
-    controller.signin,
-  );
+  .post(RateLimiterMiddleware.authLimiter(), controller.signin);
 
 export default router;

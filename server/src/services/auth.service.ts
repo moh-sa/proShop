@@ -1,4 +1,5 @@
-import { ConflictError } from "../errors";
+import { compare } from "bcryptjs";
+import { ConflictError, ValidationError } from "../errors";
 import { userRepository } from "../repositories";
 import { InsertUser, RequiredBy, SelectUser } from "../types";
 import { generateToken, removeObjectFields } from "../utils";
@@ -15,11 +16,17 @@ class AuthService {
       throw new ConflictError("Invalid email or password.");
     }
 
-    const dataWithoutPassword = removeObjectFields(isUserExists, ["password"]);
-    const token = generateToken({ id: dataWithoutPassword._id });
-    const dataWithToken = Object.assign(dataWithoutPassword, { token });
+    const isPasswordValid = await compare(data.password, isUserExists.password);
+    if (!isPasswordValid) {
+      throw new ValidationError("Invalid email or password.");
+    }
 
-    return dataWithToken;
+    const user = isUserExists;
+    const token = generateToken({ id: user._id });
+    const userWithToken = Object.assign(user, { token });
+    const userWithoutPassword = removeObjectFields(userWithToken, ["password"]);
+
+    return userWithoutPassword;
   }
 
   async signup(data: InsertUser) {
