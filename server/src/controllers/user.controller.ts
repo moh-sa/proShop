@@ -1,7 +1,7 @@
 import { NotFoundError } from "../errors";
 import { insertUserSchema } from "../schemas";
 import { userService } from "../services";
-import { asyncHandler } from "../utils";
+import { asyncHandler, removeEmptyFieldsSchema } from "../utils";
 import { objectIdValidator } from "../validators";
 
 class UserController {
@@ -26,13 +26,7 @@ class UserController {
     const idReq = req.params.userId || res.locals.user._id;
     const userId = objectIdValidator.parse(idReq);
 
-    const transformedBody = Object.fromEntries(
-      Object.entries(req.body).map(([key, value]) => [
-        key,
-        value === "" ? undefined : value,
-      ]),
-    );
-    const updateData = insertUserSchema.partial().parse(transformedBody);
+    const updateData = sanitizePatchSchema(insertUserSchema).parse(req.body);
 
     const response = await this.service.updateById({
       userId,

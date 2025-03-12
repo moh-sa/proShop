@@ -1,6 +1,6 @@
 import { insertReviewSchema } from "../schemas";
 import { reviewService } from "../services";
-import { asyncHandler } from "../utils";
+import { asyncHandler, removeEmptyFieldsSchema } from "../utils";
 import { objectIdValidator } from "../validators";
 
 class ReviewController {
@@ -49,7 +49,7 @@ class ReviewController {
 
   update = asyncHandler(async (req, res) => {
     const reviewId = objectIdValidator.parse(req.params.reviewId);
-    const updateData = insertReviewSchema.partial().parse(req.body);
+    const updateData = sanitizePatchSchema(insertReviewSchema).parse(req.body);
 
     const updatedReview = await this.service.update({
       reviewId,

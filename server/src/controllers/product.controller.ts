@@ -2,7 +2,7 @@ import { z } from "zod";
 import { NotFoundError } from "../errors";
 import { insertProductSchema } from "../schemas";
 import { productService } from "../services";
-import { asyncHandler } from "../utils";
+import { asyncHandler, removeEmptyFieldsSchema } from "../utils";
 import { objectIdValidator } from "../validators";
 
 class ProductController {
@@ -53,7 +53,7 @@ class ProductController {
 
   update = asyncHandler(async (req, res) => {
     const productId = objectIdValidator.parse(req.params.productId);
-    const updateData = insertProductSchema.partial().parse(req.body);
+    const updateData = sanitizePatchSchema(insertProductSchema).parse(req.body);
 
     const updatedProduct = await this.service.update({
       productId,

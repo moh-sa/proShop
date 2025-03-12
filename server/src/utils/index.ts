@@ -5,6 +5,7 @@ export * from "./generateJwtToken";
 export * from "./handle-error-response.util";
 export * from "./hash-data.util";
 export * from "./is-exist.util";
+export * from "./remove-empty-fields.util";
 export * from "./remove-object-fields";
 export * from "./validate-file-type.util";
 export * from "./verify-jwt-token.util";
