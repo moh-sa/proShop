@@ -49,11 +49,11 @@ class ReviewController {
 
   update = asyncHandler(async (req, res) => {
     const reviewId = objectIdValidator.parse(req.params.reviewId);
-    const updateData = sanitizePatchSchema(insertReviewSchema).parse(req.body);
+    const data = removeEmptyFieldsSchema(insertReviewSchema).parse(req.body);
 
     const updatedReview = await this.service.update({
       reviewId,
-      data: updateData,
+      data,
     });
 
     res.status(200).json(updatedReview);

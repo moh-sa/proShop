@@ -60,14 +60,14 @@ class ProductService {
 
   async update({
     productId,
-    updateData,
+    data,
   }: {
     productId: Types.ObjectId;
-    updateData: Partial<InsertProduct>;
+    data: Partial<InsertProduct>;
   }): Promise<SelectProduct> {
     const updatedProduct = await this.repository.update({
       productId,
-      updateData,
+      data,
     });
     if (!updatedProduct) throw new NotFoundError("Product");
 

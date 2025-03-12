@@ -41,14 +41,14 @@ class UserService {
 
   async updateById({
     userId,
-    updateData,
+    data,
   }: {
     userId: Types.ObjectId;
-    updateData: Partial<InsertUser>;
+    data: Partial<InsertUser>;
   }) {
     const updatedUser = await this.repository.update({
       userId,
-      updateData,
+      data,
     });
     if (!updatedUser) throw new NotFoundError("User");
 

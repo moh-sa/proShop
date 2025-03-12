@@ -53,11 +53,11 @@ class ProductController {
 
   update = asyncHandler(async (req, res) => {
     const productId = objectIdValidator.parse(req.params.productId);
-    const updateData = sanitizePatchSchema(insertProductSchema).parse(req.body);
+    const data = removeEmptyFieldsSchema(insertProductSchema).parse(req.body);
 
     const updatedProduct = await this.service.update({
       productId,
-      updateData,
+      data,
     });
 
     res.status(200).json(updatedProduct);

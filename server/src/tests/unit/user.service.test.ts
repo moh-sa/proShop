@@ -84,15 +84,15 @@ suite("User Service", () => {
 
       const created = await User.create(mockUser1);
 
-      const updateData = { name: mockUser2.name };
+      const data = { name: mockUser2.name };
       const updatedUser = await service.updateById({
         userId: created._id!,
-        updateData,
+        data,
       });
 
       assert.ok(updatedUser);
 
-      assert.equal(updatedUser.name, updateData.name);
+      assert.equal(updatedUser.name, data.name);
 
       assert.ok(!updatedUser.token);
     });
@@ -103,13 +103,13 @@ suite("User Service", () => {
       await User.create(mockUser1);
       const created = await User.create(mockUser2);
 
-      const updateData = {
+      const data = {
         email: mockUser2.email,
       };
       try {
         await service.updateById({
           userId: created._id!,
-          updateData,
+          data,
         });
       } catch (error) {
         assert.ok(error instanceof DatabaseError);
@@ -125,7 +125,7 @@ suite("User Service", () => {
 
         await service.updateById({
           userId: mockUser._id,
-          updateData: { name: mockUser.name },
+          data: { name: mockUser.name },
         });
       } catch (error) {
         assert.ok(error instanceof NotFoundError);

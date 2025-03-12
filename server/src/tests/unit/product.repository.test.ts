@@ -211,7 +211,7 @@ suite("Product Repository", () => {
 
       const updatedProduct = await repo.update({
         productId: created._id,
-        updateData: {
+        data: {
           name: mockProduct2.name,
         },
       });
@@ -225,7 +225,7 @@ suite("Product Repository", () => {
 
       const updatedProduct = await repo.update({
         productId: mockProduct._id,
-        updateData: {
+        data: {
           name: mockProduct.name,
         },
       });

@@ -57,14 +57,14 @@ class ProductRepository {
 
   async update({
     productId,
-    updateData,
+    data,
   }: {
     productId: Types.ObjectId;
-    updateData: Partial<InsertProduct>;
+    data: Partial<InsertProduct>;
   }): Promise<SelectProduct | null> {
     try {
       const product = await this.db
-        .findByIdAndUpdate(productId, updateData, {
+        .findByIdAndUpdate(productId, data, {
           new: true,
         })
         .lean();

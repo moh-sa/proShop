@@ -26,11 +26,11 @@ class UserController {
     const idReq = req.params.userId || res.locals.user._id;
     const userId = objectIdValidator.parse(idReq);
 
-    const updateData = sanitizePatchSchema(insertUserSchema).parse(req.body);
+    const data = removeEmptyFieldsSchema(insertUserSchema).parse(req.body);
 
     const response = await this.service.updateById({
       userId,
-      updateData,
+      data,
     });
 
     res.status(200).json(response);

@@ -139,15 +139,15 @@ suite("Product Service", () => {
 
       const created = await Product.create(mockProduct1);
 
-      const updateData = { name: mockProduct2.name };
+      const data = { name: mockProduct2.name };
       const updatedProduct = await service.update({
         productId: created._id,
-        updateData,
+        data,
       });
 
       assert.ok(updatedProduct);
       assert.notEqual(updatedProduct.name, mockProduct1.name);
-      assert.equal(updatedProduct.name, updateData.name);
+      assert.equal(updatedProduct.name, data.name);
     });
 
     test("Should throw 'NotFoundError' if product does not exist", async () => {
@@ -156,7 +156,7 @@ suite("Product Service", () => {
 
         await service.update({
           productId: mockProduct._id,
-          updateData: { name: mockProduct.name },
+          data: { name: mockProduct.name },
         });
       } catch (error) {
         assert.ok(error instanceof NotFoundError);

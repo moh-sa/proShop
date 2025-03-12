@@ -104,17 +104,17 @@ suite("User Repository", () => {
 
       const created = await repo.create(mockUser);
 
-      const updateData: Partial<InsertUser> = {
+      const data: Partial<InsertUser> = {
         name: "RANDOM_NAME",
       };
       const updatedUser = await repo.update({
         userId: created._id,
-        updateData,
+        data,
       });
 
       assert.ok(updatedUser);
 
-      assert.equal(updatedUser.name, updateData.name);
+      assert.equal(updatedUser.name, data.name);
     });
 
     test("Should throw 'DatabaseError' if updated with an existing email", async () => {
@@ -122,13 +122,13 @@ suite("User Repository", () => {
 
       const users = await User.insertMany(mockUsers);
 
-      const updateData: Partial<InsertUser> = {
+      const data: Partial<InsertUser> = {
         email: users[1].email,
       };
       try {
         await repo.update({
           userId: users[0]._id,
-          updateData,
+          data,
         });
       } catch (error) {
         if (error instanceof DatabaseError) {
@@ -142,7 +142,7 @@ suite("User Repository", () => {
     test("Should return 'null' if user does not exist", async () => {
       const updatedUser = await repo.update({
         userId: new Types.ObjectId(),
-        updateData: { name: "John Doe" },
+        data: { name: "John Doe" },
       });
 
       assert.equal(updatedUser, null);

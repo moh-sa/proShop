@@ -36,14 +36,14 @@ class UserRepository {
 
   async update({
     userId,
-    updateData,
+    data,
   }: {
     userId: Types.ObjectId;
-    updateData: Partial<InsertUser>;
+    data: Partial<InsertUser>;
   }): Promise<SelectUser | null> {
     try {
       return await this.db
-        .findByIdAndUpdate(userId, updateData, { new: true })
+        .findByIdAndUpdate(userId, data, { new: true })
         .lean();
     } catch (error) {
       this.errorHandler(error);
