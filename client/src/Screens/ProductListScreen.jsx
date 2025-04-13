@@ -7,7 +7,6 @@ import Loader from "../Components/Loader";
 import Message from "../Components/Message";
 import Paginate from "../Components/Paginate";
 import {
-  createProduct,
   deleteProduct,
   fetchProducts,
   resetCreateProductState,
@@ -38,19 +37,8 @@ const ProductListScreen = () => {
     }
   }, [removeState.success]);
 
-  async function createProductHandler() {
-    // for some reason, I don't see a "createProductScreen" component
-    // and the backend only creates a sample product!
-    // TODO: fix this
-    const data = {
-      name: "Sample Name",
-      image: "/images/sample.png",
-      brand: "sample brand",
-      category: "sample category",
-      description: "sample description",
-      reviews: [],
-    };
-    dispatch(createProduct({ data }));
+  async function navigateToProductCreation() {
+    navigate("/admin/product/new");
   }
 
   useEffect(() => {
@@ -70,7 +58,7 @@ const ProductListScreen = () => {
           <h1>Products</h1>
         </Col>
         <Col style={{ textAlign: "right" }}>
-          <Button className='my-3' onClick={createProductHandler}>
+          <Button className='my-3' onClick={navigateToProductCreation}>
             <i className='fas fa-plus'></i> Create Product
           </Button>
         </Col>

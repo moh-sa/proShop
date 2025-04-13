@@ -1,6 +1,7 @@
 import AdminProtectedRoutes from "../Components/admin-protected.layout";
 import HomeScreen from "../Screens/HomeScreen";
 import OrderListScreen from "../Screens/OrderListScreen";
+import ProductCreateScreen from "../Screens/ProductCreateScreen";
 import ProductEditScreen from "../Screens/ProductEditScreen";
 import ProductListScreen from "../Screens/ProductListScreen";
 import UserEditScreen from "../Screens/UserEditScreen";
@@ -17,6 +18,10 @@ const adminProtectedRoutes = {
     {
       path: "orderList",
       element: <OrderListScreen />,
+    },
+    {
+      path: "product/new",
+      element: <ProductCreateScreen />,
     },
     {
       path: "product/:id/edit",
