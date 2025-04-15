@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
+import { MulterError } from "multer";
 import { env } from "process";
 import { ZodError } from "zod";
 import { BaseError } from "../errors";
@@ -52,6 +53,17 @@ export function errorHandler(
       path: req.path,
     };
     return res.status(401).json(response);
+  }
+
+  if (error instanceof MulterError) {
+    const response: ErrorResponse = {
+      message: error.message || "File upload failed",
+      code: error.code,
+      timestamp: new Date().toISOString(),
+      path: req.path,
+    };
+
+    return res.status(400).json(response);
   }
 
   // Handle unknown errors

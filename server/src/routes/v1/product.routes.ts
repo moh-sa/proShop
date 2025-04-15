@@ -1,4 +1,5 @@
 import express from "express";
+import { uploadSingle as uploadSingleMiddleware } from "../../config/multer.config";
 import { productController as controller } from "../../controllers";
 import {
   checkIfUserIsAdmin,
@@ -29,6 +30,7 @@ adminRouter
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
+    uploadSingleMiddleware,
     controller.create,
   );
 
@@ -47,6 +49,7 @@ adminRouter
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
+    uploadSingleMiddleware,
     controller.update,
   );
 
