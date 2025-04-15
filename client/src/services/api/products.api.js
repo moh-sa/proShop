@@ -43,11 +43,3 @@ export function updateProductAPI({ productId, data, token }) {
 export function getTopRatedProductsAPI() {
   return api.get(`/products/top-rated`);
 }
-
-export function uploadImageAPI(formData) {
-  return api.post("/upload", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-}
