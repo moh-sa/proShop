@@ -1,5 +1,5 @@
 import mongoose, { Error as MongooseError, Types } from "mongoose";
-import { DatabaseError } from "../errors";
+import { DatabaseError, NotFoundError } from "../errors";
 import { CacheManager } from "../managers";
 import Product from "../models/productModel";
 import {
@@ -75,10 +75,17 @@ class ProductRepository {
     }
   }
 
-  async delete({ productId }: { productId: Types.ObjectId }) {
+  async delete({
+    productId,
+  }: {
+    productId: Types.ObjectId;
+  }): Promise<SelectProduct> {
     try {
-      await this.db.findByIdAndDelete(productId).lean();
+      const deletedProduct = await this.db.findByIdAndDelete(productId).lean();
+      if (!deletedProduct) throw new NotFoundError("Product");
+
       this.invalidateProductCache({ id: productId.toString() });
+      return deletedProduct;
     } catch (error) {
       this.errorHandler(error);
     }
