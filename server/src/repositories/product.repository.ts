@@ -17,7 +17,11 @@ class ProductRepository {
     this.cache = new CacheManager("product");
   }
 
-  async create({ data }: { data: InsertProduct }): Promise<SelectProduct> {
+  async create({
+    data,
+  }: {
+    data: Omit<InsertProduct, "image"> & { image: string };
+  }): Promise<SelectProduct> {
     try {
       const product = (await this.db.create(data)).toObject();
 
@@ -56,7 +60,7 @@ class ProductRepository {
     data,
   }: {
     productId: Types.ObjectId;
-    data: Partial<InsertProduct>;
+    data: Partial<Omit<InsertProduct, "image"> & { image: string }>;
   }): Promise<SelectProduct | null> {
     try {
       const product = await this.db
