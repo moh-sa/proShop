@@ -1,3 +1,4 @@
+export * from "./image.mock";
 export * from "./objectid.mock";
 export * from "./order.mock";
 export * from "./product.mock";

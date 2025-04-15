@@ -2,7 +2,7 @@ import { SelectProduct } from "../../types";
 
 export function findTopRatedProduct(
   products: Array<
-    Omit<SelectProduct, "user"> & {
+    Omit<SelectProduct, "user" | "image"> & {
       user: unknown;
     }
   >,

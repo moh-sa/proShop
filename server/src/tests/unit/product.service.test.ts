@@ -4,7 +4,11 @@ import { DatabaseError, NotFoundError } from "../../errors";
 import Product from "../../models/productModel";
 import { productRepository } from "../../repositories";
 import { productService } from "../../services";
-import { generateMockProduct, generateMockProducts } from "../mocks";
+import {
+  generateMockMulterImage,
+  generateMockProduct,
+  generateMockProducts,
+} from "../mocks";
 import { dbClose, dbConnect, findTopRatedProduct } from "../utils";
 
 const service = productService;
@@ -21,8 +25,12 @@ suite("Product Service", () => {
   describe("Create Product", () => {
     test("Should create new product and return the data", async () => {
       const mockProduct = generateMockProduct();
+      const mockImage = generateMockMulterImage();
 
-      const response = await service.create(mockProduct);
+      const response = await service.create({
+        ...mockProduct,
+        image: mockImage,
+      });
 
       assert.ok(response);
       assert.equal(response.name, mockProduct.name);
@@ -31,11 +39,12 @@ suite("Product Service", () => {
 
     test("Should throw 'NotFoundError' if product does not exist", async () => {
       const mockProduct = generateMockProduct();
+      const mockImage = generateMockMulterImage();
 
-      await service.create(mockProduct);
+      await service.create({ ...mockProduct, image: mockImage });
       try {
         // creating new product with the same name
-        await service.create(mockProduct);
+        await service.create({ ...mockProduct, image: mockImage });
       } catch (error) {
         assert.ok(error instanceof DatabaseError);
         assert.equal(error.statusCode, 500);

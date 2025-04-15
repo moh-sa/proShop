@@ -3,13 +3,13 @@ import { Types } from "mongoose";
 import { SelectProduct } from "../../types";
 import { generateMockObjectId } from "./objectid.mock";
 
-export function generateMockProduct(): SelectProduct {
+type MockProduct = Omit<SelectProduct, "image">;
+export function generateMockProduct(): MockProduct {
   return {
     _id: new Types.ObjectId(),
     name: faker.commerce.productName(),
     description: faker.commerce.productDescription(),
     price: faker.number.int({ min: 1, max: 100 }),
-    image: faker.image.urlLoremFlickr({ width: 372, height: 296 }),
     category: faker.commerce.department(),
     brand: faker.commerce.product(),
     countInStock: faker.number.int({ min: 0, max: 20 }),
@@ -21,6 +21,6 @@ export function generateMockProduct(): SelectProduct {
   };
 }
 
-export function generateMockProducts(count: number): Array<SelectProduct> {
+export function generateMockProducts(count: number): Array<MockProduct> {
   return faker.helpers.uniqueArray(generateMockProduct, count);
 }

@@ -25,7 +25,7 @@ suite("Product Repository", () => {
       const mockProduct = generateMockProduct();
 
       const product = await repo.create({
-        productData: mockProduct,
+        data: { ...mockProduct, image: "mock-image-url" },
       });
 
       assert.ok(product);
