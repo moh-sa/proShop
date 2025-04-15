@@ -32,10 +32,9 @@ export function addProductAPI(product, token) {
   });
 }
 
-export function updateProductAPI(product, token) {
-  return api.patch(`/products/admin/${product._id}`, product, {
+export function updateProductAPI({ productId, data, token }) {
+  return api.patch(`/products/admin/${productId}`, data, {
     headers: {
-      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
   });

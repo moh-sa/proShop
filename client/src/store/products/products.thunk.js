@@ -47,16 +47,20 @@ export const fetchTopRatedProducts = createAsyncThunk(
 
 export const updateProduct = createAsyncThunk(
   "products/update",
-  async (product, thunkAPI) => {
+  async ({ productId, data }, thunkAPI) => {
     try {
       const {
         auth: {
           user: { token },
         },
       } = thunkAPI.getState();
-      const { data } = await updateProductAPI(product, token);
+      const response = await updateProductAPI({
+        productId,
+        data,
+        token,
+      });
 
-      return data;
+      return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);
     }
