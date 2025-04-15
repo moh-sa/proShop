@@ -147,14 +147,6 @@ const ProductEditScreen = () => {
             </Form.Group>
 
             <Form.Group controlId='image' className='my-3'>
-              <Form.Label>Image</Form.Label>
-              <Form.Control
-                type='text'
-                placeholder="Enter Image's URL"
-                value={image}
-                onChange={(e) => setImage(e.target.value)}
-              ></Form.Control>
-
               <Form.Label className='mt-3'>Upload Image</Form.Label>
               <Form.Control
                 type='file'
