@@ -10,6 +10,9 @@ const EnvSchema = z.object({
   SALT_ROUNDS: z.coerce.number().min(1),
   PAYPAL_CLIENT_ID: z.string().min(1),
   CLIENT_URL: z.string().url(),
+  CLOUDINARY_CLOUD_NAME: z.string().min(1),
+  CLOUDINARY_API_KEY: z.string().min(1),
+  CLOUDINARY_API_SECRET: z.string().min(1),
 });
 
 config();
