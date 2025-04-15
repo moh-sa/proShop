@@ -14,9 +14,9 @@ const baseProductSchema = z.object({
 
   description: z.string().min(1, { message: "Description is required." }),
 
-  price: z.number().min(0, { message: "Price is required." }).default(0),
+  price: z.coerce.number().min(0, { message: "Price is required." }).default(0),
 
-  countInStock: z
+  countInStock: z.coerce
     .number()
     .int()
     .min(0, { message: "Count in stock is required." })
