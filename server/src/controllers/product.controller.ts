@@ -43,6 +43,7 @@ class ProductController {
   create = asyncHandler(async (req, res) => {
     const data = insertProductSchema.parse({
       ...req.body,
+      image: req.file,
       user: res.locals.user._id,
     });
 
@@ -53,7 +54,10 @@ class ProductController {
 
   update = asyncHandler(async (req, res) => {
     const productId = objectIdValidator.parse(req.params.productId);
-    const data = removeEmptyFieldsSchema(insertProductSchema).parse(req.body);
+    const data = removeEmptyFieldsSchema(insertProductSchema).parse({
+      ...req.body,
+      image: req.file,
+    });
 
     const updatedProduct = await this.service.update({
       productId,
