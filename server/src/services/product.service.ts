@@ -55,7 +55,7 @@ class ProductService {
   }
 
   async create(data: InsertProduct): Promise<SelectProduct> {
-    return await this.repository.create({ productData: data });
+    return await this.repository.create({ data });
   }
 
   async update({

@@ -17,13 +17,9 @@ class ProductRepository {
     this.cache = new CacheManager("product");
   }
 
-  async create({
-    productData,
-  }: {
-    productData: InsertProduct;
-  }): Promise<SelectProduct> {
+  async create({ data }: { data: InsertProduct }): Promise<SelectProduct> {
     try {
-      const product = (await this.db.create(productData)).toObject();
+      const product = (await this.db.create(data)).toObject();
 
       const cacheKey = this.cache.generateKey({ id: product._id.toString() });
       this.cache.set({ key: cacheKey, value: product });
