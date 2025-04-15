@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { NotFoundError } from "../errors";
+import { imageStorageManager } from "../managers/image-storage.manager";
 import { productRepository } from "../repositories";
 import {
   AllProducts,
@@ -10,6 +11,7 @@ import {
 
 class ProductService {
   private readonly repository = productRepository;
+  private readonly storage = imageStorageManager;
 
   async getById({
     productId,
@@ -55,7 +57,12 @@ class ProductService {
   }
 
   async create(data: InsertProduct): Promise<SelectProduct> {
-    return await this.repository.create({ data });
+    const image = await this.storage.upload({ file: data.image });
+    const dataWithImage = { ...data, image };
+    const createdProduct = await this.repository.create({
+      data: dataWithImage,
+    });
+    return createdProduct;
   }
 
   async update({
@@ -63,11 +70,27 @@ class ProductService {
     data,
   }: {
     productId: Types.ObjectId;
-    data: Partial<InsertProduct>;
+    data: Partial<
+      Omit<InsertProduct, "image"> & { image: InsertProduct["image"] }
+    >;
   }): Promise<SelectProduct> {
+    const { image, ...newData } = data;
+    let updatedData;
+
+    if (!data.image) {
+      updatedData = { ...newData };
+    } else {
+      const currentProduct = await this.getById({ productId });
+      const newImageUrl = await this.storage.replace({
+        url: currentProduct.image,
+        file: data.image,
+      });
+      updatedData = { ...newData, image: newImageUrl };
+    }
+
     const updatedProduct = await this.repository.update({
       productId,
-      data,
+      data: updatedData,
     });
     if (!updatedProduct) throw new NotFoundError("Product");
 
@@ -75,7 +98,8 @@ class ProductService {
   }
 
   async delete({ productId }: { productId: Types.ObjectId }): Promise<void> {
-    await this.repository.delete({ productId });
+    const deletedProduct = await this.repository.delete({ productId });
+    await this.storage.delete({ url: deletedProduct.image });
   }
 }
 
