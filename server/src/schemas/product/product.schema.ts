@@ -1,12 +1,12 @@
 import { z } from "zod";
+import { IMAGE_FIELD_NAME } from "../../constants";
 import { objectIdValidator } from "../../validators";
+import { insertImageSchema, selectImageSchema } from "./image.schema";
 
 const baseProductSchema = z.object({
   user: objectIdValidator,
 
   name: z.string().min(1, { message: "Name is required." }),
-
-  image: z.string().min(1, { message: "Image is required." }),
 
   brand: z.string().min(1, { message: "Brand is required." }),
 
@@ -23,10 +23,13 @@ const baseProductSchema = z.object({
     .default(0),
 });
 
-export const insertProductSchema = baseProductSchema;
+export const insertProductSchema = baseProductSchema.extend({
+  [IMAGE_FIELD_NAME]: insertImageSchema,
+});
 
 export const selectProductSchema = baseProductSchema.extend({
   _id: objectIdValidator,
+  [IMAGE_FIELD_NAME]: selectImageSchema,
 
   rating: z
     .number()
