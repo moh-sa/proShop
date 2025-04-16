@@ -3,8 +3,8 @@ import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { ZodError } from "zod";
 import { productController } from "../../controllers";
 import { NotFoundError } from "../../errors";
+import { CacheManager } from "../../managers";
 import Product from "../../models/productModel";
-import { productRepository } from "../../repositories";
 import {
   generateMockInsertProductWithMulterImage,
   generateMockInsertProductWithStringImage,
@@ -20,12 +20,13 @@ import {
 } from "../utils";
 
 const controller = productController;
+const cache = CacheManager.getInstance("product");
 
 before(async () => await dbConnect());
 after(async () => await dbClose());
 
 beforeEach(async () => {
-  productRepository._invalidateCache();
+  cache.flush();
   await Product.deleteMany({});
 });
 

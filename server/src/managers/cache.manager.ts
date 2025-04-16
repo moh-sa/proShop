@@ -3,11 +3,13 @@ import { MAX_CACHE_SIZE } from "../config";
 import { DatabaseError } from "../errors";
 import { CacheConfig, Namespace } from "../types";
 
-interface ICache {
+interface IPublicCacheManager {
+  flush(): void;
+}
+interface ICacheManager extends IPublicCacheManager {
   get<T>({ key }: { key: string }): T | undefined;
   set<T>({ key, value, ttl }: { key: string; value: T; ttl?: number }): boolean;
   delete({ keys }: { keys: string | string[] }): number;
-  flush(): void;
   stats(): {
     hits: number;
     misses: number;
@@ -17,7 +19,8 @@ interface ICache {
   };
 }
 
-export class CacheManager implements ICache {
+export class CacheManager implements ICacheManager {
+  private static instances: Partial<Record<Namespace, CacheManager>> = {};
   private cache: NodeCache;
   private readonly namespace: Namespace;
 
@@ -31,9 +34,24 @@ export class CacheManager implements ICache {
       ...config,
     });
 
+    CacheManager.instances[namespace] = this;
+
     // Error handling
     // type can be: "error" | "expired" | "del" | "set" | "get" | "flush"
     // this.cache.on(type, (error) => {});
+  }
+
+  public static getInstance(
+    namespace: Namespace,
+    config?: Partial<CacheConfig>,
+  ): IPublicCacheManager {
+    if (!this.instances[namespace]) {
+      this.instances[namespace] = new CacheManager(namespace, config);
+    }
+    // Now we're sure it exists
+    return {
+      flush: this.instances[namespace]!.flush.bind(this.instances[namespace]),
+    };
   }
 
   get<T>({ key }: { key: string }): T | undefined {

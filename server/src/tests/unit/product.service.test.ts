@@ -1,8 +1,8 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { DatabaseError, NotFoundError } from "../../errors";
+import { CacheManager } from "../../managers";
 import Product from "../../models/productModel";
-import { productRepository } from "../../repositories";
 import { productService } from "../../services";
 import {
   generateMockInsertProductWithMulterImage,
@@ -12,12 +12,13 @@ import {
 import { dbClose, dbConnect, findTopRatedProduct } from "../utils";
 
 const service = productService;
+const cache = CacheManager.getInstance("product");
 
 before(async () => await dbConnect());
 after(async () => await dbClose());
 
 beforeEach(async () => {
-  productRepository._invalidateCache();
+  cache.flush();
   await Product.deleteMany({});
 });
 
