@@ -59,9 +59,7 @@ class ProductService {
   async create(data: InsertProduct): Promise<SelectProduct> {
     const image = await this.storage.upload({ file: data.image });
     const dataWithImage = { ...data, image };
-    const createdProduct = await this.repository.create({
-      data: dataWithImage,
-    });
+    const createdProduct = await this.repository.create(dataWithImage);
     return createdProduct;
   }
 

@@ -24,9 +24,7 @@ suite("Product Repository", () => {
     test("Should create new product in the database", async () => {
       const mockProduct = generateMockProduct();
 
-      const product = await repo.create({
-        data: { ...mockProduct, image: "mock-image-url" },
-      });
+      const product = await repo.create(mockProduct);
 
       assert.ok(product);
 
@@ -37,9 +35,7 @@ suite("Product Repository", () => {
 
   describe("Retrieve Product By Id", () => {
     test("Should retrieve a product by id", async () => {
-      const mockProduct = generateMockProduct();
-
-      const created = await Product.create(mockProduct);
+      const created = await repo.create(mockProduct);
 
       const product = await repo.getById({ productId: created._id });
       assert.ok(product);
@@ -205,9 +201,7 @@ suite("Product Repository", () => {
 
   describe("Update Product", () => {
     test("Should find product by id and update it", async () => {
-      const [mockProduct1, mockProduct2] = generateMockProducts(2);
-
-      const created = await Product.create(mockProduct1);
+      const created = await repo.create(mockProduct1);
 
       const updatedProduct = await repo.update({
         productId: created._id,
@@ -236,9 +230,7 @@ suite("Product Repository", () => {
 
   describe("Delete Product", () => {
     test("Should find product by id and delete it", async () => {
-      const mockProduct = generateMockProduct();
-
-      const created = await Product.create(mockProduct);
+      const created = await repo.create(mockProduct);
 
       await repo.delete({
         productId: created._id,
