@@ -7,5 +7,5 @@ export function removeEmptyFieldsSchema<T extends z.ZodObject<any>>(schema: T) {
     return Object.fromEntries(
       Object.entries(obj).filter(([_, value]) => value !== ""),
     );
-  }, schema.partial());
+  }, schema);
 }

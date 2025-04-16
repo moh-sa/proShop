@@ -71,7 +71,7 @@ export class ProductController implements IProductController {
 
   update = asyncHandler(async (req, res) => {
     const productId = objectIdValidator.parse(req.params.productId);
-    const data = removeEmptyFieldsSchema(insertProductSchema).parse({
+    const data = removeEmptyFieldsSchema(insertProductSchema.partial()).parse({
       ...req.body,
       image: req.file,
     });
