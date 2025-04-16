@@ -5,9 +5,9 @@ import Product from "../../models/productModel";
 import { productRepository } from "../../repositories";
 import { productService } from "../../services";
 import {
-  generateMockMulterImage,
-  generateMockProduct,
-  generateMockProducts,
+  generateMockInsertProductWithMulterImage,
+  generateMockObjectId,
+  generateMockSelectProducts,
 } from "../mocks";
 import { dbClose, dbConnect, findTopRatedProduct } from "../utils";
 
@@ -24,13 +24,9 @@ beforeEach(async () => {
 suite("Product Service", () => {
   describe("Create Product", () => {
     test("Should create new product and return the data", async () => {
-      const mockProduct = generateMockProduct();
-      const mockImage = generateMockMulterImage();
+      const mockProduct = generateMockInsertProductWithMulterImage();
 
-      const response = await service.create({
-        ...mockProduct,
-        image: mockImage,
-      });
+      const response = await service.create(mockProduct);
 
       assert.ok(response);
       assert.equal(response.name, mockProduct.name);
@@ -38,13 +34,12 @@ suite("Product Service", () => {
     });
 
     test("Should throw 'NotFoundError' if product does not exist", async () => {
-      const mockProduct = generateMockProduct();
-      const mockImage = generateMockMulterImage();
+      const mockProduct = generateMockInsertProductWithMulterImage();
 
-      await service.create({ ...mockProduct, image: mockImage });
+      await service.create(mockProduct);
       try {
         // creating new product with the same name
-        await service.create({ ...mockProduct, image: mockImage });
+        await service.create(mockProduct);
       } catch (error) {
         assert.ok(error instanceof DatabaseError);
         assert.equal(error.statusCode, 500);
@@ -55,9 +50,8 @@ suite("Product Service", () => {
 
   describe("Retrieve Product By ID", () => {
     test("Should retrieve a product by ID", async () => {
-      const mockProduct = generateMockProduct();
-
-      const created = await Product.create(mockProduct);
+      const mockProduct = generateMockInsertProductWithMulterImage();
+      const created = await service.create(mockProduct);
 
       const response = await service.getById({ productId: created._id });
 
@@ -66,8 +60,9 @@ suite("Product Service", () => {
     });
 
     test("Should throw 'NotFoundError' if product does not exist", async () => {
+      const mockProductId = generateMockObjectId();
       try {
-        await service.getById({ productId: generateMockProduct()._id });
+        await service.getById({ productId: mockProductId });
       } catch (error) {
         assert.ok(error instanceof NotFoundError);
         assert.equal(error.statusCode, 404);
@@ -77,8 +72,7 @@ suite("Product Service", () => {
 
   describe("Retrieve Products", () => {
     test("Should retrieve all products", async () => {
-      const mockProducts = generateMockProducts(4);
-
+      const mockProducts = generateMockSelectProducts({ count: 4 });
       await Product.insertMany(mockProducts);
 
       const response = await service.getAll({
@@ -93,8 +87,7 @@ suite("Product Service", () => {
     });
 
     test("Should retrieve 10 products per page on 2 pages", async () => {
-      const mockProducts = generateMockProducts(20);
-
+      const mockProducts = generateMockSelectProducts({ count: 20 });
       await Product.insertMany(mockProducts);
 
       const response = await service.getAll({
@@ -121,8 +114,7 @@ suite("Product Service", () => {
 
   describe("Retrieve Top Rated Products", () => {
     test("Should retrieve 3 top rated products", async () => {
-      const mockProducts = generateMockProducts(4);
-
+      const mockProducts = generateMockSelectProducts({ count: 4 });
       await Product.insertMany(mockProducts);
 
       const response = await service.getTopRated();
@@ -144,28 +136,27 @@ suite("Product Service", () => {
 
   describe("Update Product", () => {
     test("Should find and update product", async () => {
-      const [mockProduct1, mockProduct2] = generateMockProducts(2);
+      const mockProduct = generateMockInsertProductWithMulterImage();
+      const created = await Product.create(mockProduct);
 
-      const created = await Product.create(mockProduct1);
-
-      const data = { name: mockProduct2.name };
+      const data = { name: "RANDOM_NAME" };
       const updatedProduct = await service.update({
         productId: created._id,
         data,
       });
 
       assert.ok(updatedProduct);
-      assert.notEqual(updatedProduct.name, mockProduct1.name);
+      assert.notEqual(updatedProduct.name, mockProduct.name);
       assert.equal(updatedProduct.name, data.name);
     });
 
     test("Should throw 'NotFoundError' if product does not exist", async () => {
       try {
-        const mockProduct = generateMockProduct();
+        const mockProductId = generateMockObjectId();
 
         await service.update({
-          productId: mockProduct._id,
-          data: { name: mockProduct.name },
+          productId: mockProductId,
+          data: { name: "RANDOM_NAME" },
         });
       } catch (error) {
         assert.ok(error instanceof NotFoundError);
@@ -177,9 +168,8 @@ suite("Product Service", () => {
 
   describe("Delete Product", () => {
     test("Should delete product and throw 'NotFoundError' to ensure the product is deleted", async () => {
-      const mockProduct = generateMockProduct();
-
-      const created = await Product.create(mockProduct);
+      const mockProduct = generateMockInsertProductWithMulterImage();
+      const created = await service.create(mockProduct);
 
       await service.delete({ productId: created._id });
 

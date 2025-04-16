@@ -7,10 +7,10 @@ import User from "../../models/userModel";
 import { reviewRepository } from "../../repositories";
 import {
   generateMockObjectId,
-  generateMockProduct,
   generateMockReview,
   generateMockReviews,
   generateMockUser,
+  generateMockUsers,
 } from "../mocks";
 import { dbClose, dbConnect } from "../utils";
 
@@ -36,20 +36,15 @@ suite("Review Repository", () => {
     });
 
     test("Should create new review with different users", async () => {
-      const mockUser1 = generateMockUser();
-      const mockUser2 = generateMockUser();
-      const mockProduct = generateMockProduct();
-      const mockReview1 = generateMockReview();
-      const mockReview2 = generateMockReview();
-
-      await User.create(mockUser1);
-      await User.create(mockUser2);
-      await Product.create(mockProduct);
+      const [mockUser1, mockUser2] = generateMockUsers(2);
+      const [mockReview1, mockReview2] = generateMockReviews(2);
+      const mockProductId = generateMockObjectId();
+      await User.insertMany([mockUser1, mockUser2]);
 
       const review1 = await repo.create({
         data: {
           ...mockReview1,
-          product: mockProduct._id,
+          product: mockProductId,
           user: mockUser1._id,
         },
       });
@@ -57,7 +52,7 @@ suite("Review Repository", () => {
       const review2 = await repo.create({
         data: {
           ...mockReview2,
-          product: mockProduct._id,
+          product: mockProductId,
           user: mockUser2._id,
         },
       });
@@ -72,16 +67,15 @@ suite("Review Repository", () => {
 
     test("Should throw 'DatabaseError' if 'user' and 'product' already exist", async () => {
       const mockUser = generateMockUser();
-      const mockProduct = generateMockProduct();
+      const mockProductId = generateMockObjectId();
       const mockReview = generateMockReview();
-
       await User.create(mockUser);
-      await Product.create(mockProduct);
+
       await repo.create({
         data: {
           ...mockReview,
           user: mockUser._id,
-          product: mockProduct._id,
+          product: mockProductId,
         },
       });
 
@@ -91,7 +85,7 @@ suite("Review Repository", () => {
           data: {
             ...mockReview,
             user: mockUser._id,
-            product: mockProduct._id,
+            product: mockProductId,
           },
         });
       } catch (error) {
@@ -169,15 +163,15 @@ suite("Review Repository", () => {
 
   describe("Retrieve Reviews By Product ID", () => {
     test("Should retrieve all (2) reviews for a specific product", async () => {
-      const mockProduct = generateMockProduct();
+      const mockProductId = generateMockObjectId();
       const mockReviews = generateMockReviews(6);
-      mockReviews[0].product = mockProduct._id;
-      mockReviews[1].product = mockProduct._id;
+      mockReviews[0].product = mockProductId;
+      mockReviews[1].product = mockProductId;
 
       await Review.insertMany(mockReviews);
 
       const reviews = await repo.getAllByProductId({
-        productId: mockProduct._id,
+        productId: mockProductId,
       });
 
       assert.ok(reviews);
@@ -294,15 +288,15 @@ suite("Review Repository", () => {
 
   describe("Count Reviews By Product ID", () => {
     test("Should return the number (2) of all the reviews for a specific product", async () => {
-      const mockProduct = generateMockProduct();
+      const mockProductId = generateMockObjectId();
       const mockReviews = generateMockReviews(6);
-      mockReviews[0].product = mockProduct._id;
-      mockReviews[1].product = mockProduct._id;
+      mockReviews[0].product = mockProductId;
+      mockReviews[1].product = mockProductId;
 
       await Review.insertMany(mockReviews);
 
       const count = await repo.countByProductId({
-        productId: mockProduct._id,
+        productId: mockProductId,
       });
 
       assert.equal(count, 2);
@@ -342,15 +336,15 @@ suite("Review Repository", () => {
     });
 
     test("Should return value if review exists by user ID and product ID", async () => {
-      const mockProduct = generateMockProduct();
+      const mockProductId = generateMockObjectId();
       const mockReview = generateMockReview();
-      mockReview.product = mockProduct._id;
+      mockReview.product = mockProductId;
 
       await Review.create(mockReview);
 
       const reviewExists = await repo.existsByUserIdAndProductId({
         userId: mockReview.user,
-        productId: mockProduct._id,
+        productId: mockProductId,
       });
 
       assert.ok(reviewExists);

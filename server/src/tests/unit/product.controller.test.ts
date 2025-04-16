@@ -6,8 +6,10 @@ import { NotFoundError } from "../../errors";
 import Product from "../../models/productModel";
 import { productRepository } from "../../repositories";
 import {
-  generateMockProduct,
-  generateMockProducts,
+  generateMockInsertProductWithMulterImage,
+  generateMockInsertProductWithStringImage,
+  generateMockObjectId,
+  generateMockSelectProducts,
   generateMockUser,
 } from "../mocks";
 import {
@@ -31,11 +33,13 @@ suite("Product Controller", () => {
   describe("Create Product", () => {
     test("Should create new product and return 200 with data", async () => {
       const { req, res, next } = createMockExpressContext();
-      const mockProduct = generateMockProduct();
+      const { image: mockImage, ...mockProduct } =
+        generateMockInsertProductWithMulterImage();
       const mockUser = generateMockUser();
 
       res.locals.user = mockUser;
       req.body = mockProduct;
+      req.file = mockImage as Express.Multer.File;
 
       await controller.create(req, res, next);
 
@@ -48,8 +52,8 @@ suite("Product Controller", () => {
     test("Should throw 'ZodError' if the 'product' data is invalid", async () => {
       const { req, res, next } = createMockExpressContext();
       const mockUser = generateMockUser();
-
       res.locals.user = mockUser;
+
       try {
         await controller.create(req, res, next);
       } catch (error) {
@@ -62,7 +66,7 @@ suite("Product Controller", () => {
   describe("Retrieve Product By ID", () => {
     test("Should retrieve product by ID and return 200 with data", async () => {
       const { req, res, next } = createMockExpressContext();
-      const mockProduct = generateMockProduct();
+      const mockProduct = generateMockInsertProductWithStringImage();
 
       const product = await Product.create(mockProduct);
       req.params.productId = product._id.toString();
@@ -76,8 +80,8 @@ suite("Product Controller", () => {
 
     test("Should throw 'NotFoundError' if product does not exist", async () => {
       const { req, res, next } = createMockExpressContext();
-
-      req.params.productId = generateMockProduct()._id.toString();
+      const mockProductId = generateMockObjectId();
+      req.params.productId = mockProductId.toString();
 
       try {
         await controller.getById(req, res, next);
@@ -105,8 +109,7 @@ suite("Product Controller", () => {
   describe("Retrieve Products", () => {
     test("Should retrieve all products and return 200 with array of data", async () => {
       const { req, res, next } = createMockExpressContext();
-      const mockProducts = generateMockProducts(4);
-
+      const mockProducts = generateMockSelectProducts({ count: 4 });
       await Product.insertMany(mockProducts);
 
       req.query = {
@@ -125,8 +128,7 @@ suite("Product Controller", () => {
 
     test("Should retrieve 10 products per page on 2 pages", async () => {
       const { req, res, next } = createMockExpressContext();
-      const mockProducts = generateMockProducts(20);
-
+      const mockProducts = generateMockSelectProducts({ count: 20 });
       await Product.insertMany(mockProducts);
 
       req.query = {
@@ -160,8 +162,7 @@ suite("Product Controller", () => {
 
     test("Should return array of products with a specific name", async () => {
       const { req, res, next } = createMockExpressContext();
-      const mockProducts = generateMockProducts(4);
-
+      const mockProducts = generateMockSelectProducts({ count: 4 });
       await Product.insertMany(mockProducts);
 
       req.query = {
@@ -181,8 +182,7 @@ suite("Product Controller", () => {
   describe("Retrieve Top Rated Products", () => {
     test("Should retrieve 3 top rated products", async () => {
       const { req, res, next } = createMockExpressContext();
-      const mockProducts = generateMockProducts(4);
-
+      const mockProducts = generateMockSelectProducts({ count: 4 });
       await Product.insertMany(mockProducts);
 
       await controller.getTopRated(req, res, next);
@@ -209,26 +209,29 @@ suite("Product Controller", () => {
   describe("Update Product", () => {
     test("Should update product and return 200 with updated data", async () => {
       const { req, res, next } = createMockExpressContext();
-      const [mockProduct1, mockProduct2] = generateMockProducts(2);
-
-      const product = await Product.create(mockProduct1);
+      const mockProduct = generateMockInsertProductWithStringImage();
+      const product = await Product.create(mockProduct);
 
       req.params.productId = product._id.toString();
-      req.body = { name: mockProduct2.name };
+      const updateData = { name: "RANDOM_NAME" };
+      req.body = updateData;
+
       await controller.update(req, res, next);
 
       assert.equal(res.statusCode, 200);
 
       const data = res._getJSONData();
-      assert.equal(data.name, mockProduct2.name);
+      assert.equal(data.name, updateData.name);
     });
 
     test("Should throw 'NotFoundError' if product does not exist", async () => {
       const { req, res, next } = createMockExpressContext();
-      const [mockProduct1, mockProduct2] = generateMockProducts(2);
+      const mockProductId = generateMockObjectId();
 
-      req.params.productId = mockProduct1._id.toString();
-      req.body = { name: mockProduct2.name };
+      req.params.productId = mockProductId.toString();
+      const updateData = { name: "RANDOM_NAME" };
+      req.body = updateData;
+
       try {
         await controller.update(req, res, next);
       } catch (error) {
@@ -254,9 +257,9 @@ suite("Product Controller", () => {
 
     test("Should throw 'ZodError' if the update data is not a valid", async () => {
       const { req, res, next } = createMockExpressContext();
-      const mockProduct = generateMockProduct();
-
+      const mockProduct = generateMockInsertProductWithStringImage();
       const product = await Product.create(mockProduct);
+
       req.params.productId = product._id.toString();
       req.body = { brand: 123456 };
 
@@ -277,9 +280,9 @@ suite("Product Controller", () => {
   describe("Delete Product", () => {
     test("Should delete product and return 200 with message", async () => {
       const { req, res, next } = createMockExpressContext();
-      const mockProduct = generateMockProduct();
-
+      const mockProduct = generateMockInsertProductWithStringImage();
       const product = await Product.create(mockProduct);
+
       req.params.productId = product._id.toString();
 
       await controller.delete(req, res, next);
@@ -291,8 +294,9 @@ suite("Product Controller", () => {
 
     test("Should throw 'NotFoundError' if product does not exist", async () => {
       const { req, res, next } = createMockExpressContext();
+      const mockProductId = generateMockObjectId();
 
-      req.params.productId = generateMockProduct()._id.toString();
+      req.params.productId = mockProductId.toString();
 
       try {
         await controller.delete(req, res, next);

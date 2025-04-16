@@ -7,9 +7,9 @@ import User from "../../models/userModel";
 import { reviewService } from "../../services";
 import {
   generateMockObjectId,
-  generateMockProduct,
   generateMockReview,
   generateMockReviews,
+  generateMockSelectProduct,
 } from "../mocks";
 import { dbClose, dbConnect } from "../utils";
 
@@ -138,7 +138,7 @@ suite("Review Service", () => {
 
   describe("Retrieve Reviews By Product ID", () => {
     test("Should retrieve all (2) reviews for a specific product", async () => {
-      const mockProduct = generateMockProduct();
+      const mockProduct = generateMockSelectProduct();
       const mockReviews = generateMockReviews(6);
       mockReviews[0].product = mockProduct._id;
       mockReviews[1].product = mockProduct._id;

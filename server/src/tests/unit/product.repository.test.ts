@@ -3,9 +3,9 @@ import test, { after, before, beforeEach, describe, suite } from "node:test";
 import Product from "../../models/productModel";
 import { productRepository } from "../../repositories/product.repository";
 import {
+  generateMockInsertProductWithStringImage,
   generateMockObjectId,
-  generateMockProduct,
-  generateMockProducts,
+  generateMockSelectProducts,
 } from "../mocks";
 import { dbClose, dbConnect, findTopRatedProduct } from "../utils";
 
@@ -22,7 +22,7 @@ beforeEach(async () => {
 suite("Product Repository", () => {
   describe("Create Product", () => {
     test("Should create new product in the database", async () => {
-      const mockProduct = generateMockProduct();
+      const mockProduct = generateMockInsertProductWithStringImage();
 
       const product = await repo.create(mockProduct);
 
@@ -35,6 +35,7 @@ suite("Product Repository", () => {
 
   describe("Retrieve Product By Id", () => {
     test("Should retrieve a product by id", async () => {
+      const mockProduct = generateMockInsertProductWithStringImage();
       const created = await repo.create(mockProduct);
 
       const product = await repo.getById({ productId: created._id });
@@ -52,8 +53,7 @@ suite("Product Repository", () => {
 
   describe("Retrieve Top Products", () => {
     test("Should retrieve 3 top rated products", async () => {
-      const mockProducts = generateMockProducts(4);
-
+      const mockProducts = generateMockSelectProducts({ count: 4 });
       await Product.insertMany(mockProducts);
 
       const products = await repo.getTopRated({ limit: 3 });
@@ -74,8 +74,7 @@ suite("Product Repository", () => {
 
   describe("Retrieve Products", () => {
     test("Should retrieve all products on one page", async () => {
-      const mockProducts = generateMockProducts(4);
-
+      const mockProducts = generateMockSelectProducts({ count: 4 });
       await Product.insertMany(mockProducts);
 
       const products = await repo.getAll({
@@ -89,8 +88,7 @@ suite("Product Repository", () => {
     });
 
     test("Should retrieve all products on 2 pages", async () => {
-      const mockProducts = generateMockProducts(4);
-
+      const mockProducts = generateMockSelectProducts({ count: 4 });
       await Product.insertMany(mockProducts);
 
       const firstPage = await repo.getAll({
@@ -113,8 +111,7 @@ suite("Product Repository", () => {
     });
 
     test("Should retrieve the correct number of products when the number of products per page is greater than the total number of products", async () => {
-      const mockProducts = generateMockProducts(4);
-
+      const mockProducts = generateMockSelectProducts({ count: 4 });
       await Product.insertMany(mockProducts);
 
       const firstPage = await repo.getAll({
@@ -137,8 +134,7 @@ suite("Product Repository", () => {
     });
 
     test("Should retrieve products with a specific name", async () => {
-      const mockProducts = generateMockProducts(4);
-
+      const mockProducts = generateMockSelectProducts({ count: 4 });
       await Product.insertMany(mockProducts);
 
       const products = await repo.getAll({
@@ -166,8 +162,7 @@ suite("Product Repository", () => {
 
   describe("Count Products", () => {
     test("Should count all products and return number 4", async () => {
-      const mockProducts = generateMockProducts(4);
-
+      const mockProducts = generateMockSelectProducts({ count: 4 });
       await Product.insertMany(mockProducts);
 
       const count = await repo.count({ query: {} });
@@ -175,8 +170,7 @@ suite("Product Repository", () => {
     });
 
     test("Should count products with a specific name and return number 1", async () => {
-      const mockProducts = generateMockProducts(4);
-
+      const mockProducts = generateMockSelectProducts({ count: 4 });
       await Product.insertMany(mockProducts);
 
       const count = await repo.count({ name: mockProducts[0].name });
@@ -185,8 +179,7 @@ suite("Product Repository", () => {
     });
 
     test("Should return 0 if no products match the query", async () => {
-      const mockProducts = generateMockProducts(4);
-
+      const mockProducts = generateMockSelectProducts({ count: 4 });
       await Product.insertMany(mockProducts);
 
       const count = await repo.count({ name: "RANDOM_NAME" });
@@ -201,6 +194,9 @@ suite("Product Repository", () => {
 
   describe("Update Product", () => {
     test("Should find product by id and update it", async () => {
+      const [mockProduct1, mockProduct2] = generateMockSelectProducts({
+        count: 2,
+      });
       const created = await repo.create(mockProduct1);
 
       const updatedProduct = await repo.update({
@@ -215,12 +211,12 @@ suite("Product Repository", () => {
     });
 
     test("Should return 'null' if product does not exist", async () => {
-      const mockProduct = generateMockProduct();
+      const mockProductId = generateMockObjectId();
 
       const updatedProduct = await repo.update({
-        productId: mockProduct._id,
+        productId: mockProductId,
         data: {
-          name: mockProduct.name,
+          name: "RANDOM_NAME",
         },
       });
 
@@ -230,11 +226,10 @@ suite("Product Repository", () => {
 
   describe("Delete Product", () => {
     test("Should find product by id and delete it", async () => {
+      const mockProduct = generateMockInsertProductWithStringImage();
       const created = await repo.create(mockProduct);
 
-      await repo.delete({
-        productId: created._id,
-      });
+      await repo.delete({ productId: created._id });
 
       const product = await Product.findById(created._id);
       assert.equal(product, null);
@@ -242,9 +237,8 @@ suite("Product Repository", () => {
 
     test("Should return 'null' if product does not exist", async () => {
       const mockId = generateMockObjectId();
-      const deletedProduct = await repo.delete({
-        productId: mockId,
-      });
+
+      const deletedProduct = await repo.delete({ productId: mockId });
 
       assert.equal(deletedProduct, null);
     });
