@@ -1,10 +1,9 @@
 import mongoose, { Error as MongooseError, Types } from "mongoose";
-import { DatabaseError, NotFoundError } from "../errors";
+import { DatabaseError } from "../errors";
 import { CacheManager } from "../managers";
 import Product from "../models/productModel";
 import {
   AllProducts,
-  InsertProduct,
   InsertProductWithStringImage,
   SelectProduct,
   TopRatedProduct,
@@ -101,12 +100,13 @@ export class ProductRepository implements IProductRepository {
     productId,
   }: {
     productId: Types.ObjectId;
-  }): Promise<SelectProduct> {
+  }): Promise<SelectProduct | null> {
     try {
       const deletedProduct = await this.db.findByIdAndDelete(productId).lean();
-      if (!deletedProduct) throw new NotFoundError("Product");
+      if (deletedProduct) {
+        this.invalidateProductCache({ id: productId.toString() });
+      }
 
-      this.invalidateProductCache({ id: productId.toString() });
       return deletedProduct;
     } catch (error) {
       this.errorHandler(error);

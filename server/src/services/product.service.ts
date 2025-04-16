@@ -121,6 +121,8 @@ export class ProductService implements IProductService {
 
   async delete({ productId }: { productId: Types.ObjectId }): Promise<void> {
     const deletedProduct = await this.repository.delete({ productId });
+    if (!deletedProduct) throw new NotFoundError("Product");
+
     await this.storage.delete({ url: deletedProduct.image });
   }
 }
