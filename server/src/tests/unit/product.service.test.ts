@@ -3,15 +3,18 @@ import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { DatabaseError, NotFoundError } from "../../errors";
 import { CacheManager } from "../../managers";
 import Product from "../../models/productModel";
+import { ProductRepository } from "../../repositories";
 import { ProductService } from "../../services";
 import {
   generateMockInsertProductWithMulterImage,
+  generateMockInsertProductWithStringImage,
   generateMockObjectId,
   generateMockSelectProducts,
 } from "../mocks";
+import { mockImageStorage } from "../mocks/image-storage.mock";
 import { dbClose, dbConnect, findTopRatedProduct } from "../utils";
 
-const service = new ProductService();
+const service = new ProductService(new ProductRepository(), mockImageStorage());
 const cache = CacheManager.getInstance("product");
 
 before(async () => await dbConnect());
