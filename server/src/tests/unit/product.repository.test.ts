@@ -2,7 +2,7 @@ import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 import { CacheManager } from "../../managers";
 import Product from "../../models/productModel";
-import { productRepository } from "../../repositories/product.repository";
+import { ProductRepository } from "../../repositories";
 import {
   generateMockInsertProductWithStringImage,
   generateMockObjectId,
@@ -10,7 +10,7 @@ import {
 } from "../mocks";
 import { dbClose, dbConnect, findTopRatedProduct } from "../utils";
 
-const repo = productRepository;
+const repo = new ProductRepository();
 const cache = CacheManager.getInstance("product");
 
 before(async () => await dbConnect());

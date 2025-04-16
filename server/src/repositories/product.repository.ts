@@ -10,12 +10,33 @@ import {
   TopRatedProduct,
 } from "../types";
 
-class ProductRepository {
-  private readonly db = Product;
+export interface IProductRepository {
+  create(data: InsertProductWithStringImage): Promise<SelectProduct>;
+  getById(data: { productId: Types.ObjectId }): Promise<SelectProduct | null>;
+  update(data: {
+    productId: Types.ObjectId;
+    data: Partial<InsertProductWithStringImage>;
+  }): Promise<SelectProduct | null>;
+  delete(data: { productId: Types.ObjectId }): Promise<SelectProduct | null>;
+  getTopRated(data: { limit?: number }): Promise<Array<TopRatedProduct>>;
+  getAll(data: {
+    query: Record<string, unknown>;
+    numberOfProductsPerPage: number;
+    currentPage: number;
+  }): Promise<Array<AllProducts>>;
+  count(query: Record<string, unknown>): Promise<number>;
+}
+
+export class ProductRepository implements IProductRepository {
+  private readonly db: typeof Product;
   private cache: CacheManager;
 
-  constructor() {
-    this.cache = new CacheManager("product");
+  constructor(
+    db: typeof Product = Product,
+    cache: CacheManager = new CacheManager("product"),
+  ) {
+    this.db = db;
+    this.cache = cache;
   }
 
   async create(data: InsertProductWithStringImage): Promise<SelectProduct> {
@@ -177,5 +198,3 @@ class ProductRepository {
     }
   }
 }
-
-export const productRepository = new ProductRepository();
