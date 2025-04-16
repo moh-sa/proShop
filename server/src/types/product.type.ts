@@ -14,3 +14,7 @@ export type AllProducts = Pick<
   SelectProduct,
   "_id" | "name" | "brand" | "category" | "price" | "rating" | "image"
 >;
+
+export type InsertProductWithStringImage = Omit<InsertProduct, "image"> & {
+  image: string;
+};

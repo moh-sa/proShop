@@ -5,6 +5,7 @@ import Product from "../models/productModel";
 import {
   AllProducts,
   InsertProduct,
+  InsertProductWithStringImage,
   SelectProduct,
   TopRatedProduct,
 } from "../types";
@@ -17,11 +18,7 @@ class ProductRepository {
     this.cache = new CacheManager("product");
   }
 
-  async create(
-    data: Omit<InsertProduct, "image"> & {
-      image: string;
-    },
-  ): Promise<SelectProduct> {
+  async create(data: InsertProductWithStringImage): Promise<SelectProduct> {
     try {
       const product = (await this.db.create(data)).toObject();
 
@@ -60,7 +57,7 @@ class ProductRepository {
     data,
   }: {
     productId: Types.ObjectId;
-    data: Partial<Omit<InsertProduct, "image"> & { image: string }>;
+    data: Partial<InsertProductWithStringImage>;
   }): Promise<SelectProduct | null> {
     try {
       const product = await this.db
