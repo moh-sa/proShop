@@ -3,7 +3,7 @@ import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { DatabaseError, NotFoundError } from "../../errors";
 import { CacheManager } from "../../managers";
 import Product from "../../models/productModel";
-import { productService } from "../../services";
+import { ProductService } from "../../services";
 import {
   generateMockInsertProductWithMulterImage,
   generateMockObjectId,
@@ -11,7 +11,7 @@ import {
 } from "../mocks";
 import { dbClose, dbConnect, findTopRatedProduct } from "../utils";
 
-const service = productService;
+const service = new ProductService();
 const cache = CacheManager.getInstance("product");
 
 before(async () => await dbConnect());

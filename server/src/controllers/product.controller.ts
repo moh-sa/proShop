@@ -1,12 +1,12 @@
 import { z } from "zod";
 import { NotFoundError } from "../errors";
 import { insertProductSchema } from "../schemas";
-import { productService } from "../services";
+import { ProductService } from "../services";
 import { asyncHandler, removeEmptyFieldsSchema } from "../utils";
 import { objectIdValidator } from "../validators";
 
 class ProductController {
-  private readonly service = productService;
+  private readonly service = new ProductService();
 
   getById = asyncHandler(async (req, res) => {
     const productId = objectIdValidator.parse(req.params.productId);

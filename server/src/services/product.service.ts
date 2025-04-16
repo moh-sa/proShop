@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { NotFoundError } from "../errors";
-import { ImageStorageManager } from "../managers";
-import { ProductRepository } from "../repositories";
+import { IImageStorageManager, ImageStorageManager } from "../managers";
+import { IProductRepository, ProductRepository } from "../repositories";
 import {
   AllProducts,
   InsertProduct,
@@ -9,9 +9,33 @@ import {
   TopRatedProduct,
 } from "../types";
 
-class ProductService {
-  private readonly repository = new ProductRepository();
-  private readonly storage = new ImageStorageManager();
+export interface IProductService {
+  getById(data: { productId: Types.ObjectId }): Promise<SelectProduct>;
+  getAll(data: { keyword: string; currentPage: number }): Promise<{
+    products: Array<AllProducts>;
+    currentPage: number;
+    numberOfPages: number;
+  }>;
+  getTopRated(): Promise<Array<TopRatedProduct>>;
+  create(data: InsertProduct): Promise<SelectProduct>;
+  update(data: {
+    productId: Types.ObjectId;
+    data: Partial<InsertProduct>;
+  }): Promise<SelectProduct>;
+  delete(data: { productId: Types.ObjectId }): Promise<void>;
+}
+
+export class ProductService implements IProductService {
+  private readonly repository: IProductRepository;
+  private readonly storage: IImageStorageManager;
+
+  constructor(
+    repository: IProductRepository = new ProductRepository(),
+    storage: IImageStorageManager = new ImageStorageManager(),
+  ) {
+    this.repository = repository;
+    this.storage = storage;
+  }
 
   async getById({
     productId,
@@ -100,5 +124,3 @@ class ProductService {
     await this.storage.delete({ url: deletedProduct.image });
   }
 }
-
-export const productService = new ProductService();
