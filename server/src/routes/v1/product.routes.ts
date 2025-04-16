@@ -1,12 +1,14 @@
 import express from "express";
 import { uploadSingle as uploadSingleMiddleware } from "../../config/multer.config";
-import { productController as controller } from "../../controllers";
+import { ProductController } from "../../controllers";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
   checkUserIdExists,
   RateLimiterMiddleware,
 } from "../../middlewares";
+
+const controller = new ProductController();
 
 const baseRouter = express.Router();
 

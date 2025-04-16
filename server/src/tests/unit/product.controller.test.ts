@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { ZodError } from "zod";
-import { productController } from "../../controllers";
+import { ProductController } from "../../controllers";
 import { NotFoundError } from "../../errors";
 import { CacheManager } from "../../managers";
 import Product from "../../models/productModel";
@@ -19,7 +19,7 @@ import {
   findTopRatedProduct,
 } from "../utils";
 
-const controller = productController;
+const controller = new ProductController();
 const cache = CacheManager.getInstance("product");
 
 before(async () => await dbConnect());

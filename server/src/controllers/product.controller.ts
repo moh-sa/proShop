@@ -1,12 +1,29 @@
+import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 import { NotFoundError } from "../errors";
 import { insertProductSchema } from "../schemas";
-import { ProductService } from "../services";
+import { IProductService, ProductService } from "../services";
 import { asyncHandler, removeEmptyFieldsSchema } from "../utils";
 import { objectIdValidator } from "../validators";
 
-class ProductController {
-  private readonly service = new ProductService();
+export interface IProductController {
+  getById: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  getAll: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  getTopRated: (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => Promise<void>;
+  create: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  update: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  delete: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+}
+export class ProductController implements IProductController {
+  private readonly service: IProductService;
+
+  constructor(service: IProductService = new ProductService()) {
+    this.service = service;
+  }
 
   getById = asyncHandler(async (req, res) => {
     const productId = objectIdValidator.parse(req.params.productId);
@@ -75,5 +92,3 @@ class ProductController {
     res.status(200).json({ message: "Product removed" });
   });
 }
-
-export const productController = new ProductController();
