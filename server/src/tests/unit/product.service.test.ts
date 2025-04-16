@@ -137,7 +137,7 @@ suite("Product Service", () => {
 
   describe("Update Product", () => {
     test("Should find and update product", async () => {
-      const mockProduct = generateMockInsertProductWithMulterImage();
+      const mockProduct = generateMockInsertProductWithStringImage();
       const created = await Product.create(mockProduct);
 
       const data = { name: "RANDOM_NAME" };
