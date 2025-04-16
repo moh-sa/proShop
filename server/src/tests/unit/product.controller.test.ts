@@ -5,6 +5,8 @@ import { ProductController } from "../../controllers";
 import { NotFoundError } from "../../errors";
 import { CacheManager } from "../../managers";
 import Product from "../../models/productModel";
+import { ProductRepository } from "../../repositories";
+import { ProductService } from "../../services";
 import {
   generateMockInsertProductWithMulterImage,
   generateMockInsertProductWithStringImage,
@@ -12,6 +14,7 @@ import {
   generateMockSelectProducts,
   generateMockUser,
 } from "../mocks";
+import { mockImageStorage } from "../mocks/image-storage.mock";
 import {
   createMockExpressContext,
   dbClose,
@@ -19,7 +22,10 @@ import {
   findTopRatedProduct,
 } from "../utils";
 
-const controller = new ProductController();
+const storage = mockImageStorage();
+const repo = new ProductRepository();
+const service = new ProductService(repo, storage);
+const controller = new ProductController(service);
 const cache = CacheManager.getInstance("product");
 
 before(async () => await dbConnect());
