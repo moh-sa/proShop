@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 import { NotFoundError } from "../errors";
-import { imageStorageManager } from "../managers/image-storage.manager";
+import { ImageStorageManager } from "../managers";
 import { ProductRepository } from "../repositories";
 import {
   AllProducts,
@@ -11,7 +11,7 @@ import {
 
 class ProductService {
   private readonly repository = new ProductRepository();
-  private readonly storage = imageStorageManager;
+  private readonly storage = new ImageStorageManager();
 
   async getById({
     productId,

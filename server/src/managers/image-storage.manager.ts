@@ -2,17 +2,16 @@ import { UploadApiErrorResponse, UploadApiResponse } from "cloudinary";
 import cloudinary from "../config/cloudinary.config";
 import { InsertImage, SelectImage } from "../types";
 
-class ImageStorageManager {
+export interface IImageStorageManager {
+  upload(data: { file: InsertImage }): Promise<string>;
+  delete(data: { url: string }): Promise<void>;
+  replace(data: { url: string; file: InsertImage }): Promise<SelectImage>;
+}
+
+export class ImageStorageManager implements IImageStorageManager {
   private readonly provider = cloudinary;
 
-  async upload({
-    file,
-  }: {
-    file: Omit<
-      Express.Multer.File,
-      "stream" | "destination" | "filename" | "path"
-    >;
-  }): Promise<string> {
+  async upload({ file }: { file: InsertImage }): Promise<string> {
     return new Promise((resolve, reject) => {
       this.provider.uploader
         .upload_stream(
@@ -86,5 +85,3 @@ class ImageStorageManager {
     return publicId;
   }
 }
-
-export const imageStorageManager = new ImageStorageManager();
