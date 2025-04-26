@@ -2,7 +2,6 @@ export * from "./async-handler.util";
 export * from "./format-zod-errors.util";
 export * from "./generate-salt.util";
 export * from "./generateJwtToken";
-export * from "./handle-error-response.util";
 export * from "./hash-data.util";
 export * from "./is-exist.util";
 export * from "./remove-empty-fields.util";
