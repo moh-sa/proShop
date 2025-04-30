@@ -9,3 +9,4 @@ export * from "./remove-object-fields";
 export * from "./validate-file-type.util";
 export * from "./verify-jwt-token.util";
 export * from "./success-response.util";
+export * from "./error-response.util";
