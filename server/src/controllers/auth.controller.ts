@@ -1,6 +1,6 @@
 import { insertUserSchema, selectUserSchema } from "../schemas";
 import { authService } from "../services";
-import { asyncHandler } from "../utils";
+import { asyncHandler, sendSuccessResponse } from "../utils";
 
 class AuthController {
   private readonly service = authService;
@@ -14,7 +14,11 @@ class AuthController {
 
     const response = await this.service.signin(parsedData);
 
-    res.status(200).json(response);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: response,
+    });
   });
 
   signup = asyncHandler(async (req, res) => {
@@ -22,7 +26,11 @@ class AuthController {
 
     const response = await this.service.signup(data);
 
-    res.status(201).json(response);
+    return sendSuccessResponse({
+      res,
+      statusCode: 201,
+      data: response,
+    });
   });
 }
 

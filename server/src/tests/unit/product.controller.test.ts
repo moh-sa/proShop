@@ -50,9 +50,8 @@ suite("Product Controller", () => {
 
       await controller.create(req, res, next);
 
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 201);
-
-      const data = res._getJSONData();
       assert.equal(data.name, mockProduct.name);
     });
 
@@ -79,7 +78,7 @@ suite("Product Controller", () => {
       req.params.productId = product._id.toString();
 
       await controller.getById(req, res, next);
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
 
       assert.equal(res.statusCode, 200);
       assert.equal(data.name, mockProduct.name);
@@ -125,12 +124,12 @@ suite("Product Controller", () => {
       };
 
       await controller.getAll(req, res, next);
-      const data = res._getJSONData();
+      const { data, meta } = res._getJSONData();
 
       assert.equal(res.statusCode, 200);
-      assert.equal(data.products.length, 4);
-      assert.equal(data.page, 1);
-      assert.equal(data.pages, 1);
+      assert.equal(data.length, 4);
+      assert.equal(meta.currentPage, 1);
+      assert.equal(meta.numberOfPages, 1);
     });
 
     test("Should retrieve 10 products per page on 2 pages", async () => {
@@ -144,12 +143,12 @@ suite("Product Controller", () => {
       };
 
       await controller.getAll(req, res, next);
-      const data = res._getJSONData();
+      const { data, meta } = res._getJSONData();
 
       assert.equal(res.statusCode, 200);
-      assert.equal(data.products.length, 10);
-      assert.equal(data.page, 1);
-      assert.equal(data.pages, 2);
+      assert.equal(data.length, 10);
+      assert.equal(meta.currentPage, 1);
+      assert.equal(meta.numberOfPages, 2);
     });
 
     test("Should return empty array if no products exist", async () => {
@@ -161,10 +160,10 @@ suite("Product Controller", () => {
       };
 
       await controller.getAll(req, res, next);
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
 
       assert.equal(res.statusCode, 200);
-      assert.equal(data.products.length, 0);
+      assert.equal(data.length, 0);
     });
 
     test("Should return array of products with a specific name", async () => {
@@ -178,11 +177,11 @@ suite("Product Controller", () => {
       };
 
       await controller.getAll(req, res, next);
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
 
       assert.equal(res.statusCode, 200);
-      assert.equal(data.products.length, 1);
-      assert.equal(data.products[0].name, mockProducts[0].name);
+      assert.equal(data.length, 1);
+      assert.equal(data[0].name, mockProducts[0].name);
     });
   });
 
@@ -193,7 +192,7 @@ suite("Product Controller", () => {
       await Product.insertMany(mockProducts);
 
       await controller.getTopRated(req, res, next);
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
 
       assert.equal(res.statusCode, 200);
       assert.equal(data.length, 3);
@@ -206,7 +205,7 @@ suite("Product Controller", () => {
       const { req, res, next } = createMockExpressContext();
 
       await controller.getTopRated(req, res, next);
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
 
       assert.equal(res.statusCode, 200);
       assert.equal(data.length, 0);
@@ -227,7 +226,7 @@ suite("Product Controller", () => {
 
       assert.equal(res.statusCode, 200);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(data.name, updateData.name);
     });
 
@@ -293,10 +292,8 @@ suite("Product Controller", () => {
       req.params.productId = product._id.toString();
 
       await controller.delete(req, res, next);
-      const data = res._getJSONData();
 
-      assert.equal(res.statusCode, 200);
-      assert.equal(data.message, "Product removed");
+      assert.equal(res.statusCode, 204);
     });
 
     test("Should throw 'NotFoundError' if product does not exist", async () => {

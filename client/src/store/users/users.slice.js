@@ -57,12 +57,12 @@ const usersSlice = createSlice({
       })
       .addCase(fetchUserDetails.rejected, (state, action) => {
         state.user.loading = false;
-        state.user.error = action.payload;
+        state.user.error = action.payload.errors;
       })
       .addCase(fetchUserDetails.fulfilled, (state, action) => {
         state.user.loading = false;
         state.user.success = true;
-        state.user.data = action.payload;
+        state.user.data = action.payload.data;
       })
 
       // --> USERS <--
@@ -71,12 +71,12 @@ const usersSlice = createSlice({
       })
       .addCase(fetchUsers.rejected, (state, action) => {
         state.users.loading = false;
-        state.users.error = action.payload;
+        state.users.error = action.payload.errors;
       })
       .addCase(fetchUsers.fulfilled, (state, action) => {
         state.users.loading = false;
         state.users.success = true;
-        state.users.data = action.payload;
+        state.users.data = action.payload.data;
       })
 
       // --> UPDATE <--
@@ -85,7 +85,7 @@ const usersSlice = createSlice({
       })
       .addCase(updateUser.rejected, (state, action) => {
         state.update.loading = false;
-        state.update.error = action.payload;
+        state.update.error = action.payload.errors;
       })
       .addCase(updateUser.fulfilled, (state) => {
         state.update.loading = false;
@@ -98,7 +98,7 @@ const usersSlice = createSlice({
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.update.loading = false;
-        state.update.error = action.payload;
+        state.update.error = action.payload.errors;
       })
       .addCase(updateUserProfile.fulfilled, (state) => {
         state.update.loading = false;
@@ -111,7 +111,7 @@ const usersSlice = createSlice({
       })
       .addCase(deleteUser.rejected, (state, action) => {
         state.delete.loading = false;
-        state.delete.error = action.payload;
+        state.delete.error = action.payload.errors;
       })
       .addCase(deleteUser.fulfilled, (state) => {
         state.delete.loading = false;

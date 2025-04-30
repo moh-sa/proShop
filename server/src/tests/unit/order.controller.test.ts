@@ -29,7 +29,7 @@ suite("Order Controller", () => {
 
       await controller.create(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 201);
       assert.equal(data.totalPrice, mockOrder.totalPrice);
     });
@@ -75,7 +75,7 @@ suite("Order Controller", () => {
 
       await controller.getById(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.equal(data.totalPrice, mockOrder.totalPrice);
     });
@@ -117,7 +117,7 @@ suite("Order Controller", () => {
 
       await controller.getAll(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.equal(data.length, 4);
     });
@@ -127,7 +127,7 @@ suite("Order Controller", () => {
 
       await controller.getAll(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.equal(data.length, 0);
     });
@@ -143,7 +143,7 @@ suite("Order Controller", () => {
 
       await controller.getAllByUserId(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.equal(data.length, 1);
     });
@@ -155,7 +155,7 @@ suite("Order Controller", () => {
 
       await controller.getAllByUserId(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.equal(data.length, 0);
     });
@@ -184,7 +184,7 @@ suite("Order Controller", () => {
 
       await controller.updateToPaid(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.ok(data.isPaid);
       assert.ok(data.paidAt);
@@ -228,7 +228,7 @@ suite("Order Controller", () => {
 
       await controller.updateToDelivered(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.ok(data.isDelivered);
       assert.ok(data.deliveredAt);

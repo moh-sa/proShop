@@ -1,6 +1,6 @@
 import { insertOrderSchema } from "../schemas";
 import { orderService } from "../services";
-import { asyncHandler } from "../utils";
+import { asyncHandler, sendSuccessResponse } from "../utils";
 import { objectIdValidator } from "../validators";
 
 class OrderController {
@@ -14,7 +14,11 @@ class OrderController {
 
     const response = await this.service.create(data);
 
-    res.status(201).json(response);
+    return sendSuccessResponse({
+      res,
+      statusCode: 201,
+      data: response,
+    });
   });
 
   getById = asyncHandler(async (req, res) => {
@@ -22,13 +26,21 @@ class OrderController {
 
     const order = await this.service.getById({ orderId });
 
-    res.status(200).json(order);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: order,
+    });
   });
 
   getAll = asyncHandler(async (req, res) => {
     const orders = await this.service.getAll();
 
-    res.status(200).json(orders);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: orders,
+    });
   });
 
   getAllByUserId = asyncHandler(async (req, res) => {
@@ -36,7 +48,11 @@ class OrderController {
 
     const orders = await this.service.getAllByUserId({ userId });
 
-    res.status(200).json(orders);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: orders,
+    });
   });
 
   updateToPaid = asyncHandler(async (req, res) => {
@@ -44,7 +60,11 @@ class OrderController {
 
     const order = await this.service.updateToPaid({ orderId });
 
-    res.status(200).json(order);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: order,
+    });
   });
 
   updateToDelivered = asyncHandler(async (req, res) => {
@@ -52,7 +72,11 @@ class OrderController {
 
     const order = await this.service.updateToDelivered({ orderId });
 
-    res.status(200).json(order);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: order,
+    });
   });
 }
 export const orderController = new OrderController();

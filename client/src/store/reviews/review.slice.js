@@ -35,13 +35,13 @@ const reviewsSlice = createSlice({
       })
       .addCase(createReviewThunk.rejected, (state, action) => {
         state.create.loading = false;
-        state.create.error = action.payload;
+        state.create.error = action.payload.errors;
       })
       .addCase(createReviewThunk.fulfilled, (state, action) => {
         state.create.loading = false;
         state.create.success = true;
 
-        state.reviews.data.push(action.payload);
+        state.reviews.data.push(action.payload.data);
       })
 
       // --> GET REVIEWS BY PRODUCT ID <--
@@ -53,12 +53,12 @@ const reviewsSlice = createSlice({
       })
       .addCase(getReviewsByProductIdThunk.rejected, (state, action) => {
         state.reviews.loading = false;
-        state.reviews.error = action.payload;
+        state.reviews.error = action.payload.errors;
       })
       .addCase(getReviewsByProductIdThunk.fulfilled, (state, action) => {
         state.reviews.loading = false;
         state.reviews.success = true;
-        state.reviews.data = action.payload;
+        state.reviews.data = action.payload.data;
       });
   },
 });

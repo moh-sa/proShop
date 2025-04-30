@@ -21,7 +21,7 @@ suite("Auth Controller", () => {
 
       await controller.signup(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 201);
       assert.equal(data.name, mockUser.name);
       assert.equal(data.email, mockUser.email);
@@ -55,8 +55,8 @@ suite("Auth Controller", () => {
       res.locals.user = mockUser;
 
       await controller.signin(req, res, next);
-      const data = res._getJSONData();
 
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.equal(data.email, mockUser.email);
     });

@@ -30,7 +30,7 @@ suite("User Integration Tests", () => {
       const step1Res = step1Signup.res._getJSONData();
       assert.ok(step1Res);
       assert.equal(step1Signup.res.statusCode, 201);
-      assert.equal(step1Res.email, mockUser.email);
+      assert.equal(step1Res.data.email, mockUser.email);
 
       // Step 2: User Signin
       const step2Signin = createMockExpressContext();
@@ -48,14 +48,14 @@ suite("User Integration Tests", () => {
       const step2Res = step2Signin.res._getJSONData();
       assert.ok(step2Res);
       assert.equal(step2Signin.res.statusCode, 200);
-      assert.equal(step2Res.email, mockUser.email);
+      assert.equal(step2Res.data.email, mockUser.email);
 
-      const token = step2Res.token;
+      const token = step2Res.data.token;
       assert.ok(token);
 
       // Step 3: Get user profile
       const step3GetById = createMockExpressContext();
-      step3GetById.req.params.userId = step1Res._id;
+      step3GetById.req.params.userId = step1Res.data._id;
 
       await userController.getById(
         step3GetById.req,
@@ -66,11 +66,11 @@ suite("User Integration Tests", () => {
       const step3Res = step3GetById.res._getJSONData();
       assert.ok(step3Res);
       assert.equal(step3GetById.res.statusCode, 200);
-      assert.equal(step3Res.email, mockUser.email);
+      assert.equal(step3Res.data.email, mockUser.email);
 
       // Step 4: Update user profile
       const step4Update = createMockExpressContext();
-      step4Update.req.params.userId = step1Res._id;
+      step4Update.req.params.userId = step1Res.data._id;
       step4Update.req.body = {
         name: "John Doe",
         email: "john.doe@gmail.com",
@@ -85,12 +85,12 @@ suite("User Integration Tests", () => {
       const step4Res = step4Update.res._getJSONData();
       assert.ok(step4Res);
       assert.equal(step4Update.res.statusCode, 200);
-      assert.equal(step4Res.name, "John Doe");
-      assert.equal(step4Res.email, "john.doe@gmail.com");
+      assert.equal(step4Res.data.name, "John Doe");
+      assert.equal(step4Res.data.email, "john.doe@gmail.com");
 
       // Step 5: Delete user profile
       const step5Delete = createMockExpressContext();
-      step5Delete.req.params.userId = step1Res._id;
+      step5Delete.req.params.userId = step1Res.data._id;
 
       await userController.delete(
         step5Delete.req,
@@ -101,11 +101,10 @@ suite("User Integration Tests", () => {
       const step5Res = step5Delete.res._getJSONData();
       assert.ok(step5Res);
       assert.equal(step5Delete.res.statusCode, 204);
-      assert.equal(step5Res.message, "User removed");
 
       // Step 6: Try to get user profile
       const step6GetById = createMockExpressContext();
-      step6GetById.req.params.userId = step1Res._id;
+      step6GetById.req.params.userId = step1Res.data._id;
 
       try {
         await userController.getById(

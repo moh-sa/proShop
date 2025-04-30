@@ -67,12 +67,12 @@ const ordersSlice = createSlice({
       })
       .addCase(fetchOrderDetails.rejected, (state, action) => {
         state.order.loading = false;
-        state.order.error = action.payload;
+        state.order.error = action.payload.errors;
       })
       .addCase(fetchOrderDetails.fulfilled, (state, action) => {
         state.order.loading = false;
         state.order.success = true;
-        state.order.data = action.payload;
+        state.order.data = action.payload.data;
       })
 
       // --> GET (ADMIN) ORDERS <--
@@ -81,12 +81,12 @@ const ordersSlice = createSlice({
       })
       .addCase(fetchAdminOrders.rejected, (state, action) => {
         state.orders.loading = false;
-        state.orders.error = action.payload;
+        state.orders.error = action.payload.errors;
       })
       .addCase(fetchAdminOrders.fulfilled, (state, action) => {
         state.orders.loading = false;
         state.orders.success = true;
-        state.orders.data = action.payload;
+        state.orders.data = action.payload.data;
       })
 
       // --> GET (USER) ORDERS <--
@@ -95,12 +95,12 @@ const ordersSlice = createSlice({
       })
       .addCase(fetchUserOrders.rejected, (state, action) => {
         state.orders.loading = false;
-        state.orders.error = action.payload;
+        state.orders.error = action.payload.errors;
       })
       .addCase(fetchUserOrders.fulfilled, (state, action) => {
         state.orders.loading = false;
         state.orders.success = true;
-        state.orders.data = action.payload;
+        state.orders.data = action.payload.data;
       })
 
       // --> CREATE ORDER <--
@@ -109,12 +109,12 @@ const ordersSlice = createSlice({
       })
       .addCase(createOrder.rejected, (state, action) => {
         state.create.loading = false;
-        state.create.error = action.payload;
+        state.create.error = action.payload.errors;
       })
       .addCase(createOrder.fulfilled, (state, action) => {
         state.create.loading = false;
         state.create.success = true;
-        state.create.data = action.payload;
+        state.create.data = action.payload.data;
       })
 
       // --> PAY ORDER <--
@@ -123,7 +123,7 @@ const ordersSlice = createSlice({
       })
       .addCase(payOrder.rejected, (state, action) => {
         state.pay.loading = false;
-        state.pay.error = action.payload;
+        state.pay.error = action.payload.errors;
       })
       .addCase(payOrder.fulfilled, (state) => {
         state.pay.loading = false;
@@ -136,7 +136,7 @@ const ordersSlice = createSlice({
       })
       .addCase(deliverOrder.rejected, (state, action) => {
         state.deliver.loading = false;
-        state.deliver.error = action.payload;
+        state.deliver.error = action.payload.errors;
       })
       .addCase(deliverOrder.fulfilled, (state) => {
         state.deliver.loading = false;

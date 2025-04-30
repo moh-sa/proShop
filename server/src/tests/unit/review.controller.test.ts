@@ -38,7 +38,7 @@ suite("Review Controller", () => {
 
       assert.equal(res.statusCode, 201);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(data.name, mockUser.name);
       assert.equal(data.comment, mockReview.comment);
     });
@@ -91,7 +91,7 @@ suite("Review Controller", () => {
 
       await controller.getById(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.equal(data.name, mockReview.name);
       assert.equal(data.comment, mockReview.comment);
@@ -138,7 +138,7 @@ suite("Review Controller", () => {
 
       await controller.getAll(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.equal(data.length, 4);
     });
@@ -148,7 +148,7 @@ suite("Review Controller", () => {
 
       await controller.getAll(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.equal(data.length, 0);
     });
@@ -166,7 +166,7 @@ suite("Review Controller", () => {
 
       await controller.getAllByUserId(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.equal(data.length, 3);
     });
@@ -179,7 +179,7 @@ suite("Review Controller", () => {
 
       await controller.getAllByUserId(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.equal(data.length, 0);
     });
@@ -198,7 +198,7 @@ suite("Review Controller", () => {
 
       await controller.getAllByProductId(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.equal(data.length, 4);
     });
@@ -211,7 +211,7 @@ suite("Review Controller", () => {
 
       await controller.getAllByProductId(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.equal(data.length, 0);
     });
@@ -229,7 +229,7 @@ suite("Review Controller", () => {
 
       await controller.update(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.equal(data.comment, updateData.comment);
     });
@@ -296,9 +296,7 @@ suite("Review Controller", () => {
 
       await controller.delete(req, res, next);
 
-      const data = res._getJSONData();
-      assert.equal(res.statusCode, 200);
-      assert.equal(data.message, "Review removed");
+      assert.equal(res.statusCode, 204);
     });
 
     test("Should throw 'NotFoundError' if review does not exist", async () => {
@@ -342,9 +340,9 @@ suite("Review Controller", () => {
 
       await controller.count(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
-      assert.equal(data.count, 6);
+      assert.equal(data, 6);
     });
 
     test("Should return 0 if no reviews exist", async () => {
@@ -352,9 +350,9 @@ suite("Review Controller", () => {
 
       await controller.count(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
-      assert.equal(data.count, 0);
+      assert.equal(data, 0);
     });
   });
 
@@ -370,9 +368,9 @@ suite("Review Controller", () => {
 
       await controller.countByUserId(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
-      assert.equal(data.count, 3);
+      assert.equal(data, 3);
     });
 
     test("Should return 0 if no reviews exist", async () => {
@@ -385,9 +383,9 @@ suite("Review Controller", () => {
 
       await controller.countByUserId(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
-      assert.equal(data.count, 0);
+      assert.equal(data, 0);
     });
 
     test("Should throw 'ZodError' if the 'userId' is not a valid ObjectId", async () => {
@@ -418,10 +416,10 @@ suite("Review Controller", () => {
 
       await controller.countByProductId(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
 
       assert.equal(res.statusCode, 200);
-      assert.equal(data.count, 2);
+      assert.equal(data, 2);
     });
 
     test("Should return 0 if no reviews exist", async () => {
@@ -432,9 +430,9 @@ suite("Review Controller", () => {
 
       await controller.countByProductId(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
-      assert.equal(data.count, 0);
+      assert.equal(data, 0);
     });
 
     test("Should throw 'ZodError' if the 'productId' is not a valid ObjectId", async () => {
@@ -464,7 +462,7 @@ suite("Review Controller", () => {
 
       await controller.existsById(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.equal(data._id, mockReview._id);
     });
@@ -513,7 +511,7 @@ suite("Review Controller", () => {
 
       await controller.existsByUserIdAndProductId(req, res, next);
 
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
       assert.equal(res.statusCode, 200);
       assert.equal(data._id, mockReview._id);
     });

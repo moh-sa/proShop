@@ -1,6 +1,10 @@
 import { insertReviewSchema } from "../schemas";
 import { reviewService } from "../services";
-import { asyncHandler, removeEmptyFieldsSchema } from "../utils";
+import {
+  asyncHandler,
+  removeEmptyFieldsSchema,
+  sendSuccessResponse,
+} from "../utils";
 import { objectIdValidator } from "../validators";
 
 class ReviewController {
@@ -15,7 +19,11 @@ class ReviewController {
 
     const newReview = await this.service.create({ data });
 
-    res.status(201).json(newReview);
+    return sendSuccessResponse({
+      res,
+      statusCode: 201,
+      data: newReview,
+    });
   });
 
   getById = asyncHandler(async (req, res) => {
@@ -23,12 +31,21 @@ class ReviewController {
 
     const review = await this.service.getById({ reviewId });
 
-    res.status(200).json(review);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: review,
+    });
   });
 
   getAll = asyncHandler(async (req, res) => {
     const reviews = await this.service.getAll();
-    res.status(200).json(reviews);
+
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: reviews,
+    });
   });
 
   getAllByUserId = asyncHandler(async (req, res) => {
@@ -36,7 +53,11 @@ class ReviewController {
 
     const reviews = await this.service.getAllByUserId({ userId });
 
-    res.status(200).json(reviews);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: reviews,
+    });
   });
 
   getAllByProductId = asyncHandler(async (req, res) => {
@@ -44,7 +65,11 @@ class ReviewController {
 
     const reviews = await this.service.getAllByProductId({ productId });
 
-    res.status(200).json(reviews);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: reviews,
+    });
   });
 
   update = asyncHandler(async (req, res) => {
@@ -58,7 +83,11 @@ class ReviewController {
       data,
     });
 
-    res.status(200).json(updatedReview);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: updatedReview,
+    });
   });
 
   delete = asyncHandler(async (req, res) => {
@@ -66,13 +95,21 @@ class ReviewController {
 
     await this.service.delete({ reviewId });
 
-    res.status(200).json({ message: "Review removed" });
+    return sendSuccessResponse({
+      res,
+      statusCode: 204,
+      data: null,
+    });
   });
 
   count = asyncHandler(async (req, res) => {
     const count = await this.service.count();
 
-    res.status(200).json({ count });
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: count,
+    });
   });
 
   countByUserId = asyncHandler(async (req, res) => {
@@ -80,7 +117,11 @@ class ReviewController {
 
     const count = await this.service.countByUserId({ userId });
 
-    res.status(200).json({ count });
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: count,
+    });
   });
 
   countByProductId = asyncHandler(async (req, res) => {
@@ -88,7 +129,11 @@ class ReviewController {
 
     const count = await this.service.countByProductId({ productId });
 
-    res.status(200).json({ count });
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: count,
+    });
   });
 
   existsById = asyncHandler(async (req, res) => {
@@ -96,7 +141,11 @@ class ReviewController {
 
     const exists = await this.service.existsById({ reviewId });
 
-    res.status(200).json(exists);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: exists,
+    });
   });
 
   existsByUserIdAndProductId = asyncHandler(async (req, res) => {
@@ -108,7 +157,11 @@ class ReviewController {
       productId,
     });
 
-    res.status(200).json(exists);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: exists,
+    });
   });
 }
 

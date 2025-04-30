@@ -76,12 +76,12 @@ const productSlice = createSlice({
       })
       .addCase(fetchProductDetails.rejected, (state, action) => {
         state.product.loading = false;
-        state.product.error = action.payload;
+        state.product.error = action.payload.errors;
       })
       .addCase(fetchProductDetails.fulfilled, (state, action) => {
         state.product.loading = false;
         state.product.success = true;
-        state.product.data = action.payload;
+        state.product.data = action.payload.data;
       })
 
       // --> GET PRODUCTS <--
@@ -90,15 +90,15 @@ const productSlice = createSlice({
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.products.loading = false;
-        state.products.error = action.payload;
+        state.products.error = action.payload.errors;
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.products.loading = false;
         state.products.success = true;
         state.products.data = {
-          products: action.payload.products,
-          page: action.payload.page,
-          pages: action.payload.pages,
+          products: action.payload.data,
+          page: action.payload.meta.currentPage,
+          pages: action.payload.meta.numberOfPages,
         };
       })
 
@@ -108,12 +108,12 @@ const productSlice = createSlice({
       })
       .addCase(fetchTopRatedProducts.rejected, (state, action) => {
         state.topRated.loading = false;
-        state.topRated.error = action.payload;
+        state.topRated.error = action.payload.errors;
       })
       .addCase(fetchTopRatedProducts.fulfilled, (state, action) => {
         state.topRated.loading = false;
         state.topRated.success = true;
-        state.topRated.data = action.payload;
+        state.topRated.data = action.payload.data;
       })
 
       // --> CREATE PRODUCT <--
@@ -122,7 +122,7 @@ const productSlice = createSlice({
       })
       .addCase(createProduct.rejected, (state, action) => {
         state.create.loading = false;
-        state.create.error = action.payload;
+        state.create.error = action.payload.errors;
       })
       .addCase(createProduct.fulfilled, (state) => {
         state.create.loading = false;
@@ -135,12 +135,12 @@ const productSlice = createSlice({
       })
       .addCase(updateProduct.rejected, (state, action) => {
         state.update.loading = false;
-        state.update.error = action.payload;
+        state.update.error = action.payload.errors;
       })
       .addCase(updateProduct.fulfilled, (state, action) => {
         state.update.loading = false;
         state.update.success = true;
-        state.product.data = action.payload;
+        state.product.data = action.payload.data;
       })
 
       // --> DELETE PRODUCT <--
@@ -149,7 +149,7 @@ const productSlice = createSlice({
       })
       .addCase(deleteProduct.rejected, (state, action) => {
         state.delete.loading = false;
-        state.delete.error = action.payload;
+        state.delete.error = action.payload.errors;
       })
       .addCase(deleteProduct.fulfilled, (state) => {
         state.delete.loading = false;

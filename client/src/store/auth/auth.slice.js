@@ -34,26 +34,26 @@ const AuthSlice = createSlice({
     });
     builder.addCase(login.rejected, (state, action) => {
       state.loading = false;
-      state.error = action.payload;
+      state.error = action.payload.errors;
     });
     builder.addCase(login.fulfilled, (state, action) => {
       state.loading = false;
       state.success = true;
-      state.user = action.payload;
-      localStorage.setItem("auth", JSON.stringify(action.payload));
+      state.user = action.payload.data;
+      localStorage.setItem("auth", JSON.stringify(action.payload.data));
     });
 
     // --> REGISTER <--
     builder.addCase(register.pending, (state) => (state = initialState));
     builder.addCase(register.rejected, (state, action) => {
       state.loading = false;
-      state.error = action.payload;
+      state.error = action.payload.errors;
     });
     builder.addCase(register.fulfilled, (state, action) => {
       state.loading = false;
       state.success = true;
-      state.user = action.payload;
-      localStorage.setItem("auth", JSON.stringify(action.payload));
+      state.user = action.payload.data;
+      localStorage.setItem("auth", JSON.stringify(action.payload.data));
     });
   },
 });

@@ -1,7 +1,11 @@
 import { NotFoundError } from "../errors";
 import { insertUserSchema } from "../schemas";
 import { userService } from "../services";
-import { asyncHandler, removeEmptyFieldsSchema } from "../utils";
+import {
+  asyncHandler,
+  removeEmptyFieldsSchema,
+  sendSuccessResponse,
+} from "../utils";
 import { objectIdValidator } from "../validators";
 
 class UserController {
@@ -13,13 +17,21 @@ class UserController {
 
     const response = await this.service.getById({ userId });
 
-    res.status(200).json(response);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: response,
+    });
   });
 
   getAll = asyncHandler(async (req, res) => {
     const response = await this.service.getAll();
 
-    res.status(200).json(response);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: response,
+    });
   });
 
   update = asyncHandler(async (req, res) => {
@@ -35,7 +47,11 @@ class UserController {
       data,
     });
 
-    res.status(200).json(response);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: response,
+    });
   });
 
   delete = asyncHandler(async (req, res) => {
@@ -45,7 +61,11 @@ class UserController {
     const response = await this.service.delete({ userId });
     if (!response) throw new NotFoundError("User");
 
-    res.status(204).json({ message: "User removed" });
+    return sendSuccessResponse({
+      res,
+      statusCode: 204,
+      data: null,
+    });
   });
 }
 

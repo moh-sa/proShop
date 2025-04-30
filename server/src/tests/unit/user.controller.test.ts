@@ -26,7 +26,7 @@ suite("User Controller", () => {
       req.params.userId = user._id.toString();
 
       await controller.getById(req, res, next);
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
 
       assert.equal(res.statusCode, 200);
       assert.equal(data.email, mockUser.email);
@@ -55,7 +55,7 @@ suite("User Controller", () => {
       await User.insertMany(mockUsers);
 
       await controller.getAll(req, res, next);
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
 
       assert.equal(res.statusCode, 200);
       assert.equal(data.length, 3);
@@ -65,7 +65,7 @@ suite("User Controller", () => {
       const { req, res, next } = createMockExpressContext();
 
       await controller.getAll(req, res, next);
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
 
       assert.equal(res.statusCode, 200);
       assert.equal(data.length, 0);
@@ -82,7 +82,7 @@ suite("User Controller", () => {
       req.body = { name: mockUser2.name };
 
       await controller.update(req, res, next);
-      const data = res._getJSONData();
+      const { data } = res._getJSONData();
 
       assert.equal(res.statusCode, 200);
       assert.equal(data.email, mockUser1.email);
@@ -142,10 +142,8 @@ suite("User Controller", () => {
       req.params.userId = user._id.toString();
 
       await controller.delete(req, res, next);
-      const data = res._getJSONData();
 
       assert.equal(res.statusCode, 204);
-      assert.equal(data.message, "User removed");
     });
 
     test("Should throw 'NotFoundError' if user does not exist", async () => {

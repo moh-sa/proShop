@@ -3,7 +3,11 @@ import { z } from "zod";
 import { NotFoundError } from "../errors";
 import { insertProductSchema } from "../schemas";
 import { IProductService, ProductService } from "../services";
-import { asyncHandler, removeEmptyFieldsSchema } from "../utils";
+import {
+  asyncHandler,
+  removeEmptyFieldsSchema,
+  sendSuccessResponse,
+} from "../utils";
 import { objectIdValidator } from "../validators";
 
 export interface IProductController {
@@ -31,7 +35,11 @@ export class ProductController implements IProductController {
     const product = await this.service.getById({ productId });
     if (!product) throw new NotFoundError("Product");
 
-    res.status(200).json(product);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: product,
+    });
   });
 
   getAll = asyncHandler(async (req, res) => {
@@ -44,17 +52,25 @@ export class ProductController implements IProductController {
 
     const data = await this.service.getAll(query);
 
-    res.status(200).json({
-      products: data.products,
-      page: data.currentPage,
-      pages: data.numberOfPages,
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: data.products,
+      meta: {
+        currentPage: data.currentPage,
+        numberOfPages: data.numberOfPages,
+      },
     });
   });
 
   getTopRated = asyncHandler(async (req, res) => {
     const products = await this.service.getTopRated();
 
-    res.status(200).json(products);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: products,
+    });
   });
 
   create = asyncHandler(async (req, res) => {
@@ -66,7 +82,11 @@ export class ProductController implements IProductController {
 
     const newProduct = await this.service.create(data);
 
-    res.status(201).json(newProduct);
+    return sendSuccessResponse({
+      res,
+      statusCode: 201,
+      data: newProduct,
+    });
   });
 
   update = asyncHandler(async (req, res) => {
@@ -81,7 +101,11 @@ export class ProductController implements IProductController {
       data,
     });
 
-    res.status(200).json(updatedProduct);
+    return sendSuccessResponse({
+      res,
+      statusCode: 200,
+      data: updatedProduct,
+    });
   });
 
   delete = asyncHandler(async (req, res) => {
@@ -89,6 +113,10 @@ export class ProductController implements IProductController {
 
     await this.service.delete({ productId });
 
-    res.status(200).json({ message: "Product removed" });
+    return sendSuccessResponse({
+      res,
+      statusCode: 204,
+      data: null,
+    });
   });
 }
