@@ -1,44 +1,40 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import { MulterError } from "multer";
-import { env } from "process";
 import { ZodError } from "zod";
+import { env } from "../config";
 import { BaseError } from "../errors";
-import { ErrorResponse, ErrorType } from "../types";
+import { ErrorType } from "../types";
+import { sendErrorResponse } from "../utils";
 
-export function errorHandler(
-  error: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export function errorHandler(error: Error, req: Request, res: Response) {
   // Handle different types of errors
   if (error instanceof BaseError) {
-    const response: ErrorResponse = {
-      message: error.message,
+    return sendErrorResponse({
+      res,
       code: error.type,
-      timestamp: new Date().toISOString(),
-      path: req.path,
-      details: error.details,
-    };
-    return res.status(error.statusCode).json(response);
+      statusCode: error.statusCode,
+      errors: [
+        {
+          path: req.path,
+          message: error.message,
+        },
+      ],
+    });
   }
 
   // Handle Zod validation errors
   if (error instanceof ZodError) {
-    const response: ErrorResponse = {
-      message: "Validation failed",
+    error.format();
+    return sendErrorResponse({
+      res,
       code: ErrorType.VALIDATION,
-      timestamp: new Date().toISOString(),
-      path: req.path,
-      details: {
-        errors: error.errors.map((err) => ({
-          path: err.path.join("."),
-          message: err.message,
-        })),
-      },
-    };
-    return res.status(400).json(response);
+      statusCode: 400,
+      errors: error.issues.map((issue) => ({
+        path: issue.path.join("."),
+        message: issue.message,
+      })),
+    });
   }
 
   // Handle JWT errors
@@ -46,40 +42,43 @@ export function errorHandler(
     error instanceof JsonWebTokenError ||
     error instanceof TokenExpiredError
   ) {
-    const response: ErrorResponse = {
-      message: "Invalid or expired token",
+    return sendErrorResponse({
+      res,
       code: ErrorType.AUTHENTICATION,
-      timestamp: new Date().toISOString(),
-      path: req.path,
-    };
-    return res.status(401).json(response);
+      statusCode: 401,
+      errors: [
+        {
+          path: req.path,
+          message: error.message,
+        },
+      ],
+    });
   }
 
   if (error instanceof MulterError) {
-    const response: ErrorResponse = {
-      message: error.message || "File upload failed",
-      code: error.code,
-      timestamp: new Date().toISOString(),
-      path: req.path,
-    };
-
-    return res.status(400).json(response);
+    return sendErrorResponse({
+      res,
+      code: ErrorType.BAD_REQUEST, // FIXME: add a better error type
+      statusCode: 400,
+      errors: [
+        {
+          path: req.path,
+          message: error.message || "File upload failed",
+        },
+      ],
+    });
   }
 
-  // Handle unknown errors
-  const response: ErrorResponse = {
-    message: "An unexpected error occurred",
+  return sendErrorResponse({
+    res,
     code: ErrorType.INTERNAL,
-    timestamp: new Date().toISOString(),
-    path: req.path,
-  };
-
-  // In development, include the error stack
-  if (env.NODE_ENV === "development") {
-    response.details = {
-      stack: error.stack,
-    };
-  }
-
-  return res.status(500).json(response);
+    statusCode: 500,
+    errors: [
+      {
+        path: req.path,
+        message: error.message || "Internal server error",
+        ...(env.NODE_ENV === "development" && { stack: error.stack }),
+      },
+    ],
+  });
 }
