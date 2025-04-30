@@ -39,6 +39,7 @@ suite("User Controller", () => {
 
       try {
         await controller.getById(req, res, next);
+        assert.fail("Should throw 'NotFoundError'");
       } catch (error) {
         assert.ok(error instanceof NotFoundError);
         assert.equal(error.message, "User not found");
@@ -97,6 +98,7 @@ suite("User Controller", () => {
       req.body = { name: mockUser2.name };
       try {
         await controller.update(req, res, next);
+        assert.fail("Should throw 'NotFoundError'");
       } catch (error) {
         assert.ok(error instanceof NotFoundError);
         assert.equal(error.statusCode, 404);
@@ -110,6 +112,7 @@ suite("User Controller", () => {
 
       try {
         await controller.update(req, res, next);
+        assert.fail("Should throw 'ZodError'");
       } catch (error) {
         assert.ok(error instanceof ZodError);
         assert.equal(error.issues[0].message, "Invalid ObjectId format.");
@@ -126,6 +129,7 @@ suite("User Controller", () => {
 
       try {
         await controller.update(req, res, next);
+        assert.fail("Should throw 'ZodError'");
       } catch (error) {
         assert.ok(error instanceof ZodError);
         assert.equal(error.issues[0].message, "Invalid email format.");
@@ -153,6 +157,7 @@ suite("User Controller", () => {
 
       try {
         await controller.delete(req, res, next);
+        assert.fail("Should throw 'NotFoundError'");
       } catch (error) {
         assert.ok(error instanceof NotFoundError);
         assert.equal(error.statusCode, 404);

@@ -62,6 +62,7 @@ suite("Product Controller", () => {
 
       try {
         await controller.create(req, res, next);
+        assert.fail("Should throw 'ZodError'");
       } catch (error) {
         assert.ok(error instanceof ZodError);
         assert.equal(error.issues.length, 5); // number of required fields in 'product' model
@@ -91,6 +92,7 @@ suite("Product Controller", () => {
 
       try {
         await controller.getById(req, res, next);
+        assert.fail("Should throw 'NotFoundError'");
       } catch (error) {
         assert.ok(error instanceof NotFoundError);
         assert.equal(error.message, "Product not found");
@@ -104,6 +106,7 @@ suite("Product Controller", () => {
 
       try {
         await controller.getById(req, res, next);
+        assert.fail("Should throw 'ZodError'");
       } catch (error) {
         assert.ok(error instanceof ZodError);
         assert.equal(error.issues.length, 1);
@@ -240,6 +243,7 @@ suite("Product Controller", () => {
 
       try {
         await controller.update(req, res, next);
+        assert.fail("Should throw 'NotFoundError'");
       } catch (error) {
         assert.ok(error instanceof NotFoundError);
         assert.equal(error.statusCode, 404);
@@ -254,6 +258,7 @@ suite("Product Controller", () => {
 
       try {
         await controller.update(req, res, next);
+        assert.fail("Should throw 'ZodError'");
       } catch (error) {
         assert.ok(error instanceof ZodError);
         assert.equal(error.issues.length, 1);
@@ -271,6 +276,7 @@ suite("Product Controller", () => {
 
       try {
         await controller.update(req, res, next);
+        assert.fail("Should throw 'ZodError'");
       } catch (error) {
         assert.ok(error instanceof ZodError);
         assert.equal(error.issues.length, 1);
@@ -304,6 +310,7 @@ suite("Product Controller", () => {
 
       try {
         await controller.delete(req, res, next);
+        assert.fail("Should throw 'NotFoundError'");
       } catch (error) {
         assert.ok(error instanceof NotFoundError);
         assert.equal(error.statusCode, 404);
@@ -317,6 +324,7 @@ suite("Product Controller", () => {
 
       try {
         await controller.delete(req, res, next);
+        assert.fail("Should throw 'ZodError'");
       } catch (error) {
         assert.ok(error instanceof ZodError);
         assert.equal(error.issues.length, 1);

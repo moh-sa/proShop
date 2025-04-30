@@ -53,6 +53,7 @@ suite("Review Controller", () => {
 
       try {
         await controller.create(req, res, next);
+        assert.fail("Should throw 'ZodError'");
       } catch (error) {
         assert.ok(error instanceof ZodError);
         assert.equal(error.issues[0].path[0], "rating");
@@ -475,6 +476,7 @@ suite("Review Controller", () => {
 
       try {
         await controller.existsById(req, res, next);
+        assert.fail("Should throw 'NotFoundError'");
       } catch (error) {
         assert.ok(error instanceof NotFoundError);
         assert.equal(error.statusCode, 404);
@@ -525,6 +527,7 @@ suite("Review Controller", () => {
 
       try {
         await controller.existsByUserIdAndProductId(req, res, next);
+        assert.fail("Should throw 'NotFoundError'");
       } catch (error) {
         assert.ok(error instanceof NotFoundError);
         assert.equal(error.statusCode, 404);

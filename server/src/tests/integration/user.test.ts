@@ -112,6 +112,7 @@ suite("User Integration Tests", () => {
           step6GetById.res,
           step6GetById.next,
         );
+        assert.fail("Should throw 'NotFoundError'");
       } catch (error) {
         assert.ok(error instanceof NotFoundError);
         assert.equal(error.statusCode, 404);

@@ -35,6 +35,7 @@ suite("Auth Controller", () => {
       req.body = mockUser;
       try {
         await controller.signup(req, res, next);
+        assert.fail("Should throw 'ConflictError'");
       } catch (error) {
         assert.ok(error instanceof ConflictError);
         assert.equal(error.statusCode, 409);

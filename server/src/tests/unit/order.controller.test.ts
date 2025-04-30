@@ -45,6 +45,7 @@ suite("Order Controller", () => {
 
       try {
         await controller.create(req, res, next);
+        assert.fail("Should throw 'EmptyCartError'");
       } catch (error) {
         assert.ok(error instanceof EmptyCartError);
         assert.equal(error.statusCode, 400);
@@ -58,6 +59,7 @@ suite("Order Controller", () => {
       res.locals.user = mockUser;
       try {
         await controller.create(req, res, next);
+        assert.fail("Should throw 'ZodError'");
       } catch (error) {
         assert.ok(error instanceof ZodError);
         assert.equal(error.issues[0].message, "Required");
@@ -87,6 +89,7 @@ suite("Order Controller", () => {
 
       try {
         await controller.getById(req, res, next);
+        assert.fail("Should throw 'NotFoundError'");
       } catch (error) {
         assert.ok(error instanceof NotFoundError);
         assert.equal(error.message, "Order not found");
@@ -100,6 +103,7 @@ suite("Order Controller", () => {
 
       try {
         await controller.getById(req, res, next);
+        assert.fail("Should throw 'ZodError'");
       } catch (error) {
         assert.ok(error instanceof ZodError);
         assert.equal(error.issues.length, 1);
@@ -166,6 +170,7 @@ suite("Order Controller", () => {
 
       try {
         await controller.getAllByUserId(req, res, next);
+        assert.fail("Should throw 'ZodError'");
       } catch (error) {
         assert.ok(error instanceof ZodError);
         assert.equal(error.issues.length, 1);
@@ -197,6 +202,7 @@ suite("Order Controller", () => {
 
       try {
         await controller.updateToPaid(req, res, next);
+        assert.fail("Should throw 'NotFoundError'");
       } catch (error) {
         assert.ok(error instanceof NotFoundError);
         assert.equal(error.statusCode, 404);
@@ -210,6 +216,7 @@ suite("Order Controller", () => {
 
       try {
         await controller.updateToPaid(req, res, next);
+        assert.fail("Should throw 'ZodError'");
       } catch (error) {
         assert.ok(error instanceof ZodError);
         assert.equal(error.issues.length, 1);
@@ -241,6 +248,7 @@ suite("Order Controller", () => {
 
       try {
         await controller.updateToDelivered(req, res, next);
+        assert.fail("Should throw 'NotFoundError'");
       } catch (error) {
         assert.ok(error instanceof NotFoundError);
         assert.equal(error.statusCode, 404);
@@ -254,6 +262,7 @@ suite("Order Controller", () => {
 
       try {
         await controller.updateToDelivered(req, res, next);
+        assert.fail("Should throw 'ZodError'");
       } catch (error) {
         assert.ok(error instanceof ZodError);
         assert.equal(error.issues.length, 1);
