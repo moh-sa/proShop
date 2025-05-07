@@ -81,11 +81,25 @@ class OrderRepository {
     }
   }
 
-  async getAll(userId?: Types.ObjectId): Promise<Array<SelectOrder>> {
+  async getAll(): Promise<Array<SelectOrder>> {
     try {
-      const options = userId ? { user: userId } : {};
       return await this.db
-        .find(options)
+        .find({})
+        .select("id createdAt isPaid paidAt isDelivered deliveredAt totalPrice")
+        .lean();
+    } catch (error) {
+      this.errorHandler(error);
+    }
+  }
+
+  async getAllByUserId({
+    userId,
+  }: {
+    userId: Types.ObjectId;
+  }): Promise<Array<SelectOrder>> {
+    try {
+      return await this.db
+        .find({ user: userId })
         .select("id createdAt isPaid paidAt isDelivered deliveredAt totalPrice")
         .lean();
     } catch (error) {

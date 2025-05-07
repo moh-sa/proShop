@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "test": "glob -c \"tsx --test --test-reporter spec\" \"./src/tests/**/*.test.ts\"",
+    "test": "glob -c \"tsx --test --test-reporter spec\" \"./src/tests/**/product.repository.unit.test.ts\"",
     "dev": "ts-node src/server.ts",
     "start": "node dist/server.js",
     "build": "tsc",

@@ -3,15 +3,15 @@ import mongoose from "mongoose";
 
 let mongo: MongoMemoryServer;
 
-export const dbConnect = async function () {
+export async function connectMockDatabase() {
   mongo = await MongoMemoryServer.create();
   const uri = mongo.getUri();
 
   await mongoose.connect(uri);
-};
+}
 
-export const dbClose = async function () {
+export async function disconnectMockDatabase() {
   await mongoose.connection.dropDatabase();
   await mongoose.connection.close();
   if (mongo) await mongo.stop();
-};
+}
