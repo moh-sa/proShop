@@ -4,11 +4,11 @@ import { ConflictError, ValidationError } from "../../errors";
 import User from "../../models/userModel";
 import { authService } from "../../services";
 import { generateMockUser } from "../mocks";
-import { dbClose, dbConnect } from "../utils";
+import { connectTestDatabase, disconnectTestDatabase } from "../utils";
 
 const service = authService;
-before(async () => await dbConnect());
-after(async () => await dbClose());
+before(async () => await connectTestDatabase());
+after(async () => await disconnectTestDatabase());
 beforeEach(async () => await User.deleteMany({}));
 
 suite("Auth Service", () => {

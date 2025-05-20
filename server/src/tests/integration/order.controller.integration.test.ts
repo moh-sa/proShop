@@ -9,12 +9,16 @@ import {
   generateMockOrders,
   generateMockUser,
 } from "../mocks";
-import { createMockExpressContext, dbClose, dbConnect } from "../utils";
+import {
+  connectTestDatabase,
+  createMockExpressContext,
+  disconnectTestDatabase,
+} from "../utils";
 
 const controller = orderController;
 
-before(async () => await dbConnect());
-after(async () => await dbClose());
+before(async () => await connectTestDatabase());
+after(async () => await disconnectTestDatabase());
 beforeEach(async () => await Order.deleteMany({}));
 
 suite("Order Controller", () => {

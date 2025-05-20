@@ -12,12 +12,16 @@ import {
   generateMockReviews,
   generateMockUser,
 } from "../mocks";
-import { createMockExpressContext, dbClose, dbConnect } from "../utils";
+import {
+  connectTestDatabase,
+  createMockExpressContext,
+  disconnectTestDatabase,
+} from "../utils";
 
 const controller = reviewController;
 
-before(async () => dbConnect());
-after(async () => dbClose());
+before(async () => connectTestDatabase());
+after(async () => disconnectTestDatabase());
 beforeEach(async () => {
   await User.deleteMany({});
   await Product.deleteMany({});

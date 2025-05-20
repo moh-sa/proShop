@@ -12,13 +12,17 @@ import {
   generateMockSelectProducts,
 } from "../mocks";
 import { mockImageStorage } from "../mocks/image-storage.mock";
-import { dbClose, dbConnect, findTopRatedProduct } from "../utils";
+import {
+  connectTestDatabase,
+  disconnectTestDatabase,
+  findTopRatedProduct,
+} from "../utils";
 
 const service = new ProductService(new ProductRepository(), mockImageStorage());
 const cache = CacheManager.getInstance("product");
 
-before(async () => await dbConnect());
-after(async () => await dbClose());
+before(async () => await connectTestDatabase());
+after(async () => await disconnectTestDatabase());
 
 beforeEach(async () => {
   cache.flush();

@@ -8,10 +8,10 @@ import {
   generateMockUser,
   generateMockUsers,
 } from "../mocks";
-import { dbClose, dbConnect } from "../utils";
+import { connectTestDatabase, disconnectTestDatabase } from "../utils";
 
-before(async () => dbConnect());
-after(async () => dbClose());
+before(async () => connectTestDatabase());
+after(async () => disconnectTestDatabase());
 beforeEach(async () => await User.deleteMany({}));
 const service = userService;
 

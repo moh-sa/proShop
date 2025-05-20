@@ -8,13 +8,17 @@ import {
   generateMockObjectId,
   generateMockSelectProducts,
 } from "../mocks";
-import { dbClose, dbConnect, findTopRatedProduct } from "../utils";
+import {
+  connectTestDatabase,
+  disconnectTestDatabase,
+  findTopRatedProduct,
+} from "../utils";
 
 const repo = new ProductRepository();
 const cache = CacheManager.getInstance("product");
 
-before(async () => await dbConnect());
-after(async () => await dbClose());
+before(async () => await connectTestDatabase());
+after(async () => await disconnectTestDatabase());
 
 beforeEach(async () => {
   cache.flush();

@@ -4,10 +4,14 @@ import { authController, userController } from "../../controllers";
 import { NotFoundError } from "../../errors";
 import User from "../../models/userModel";
 import { generateMockUser } from "../mocks";
-import { createMockExpressContext, dbClose, dbConnect } from "../utils";
+import {
+  connectTestDatabase,
+  createMockExpressContext,
+  disconnectTestDatabase,
+} from "../utils";
 
-before(async () => await dbConnect());
-after(async () => await dbClose());
+before(async () => await connectTestDatabase());
+after(async () => await disconnectTestDatabase());
 beforeEach(async () => await User.deleteMany({}));
 
 // TODO: use 'supertest' to test the routes instead of controllers.

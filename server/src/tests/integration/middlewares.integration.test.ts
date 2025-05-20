@@ -16,10 +16,14 @@ import {
   generateMockReview,
   generateMockUser,
 } from "../mocks";
-import { createMockExpressContext, dbClose, dbConnect } from "../utils";
+import {
+  connectTestDatabase,
+  createMockExpressContext,
+  disconnectTestDatabase,
+} from "../utils";
 
-before(async () => await dbConnect());
-after(async () => await dbClose());
+before(async () => await connectTestDatabase());
+after(async () => await disconnectTestDatabase());
 beforeEach(async () => await User.deleteMany({}));
 
 suite("Middlewares Unit Tests", () => {

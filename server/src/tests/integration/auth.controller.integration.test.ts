@@ -4,11 +4,15 @@ import { authController } from "../../controllers";
 import { ConflictError } from "../../errors";
 import User from "../../models/userModel";
 import { generateMockUser } from "../mocks";
-import { createMockExpressContext, dbClose, dbConnect } from "../utils";
+import {
+  connectTestDatabase,
+  createMockExpressContext,
+  disconnectTestDatabase,
+} from "../utils";
 
 const controller = authController;
-before(async () => dbConnect());
-after(async () => dbClose());
+before(async () => connectTestDatabase());
+after(async () => disconnectTestDatabase());
 beforeEach(async () => await User.deleteMany({}));
 
 suite("Auth Controller", () => {

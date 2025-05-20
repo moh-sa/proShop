@@ -8,11 +8,11 @@ import {
   generateMockOrder,
   generateMockOrders,
 } from "../mocks";
-import { dbClose, dbConnect } from "../utils";
+import { connectTestDatabase, disconnectTestDatabase } from "../utils";
 
 const service = orderService;
-before(async () => await dbConnect());
-after(async () => await dbClose());
+before(async () => await connectTestDatabase());
+after(async () => await disconnectTestDatabase());
 beforeEach(async () => await Order.deleteMany({}));
 
 suite("Order Service", () => {

@@ -16,9 +16,9 @@ import {
 } from "../mocks";
 import { mockImageStorage } from "../mocks/image-storage.mock";
 import {
+  connectTestDatabase,
   createMockExpressContext,
-  dbClose,
-  dbConnect,
+  disconnectTestDatabase,
   findTopRatedProduct,
 } from "../utils";
 
@@ -28,8 +28,8 @@ const service = new ProductService(repo, storage);
 const controller = new ProductController(service);
 const cache = CacheManager.getInstance("product");
 
-before(async () => await dbConnect());
-after(async () => await dbClose());
+before(async () => await connectTestDatabase());
+after(async () => await disconnectTestDatabase());
 
 beforeEach(async () => {
   cache.flush();
