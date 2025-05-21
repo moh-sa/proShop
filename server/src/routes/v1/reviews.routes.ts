@@ -1,5 +1,5 @@
 import express from "express";
-import { reviewController as controller } from "../../controllers";
+import { ReviewController } from "../../controllers";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
@@ -7,6 +7,8 @@ import {
   RateLimiterMiddleware,
   verifyReviewOwnership,
 } from "../../middlewares";
+
+const controller = new ReviewController();
 
 const baseRouter = express.Router();
 const publicRouter = express.Router();

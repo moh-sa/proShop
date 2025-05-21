@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { ZodError } from "zod";
-import { userController } from "../../controllers";
+import { UserController } from "../../controllers";
 import { NotFoundError } from "../../errors";
 import User from "../../models/userModel";
 import {
@@ -18,7 +18,7 @@ import {
 before(async () => connectTestDatabase());
 after(async () => disconnectTestDatabase());
 beforeEach(async () => await User.deleteMany({}));
-const controller = userController;
+const controller = new UserController();
 
 suite("User Controller", () => {
   describe("Retrieve User By ID", () => {

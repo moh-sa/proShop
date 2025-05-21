@@ -2,11 +2,11 @@ import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { ConflictError, ValidationError } from "../../errors";
 import User from "../../models/userModel";
-import { authService } from "../../services";
+import { AuthService } from "../../services";
 import { generateMockUser } from "../mocks";
 import { connectTestDatabase, disconnectTestDatabase } from "../utils";
 
-const service = authService;
+const service = new AuthService();
 before(async () => await connectTestDatabase());
 after(async () => await disconnectTestDatabase());
 beforeEach(async () => await User.deleteMany({}));

@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
-import { authController } from "../../controllers";
+import { AuthController } from "../../controllers";
 import { ConflictError } from "../../errors";
 import User from "../../models/userModel";
 import { generateMockUser } from "../mocks";
@@ -10,7 +10,7 @@ import {
   disconnectTestDatabase,
 } from "../utils";
 
-const controller = authController;
+const controller = new AuthController();
 before(async () => connectTestDatabase());
 after(async () => disconnectTestDatabase());
 beforeEach(async () => await User.deleteMany({}));

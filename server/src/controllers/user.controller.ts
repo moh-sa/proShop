@@ -1,6 +1,7 @@
+import { NextFunction, Request, Response } from "express";
 import { NotFoundError } from "../errors";
 import { insertUserSchema } from "../schemas";
-import { userService } from "../services";
+import { IUserService, UserService } from "../services";
 import {
   asyncHandler,
   removeEmptyFieldsSchema,
@@ -8,8 +9,19 @@ import {
 } from "../utils";
 import { objectIdValidator } from "../validators";
 
-class UserController {
-  private readonly service = userService;
+export interface IUserController {
+  getById: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  getAll: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  update: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  delete: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+}
+
+export class UserController implements IUserController {
+  private readonly service: IUserService;
+
+  constructor(service: IUserService = new UserService()) {
+    this.service = service;
+  }
 
   getById = asyncHandler(async (req, res) => {
     const idReq = req.params.userId || res.locals.user._id;
@@ -68,5 +80,3 @@ class UserController {
     });
   });
 }
-
-export const userController = new UserController();

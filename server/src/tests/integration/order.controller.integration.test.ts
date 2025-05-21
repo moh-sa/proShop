@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { ZodError } from "zod";
-import { orderController } from "../../controllers";
+import { OrderController } from "../../controllers";
 import { EmptyCartError, NotFoundError } from "../../errors";
 import Order from "../../models/orderModel";
 import {
@@ -15,7 +15,7 @@ import {
   disconnectTestDatabase,
 } from "../utils";
 
-const controller = orderController;
+const controller = new OrderController();
 
 before(async () => await connectTestDatabase());
 after(async () => await disconnectTestDatabase());

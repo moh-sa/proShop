@@ -1,9 +1,18 @@
+import { NextFunction, Request, Response } from "express";
 import { insertUserSchema, selectUserSchema } from "../schemas";
-import { authService } from "../services";
+import { AuthService, IAuthService } from "../services";
 import { asyncHandler, sendSuccessResponse } from "../utils";
 
-class AuthController {
-  private readonly service = authService;
+export interface IAuthController {
+  signin: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  signup: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+}
+export class AuthController implements IAuthController {
+  private readonly service: IAuthService;
+
+  constructor(service: IAuthService = new AuthService()) {
+    this.service = service;
+  }
 
   signin = asyncHandler(async (req, res) => {
     const data = res.locals.user || req.body;
@@ -33,5 +42,3 @@ class AuthController {
     });
   });
 }
-
-export const authController = new AuthController();

@@ -1,11 +1,13 @@
 import express from "express";
-import { orderController as controller } from "../../controllers";
+import { OrderController } from "../../controllers";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
   checkUserIdExists,
   RateLimiterMiddleware,
 } from "../../middlewares";
+
+const controller = new OrderController();
 
 const baseRouter = express.Router();
 const protectedRoutes = express.Router();

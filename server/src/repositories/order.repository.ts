@@ -3,8 +3,31 @@ import { DatabaseError } from "../errors";
 import Order from "../models/orderModel";
 import { InsertOrder, SelectOrder } from "../types";
 
-class OrderRepository {
-  private readonly db = Order;
+export interface IOrderRepository {
+  create({ orderData }: { orderData: InsertOrder }): Promise<SelectOrder>;
+  getById({
+    orderId,
+  }: {
+    orderId: Types.ObjectId;
+  }): Promise<SelectOrder | null>;
+  updateToDelivered({
+    orderId,
+  }: {
+    orderId: Types.ObjectId;
+  }): Promise<SelectOrder | null>;
+  updateToPaid({
+    orderId,
+  }: {
+    orderId: Types.ObjectId;
+  }): Promise<SelectOrder | null>;
+  getAll(userId?: Types.ObjectId): Promise<Array<SelectOrder>>;
+}
+export class OrderRepository implements IOrderRepository {
+  private readonly db: typeof Order;
+
+  constructor(db: typeof Order = Order) {
+    this.db = db;
+  }
 
   async create({
     orderData,
@@ -103,5 +126,3 @@ class OrderRepository {
     throw new DatabaseError();
   }
 }
-
-export const orderRepository = new OrderRepository();

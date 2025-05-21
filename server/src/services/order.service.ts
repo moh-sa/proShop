@@ -1,10 +1,22 @@
 import { Types } from "mongoose";
 import { EmptyCartError, NotFoundError } from "../errors";
-import { orderRepository } from "../repositories";
+import { IOrderRepository, OrderRepository } from "../repositories";
 import { InsertOrder, SelectOrder } from "../types";
 
-class OrderService {
-  private readonly repository = orderRepository;
+export interface IOrderService {
+  create(data: InsertOrder): Promise<SelectOrder>;
+  getById(data: { orderId: Types.ObjectId }): Promise<SelectOrder>;
+  getAll(): Promise<Array<SelectOrder>>;
+  getAllByUserId(data: { userId: Types.ObjectId }): Promise<Array<SelectOrder>>;
+  updateToPaid(data: { orderId: Types.ObjectId }): Promise<SelectOrder>;
+  updateToDelivered(data: { orderId: Types.ObjectId }): Promise<SelectOrder>;
+}
+export class OrderService implements IOrderService {
+  private readonly repository: IOrderRepository;
+
+  constructor(repository: IOrderRepository = new OrderRepository()) {
+    this.repository = repository;
+  }
 
   async create(data: InsertOrder): Promise<SelectOrder> {
     if (data.orderItems && data.orderItems.length === 0) {
@@ -61,5 +73,3 @@ class OrderService {
     return updatedOrder;
   }
 }
-
-export const orderService = new OrderService();

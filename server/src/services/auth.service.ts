@@ -1,11 +1,21 @@
 import { compare } from "bcryptjs";
 import { ConflictError, ValidationError } from "../errors";
-import { userRepository } from "../repositories";
+import { IUserRepository, UserRepository } from "../repositories";
 import { InsertUser, RequiredBy, SelectUser } from "../types";
 import { generateToken, removeObjectFields } from "../utils";
 
-class AuthService {
-  private readonly repository = userRepository;
+export interface IAuthService {
+  signin: (
+    data: RequiredBy<SelectUser, "email" | "password">,
+  ) => Promise<Omit<SelectUser, "password">>;
+  signup: (data: InsertUser) => Promise<Omit<SelectUser, "password">>;
+}
+export class AuthService implements IAuthService {
+  private readonly repository: IUserRepository;
+
+  constructor(repository: IUserRepository = new UserRepository()) {
+    this.repository = repository;
+  }
 
   async signin(data: RequiredBy<SelectUser, "email" | "password">) {
     const isUserExists = await this.repository.getByEmail({
@@ -45,5 +55,3 @@ class AuthService {
     return userWithoutPassword;
   }
 }
-
-export const authService = new AuthService();

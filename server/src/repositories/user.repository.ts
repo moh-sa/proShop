@@ -3,8 +3,27 @@ import { DatabaseError } from "../errors";
 import User from "../models/userModel";
 import { InsertUser, SelectUser } from "../types";
 
-class UserRepository {
-  private readonly db = User;
+export interface IUserRepository {
+  create(data: InsertUser): Promise<Omit<SelectUser, "token">>;
+  getById(data: { userId: Types.ObjectId }): Promise<SelectUser | null>;
+  getByEmail(data: { email: string }): Promise<SelectUser | null>;
+  update(data: {
+    userId: Types.ObjectId;
+    data: Partial<InsertUser>;
+  }): Promise<SelectUser | null>;
+  delete(data: { userId: Types.ObjectId }): Promise<SelectUser | null>;
+  getAll(): Promise<Array<SelectUser>>;
+  existsByEmail(data: {
+    email: string;
+  }): Promise<{ _id: Types.ObjectId } | null>;
+}
+
+export class UserRepository implements IUserRepository {
+  private readonly db: typeof User;
+
+  constructor(db: typeof User = User) {
+    this.db = db;
+  }
 
   async create(data: InsertUser): Promise<Omit<SelectUser, "token">> {
     try {
@@ -92,5 +111,3 @@ class UserRepository {
     throw new DatabaseError();
   }
 }
-
-export const userRepository = new UserRepository();

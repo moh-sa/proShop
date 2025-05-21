@@ -1,11 +1,28 @@
 import { Types } from "mongoose";
 import { NotFoundError } from "../errors";
-import { userRepository } from "../repositories";
+import { IUserRepository, UserRepository } from "../repositories";
 import { InsertUser, SelectUser } from "../types";
-import { generateToken } from "../utils";
+import { formatUserServiceResponse } from "../utils/format-user-service-response.util";
 
-class UserService {
-  private readonly repository = userRepository;
+type UserWithoutPassword = Omit<SelectUser, "password">;
+
+export interface IUserService {
+  getById: (data: { userId: Types.ObjectId }) => Promise<UserWithoutPassword>;
+  getByEmail: (data: { email: string }) => Promise<SelectUser>;
+  getAll: () => Promise<Array<UserWithoutPassword>>;
+  updateById: (data: {
+    userId: Types.ObjectId;
+    data: Partial<InsertUser>;
+  }) => Promise<UserWithoutPassword>;
+  delete: (data: { userId: Types.ObjectId }) => Promise<SelectUser | null>;
+}
+
+export class UserService implements IUserService {
+  private readonly repository: IUserRepository;
+
+  constructor(repository: IUserRepository = new UserRepository()) {
+    this.repository = repository;
+  }
 
   async getById({ userId }: { userId: Types.ObjectId }) {
     const user = await this.repository.getById({ userId });
@@ -61,5 +78,3 @@ class UserService {
     return formatUserServiceResponse({ user, isTokenRequired });
   }
 }
-
-export const userService = new UserService();

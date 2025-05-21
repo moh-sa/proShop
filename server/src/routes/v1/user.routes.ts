@@ -1,11 +1,13 @@
 import express from "express";
-import { userController as controller } from "../../controllers";
+import { UserController } from "../../controllers";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
   checkUserIdExists,
   RateLimiterMiddleware,
 } from "../../middlewares";
+
+const controller = new UserController();
 
 const baseRouter = express.Router();
 

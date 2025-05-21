@@ -1,10 +1,40 @@
 import { Types } from "mongoose";
 import { NotFoundError } from "../errors";
-import { reviewRepository } from "../repositories";
+import { IReviewRepository, ReviewRepository } from "../repositories";
 import { InsertReview, SelectReview } from "../types";
 
-class ReviewService {
-  private readonly repository = reviewRepository;
+export interface IReviewService {
+  create: (data: { data: InsertReview }) => Promise<SelectReview>;
+  getById: (data: { reviewId: Types.ObjectId }) => Promise<SelectReview>;
+  getAll: () => Promise<Array<SelectReview>>;
+  getAllByUserId: (data: {
+    userId: Types.ObjectId;
+  }) => Promise<Array<SelectReview>>;
+  getAllByProductId: (data: {
+    productId: Types.ObjectId;
+  }) => Promise<Array<SelectReview>>;
+  update: (data: {
+    reviewId: Types.ObjectId;
+    data: Partial<InsertReview>;
+  }) => Promise<SelectReview>;
+  delete: (data: { reviewId: Types.ObjectId }) => Promise<SelectReview>;
+  count: () => Promise<number>;
+  countByUserId: (data: { userId: Types.ObjectId }) => Promise<number>;
+  countByProductId: (data: { productId: Types.ObjectId }) => Promise<number>;
+  existsById: (data: {
+    reviewId: Types.ObjectId;
+  }) => Promise<{ _id: Types.ObjectId }>;
+  existsByUserIdAndProductId: (data: {
+    userId: Types.ObjectId;
+    productId: Types.ObjectId;
+  }) => Promise<{ _id: Types.ObjectId }>;
+}
+export class ReviewService implements IReviewService {
+  private readonly repository: IReviewRepository;
+
+  constructor(repository: IReviewRepository = new ReviewRepository()) {
+    this.repository = repository;
+  }
 
   async create({ data }: { data: InsertReview }): Promise<SelectReview> {
     return await this.repository.create({ data });
@@ -111,5 +141,3 @@ class ReviewService {
     return exists;
   }
 }
-
-export const reviewService = new ReviewService();

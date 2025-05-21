@@ -2,7 +2,7 @@ import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { EmptyCartError, NotFoundError } from "../../errors";
 import Order from "../../models/orderModel";
-import { orderService } from "../../services";
+import { OrderService } from "../../services";
 import {
   generateMockObjectId,
   generateMockOrder,
@@ -10,7 +10,7 @@ import {
 } from "../mocks";
 import { connectTestDatabase, disconnectTestDatabase } from "../utils";
 
-const service = orderService;
+const service = new OrderService();
 before(async () => await connectTestDatabase());
 after(async () => await disconnectTestDatabase());
 beforeEach(async () => await Order.deleteMany({}));

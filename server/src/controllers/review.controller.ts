@@ -1,5 +1,6 @@
+import { NextFunction, Request, Response } from "express";
 import { insertReviewSchema } from "../schemas";
-import { reviewService } from "../services";
+import { IReviewService, ReviewService } from "../services";
 import {
   asyncHandler,
   removeEmptyFieldsSchema,
@@ -7,8 +8,50 @@ import {
 } from "../utils";
 import { objectIdValidator } from "../validators";
 
-class ReviewController {
-  private readonly service = reviewService;
+export interface IReviewController {
+  create: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  getById: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  getAll: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  getAllByUserId: (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => Promise<void>;
+  getAllByProductId: (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => Promise<void>;
+  update: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  delete: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  count: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  countByUserId: (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => Promise<void>;
+  countByProductId: (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => Promise<void>;
+  existsById: (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => Promise<void>;
+  existsByUserIdAndProductId: (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => Promise<void>;
+}
+export class ReviewController implements IReviewController {
+  private readonly service: IReviewService;
+
+  constructor(service: IReviewService = new ReviewService()) {
+    this.service = service;
+  }
 
   create = asyncHandler(async (req, res) => {
     const data = insertReviewSchema.parse({
@@ -164,5 +207,3 @@ class ReviewController {
     });
   });
 }
-
-export const reviewController = new ReviewController();

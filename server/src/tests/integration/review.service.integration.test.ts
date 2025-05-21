@@ -4,7 +4,7 @@ import { DatabaseError, NotFoundError } from "../../errors";
 import Product from "../../models/productModel";
 import Review from "../../models/review.model";
 import User from "../../models/userModel";
-import { reviewService } from "../../services";
+import { ReviewService } from "../../services";
 import {
   generateMockObjectId,
   generateMockReview,
@@ -20,7 +20,7 @@ beforeEach(async () => {
   await Product.deleteMany({});
   await Review.deleteMany({});
 });
-const service = reviewService;
+const service = new ReviewService();
 
 suite("Review Service", () => {
   describe("Create Review", () => {

@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
-import { authController, userController } from "../../controllers";
+import { AuthController, UserController } from "../../controllers";
 import { NotFoundError } from "../../errors";
 import User from "../../models/userModel";
 import { generateMockUser } from "../mocks";
@@ -13,6 +13,9 @@ import {
 before(async () => await connectTestDatabase());
 after(async () => await disconnectTestDatabase());
 beforeEach(async () => await User.deleteMany({}));
+
+const userController = new UserController();
+const authController = new AuthController();
 
 // TODO: use 'supertest' to test the routes instead of controllers.
 

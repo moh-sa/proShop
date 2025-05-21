@@ -2,7 +2,7 @@ import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 import { DatabaseError } from "../../errors";
 import Order from "../../models/orderModel";
-import { orderRepository } from "../../repositories";
+import { OrderRepository } from "../../repositories";
 import {
   generateMockObjectId,
   generateMockOrder,
@@ -10,7 +10,7 @@ import {
 } from "../mocks";
 import { connectTestDatabase, disconnectTestDatabase } from "../utils";
 
-const repo = orderRepository;
+const repo = new OrderRepository();
 
 before(async () => await connectTestDatabase());
 after(async () => await disconnectTestDatabase());

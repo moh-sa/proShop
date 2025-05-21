@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { DatabaseError, NotFoundError } from "../../errors";
 import User from "../../models/userModel";
-import { userService } from "../../services";
+import { UserService } from "../../services";
 import {
   generateMockObjectId,
   generateMockUser,
@@ -13,7 +13,7 @@ import { connectTestDatabase, disconnectTestDatabase } from "../utils";
 before(async () => connectTestDatabase());
 after(async () => disconnectTestDatabase());
 beforeEach(async () => await User.deleteMany({}));
-const service = userService;
+const service = new UserService();
 
 suite("User Service", () => {
   describe("Retrieve User By ID", () => {

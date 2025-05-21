@@ -3,8 +3,39 @@ import { DatabaseError } from "../errors";
 import Review from "../models/review.model";
 import { InsertReview, SelectReview } from "../types";
 
-class ReviewRepository {
-  private readonly db = Review;
+export interface IReviewRepository {
+  create: (data: { data: InsertReview }) => Promise<SelectReview>;
+  getById: (data: { reviewId: Types.ObjectId }) => Promise<SelectReview | null>;
+  getAll: () => Promise<Array<SelectReview>>;
+  getAllByUserId: (data: {
+    userId: Types.ObjectId;
+  }) => Promise<Array<SelectReview>>;
+  getAllByProductId: (data: {
+    productId: Types.ObjectId;
+  }) => Promise<Array<SelectReview>>;
+  update: (data: {
+    reviewId: Types.ObjectId;
+    data: Partial<InsertReview>;
+  }) => Promise<SelectReview | null>;
+  delete: (data: { reviewId: Types.ObjectId }) => Promise<SelectReview | null>;
+  count: () => Promise<number>;
+  countByUserId: (data: { userId: Types.ObjectId }) => Promise<number>;
+  countByProductId: (data: { productId: Types.ObjectId }) => Promise<number>;
+  existsById: (data: {
+    reviewId: Types.ObjectId;
+  }) => Promise<{ _id: Types.ObjectId } | null>;
+  existsByUserIdAndProductId: (data: {
+    userId: Types.ObjectId;
+    productId: Types.ObjectId;
+  }) => Promise<{ _id: Types.ObjectId } | null>;
+}
+
+export class ReviewRepository implements IReviewRepository {
+  private readonly db: typeof Review;
+
+  constructor(db: typeof Review = Review) {
+    this.db = db;
+  }
 
   async create({ data }: { data: InsertReview }): Promise<SelectReview> {
     try {
@@ -159,5 +190,3 @@ class ReviewRepository {
     throw new DatabaseError();
   }
 }
-
-export const reviewRepository = new ReviewRepository();

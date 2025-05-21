@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { DatabaseError } from "../../errors";
 import User from "../../models/userModel";
-import { userRepository } from "../../repositories";
+import { UserRepository } from "../../repositories";
 import { InsertUser } from "../../types";
 import { generateMockUser, generateMockUsers } from "../mocks";
 import { connectTestDatabase, disconnectTestDatabase } from "../utils";
@@ -11,7 +11,7 @@ import { connectTestDatabase, disconnectTestDatabase } from "../utils";
 before(async () => connectTestDatabase());
 after(async () => disconnectTestDatabase());
 beforeEach(async () => await User.deleteMany({}));
-const repo = userRepository;
+const repo = new UserRepository();
 
 suite("User Repository", () => {
   describe("Create User", () => {

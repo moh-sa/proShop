@@ -1,10 +1,36 @@
+import { NextFunction } from "@sentry/node/build/types/integrations/tracing/nest/types";
+import { Request, Response } from "express";
 import { insertOrderSchema } from "../schemas";
-import { orderService } from "../services";
+import { IOrderService, OrderService } from "../services";
 import { asyncHandler, sendSuccessResponse } from "../utils";
 import { objectIdValidator } from "../validators";
 
-class OrderController {
-  private readonly service = orderService;
+export interface IOrderController {
+  create: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  getById: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  getAll: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  getAllByUserId: (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => Promise<void>;
+  updateToPaid: (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => Promise<void>;
+  updateToDelivered: (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => Promise<void>;
+}
+export class OrderController implements IOrderController {
+  private readonly service: IOrderService;
+
+  constructor(service: IOrderService = new OrderService()) {
+    this.service = service;
+  }
 
   create = asyncHandler(async (req, res) => {
     const data = insertOrderSchema.parse({
@@ -79,4 +105,3 @@ class OrderController {
     });
   });
 }
-export const orderController = new OrderController();

@@ -1,7 +1,9 @@
 import express from "express";
-import { authController as controller } from "../../controllers";
+import { AuthController } from "../../controllers";
 import { RateLimiterMiddleware } from "../../middlewares";
 const router = express.Router();
+
+const controller = new AuthController();
 
 router
   .route("/signup")
