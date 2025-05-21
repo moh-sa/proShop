@@ -7,23 +7,11 @@ import { generateToken } from "../utils";
 class UserService {
   private readonly repository = userRepository;
 
-  private createResponse(user: Partial<SelectUser>, includeToken = false) {
-    const response: typeof user & { token?: string } = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isAdmin: user.isAdmin,
-    };
-
-    if (includeToken) response.token = generateToken({ id: user._id });
-    return response;
-  }
-
   async getById({ userId }: { userId: Types.ObjectId }) {
     const user = await this.repository.getById({ userId });
     if (!user) throw new NotFoundError("User");
 
-    return this.createResponse(user);
+    return this._formatResponse(user);
   }
 
   async getByEmail({ email }: { email: string }): Promise<SelectUser> {
@@ -36,7 +24,7 @@ class UserService {
   async getAll() {
     const users = await this.repository.getAll();
 
-    return users.map((user) => this.createResponse(user));
+    return users.map((user) => this._formatResponse(user));
   }
 
   async updateById({
@@ -52,7 +40,7 @@ class UserService {
     });
     if (!updatedUser) throw new NotFoundError("User");
 
-    return this.createResponse(updatedUser);
+    return this._formatResponse(updatedUser);
   }
 
   async delete({
@@ -61,6 +49,10 @@ class UserService {
     userId: Types.ObjectId;
   }): Promise<SelectUser | null> {
     return await this.repository.delete({ userId });
+  }
+
+  private _formatResponse(user: Partial<SelectUser>, includeToken = false) {
+    return formatUserServiceResponse(user, includeToken);
   }
 }
 
