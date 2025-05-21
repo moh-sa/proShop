@@ -3,7 +3,7 @@ import { generateToken } from "./generateJwtToken";
 
 export function formatUserServiceResponse(
   user: Partial<SelectUser>,
-  includeToken = false,
+  isTokenRequired = false,
 ) {
   const response: typeof user & { token?: string } = {
     _id: user._id,
@@ -12,6 +12,6 @@ export function formatUserServiceResponse(
     isAdmin: user.isAdmin,
   };
 
-  if (includeToken) response.token = generateToken({ id: user._id });
+  if (isTokenRequired) response.token = generateToken({ id: user._id });
   return response;
 }

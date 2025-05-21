@@ -51,8 +51,8 @@ class UserService {
     return await this.repository.delete({ userId });
   }
 
-  private _formatResponse(user: Partial<SelectUser>, includeToken = false) {
-    return formatUserServiceResponse(user, includeToken);
+  private _formatResponse(user: Partial<SelectUser>, isTokenRequired = false) {
+    return formatUserServiceResponse(user, isTokenRequired);
   }
 }
 
