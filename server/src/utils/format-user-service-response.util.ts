@@ -1,17 +1,15 @@
 import { SelectUser } from "../types";
 import { generateToken } from "./generateJwtToken";
+import { removeObjectFields } from "./remove-object-fields";
 
-export function formatUserServiceResponse(
-  user: Partial<SelectUser>,
-  isTokenRequired = false,
-) {
-  const response: typeof user & { token?: string } = {
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    isAdmin: user.isAdmin,
-  };
+export function formatUserServiceResponse(data: {
+  user: SelectUser;
+  isTokenRequired?: boolean;
+}): Omit<SelectUser, "password"> {
+  const res = removeObjectFields(data.user, ["password"]);
+  res.token = data.isTokenRequired
+    ? generateToken({ _id: data.user._id.toString() })
+    : undefined;
 
-  if (isTokenRequired) response.token = generateToken({ id: user._id });
-  return response;
+  return res;
 }

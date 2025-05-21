@@ -11,7 +11,7 @@ class UserService {
     const user = await this.repository.getById({ userId });
     if (!user) throw new NotFoundError("User");
 
-    return this._formatResponse(user);
+    return this._formatResponse({ user });
   }
 
   async getByEmail({ email }: { email: string }): Promise<SelectUser> {
@@ -24,7 +24,7 @@ class UserService {
   async getAll() {
     const users = await this.repository.getAll();
 
-    return users.map((user) => this._formatResponse(user));
+    return users.map((user) => this._formatResponse({ user }));
   }
 
   async updateById({
@@ -40,7 +40,7 @@ class UserService {
     });
     if (!updatedUser) throw new NotFoundError("User");
 
-    return this._formatResponse(updatedUser);
+    return this._formatResponse({ user: updatedUser });
   }
 
   async delete({
@@ -51,8 +51,14 @@ class UserService {
     return await this.repository.delete({ userId });
   }
 
-  private _formatResponse(user: Partial<SelectUser>, isTokenRequired = false) {
-    return formatUserServiceResponse(user, isTokenRequired);
+  private _formatResponse({
+    user,
+    isTokenRequired = false,
+  }: {
+    user: SelectUser;
+    isTokenRequired?: boolean;
+  }) {
+    return formatUserServiceResponse({ user, isTokenRequired });
   }
 }
 
