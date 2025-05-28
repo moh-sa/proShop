@@ -10,7 +10,7 @@ import {
 } from "../../middlewares";
 import Review from "../../models/review.model";
 import User from "../../models/userModel";
-import { generateToken } from "../../utils";
+import { generateJwtToken } from "../../utils";
 import {
   generateMockObjectId,
   generateMockReview,
@@ -31,7 +31,7 @@ suite("Middlewares Unit Tests", () => {
     test("Should parse JWT and set set decoded data in res.locals.token", async () => {
       const { req, res, next } = createMockExpressContext();
       const mockId = generateMockObjectId();
-      const jwt = generateToken({ id: mockId });
+      const jwt = generateJwtToken({ id: mockId });
 
       req.headers.authorization = `Bearer ${jwt}`;
 
@@ -75,7 +75,7 @@ suite("Middlewares Unit Tests", () => {
 
     test("Should throw 'ZodError' if userId is not a valid ObjectId", async () => {
       const { req, res, next } = createMockExpressContext();
-      const jwt = generateToken({ id: "RANDOM_STRING" });
+      const jwt = generateJwtToken({ id: "RANDOM_STRING" });
       req.headers.authorization = `Bearer ${jwt}`;
 
       try {

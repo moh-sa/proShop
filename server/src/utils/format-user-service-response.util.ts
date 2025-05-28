@@ -1,5 +1,5 @@
 import { SelectUser } from "../types";
-import { generateToken } from "./jwt-generate-token.util";
+import { generateJwtToken } from "./jwt-generate-token.util";
 import { removeObjectFields } from "./remove-object-fields";
 
 export function formatUserServiceResponse(data: {
@@ -8,7 +8,7 @@ export function formatUserServiceResponse(data: {
 }): Omit<SelectUser, "password"> {
   const res = removeObjectFields(data.user, ["password"]);
   res.token = data.isTokenRequired
-    ? generateToken({ _id: data.user._id.toString() })
+    ? generateJwtToken({ _id: data.user._id.toString() })
     : undefined;
 
   return res;

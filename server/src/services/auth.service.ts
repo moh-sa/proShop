@@ -2,7 +2,7 @@ import { compare } from "bcryptjs";
 import { ConflictError, ValidationError } from "../errors";
 import { IUserRepository, UserRepository } from "../repositories";
 import { InsertUser, RequiredBy, SelectUser } from "../types";
-import { generateToken, removeObjectFields } from "../utils";
+import { generateJwtToken, removeObjectFields } from "../utils";
 
 export interface IAuthService {
   signin: (
@@ -32,7 +32,7 @@ export class AuthService implements IAuthService {
     }
 
     const user = isUserExists;
-    const token = generateToken({ id: user._id });
+    const token = generateJwtToken({ id: user._id });
     const userWithToken = Object.assign(user, { token });
     const userWithoutPassword = removeObjectFields(userWithToken, ["password"]);
 
@@ -48,7 +48,7 @@ export class AuthService implements IAuthService {
     }
 
     const createdUser = await this.repository.create(data);
-    const token = generateToken({ id: createdUser._id });
+    const token = generateJwtToken({ id: createdUser._id });
     const userWithToken = Object.assign(createdUser, { token });
     const userWithoutPassword = removeObjectFields(userWithToken, ["password"]);
 
