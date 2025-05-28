@@ -10,7 +10,6 @@ const baseReviewSchema = z.object({
   rating: z.coerce
     .number()
     .positive({ message: "Rating must be a positive number." })
-    .min(0, { message: "Rating is required." })
     .max(5, { message: "Rating must be between 1 and 5." }),
 
   comment: z.string().min(1, { message: "Comment is required." }),
