@@ -61,6 +61,7 @@ export class CacheManager implements ICacheManager {
     try {
       const value = this.cache.get<T>(namespaceKey);
       if (value) console.log("Cache hit:", key);
+      else console.log("Cache miss:", key);
 
       return value;
     } catch (error) {
