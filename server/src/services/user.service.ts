@@ -50,7 +50,7 @@ export class UserService implements IUserService {
   }: {
     userId: Types.ObjectId;
     data: Partial<InsertUser>;
-  }) {
+  }): Promise<UserWithoutPassword> {
     const updatedUser = await this.repository.update({
       userId,
       data,
