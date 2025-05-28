@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { env } from "../config/env";
 
 export const generateJwtToken = (
-  data: Record<string, unknown> = {},
+  payload: Record<string, unknown> = {},
 ): string => {
-  return jwt.sign(data, env.JWT_SECRET, { expiresIn: "30d" });
+  return jwt.sign(payload, env.JWT_SECRET, { expiresIn: "30d" });
 };
