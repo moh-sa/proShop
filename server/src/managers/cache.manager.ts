@@ -17,6 +17,7 @@ export interface ICacheManager extends IPublicCacheManager {
     ksize: number;
     vsize: number;
   };
+  generateKey({ id }: { id: string }): string;
 }
 
 export class CacheManager implements ICacheManager {
