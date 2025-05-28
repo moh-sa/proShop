@@ -26,8 +26,8 @@ suite("User Service", () => {
       assert.equal(response._id?.toString(), user._id?.toString());
       assert.equal(response.email, user.email);
 
-      assert.ok(!response.password);
-      assert.ok(!response.token);
+      assert.ok(!Object.keys(response).includes("password"));
+      assert.ok(!Object.keys(response).includes("token"));
     });
 
     test("Should throw `NotFoundError` if user does not exist", async () => {
