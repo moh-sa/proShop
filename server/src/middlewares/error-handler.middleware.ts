@@ -1,9 +1,8 @@
 import { Request, Response } from "express";
-import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import { MulterError } from "multer";
 import { ZodError } from "zod";
 import { env } from "../config";
-import { BaseError } from "../errors";
+import { BaseError, JwtBaseError } from "../errors";
 import { ErrorType } from "../types";
 import { sendErrorResponse } from "../utils";
 
@@ -38,14 +37,11 @@ export function errorHandler(error: Error, req: Request, res: Response) {
   }
 
   // Handle JWT errors
-  if (
-    error instanceof JsonWebTokenError ||
-    error instanceof TokenExpiredError
-  ) {
+  if (error instanceof JwtBaseError) {
     return sendErrorResponse({
       responseContext: res,
-      code: ErrorType.AUTHENTICATION,
-      statusCode: 401,
+      code: error.type,
+      statusCode: error.statusCode,
       errors: [
         {
           path: req.path,

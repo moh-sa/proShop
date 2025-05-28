@@ -12,3 +12,14 @@ export class BaseError extends Error {
     Error.captureStackTrace(this, this.constructor);
   }
 }
+
+export class JwtBaseError extends BaseError {
+  constructor(
+    message: string,
+    errorType: ErrorType,
+    statusCode: number,
+    details?: Record<string, unknown>,
+  ) {
+    super(message, errorType, statusCode, details);
+  }
+}
