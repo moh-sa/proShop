@@ -1,4 +1,5 @@
 export * from "./cache.type";
+export * from "./deep-partial-type";
 export * from "./error.type";
 export * from "./image.type";
 export * from "./order.type";
