@@ -1,6 +1,7 @@
 export * from "./auth-service.mock";
 export * from "./cache-generate-key.mock";
 export * from "./cache-hit.mock";
+export * from "./cache-invalidation.mock";
 export * from "./cache.manager.mock";
 export * from "./express-http-call.mock";
 export * from "./image-storage.mock";
