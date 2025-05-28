@@ -8,6 +8,7 @@ export * from "./internal.error";
 export * from "./jwt-expired-token.error";
 export * from "./jwt-invalid-payload.error";
 export * from "./jwt-invalid-token.error";
+export * from "./jwt-verification.error";
 export * from "./not-found.error";
 export * from "./rate-limit.error";
 export * from "./validation.error";
