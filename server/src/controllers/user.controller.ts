@@ -24,7 +24,7 @@ export class UserController implements IUserController {
   }
 
   getById = asyncHandler(async (req, res) => {
-    const idReq = req.params.userId || res.locals.user._id;
+    const idReq = req.params?.userId ?? res.locals.user?._id;
     const userId = objectIdValidator.parse(idReq);
 
     const response = await this.service.getById({ userId });
@@ -47,7 +47,7 @@ export class UserController implements IUserController {
   });
 
   update = asyncHandler(async (req, res) => {
-    const idReq = req.params.userId || res.locals.user._id;
+    const idReq = req.params?.userId ?? res.locals.user?._id;
     const userId = objectIdValidator.parse(idReq);
 
     const data = removeEmptyFieldsSchema(insertUserSchema.partial()).parse(
