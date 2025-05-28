@@ -1,3 +1,4 @@
+import { Readable } from "node:stream";
 import { z } from "zod";
 import { IMAGE_SIZE_LIMIT, IMAGE_TYPE_LIMIT } from "../../constants";
 
@@ -17,6 +18,11 @@ export const insertImageSchema = z.object({
     .number()
     .positive()
     .max(IMAGE_SIZE_LIMIT, { message: "Image size should not exceed 5MB" }),
+
+  destination: z.string().min(1),
+  filename: z.string().min(1),
+  path: z.string().min(1),
+  stream: z.instanceof(Readable),
 });
 
 export const selectImageSchema = z
