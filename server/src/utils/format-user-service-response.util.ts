@@ -6,10 +6,12 @@ export function formatUserServiceResponse(data: {
   user: SelectUser;
   isTokenRequired?: boolean;
 }): Omit<SelectUser, "password"> {
-  const res = removeObjectFields(data.user, ["password"]);
-  res.token = data.isTokenRequired
-    ? generateJwtToken({ _id: data.user._id.toString() })
-    : undefined;
+  const res = removeObjectFields(data.user, ["password", "token"]);
 
-  return res;
+  return {
+    ...res,
+    ...(data.isTokenRequired && {
+      token: generateJwtToken({ id: data.user._id }),
+    }),
+  };
 }
