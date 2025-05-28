@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
   emailValidator,
-  jwtValidator,
+  jwtTokenValidator,
   objectIdValidator,
   passwordValidator,
 } from "../../validators";
@@ -18,5 +18,5 @@ export const selectUserSchema = baseUserSchema.extend({
   _id: objectIdValidator,
   createdAt: z.date(),
   updatedAt: z.date(),
-  token: jwtValidator.optional(),
+  token: jwtTokenValidator.optional(),
 });

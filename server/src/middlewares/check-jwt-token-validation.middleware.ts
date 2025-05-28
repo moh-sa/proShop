@@ -1,7 +1,7 @@
 import { asyncHandler, verifyJwtToken } from "../utils";
 import {
   authHeaderValidator,
-  jwtValidator,
+  jwtTokenValidator,
   objectIdValidator,
 } from "../validators";
 
@@ -10,7 +10,7 @@ import {
  */
 export const checkJwtTokenValidation = asyncHandler(async (req, res, next) => {
   const authHeader = authHeaderValidator.parse(req.headers.authorization);
-  const token = jwtValidator.parse(authHeader);
+  const token = jwtTokenValidator.parse(authHeader);
   const decoded = verifyJwtToken(token);
   const userId = objectIdValidator.parse(decoded.id);
 
