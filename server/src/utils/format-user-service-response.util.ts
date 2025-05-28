@@ -1,5 +1,5 @@
 import { SelectUser } from "../types";
-import { generateToken } from "./generateJwtToken";
+import { generateToken } from "./jwt-generate-token.util";
 import { removeObjectFields } from "./remove-object-fields";
 
 export function formatUserServiceResponse(data: {
