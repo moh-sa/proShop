@@ -6,7 +6,7 @@ import { CacheConfig, Namespace } from "../types";
 interface IPublicCacheManager {
   flush(): void;
 }
-interface ICacheManager extends IPublicCacheManager {
+export interface ICacheManager extends IPublicCacheManager {
   get<T>({ key }: { key: string }): T | undefined;
   set<T>({ key, value, ttl }: { key: string; value: T; ttl?: number }): boolean;
   delete({ keys }: { keys: string | string[] }): number;
