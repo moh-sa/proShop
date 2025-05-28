@@ -51,7 +51,7 @@ export class ReviewRepository implements IReviewRepository {
     reviewId: Types.ObjectId;
   }): Promise<SelectReview | null> {
     try {
-      return this.db.findById(reviewId).lean();
+      return await this.db.findById(reviewId).lean();
     } catch (error) {
       this.errorHandler(error);
     }
