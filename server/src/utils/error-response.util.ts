@@ -14,6 +14,18 @@ interface ErrorResponse {
   errors: Array<ErrorDetails>;
 }
 
+export function createErrorResponseObject({
+  errors,
+  code,
+}: Omit<ErrorResponse, "success" | "timestamp">): ErrorResponse {
+  return {
+    success: false,
+    code,
+    timestamp: new Date().toISOString(),
+    errors,
+  };
+}
+
 export function sendErrorResponse({
   res,
   statusCode,
@@ -23,12 +35,7 @@ export function sendErrorResponse({
   ErrorResponse,
   "success" | "timestamp"
 >): void {
-  const response: ErrorResponse = {
-    success: false,
-    code,
-    timestamp: new Date().toISOString(),
-    errors,
-  };
+  const response = createErrorResponseObject({ errors, code });
 
   res.status(statusCode).json(response);
 }

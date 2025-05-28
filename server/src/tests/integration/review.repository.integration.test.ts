@@ -4,7 +4,7 @@ import { DatabaseError } from "../../errors";
 import Product from "../../models/productModel";
 import Review from "../../models/review.model";
 import User from "../../models/userModel";
-import { reviewRepository } from "../../repositories";
+import { ReviewRepository } from "../../repositories";
 import {
   generateMockObjectId,
   generateMockReview,
@@ -21,7 +21,7 @@ beforeEach(async () => {
   await Product.deleteMany({});
   await Review.deleteMany({});
 });
-const repo = reviewRepository;
+const repo = new ReviewRepository();
 
 suite("Review Repository", () => {
   describe("Create Review", () => {

@@ -8,17 +8,26 @@ interface SuccessResponse<D = ObjectType, M = ObjectType> {
   meta?: M;
 }
 
+export function createSuccessResponseObject<D, M>({
+  data,
+  meta,
+}: {
+  data: D;
+  meta?: M;
+}): SuccessResponse<D, M> {
+  return {
+    success: true,
+    data,
+    meta,
+  };
+}
+
 export function sendSuccessResponse<D, M>({
   res,
-  success = true,
   statusCode,
   data,
   meta,
 }: { res: Response; statusCode: number } & SuccessResponse<D, M>): void {
-  const response: SuccessResponse<D, M> = {
-    success,
-    data,
-    meta,
-  };
+  const response = createSuccessResponseObject({ data, meta });
   res.status(statusCode).json(response);
 }
