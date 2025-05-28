@@ -38,7 +38,7 @@ export class UserService implements IUserService {
     return user;
   }
 
-  async getAll() {
+  async getAll(): Promise<Array<UserWithoutPassword>> {
     const users = await this.repository.getAll();
 
     return users.map((user) => this._formatResponse({ user }));
