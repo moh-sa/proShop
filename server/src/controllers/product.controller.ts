@@ -36,7 +36,7 @@ export class ProductController implements IProductController {
     if (!product) throw new NotFoundError("Product");
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: product,
     });
@@ -45,7 +45,7 @@ export class ProductController implements IProductController {
   getAll = asyncHandler(async (req, res) => {
     const query = z
       .object({
-        keyword: z.string(),
+        keyword: z.string().default(""),
         currentPage: z.coerce.number().int().positive().default(1),
       })
       .parse(req.query);
@@ -53,7 +53,7 @@ export class ProductController implements IProductController {
     const data = await this.service.getAll(query);
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: data.products,
       meta: {
@@ -67,7 +67,7 @@ export class ProductController implements IProductController {
     const products = await this.service.getTopRated();
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: products,
     });
@@ -83,7 +83,7 @@ export class ProductController implements IProductController {
     const newProduct = await this.service.create(data);
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 201,
       data: newProduct,
     });
@@ -102,7 +102,7 @@ export class ProductController implements IProductController {
     });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: updatedProduct,
     });
@@ -114,7 +114,7 @@ export class ProductController implements IProductController {
     await this.service.delete({ productId });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 204,
       data: null,
     });

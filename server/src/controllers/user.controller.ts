@@ -30,7 +30,7 @@ export class UserController implements IUserController {
     const response = await this.service.getById({ userId });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: response,
     });
@@ -40,7 +40,7 @@ export class UserController implements IUserController {
     const response = await this.service.getAll();
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: response,
     });
@@ -60,7 +60,7 @@ export class UserController implements IUserController {
     });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: response,
     });
@@ -74,7 +74,7 @@ export class UserController implements IUserController {
     if (!response) throw new NotFoundError("User");
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 204,
       data: null,
     });

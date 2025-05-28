@@ -24,7 +24,7 @@ export class AuthController implements IAuthController {
     const response = await this.service.signin(parsedData);
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: response,
     });
@@ -36,7 +36,7 @@ export class AuthController implements IAuthController {
     const response = await this.service.signup(data);
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 201,
       data: response,
     });

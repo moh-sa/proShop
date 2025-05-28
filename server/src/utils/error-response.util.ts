@@ -27,15 +27,14 @@ export function createErrorResponseObject({
 }
 
 export function sendErrorResponse({
-  res,
+  responseContext,
   statusCode,
   errors,
   code,
-}: { res: Response; statusCode: number } & Omit<
+}: { responseContext: Response; statusCode: number } & Omit<
   ErrorResponse,
   "success" | "timestamp"
 >): void {
   const response = createErrorResponseObject({ errors, code });
-
-  res.status(statusCode).json(response);
+  responseContext.status(statusCode).json(response);
 }

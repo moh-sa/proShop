@@ -63,7 +63,7 @@ export class ReviewController implements IReviewController {
     const newReview = await this.service.create({ data });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 201,
       data: newReview,
     });
@@ -75,7 +75,7 @@ export class ReviewController implements IReviewController {
     const review = await this.service.getById({ reviewId });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: review,
     });
@@ -85,7 +85,7 @@ export class ReviewController implements IReviewController {
     const reviews = await this.service.getAll();
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: reviews,
     });
@@ -97,7 +97,7 @@ export class ReviewController implements IReviewController {
     const reviews = await this.service.getAllByUserId({ userId });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: reviews,
     });
@@ -109,7 +109,7 @@ export class ReviewController implements IReviewController {
     const reviews = await this.service.getAllByProductId({ productId });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: reviews,
     });
@@ -127,7 +127,7 @@ export class ReviewController implements IReviewController {
     });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: updatedReview,
     });
@@ -139,7 +139,7 @@ export class ReviewController implements IReviewController {
     await this.service.delete({ reviewId });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 204,
       data: null,
     });
@@ -149,7 +149,7 @@ export class ReviewController implements IReviewController {
     const count = await this.service.count();
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: count,
     });
@@ -161,7 +161,7 @@ export class ReviewController implements IReviewController {
     const count = await this.service.countByUserId({ userId });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: count,
     });
@@ -173,7 +173,7 @@ export class ReviewController implements IReviewController {
     const count = await this.service.countByProductId({ productId });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: count,
     });
@@ -185,7 +185,7 @@ export class ReviewController implements IReviewController {
     const exists = await this.service.existsById({ reviewId });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: exists,
     });
@@ -201,7 +201,7 @@ export class ReviewController implements IReviewController {
     });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: exists,
     });

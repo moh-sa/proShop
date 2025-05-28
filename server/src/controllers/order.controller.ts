@@ -41,7 +41,7 @@ export class OrderController implements IOrderController {
     const response = await this.service.create(data);
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 201,
       data: response,
     });
@@ -53,7 +53,7 @@ export class OrderController implements IOrderController {
     const order = await this.service.getById({ orderId });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: order,
     });
@@ -63,7 +63,7 @@ export class OrderController implements IOrderController {
     const orders = await this.service.getAll();
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: orders,
     });
@@ -75,7 +75,7 @@ export class OrderController implements IOrderController {
     const orders = await this.service.getAllByUserId({ userId });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: orders,
     });
@@ -87,7 +87,7 @@ export class OrderController implements IOrderController {
     const order = await this.service.updateToPaid({ orderId });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: order,
     });
@@ -99,7 +99,7 @@ export class OrderController implements IOrderController {
     const order = await this.service.updateToDelivered({ orderId });
 
     return sendSuccessResponse({
-      res,
+      responseContext: res,
       statusCode: 200,
       data: order,
     });

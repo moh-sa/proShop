@@ -23,11 +23,14 @@ export function createSuccessResponseObject<D, M>({
 }
 
 export function sendSuccessResponse<D, M>({
-  res,
+  responseContext,
   statusCode,
   data,
   meta,
-}: { res: Response; statusCode: number } & SuccessResponse<D, M>): void {
+}: { responseContext: Response; statusCode: number } & SuccessResponse<
+  D,
+  M
+>): void {
   const response = createSuccessResponseObject({ data, meta });
-  res.status(statusCode).json(response);
+  responseContext.status(statusCode).json(response);
 }

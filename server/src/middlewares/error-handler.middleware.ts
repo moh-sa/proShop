@@ -11,7 +11,7 @@ export function errorHandler(error: Error, req: Request, res: Response) {
   // Handle different types of errors
   if (error instanceof BaseError) {
     return sendErrorResponse({
-      res,
+      responseContext: res,
       code: error.type,
       statusCode: error.statusCode,
       errors: [
@@ -27,7 +27,7 @@ export function errorHandler(error: Error, req: Request, res: Response) {
   if (error instanceof ZodError) {
     error.format();
     return sendErrorResponse({
-      res,
+      responseContext: res,
       code: ErrorType.VALIDATION,
       statusCode: 400,
       errors: error.issues.map((issue) => ({
@@ -43,7 +43,7 @@ export function errorHandler(error: Error, req: Request, res: Response) {
     error instanceof TokenExpiredError
   ) {
     return sendErrorResponse({
-      res,
+      responseContext: res,
       code: ErrorType.AUTHENTICATION,
       statusCode: 401,
       errors: [
@@ -57,7 +57,7 @@ export function errorHandler(error: Error, req: Request, res: Response) {
 
   if (error instanceof MulterError) {
     return sendErrorResponse({
-      res,
+      responseContext: res,
       code: ErrorType.BAD_REQUEST, // FIXME: add a better error type
       statusCode: 400,
       errors: [
@@ -70,7 +70,7 @@ export function errorHandler(error: Error, req: Request, res: Response) {
   }
 
   return sendErrorResponse({
-    res,
+    responseContext: res,
     code: ErrorType.INTERNAL,
     statusCode: 500,
     errors: [
