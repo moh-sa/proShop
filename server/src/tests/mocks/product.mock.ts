@@ -4,7 +4,7 @@ import {
   InsertProductWithStringImage,
   SelectProduct,
 } from "../../types";
-import { generateMockMulterImage } from "./image.mock";
+import { mockMulterImageFile } from "./image.mock";
 import { generateMockObjectId } from "./objectid.mock";
 
 function baseMockProduct() {
@@ -28,7 +28,7 @@ function generateMockInsertProduct(): Omit<InsertProduct, "image"> {
 
 export function generateMockInsertProductWithMulterImage(): InsertProduct {
   const mockProduct = generateMockInsertProduct();
-  const mockMulterImage = generateMockMulterImage();
+  const mockMulterImage = mockMulterImageFile();
   return {
     ...mockProduct,
     image: mockMulterImage,
