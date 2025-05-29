@@ -17,44 +17,57 @@ export class RateLimiterMiddleware {
 
   private static _limiter(config: RateLimitConfig = RATE_LIMIT_CONFIG.DEFAULT) {
     return (req: Request, res: Response, next: NextFunction) => {
-      const key = this._generateKey(req);
+      try {
+        const key = this._generateKey(req);
 
-      // Get or init rate limit tracking data
-      const data = this.cache.get<{
-        count: number;
-        firstRequestTime: number;
-      }>({ key }) || {
-        count: 0,
-        firstRequestTime: Date.now(),
-      };
+        // Get or init rate limit tracking data
+        const data = this.cache.get<{
+          count: number;
+          firstRequestTime: number;
+        }>({ key }) || {
+          count: 0,
+          firstRequestTime: Date.now(),
+        };
 
-      // Check if the client exceeded the time window
-      const currentTime = Date.now();
-      const isTimeWindowExceeded =
-        currentTime - data.firstRequestTime > config.windowMs;
-      if (isTimeWindowExceeded) {
-        // Reset if the time window has passed
-        data.count = 1;
-        data.firstRequestTime = currentTime;
-      } else {
-        // Increment the request count
-        data.count++;
+        // Check if the client exceeded the time window
+        const currentTime = Date.now();
+        const isTimeWindowExceeded =
+          currentTime - data.firstRequestTime > config.windowMs;
+        if (isTimeWindowExceeded) {
+          // Reset if the time window has passed
+          data.count = 1;
+          data.firstRequestTime = currentTime;
+        } else {
+          // Increment the request count
+          data.count++;
+        }
+
+        // Check if max requests exceeded
+        if (data.count > config.maxRequests) {
+          throw new RateLimitError(config.message);
+        }
+
+        // Update cache
+        this.cache.set({
+          key,
+          value: data,
+          ttl: Math.ceil(config.windowMs / 1000),
+        });
+
+        next();
+      } catch (error) {
+        this._handleError(error, next);
       }
-
-      // Check if max requests exceeded
-      if (data.count > config.maxRequests) {
-        throw new RateLimitError(config.message);
-      }
-
-      // Update cache
-      this.cache.set({
-        key,
-        value: data,
-        ttl: Math.ceil(config.windowMs / 1000),
-      });
-
-      next();
     };
+  }
+
+  private static _handleError(error: unknown, next: NextFunction): void {
+    console.error("Rate limiter error: ", error);
+    if (error instanceof RateLimitError) {
+      next(error);
+    } else {
+      next(new RateLimitError());
+    }
   }
 
   public static defaultLimiter() {
