@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { Types } from "mongoose";
 import assert from "node:assert";
 import { describe, suite, test } from "node:test";
 import { ZodError } from "zod";
@@ -6,6 +7,7 @@ import {
   bearerTokenValidator,
   emailValidator,
   jwtTokenValidator,
+  objectIdValidator,
 } from "../../validators";
 
 suite("Zod Schemas 〖 Unit Tests 〗", () => {
@@ -353,6 +355,107 @@ suite("Zod Schemas 〖 Unit Tests 〗", () => {
           assert.ok(error instanceof ZodError);
           assert.equal(error.issues.length, 1);
           assert.equal(error.issues[0].message, "Invalid jwt token format.");
+          return true;
+        },
+      );
+    });
+  });
+
+  describe("objectIdValidator", () => {
+    test("Should return 'Types.ObjectId' when a ObjectId is given", () => {
+      const id = new Types.ObjectId();
+
+      const result = objectIdValidator.parse(id);
+
+      assert.ok(result);
+      assert.equal(result, id);
+    });
+
+    test("Should return 'Types.ObjectId' when a ObjectId string is given", () => {
+      const id = new Types.ObjectId().toString();
+
+      const result = objectIdValidator.parse(id);
+
+      assert.ok(result);
+      assert.equal(result.toString(), id);
+    });
+
+    test("Should return 'Types.ObjectId' when a ObjectId string with whitespace is given", () => {
+      const id = `   ${new Types.ObjectId().toString()}   `;
+
+      const result = objectIdValidator.parse(id);
+
+      assert.ok(result);
+      assert.equal(result.toString(), id.trim());
+    });
+
+    test("Should throw 'ZodError' when 'empty string' is given", () => {
+      const id = "";
+
+      assert.throws(
+        () => objectIdValidator.parse(id),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
+          assert.equal(error.issues[0].message, "Invalid ObjectId format.");
+          return true;
+        },
+      );
+    });
+
+    test("Should throw 'ZodError' when 'whitespace-only' is given", () => {
+      const id = "   ";
+
+      assert.throws(
+        () => objectIdValidator.parse(id),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
+          assert.equal(error.issues[0].message, "Invalid ObjectId format.");
+          return true;
+        },
+      );
+    });
+
+    test("Should throw 'ZodError' when 'invalid ObjectId' is given", () => {
+      const ogId = new Types.ObjectId();
+      const id =
+        ogId.toString().slice(0, 10) + "#$%" + ogId.toString().slice(10);
+
+      assert.throws(
+        () => objectIdValidator.parse(id),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
+          assert.equal(error.issues[0].message, "Invalid ObjectId format.");
+          return true;
+        },
+      );
+    });
+
+    test("Should throw 'ZodError' when 'not-a-object-id' is given", () => {
+      const id = "not-a-ObjectId";
+
+      assert.throws(
+        () => objectIdValidator.parse(id),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
+          assert.equal(error.issues[0].message, "Invalid ObjectId format.");
+          return true;
+        },
+      );
+    });
+
+    test("Should throw 'ZodError' when a number is given", () => {
+      const id = 123;
+
+      assert.throws(
+        () => objectIdValidator.parse(id),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
+          assert.equal(error.issues[0].message, "Invalid ObjectId format.");
           return true;
         },
       );
