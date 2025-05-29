@@ -8,6 +8,7 @@ import {
   emailValidator,
   jwtTokenValidator,
   objectIdValidator,
+  passwordValidator,
 } from "../../validators";
 
 suite("Zod Schemas 〖 Unit Tests 〗", () => {
@@ -456,6 +457,112 @@ suite("Zod Schemas 〖 Unit Tests 〗", () => {
           assert.ok(error instanceof ZodError);
           assert.equal(error.issues.length, 1);
           assert.equal(error.issues[0].message, "Invalid ObjectId format.");
+          return true;
+        },
+      );
+    });
+  });
+
+  describe("passwordValidator", () => {
+    test("Should return 'password' when 'password' is given", () => {
+      const password = "password";
+
+      const result = passwordValidator.parse(password);
+
+      assert.ok(result);
+      assert.equal(result, password);
+    });
+
+    test("Should return 'password' when' password 'is given", () => {
+      const password = " password ";
+
+      const result = passwordValidator.parse(password);
+
+      assert.ok(result);
+      assert.equal(result, password.trim());
+    });
+
+    test("Should return 'pass word' when 'pass word' is given", () => {
+      const password = "pass word";
+
+      const result = passwordValidator.parse(password);
+
+      assert.ok(result);
+      assert.equal(result, password);
+    });
+
+    test("Should return 'passWord' when 'passWord' is given", () => {
+      const password = "passWord";
+
+      const result = passwordValidator.parse(password);
+
+      assert.ok(result);
+      assert.equal(result, password);
+    });
+
+    test("Should throw 'ZodError' when 'empty string' is given", () => {
+      const password = "";
+
+      assert.throws(
+        () => passwordValidator.parse(password),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
+          assert.equal(
+            error.issues[0].message,
+            "Password should be at least 6 characters long.",
+          );
+          return true;
+        },
+      );
+    });
+
+    test("Should throw 'ZodError' when 'whitespace-only' is given", () => {
+      const password = "   ";
+
+      assert.throws(
+        () => passwordValidator.parse(password),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
+          assert.equal(
+            error.issues[0].message,
+            "Password should be at least 6 characters long.",
+          );
+          return true;
+        },
+      );
+    });
+
+    test("Should throw 'ZodError' when '123' is given", () => {
+      const password = "123";
+
+      assert.throws(
+        () => passwordValidator.parse(password),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
+          assert.equal(
+            error.issues[0].message,
+            "Password should be at least 6 characters long.",
+          );
+          return true;
+        },
+      );
+    });
+
+    test("Should throw 'ZodError' when a password more than 128 chars is given", () => {
+      const password = faker.lorem.words(25);
+
+      assert.throws(
+        () => passwordValidator.parse(password),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
+          assert.equal(
+            error.issues[0].message,
+            "Password should be at most 128 characters long.",
+          );
           return true;
         },
       );
