@@ -26,21 +26,10 @@ export class RateLimiterMiddleware {
         const key = this._generateCacheKey(req);
         const data = this._getRateLimitData(key);
 
-        // Check if the client exceeded the time window
-        const currentTime = Date.now();
-        const isTimeWindowExceeded =
-          currentTime - data.firstRequestTime > config.windowMs;
-        if (isTimeWindowExceeded) {
-          // Reset if the time window has passed
-          data.count = 1;
-          data.firstRequestTime = currentTime;
-        } else {
-          // Increment the request count
-          data.count++;
-        }
+        const updatedData = this._updateRateLimitData(data, config);
 
         // Check if max requests exceeded
-        if (data.count > config.maxRequests) {
+        if (updatedData.count > config.maxRequests) {
           throw new RateLimitError(config.message);
         }
 
@@ -56,6 +45,21 @@ export class RateLimiterMiddleware {
         this._handleError(error, next);
       }
     };
+  }
+
+  private static _updateRateLimitData(
+    data: RateLimitData,
+    config: RateLimitConfig,
+  ) {
+    const currentTime = Date.now();
+    const isTimeWindowExceeded =
+      currentTime - data.firstRequestTime > config.windowMs;
+
+    if (isTimeWindowExceeded) {
+      return { count: 1, firstRequestTime: currentTime };
+    }
+
+    return { ...data, count: data.count + 1 };
   }
 
   private static _getRateLimitData(key: string): RateLimitData {
