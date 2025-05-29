@@ -45,7 +45,7 @@ export class RateLimiterManager {
     data: RateLimitData,
     config: RateLimitConfig,
     key: string,
-  ) {
+  ): void {
     this.cache.set({
       key,
       value: data,
@@ -59,7 +59,7 @@ export class RateLimiterManager {
     data: RateLimitData,
     config: RateLimitConfig,
     key: string,
-  ) {
+  ): void {
     const currentTime = Date.now();
     const retryAfter = Math.ceil(
       (config.windowMs - (currentTime - data.firstRequestTime)) / 1000,
@@ -77,7 +77,7 @@ export class RateLimiterManager {
     res: Response,
     data: RateLimitData,
     config: RateLimitConfig,
-  ) {
+  ): void {
     res.setHeader("X-RateLimit-Limit", config.maxRequests);
     res.setHeader(
       "X-RateLimit-Remaining",
@@ -88,7 +88,7 @@ export class RateLimiterManager {
   private static _updateRateLimitData(
     data: RateLimitData,
     config: RateLimitConfig,
-  ) {
+  ): RateLimitData {
     const currentTime = Date.now();
     const isTimeWindowExceeded =
       currentTime - data.firstRequestTime > config.windowMs;
