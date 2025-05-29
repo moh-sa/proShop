@@ -4,10 +4,15 @@ import { RateLimitError } from "../errors";
 import { CacheManager } from "../managers";
 import { RateLimitConfig } from "../types";
 
+interface RateLimitData {
+  count: number;
+  firstRequestTime: number;
+}
+
 export class RateLimiterMiddleware {
   private static cache = new CacheManager("rate-limit");
 
-  private static _generateKey(req: Request) {
+  private static _generateCacheKey(req: Request) {
     const ip = req.ip;
     const route = req.baseUrl + req.path;
     const id = `${ip}:${route}`;
@@ -18,16 +23,8 @@ export class RateLimiterMiddleware {
   private static _limiter(config: RateLimitConfig = RATE_LIMIT_CONFIG.DEFAULT) {
     return (req: Request, res: Response, next: NextFunction) => {
       try {
-        const key = this._generateKey(req);
-
-        // Get or init rate limit tracking data
-        const data = this.cache.get<{
-          count: number;
-          firstRequestTime: number;
-        }>({ key }) || {
-          count: 0,
-          firstRequestTime: Date.now(),
-        };
+        const key = this._generateCacheKey(req);
+        const data = this._getRateLimitData(key);
 
         // Check if the client exceeded the time window
         const currentTime = Date.now();
@@ -59,6 +56,15 @@ export class RateLimiterMiddleware {
         this._handleError(error, next);
       }
     };
+  }
+
+  private static _getRateLimitData(key: string): RateLimitData {
+    const fallback: RateLimitData = {
+      count: 0,
+      firstRequestTime: Date.now(),
+    };
+
+    return this.cache.get<RateLimitData>({ key }) || fallback;
   }
 
   private static _handleError(error: unknown, next: NextFunction): void {
