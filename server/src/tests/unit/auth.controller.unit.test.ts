@@ -103,7 +103,7 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 
       const expectedParsedData = {
         name: mockUser.name,
-        email: mockUser.email,
+        email: mockUser.email.toLowerCase(),
         password: mockUser.password, // TODO: why return password?!
         isAdmin: mockUser.isAdmin,
       };
@@ -287,7 +287,7 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
       );
 
       const expectedParsedData = {
-        email: mockUser.email,
+        email: mockUser.email.toLowerCase(),
         password: mockUser.password,
       };
 

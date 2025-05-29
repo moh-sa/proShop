@@ -52,7 +52,7 @@ suite("Util Functions Unit Tests", () => {
       const mockUser = generateMockUser();
       const mockPayload = {
         _id: mockUser._id,
-        email: mockUser.email,
+        email: mockUser.email.toLowerCase(),
         isAdmin: mockUser.isAdmin,
       };
       const mockToken = faker.internet.jwt({ payload: mockPayload });
