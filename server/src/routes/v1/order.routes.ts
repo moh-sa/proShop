@@ -1,6 +1,6 @@
 import express from "express";
 import { OrderController } from "../../controllers";
-import { RateLimiterManager } from "../../managers";
+import { defaultLimiter, strictLimiter } from "../../managers";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
@@ -17,7 +17,7 @@ const adminRouter = express.Router();
 userRouter
   .route("/")
   .post(
-    RateLimiterManager.strictLimiter(),
+    strictLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     controller.create,
@@ -26,7 +26,7 @@ userRouter
 userRouter
   .route("/user/:userId")
   .get(
-    RateLimiterManager.defaultLimiter(),
+    defaultLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     controller.getAllByUserId,
@@ -35,7 +35,7 @@ userRouter
 userRouter
   .route("/:orderId")
   .get(
-    RateLimiterManager.defaultLimiter(),
+    defaultLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     controller.getById,
@@ -44,7 +44,7 @@ userRouter
 adminRouter
   .route("/")
   .get(
-    RateLimiterManager.defaultLimiter(),
+    defaultLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
@@ -54,7 +54,7 @@ adminRouter
 adminRouter
   .route("/:orderId/payment")
   .patch(
-    RateLimiterManager.strictLimiter(),
+    strictLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
@@ -64,7 +64,7 @@ adminRouter
 adminRouter
   .route("/:orderId/delivery")
   .patch(
-    RateLimiterManager.strictLimiter(),
+    strictLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,

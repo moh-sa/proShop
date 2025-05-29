@@ -1,6 +1,6 @@
 import express from "express";
 import { UserController } from "../../controllers";
-import { RateLimiterManager } from "../../managers";
+import { adminLimiter, defaultLimiter, strictLimiter } from "../../managers";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
@@ -18,13 +18,13 @@ const adminRouter = express.Router();
 profileRouter
   .route("/")
   .get(
-    RateLimiterManager.defaultLimiter(),
+    defaultLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     controller.getById,
   )
   .patch(
-    RateLimiterManager.strictLimiter(),
+    strictLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     controller.update,
@@ -33,7 +33,7 @@ profileRouter
 adminRouter
   .route("/")
   .get(
-    RateLimiterManager.adminLimiter(),
+    adminLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
@@ -43,21 +43,21 @@ adminRouter
 adminRouter
   .route("/:userId")
   .get(
-    RateLimiterManager.adminLimiter(),
+    adminLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
     controller.getById,
   )
   .patch(
-    RateLimiterManager.adminLimiter(),
+    adminLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
     controller.update,
   )
   .delete(
-    RateLimiterManager.adminLimiter(),
+    adminLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,

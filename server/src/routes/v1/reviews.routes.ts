@@ -1,6 +1,6 @@
 import express from "express";
 import { ReviewController } from "../../controllers";
-import { RateLimiterManager } from "../../managers";
+import { adminLimiter, defaultLimiter, strictLimiter } from "../../managers";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
@@ -17,16 +17,16 @@ const adminRouter = express.Router();
 
 publicRouter
   .route("/product/:productId")
-  .get(RateLimiterManager.defaultLimiter(), controller.getAllByProductId);
+  .get(defaultLimiter, controller.getAllByProductId);
 
 publicRouter
   .route("/count/product/:productId")
-  .get(RateLimiterManager.defaultLimiter(), controller.countByProductId);
+  .get(defaultLimiter, controller.countByProductId);
 
 userRouter
   .route("/")
   .post(
-    RateLimiterManager.strictLimiter(),
+    strictLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     controller.create,
@@ -35,7 +35,7 @@ userRouter
 userRouter
   .route("/count/user/:userId")
   .get(
-    RateLimiterManager.defaultLimiter(),
+    defaultLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     controller.countByUserId,
@@ -44,7 +44,7 @@ userRouter
 userRouter
   .route("/exists/user/:userId/product/:productId")
   .get(
-    RateLimiterManager.defaultLimiter(),
+    defaultLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     controller.existsByUserIdAndProductId,
@@ -53,20 +53,20 @@ userRouter
 userRouter
   .route("/:userId")
   .get(
-    RateLimiterManager.defaultLimiter(),
+    defaultLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     controller.getAllByUserId,
   )
   .patch(
-    RateLimiterManager.strictLimiter(),
+    strictLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     verifyReviewOwnership,
     controller.update,
   )
   .delete(
-    RateLimiterManager.defaultLimiter(),
+    defaultLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     verifyReviewOwnership,
@@ -76,7 +76,7 @@ userRouter
 adminRouter
   .route("/")
   .get(
-    RateLimiterManager.adminLimiter(),
+    adminLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
@@ -86,7 +86,7 @@ adminRouter
 adminRouter
   .route("/count")
   .get(
-    RateLimiterManager.adminLimiter(),
+    adminLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
@@ -96,7 +96,7 @@ adminRouter
 adminRouter
   .route("/exists/:reviewId")
   .get(
-    RateLimiterManager.adminLimiter(),
+    adminLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
@@ -106,7 +106,7 @@ adminRouter
 adminRouter
   .route("/:reviewId")
   .get(
-    RateLimiterManager.adminLimiter(),
+    adminLimiter,
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
