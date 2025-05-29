@@ -15,14 +15,6 @@ export class RateLimiterManager {
     this.cache = cache;
   }
 
-  private _generateCacheKey(req: Request) {
-    const ip = req.ip;
-    const route = req.baseUrl + req.path;
-    const id = `${ip}:${route}`;
-
-    return this.cache.generateKey({ id });
-  }
-
   public getLimiter(options: keyof typeof RATE_LIMIT_CONFIG | RateLimitConfig) {
     const config =
       typeof options === "string" ? RATE_LIMIT_CONFIG[options] : options;
@@ -117,6 +109,11 @@ export class RateLimiterManager {
     };
 
     return this.cache.get<RateLimitData>({ key }) || fallback;
+  }
+
+  private _generateCacheKey(req: Request): string {
+    const id = `${req.ip}:${req.baseUrl + req.path}`;
+    return this.cache.generateKey({ id });
   }
 
   private _handleError(error: unknown, next: NextFunction): void {
