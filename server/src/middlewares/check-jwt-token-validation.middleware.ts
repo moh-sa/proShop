@@ -1,7 +1,7 @@
 import { selectUserSchema } from "../schemas";
 import { asyncHandler, verifyJwtToken } from "../utils";
 import {
-  authHeaderValidator,
+  bearerTokenValidator,
   jwtTokenValidator,
   objectIdValidator,
 } from "../validators";
@@ -17,7 +17,7 @@ const schema = selectUserSchema.pick({ _id: true }).transform((data) => {
  * Middleware to validate JWT token
  */
 export const checkJwtTokenValidation = asyncHandler(async (req, res, next) => {
-  const authHeader = authHeaderValidator.parse(req.headers.authorization);
+  const authHeader = bearerTokenValidator.parse(req.headers.authorization);
   const token = jwtTokenValidator.parse(authHeader);
   const decoded = verifyJwtToken(token, schema);
   const userId = objectIdValidator.parse(decoded.id);

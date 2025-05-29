@@ -2,7 +2,7 @@ import { z } from "zod";
 /**
  * Validates the auth header format. It should start with `Bearer <token>`
  */
-export const authHeaderValidator = z
+export const bearerTokenValidator = z
   .string()
   .min(1, { message: "Authorization header is required." })
   .startsWith("Bearer ", { message: "Invalid token format." })
