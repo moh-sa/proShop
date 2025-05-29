@@ -7,7 +7,7 @@ import { RateLimitConfig } from "../types";
 export class RateLimiterMiddleware {
   private static cache = new CacheManager("rate-limit");
 
-  private static generateKey(req: Request) {
+  private static _generateKey(req: Request) {
     const ip = req.ip;
     const route = req.baseUrl + req.path;
     const id = `${ip}:${route}`;
@@ -15,9 +15,9 @@ export class RateLimiterMiddleware {
     return this.cache.generateKey({ id });
   }
 
-  private static limiter(config: RateLimitConfig = RATE_LIMIT_CONFIG.DEFAULT) {
+  private static _limiter(config: RateLimitConfig = RATE_LIMIT_CONFIG.DEFAULT) {
     return (req: Request, res: Response, next: NextFunction) => {
-      const key = this.generateKey(req);
+      const key = this._generateKey(req);
 
       // Get or init rate limit tracking data
       const data = this.cache.get<{
@@ -58,18 +58,18 @@ export class RateLimiterMiddleware {
   }
 
   public static defaultLimiter() {
-    return this.limiter(RATE_LIMIT_CONFIG.DEFAULT);
+    return this._limiter(RATE_LIMIT_CONFIG.DEFAULT);
   }
 
   public static strictLimiter() {
-    return this.limiter(RATE_LIMIT_CONFIG.STRICT);
+    return this._limiter(RATE_LIMIT_CONFIG.STRICT);
   }
 
   public static adminLimiter() {
-    return this.limiter(RATE_LIMIT_CONFIG.ADMIN);
+    return this._limiter(RATE_LIMIT_CONFIG.ADMIN);
   }
 
   public static authLimiter() {
-    return this.limiter(RATE_LIMIT_CONFIG.AUTH);
+    return this._limiter(RATE_LIMIT_CONFIG.AUTH);
   }
 }
