@@ -28,23 +28,32 @@ export class RateLimiterMiddleware {
 
         const updatedData = this._updateRateLimitData(data, config);
 
-        // Check if max requests exceeded
         if (updatedData.count > config.maxRequests) {
-          throw new RateLimitError(config.message);
+          this._handleRateLimitExceeded(config);
+        } else {
+          this._saveRateLimitData(updatedData, config, key);
+          next();
         }
-
-        // Update cache
-        this.cache.set({
-          key,
-          value: data,
-          ttl: Math.ceil(config.windowMs / 1000),
-        });
-
-        next();
       } catch (error) {
         this._handleError(error, next);
       }
     };
+  }
+
+  private static _saveRateLimitData(
+    data: RateLimitData,
+    config: RateLimitConfig,
+    key: string,
+  ) {
+    this.cache.set({
+      key,
+      value: data,
+      ttl: Math.ceil(config.windowMs / 1000),
+    });
+  }
+
+  private static _handleRateLimitExceeded(config: RateLimitConfig): never {
+    throw new RateLimitError(config.message);
   }
 
   private static _updateRateLimitData(
