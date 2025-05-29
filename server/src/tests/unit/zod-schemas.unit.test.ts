@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { describe, suite, test } from "node:test";
 import { ZodError } from "zod";
-import { bearerTokenValidator } from "../../validators";
+import { bearerTokenValidator, emailValidator } from "../../validators";
 
 suite("Zod Schemas 〖 Unit Tests 〗", () => {
   describe("bearerTokenValidator", () => {
@@ -113,6 +113,162 @@ suite("Zod Schemas 〖 Unit Tests 〗", () => {
           assert.ok(
             error.issues[0].message.includes("must start with 'Bearer '"),
           );
+          return true;
+        },
+      );
+    });
+  });
+
+  describe("emailValidator", () => {
+    test("Should return 'user@example.com'", () => {
+      const email = "user@example.com";
+
+      const result = emailValidator.parse(email);
+
+      assert.ok(result);
+      assert.equal(result, email);
+    });
+
+    test("Should return trimmed email when '  user@example.com  ' is given", () => {
+      const email = "  user@example.com  ";
+
+      const result = emailValidator.parse(email);
+
+      assert.ok(result);
+      assert.equal(result, email.trim());
+    });
+
+    test("Should return lowercase email when 'USER@EXAMPLE.COM' is given", () => {
+      const email = "USER@EXAMPLE.COM";
+
+      const result = emailValidator.parse(email);
+
+      assert.ok(result);
+      assert.equal(result, email.toLowerCase());
+    });
+
+    test("Should return 'user@example.co'", () => {
+      const email = "user@example.co";
+
+      const result = emailValidator.parse(email);
+
+      assert.ok(result);
+      assert.equal(result, email);
+    });
+
+    test("Should return 'user.label@example.com'", () => {
+      const email = "user.label@example.com";
+
+      const result = emailValidator.parse(email);
+
+      assert.ok(result);
+      assert.equal(result, email);
+    });
+
+    test("Should return 'user+label@example.com'", () => {
+      const email = "user+label@example.com";
+
+      const result = emailValidator.parse(email);
+
+      assert.ok(result);
+      assert.equal(result, email);
+    });
+
+    test("Should throw 'ZodError' when 'empty string' is given", () => {
+      const email = "";
+
+      assert.throws(
+        () => emailValidator.parse(email),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 2);
+          assert.equal(error.issues[0].message, "Email is required.");
+          assert.equal(error.issues[1].message, "Invalid email format.");
+          return true;
+        },
+      );
+    });
+
+    test("Should throw 'ZodError' when '   ' is given", () => {
+      const email = "   ";
+
+      assert.throws(
+        () => emailValidator.parse(email),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 2);
+          assert.equal(error.issues[0].message, "Email is required.");
+          assert.equal(error.issues[1].message, "Invalid email format.");
+          return true;
+        },
+      );
+    });
+
+    test("Should throw 'ZodError' when 'user@' is given", () => {
+      const email = "user@";
+
+      assert.throws(
+        () => emailValidator.parse(email),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
+          assert.equal(error.issues[0].message, "Invalid email format.");
+          return true;
+        },
+      );
+    });
+
+    test("Should throw 'ZodError' when '@example.com' is given", () => {
+      const email = "@example.com";
+
+      assert.throws(
+        () => emailValidator.parse(email),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
+          assert.equal(error.issues[0].message, "Invalid email format.");
+          return true;
+        },
+      );
+    });
+
+    test("Should throw 'ZodError' when 'userexample.com' is given", () => {
+      const email = "userexample.com";
+
+      assert.throws(
+        () => emailValidator.parse(email),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
+          assert.equal(error.issues[0].message, "Invalid email format.");
+          return true;
+        },
+      );
+    });
+
+    test("Should throw 'ZodError' when 'not-an-email' is given", () => {
+      const email = "not-an-email";
+
+      assert.throws(
+        () => emailValidator.parse(email),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
+          assert.equal(error.issues[0].message, "Invalid email format.");
+          return true;
+        },
+      );
+    });
+
+    test("Should throw 'ZodError' when 'u$er@e𝕏ample' is given", () => {
+      const email = "u$er@e𝕏ample";
+
+      assert.throws(
+        () => emailValidator.parse(email),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
+          assert.equal(error.issues[0].message, "Invalid email format.");
           return true;
         },
       );
