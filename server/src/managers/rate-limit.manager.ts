@@ -9,7 +9,7 @@ interface RateLimitData {
   firstRequestTime: number;
 }
 
-export class RateLimiterMiddleware {
+export class RateLimiterManager {
   private static cache = new CacheManager("rate-limit");
 
   private static _generateCacheKey(req: Request) {

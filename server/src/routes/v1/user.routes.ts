@@ -1,10 +1,10 @@
 import express from "express";
 import { UserController } from "../../controllers";
+import { RateLimiterManager } from "../../managers";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
   checkUserIdExists,
-  RateLimiterMiddleware,
 } from "../../middlewares";
 
 const controller = new UserController();
@@ -18,13 +18,13 @@ const adminRouter = express.Router();
 profileRouter
   .route("/")
   .get(
-    RateLimiterMiddleware.defaultLimiter(),
+    RateLimiterManager.defaultLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     controller.getById,
   )
   .patch(
-    RateLimiterMiddleware.strictLimiter(),
+    RateLimiterManager.strictLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     controller.update,
@@ -33,7 +33,7 @@ profileRouter
 adminRouter
   .route("/")
   .get(
-    RateLimiterMiddleware.adminLimiter(),
+    RateLimiterManager.adminLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
@@ -43,21 +43,21 @@ adminRouter
 adminRouter
   .route("/:userId")
   .get(
-    RateLimiterMiddleware.adminLimiter(),
+    RateLimiterManager.adminLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
     controller.getById,
   )
   .patch(
-    RateLimiterMiddleware.adminLimiter(),
+    RateLimiterManager.adminLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
     controller.update,
   )
   .delete(
-    RateLimiterMiddleware.adminLimiter(),
+    RateLimiterManager.adminLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,

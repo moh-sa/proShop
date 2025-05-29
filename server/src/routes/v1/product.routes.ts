@@ -1,11 +1,11 @@
 import express from "express";
 import { uploadSingle as uploadSingleMiddleware } from "../../config/multer.config";
 import { ProductController } from "../../controllers";
+import { RateLimiterManager } from "../../managers";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
   checkUserIdExists,
-  RateLimiterMiddleware,
 } from "../../middlewares";
 
 const controller = new ProductController();
@@ -19,16 +19,16 @@ const adminRouter = express.Router();
 
 publicRouter
   .route("/")
-  .get(RateLimiterMiddleware.defaultLimiter(), controller.getAll);
+  .get(RateLimiterManager.defaultLimiter(), controller.getAll);
 
 publicRouter
   .route("/top-rated")
-  .get(RateLimiterMiddleware.defaultLimiter(), controller.getTopRated);
+  .get(RateLimiterManager.defaultLimiter(), controller.getTopRated);
 
 adminRouter
   .route("/")
   .post(
-    RateLimiterMiddleware.adminLimiter(),
+    RateLimiterManager.adminLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
@@ -38,16 +38,16 @@ adminRouter
 
 adminRouter
   .route("/:productId")
-  .get(RateLimiterMiddleware.defaultLimiter(), controller.getById)
+  .get(RateLimiterManager.defaultLimiter(), controller.getById)
   .delete(
-    RateLimiterMiddleware.adminLimiter(),
+    RateLimiterManager.adminLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
     controller.delete,
   )
   .patch(
-    RateLimiterMiddleware.adminLimiter(),
+    RateLimiterManager.adminLimiter(),
     checkJwtTokenValidation,
     checkUserIdExists,
     checkIfUserIsAdmin,
