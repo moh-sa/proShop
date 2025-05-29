@@ -29,7 +29,7 @@ export class RateLimiterMiddleware {
         const updatedData = this._updateRateLimitData(data, config);
 
         if (updatedData.count > config.maxRequests) {
-          this._handleRateLimitExceeded(config);
+          this._handleRateLimitExceeded(next, config);
         } else {
           this._saveRateLimitData(updatedData, config, key);
           next();
@@ -52,8 +52,11 @@ export class RateLimiterMiddleware {
     });
   }
 
-  private static _handleRateLimitExceeded(config: RateLimitConfig): never {
-    throw new RateLimitError(config.message);
+  private static _handleRateLimitExceeded(
+    next: NextFunction,
+    config: RateLimitConfig,
+  ): void {
+    this._handleError(new RateLimitError(config.message), next);
   }
 
   private static _updateRateLimitData(
