@@ -5,5 +5,12 @@ import { z } from "zod";
 export const bearerTokenValidator = z
   .string()
   .min(1, { message: "Authorization header is required." })
-  .startsWith("Bearer ", { message: "Invalid token format." })
-  .transform((val) => val.slice(7)); // Extract token part from "Bearer <token>"
+  .refine(
+    (val) => val.startsWith("Bearer ") && val.slice(7).trim().length > 0,
+    {
+      path: ["Authorization"],
+      message:
+        "Invalid authorization header. It must start with 'Bearer ' followed by a token.",
+    },
+  )
+  .transform((val) => val.slice(7).trim()); // remove "Bearer " prefix
