@@ -1,7 +1,12 @@
+import { faker } from "@faker-js/faker";
 import assert from "node:assert";
 import { describe, suite, test } from "node:test";
 import { ZodError } from "zod";
-import { bearerTokenValidator, emailValidator } from "../../validators";
+import {
+  bearerTokenValidator,
+  emailValidator,
+  jwtTokenValidator,
+} from "../../validators";
 
 suite("Zod Schemas 〖 Unit Tests 〗", () => {
   describe("bearerTokenValidator", () => {
@@ -269,6 +274,85 @@ suite("Zod Schemas 〖 Unit Tests 〗", () => {
           assert.ok(error instanceof ZodError);
           assert.equal(error.issues.length, 1);
           assert.equal(error.issues[0].message, "Invalid email format.");
+          return true;
+        },
+      );
+    });
+  });
+
+  describe("jwtTokenValidator", () => {
+    test("Should return the same JWT token as given", () => {
+      const token = faker.internet.jwt();
+
+      const result = jwtTokenValidator.parse(token);
+
+      assert.ok(result);
+      assert.equal(result, token);
+    });
+
+    test("Should return jwt token without whitespace", () => {
+      const token = `   ${faker.internet.jwt()}   `;
+
+      const result = jwtTokenValidator.parse(token);
+
+      assert.ok(result);
+      assert.equal(result, token.trim());
+    });
+
+    test("Should throw 'ZodError' when 'empty string' is given", () => {
+      const token = "";
+
+      assert.throws(
+        () => jwtTokenValidator.parse(token),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 2);
+          assert.equal(error.issues[0].message, "Token is required.");
+          assert.equal(error.issues[1].message, "Invalid jwt token format.");
+          return true;
+        },
+      );
+    });
+
+    test("Should throw 'ZodError' when 'whitespace-only' is given", () => {
+      const token = "   ";
+
+      assert.throws(
+        () => jwtTokenValidator.parse(token),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 2);
+          assert.equal(error.issues[0].message, "Token is required.");
+          assert.equal(error.issues[1].message, "Invalid jwt token format.");
+          return true;
+        },
+      );
+    });
+
+    test("Should throw 'ZodError' when 'invalid jwt token' is given", () => {
+      const jwt = faker.internet.jwt();
+      const token = jwt.slice(0, 10) + "#$%" + jwt.slice(10);
+
+      assert.throws(
+        () => jwtTokenValidator.parse(token),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
+          assert.equal(error.issues[0].message, "Invalid jwt token format.");
+          return true;
+        },
+      );
+    });
+
+    test("Should throw 'ZodError' when 'not-a-jwt-token' is given", () => {
+      const token = "not-a-jwt-token";
+
+      assert.throws(
+        () => jwtTokenValidator.parse(token),
+        (error: Error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
+          assert.equal(error.issues[0].message, "Invalid jwt token format.");
           return true;
         },
       );
