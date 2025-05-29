@@ -57,19 +57,19 @@ export class RateLimiterMiddleware {
     };
   }
 
-  static defaultLimiter() {
+  public static defaultLimiter() {
     return this.limiter(RATE_LIMIT_CONFIG.DEFAULT);
   }
 
-  static strictLimiter() {
+  public static strictLimiter() {
     return this.limiter(RATE_LIMIT_CONFIG.STRICT);
   }
 
-  static adminLimiter() {
+  public static adminLimiter() {
     return this.limiter(RATE_LIMIT_CONFIG.ADMIN);
   }
 
-  static authLimiter() {
+  public static authLimiter() {
     return this.limiter(RATE_LIMIT_CONFIG.AUTH);
   }
 }
