@@ -47,6 +47,15 @@ export class RateLimiterManager {
     };
   }
 
+  public clearCache(keys?: string | string[]): void {
+    if (!(Array.isArray(keys) || typeof keys === "string")) {
+      keys;
+      return this.cache.flush();
+    }
+
+    this.cache.delete({ keys });
+  }
+
   private _saveRateLimitData(
     data: RateLimitData,
     config: RateLimitConfig,
