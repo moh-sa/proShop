@@ -15,7 +15,11 @@ export class RateLimiterManager {
     this.cache = cache;
   }
 
-  public getLimiter(options: keyof typeof RATE_LIMIT_CONFIG | RateLimitConfig) {
+  public getLimiter(
+    options:
+      | keyof typeof RATE_LIMIT_CONFIG
+      | RateLimitConfig = RATE_LIMIT_CONFIG.DEFAULT,
+  ) {
     const config =
       typeof options === "string" ? RATE_LIMIT_CONFIG[options] : options;
 
@@ -127,7 +131,7 @@ export class RateLimiterManager {
 }
 
 const rateLimiter = new RateLimiterManager();
-export const defaultLimiter = rateLimiter.getLimiter("DEFAULT");
+export const defaultLimiter = rateLimiter.getLimiter();
 export const strictLimiter = rateLimiter.getLimiter("STRICT");
 export const adminLimiter = rateLimiter.getLimiter("ADMIN");
 export const authLimiter = rateLimiter.getLimiter("AUTH");
