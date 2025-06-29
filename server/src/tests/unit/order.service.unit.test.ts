@@ -29,9 +29,10 @@ suite("Order Service 〖 Unit Tests 〗", () => {
       assert.deepStrictEqual(order, mockOrder);
 
       assert.strictEqual(mockRepo.create.mock.callCount(), 1);
-      assert.deepStrictEqual(mockRepo.create.mock.calls[0].arguments[0], {
-        orderData: mockOrder,
-      });
+      assert.deepStrictEqual(
+        mockRepo.create.mock.calls[0].arguments[0],
+        mockOrder,
+      );
     });
 
     test("Should throw 'EmptyCartError' if 'data.orderItems' length is '0'", async () => {

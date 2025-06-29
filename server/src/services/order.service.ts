@@ -23,7 +23,7 @@ export class OrderService implements IOrderService {
       throw new EmptyCartError();
     }
 
-    return await this.repository.create({ orderData: data });
+    return await this.repository.create(data);
   }
 
   async getById({

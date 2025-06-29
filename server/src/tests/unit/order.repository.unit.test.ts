@@ -17,7 +17,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
         toObject: () => mockOrder,
       }));
 
-      const order = await repo.create({ orderData: mockOrder });
+      const order = await repo.create(mockOrder);
 
       assert.ok(order);
       assert.deepStrictEqual(order, mockOrder);
@@ -34,7 +34,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.create({ orderData: mockOrder }),
+        async () => await repo.create(mockOrder),
         (error: Error) => {
           assert.ok(error instanceof DatabaseError);
           assert.strictEqual(error.message, mongooseError.message);
@@ -51,7 +51,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.create({ orderData: mockOrder }),
+        async () => await repo.create(mockOrder),
         DatabaseError,
       );
     });

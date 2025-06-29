@@ -4,7 +4,7 @@ import Order from "../models/orderModel";
 import { InsertOrder, SelectOrder } from "../types";
 
 export interface IOrderRepository {
-  create({ orderData }: { orderData: InsertOrder }): Promise<SelectOrder>;
+  create(data: InsertOrder): Promise<SelectOrder>;
   getById({
     orderId,
   }: {
@@ -30,13 +30,9 @@ export class OrderRepository implements IOrderRepository {
     this.db = db;
   }
 
-  async create({
-    orderData,
-  }: {
-    orderData: InsertOrder;
-  }): Promise<SelectOrder> {
+  async create(data: InsertOrder): Promise<SelectOrder> {
     try {
-      return (await this.db.create(orderData)).toObject();
+      return (await this.db.create(data)).toObject();
     } catch (error) {
       this.errorHandler(error);
     }
