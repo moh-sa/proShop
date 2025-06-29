@@ -104,6 +104,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
   describe("getByEmail", () => {
     const mockUser = generateMockUser();
     const email = mockUser.email;
+    const expectedResult = formatResponse({ users: mockUser });
 
     test("Should return 'user object' when 'repo.getByEmail' is called once with 'email'", async () => {
       mockRepo.getByEmail.mock.mockImplementationOnce(() =>
@@ -113,7 +114,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
       const user = await service.getByEmail({ email });
 
       assert.ok(user);
-      assert.deepStrictEqual(user, mockUser);
+      assert.deepStrictEqual(user, expectedResult);
 
       assert.strictEqual(mockRepo.getByEmail.mock.callCount(), 1);
       assert.deepStrictEqual(mockRepo.getByEmail.mock.calls[0].arguments[0], {
@@ -184,6 +185,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
   describe("delete", () => {
     const mockUser = generateMockUser();
     const userId = mockUser._id;
+    const expectedResult = formatResponse({ users: mockUser });
 
     test("Should return 'user object' when 'repo.delete' is called once with 'userId'", async () => {
       mockRepo.delete.mock.mockImplementationOnce(() =>
@@ -193,7 +195,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
       const deletedUser = await service.delete({ userId });
 
       assert.ok(deletedUser);
-      assert.deepStrictEqual(deletedUser, mockUser);
+      assert.deepStrictEqual(deletedUser, expectedResult);
 
       assert.strictEqual(mockRepo.delete.mock.callCount(), 1);
       assert.deepStrictEqual(mockRepo.delete.mock.calls[0].arguments[0], {
@@ -201,12 +203,13 @@ suite("User Service 〖 Unit Tests 〗", () => {
       });
     });
 
-    test("Should return 'null' when 'repo.delete' returns 'null'", async () => {
+    test("Should throw 'NotFoundError' when 'repo.delete' returns 'null'", async () => {
       mockRepo.delete.mock.mockImplementationOnce(() => Promise.resolve(null));
 
-      const deletedUser = await service.delete({ userId });
-
-      assert.strictEqual(deletedUser, null);
+      await assert.rejects(
+        async () => await service.delete({ userId }),
+        NotFoundError,
+      );
     });
   });
 });
