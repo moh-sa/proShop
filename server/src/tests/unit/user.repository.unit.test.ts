@@ -1,7 +1,14 @@
 import mongoose from "mongoose";
 import assert from "node:assert/strict";
 import { beforeEach, describe, mock, suite, test } from "node:test";
-import { DatabaseError } from "../../errors";
+import {
+  DatabaseDuplicateKeyError,
+  DatabaseNetworkError,
+  DatabaseQueryError,
+  DatabaseTimeoutError,
+  DatabaseValidationError,
+  GenericDatabaseError,
+} from "../../errors";
 import User from "../../models/userModel";
 import { UserRepository } from "../../repositories";
 import { InsertUser } from "../../types";
@@ -32,34 +39,84 @@ suite("User Repository〖 Unit Tests 〗", () => {
       assert.deepStrictEqual(createMock.mock.calls[0].arguments[0], mockUser);
     });
 
-    test("Should throw 'DatabaseError' when 'db.create' throws Mongoose errors", async (t) => {
-      const mongooseError = new mongoose.Error.ValidationError();
-      mongooseError.message = "Validation failed";
+    test("Should throw 'DatabaseValidationError' when 'db.create' throws 'ValidationError'", async (t) => {
+      const validationError = new mongoose.Error.ValidationError();
 
-      t.mock.method(User, "create", async () => {
-        throw mongooseError;
+      t.mock.method(User, "create", () => {
+        throw validationError;
       });
 
       await assert.rejects(
         async () => await repo.create(mockUser),
-        (error: Error) => {
-          assert.ok(error instanceof DatabaseError);
-          assert.strictEqual(error.message, mongooseError.message);
-          return true;
-        },
+        DatabaseValidationError,
       );
     });
 
-    test("Should throw generic 'DatabaseError' when 'db.create' throws unknown errors", async (t) => {
+    test("Should throw 'DatabaseDuplicateKeyError' when 'db.create' throws 'MongoServerError' with code '11000'", async (t) => {
+      const validationError = new mongoose.mongo.MongoServerError({});
+      validationError.code = 11000;
+
+      t.mock.method(User, "create", () => {
+        throw validationError;
+      });
+
+      await assert.rejects(
+        async () => await repo.create(mockUser),
+        DatabaseDuplicateKeyError,
+      );
+    });
+
+    test("Should throw 'DatabaseTimeoutError' when 'db.create' throws 'MongoNetworkTimeoutError'", async (t) => {
+      const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
+        "Timeout",
+      );
+
+      t.mock.method(User, "create", () => {
+        throw timeoutError;
+      });
+
+      await assert.rejects(
+        async () => await repo.create(mockUser),
+        DatabaseTimeoutError,
+      );
+    });
+
+    test("Should throw 'DatabaseQueryError' when 'db.create' throws 'MongooseError'", async (t) => {
+      const queryError = new mongoose.Error("Query failed");
+
+      t.mock.method(User, "create", () => {
+        throw queryError;
+      });
+
+      await assert.rejects(
+        async () => await repo.create(mockUser),
+        DatabaseQueryError,
+      );
+    });
+
+    test("Should throw 'DatabaseNetworkError' when 'db.create' throws 'MongoError'", async (t) => {
+      const networkError = new mongoose.mongo.MongoError("Network error");
+
+      t.mock.method(User, "create", () => {
+        throw networkError;
+      });
+
+      await assert.rejects(
+        async () => await repo.create(mockUser),
+        DatabaseNetworkError,
+      );
+    });
+
+    test("Should throw 'GenericDatabaseError' when 'db.create' throws unknown error", async (t) => {
       const unknownError = new Error("Something unexpected happened");
 
-      t.mock.method(User, "create", async () => {
+      t.mock.method(User, "create", () => {
         throw unknownError;
       });
 
       await assert.rejects(
         async () => await repo.create(mockUser),
-        DatabaseError,
+        GenericDatabaseError,
       );
     });
   });
@@ -91,37 +148,68 @@ suite("User Repository〖 Unit Tests 〗", () => {
       assert.strictEqual(users.length, 0);
     });
 
-    test("Should throw 'DatabaseError' when 'db.find' throws Mongoose errors", async (t) => {
-      const mongooseError = new mongoose.Error.ValidationError();
-      mongooseError.message = "Validation failed";
+    test("Should throw 'DatabaseValidationError' when 'db.find' throws 'ValidationError'", async (t) => {
+      const validationError = new mongoose.Error.ValidationError();
 
-      t.mock.method(User, "find", () => ({
-        lean: async () => {
-          throw mongooseError;
-        },
-      }));
+      t.mock.method(User, "find", () => {
+        throw validationError;
+      });
 
       await assert.rejects(
         async () => await repo.getAll(),
-        (error: Error) => {
-          assert.ok(error instanceof DatabaseError);
-          assert.strictEqual(error.message, mongooseError.message);
-          assert.strictEqual(error.statusCode, 500);
-          return true;
-        },
+        DatabaseValidationError,
       );
     });
 
-    test("Should throw generic 'DatabaseError' when 'db.find' throws unknown error", async (t) => {
+    test("Should throw 'DatabaseTimeoutError' when 'db.find' throws 'MongoNetworkTimeoutError'", async (t) => {
+      const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
+        "Timeout",
+      );
+
+      t.mock.method(User, "find", () => {
+        throw timeoutError;
+      });
+
+      await assert.rejects(
+        async () => await repo.getAll(),
+        DatabaseTimeoutError,
+      );
+    });
+
+    test("Should throw 'DatabaseQueryError' when 'db.find' throws 'MongooseError'", async (t) => {
+      const queryError = new mongoose.Error("Query failed");
+
+      t.mock.method(User, "find", () => {
+        throw queryError;
+      });
+
+      await assert.rejects(async () => await repo.getAll(), DatabaseQueryError);
+    });
+
+    test("Should throw 'DatabaseNetworkError' when 'db.find' throws 'MongoError'", async (t) => {
+      const networkError = new mongoose.mongo.MongoError("Network error");
+
+      t.mock.method(User, "find", () => {
+        throw networkError;
+      });
+
+      await assert.rejects(
+        async () => await repo.getAll(),
+        DatabaseNetworkError,
+      );
+    });
+
+    test("Should throw 'GenericDatabaseError' when 'db.find' throws unknown error", async (t) => {
       const unknownError = new Error("Something unexpected happened");
 
-      t.mock.method(User, "find", () => ({
-        lean: async () => {
-          throw unknownError;
-        },
-      }));
+      t.mock.method(User, "find", () => {
+        throw unknownError;
+      });
 
-      await assert.rejects(async () => await repo.getAll(), DatabaseError);
+      await assert.rejects(
+        async () => await repo.getAll(),
+        GenericDatabaseError,
+      );
     });
   });
 
@@ -153,39 +241,70 @@ suite("User Repository〖 Unit Tests 〗", () => {
       assert.strictEqual(user, null);
     });
 
-    test("Should throw 'DatabaseError' when 'User.findById' throws Mongoose errors", async (t) => {
-      const mongooseError = new mongoose.Error.ValidationError();
-      mongooseError.message = "Validation failed";
+    test("Should throw 'DatabaseValidationError' when 'db.findById' throws 'ValidationError'", async (t) => {
+      const validationError = new mongoose.Error.ValidationError();
 
-      t.mock.method(User, "findById", () => ({
-        lean: async () => {
-          throw mongooseError;
-        },
-      }));
+      t.mock.method(User, "findById", () => {
+        throw validationError;
+      });
 
       await assert.rejects(
         async () => await repo.getById({ userId }),
-        (error: Error) => {
-          assert.ok(error instanceof DatabaseError);
-          assert.strictEqual(error.message, mongooseError.message);
-          assert.strictEqual(error.statusCode, 500);
-          return true;
-        },
+        DatabaseValidationError,
       );
     });
 
-    test("Should throw generic 'DatabaseError' when 'User.findById' throws unknown error", async (t) => {
-      const unknownError = new Error("Something unexpected happened");
+    test("Should throw 'DatabaseTimeoutError' when 'db.findById' throws 'MongoNetworkTimeoutError'", async (t) => {
+      const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
+        "Timeout",
+      );
 
-      t.mock.method(User, "findById", () => ({
-        lean: async () => {
-          throw unknownError;
-        },
-      }));
+      t.mock.method(User, "findById", () => {
+        throw timeoutError;
+      });
 
       await assert.rejects(
         async () => await repo.getById({ userId }),
-        DatabaseError,
+        DatabaseTimeoutError,
+      );
+    });
+
+    test("Should throw 'DatabaseQueryError' when 'db.findById' throws 'MongooseError'", async (t) => {
+      const queryError = new mongoose.Error("Query failed");
+
+      t.mock.method(User, "findById", () => {
+        throw queryError;
+      });
+
+      await assert.rejects(
+        async () => await repo.getById({ userId }),
+        DatabaseQueryError,
+      );
+    });
+
+    test("Should throw 'DatabaseNetworkError' when 'db.findById' throws 'MongoError'", async (t) => {
+      const networkError = new mongoose.mongo.MongoError("Network error");
+
+      t.mock.method(User, "findById", () => {
+        throw networkError;
+      });
+
+      await assert.rejects(
+        async () => await repo.getById({ userId }),
+        DatabaseNetworkError,
+      );
+    });
+
+    test("Should throw 'GenericDatabaseError' when 'db.findById' throws unknown error", async (t) => {
+      const unknownError = new Error("Something unexpected happened");
+
+      t.mock.method(User, "findById", () => {
+        throw unknownError;
+      });
+
+      await assert.rejects(
+        async () => await repo.getById({ userId }),
+        GenericDatabaseError,
       );
     });
   });
@@ -218,39 +337,70 @@ suite("User Repository〖 Unit Tests 〗", () => {
       assert.strictEqual(user, null);
     });
 
-    test("Should throw 'DatabaseError' when 'db.findOne' throws Mongoose errors", async (t) => {
-      const mongooseError = new mongoose.Error.ValidationError();
-      mongooseError.message = "Validation failed";
+    test("Should throw 'DatabaseValidationError' when 'db.findOne' throws 'ValidationError'", async (t) => {
+      const validationError = new mongoose.Error.ValidationError();
 
-      t.mock.method(User, "findOne", () => ({
-        lean: async () => {
-          throw mongooseError;
-        },
-      }));
+      t.mock.method(User, "findOne", () => {
+        throw validationError;
+      });
 
       await assert.rejects(
         async () => await repo.getByEmail({ email }),
-        (error: Error) => {
-          assert.ok(error instanceof DatabaseError);
-          assert.strictEqual(error.message, mongooseError.message);
-          assert.strictEqual(error.statusCode, 500);
-          return true;
-        },
+        DatabaseValidationError,
       );
     });
 
-    test("Should throw generic 'DatabaseError' when 'User.findOne({ email })' throws unknown error", async (t) => {
-      const unknownError = new Error("Something unexpected happened");
+    test("Should throw 'DatabaseTimeoutError' when 'db.findOne' throws 'MongoNetworkTimeoutError'", async (t) => {
+      const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
+        "Timeout",
+      );
 
-      t.mock.method(User, "findOne", () => ({
-        lean: async () => {
-          throw unknownError;
-        },
-      }));
+      t.mock.method(User, "findOne", () => {
+        throw timeoutError;
+      });
 
       await assert.rejects(
         async () => await repo.getByEmail({ email }),
-        DatabaseError,
+        DatabaseTimeoutError,
+      );
+    });
+
+    test("Should throw 'DatabaseQueryError' when 'db.findOne' throws 'MongooseError'", async (t) => {
+      const queryError = new mongoose.Error("Query failed");
+
+      t.mock.method(User, "findOne", () => {
+        throw queryError;
+      });
+
+      await assert.rejects(
+        async () => await repo.getByEmail({ email }),
+        DatabaseQueryError,
+      );
+    });
+
+    test("Should throw 'DatabaseNetworkError' when 'db.findOne' throws 'MongoError'", async (t) => {
+      const networkError = new mongoose.mongo.MongoError("Network error");
+
+      t.mock.method(User, "findOne", () => {
+        throw networkError;
+      });
+
+      await assert.rejects(
+        async () => await repo.getByEmail({ email }),
+        DatabaseNetworkError,
+      );
+    });
+
+    test("Should throw 'GenericDatabaseError' when 'db.findOne' throws unknown error", async (t) => {
+      const unknownError = new Error("Something unexpected happened");
+
+      t.mock.method(User, "findOne", () => {
+        throw unknownError;
+      });
+
+      await assert.rejects(
+        async () => await repo.getByEmail({ email }),
+        GenericDatabaseError,
       );
     });
   });
@@ -296,39 +446,84 @@ suite("User Repository〖 Unit Tests 〗", () => {
       assert.strictEqual(updatedUser, null);
     });
 
-    test("Should throw 'DatabaseError' when 'db.findByIdAndUpdate' throws a mongoose error", async (t) => {
-      const mongooseError = new mongoose.Error.ValidationError();
-      mongooseError.message = "Validation failed";
+    test("Should throw 'DatabaseValidationError' when 'db.findByIdAndUpdate' throws 'ValidationError'", async (t) => {
+      const validationError = new mongoose.Error.ValidationError();
 
-      t.mock.method(User, "findByIdAndUpdate", () => ({
-        lean: async () => {
-          throw mongooseError;
-        },
-      }));
+      t.mock.method(User, "findByIdAndUpdate", () => {
+        throw validationError;
+      });
 
       await assert.rejects(
         async () => await repo.update({ userId, data: updateData }),
-        (error: Error) => {
-          assert.ok(error instanceof DatabaseError);
-          assert.strictEqual(error.message, mongooseError.message);
-          assert.strictEqual(error.statusCode, 500);
-          return true;
-        },
+        DatabaseValidationError,
       );
     });
 
-    test("Should throw generic 'DatabaseError' when 'db.findByIdAndUpdate' throws unknown error", async (t) => {
-      const unknownError = new Error("Something unexpected happened");
+    test("Should throw 'DatabaseDuplicateKeyError' when 'db.findByIdAndUpdate' throws 'MongoServerError' with code '11000'", async (t) => {
+      const validationError = new mongoose.mongo.MongoServerError({});
+      validationError.code = 11000;
 
-      t.mock.method(User, "findByIdAndUpdate", () => ({
-        lean: async () => {
-          throw unknownError;
-        },
-      }));
+      t.mock.method(User, "findByIdAndUpdate", () => {
+        throw validationError;
+      });
 
       await assert.rejects(
         async () => await repo.update({ userId, data: updateData }),
-        DatabaseError,
+        DatabaseDuplicateKeyError,
+      );
+    });
+
+    test("Should throw 'DatabaseTimeoutError' when 'db.findByIdAndUpdate' throws 'MongoNetworkTimeoutError'", async (t) => {
+      const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
+        "Timeout",
+      );
+
+      t.mock.method(User, "findByIdAndUpdate", () => {
+        throw timeoutError;
+      });
+
+      await assert.rejects(
+        async () => await repo.update({ userId, data: updateData }),
+        DatabaseTimeoutError,
+      );
+    });
+
+    test("Should throw 'DatabaseQueryError' when 'db.findByIdAndUpdate' throws 'MongooseError'", async (t) => {
+      const queryError = new mongoose.Error("Query failed");
+
+      t.mock.method(User, "findByIdAndUpdate", () => {
+        throw queryError;
+      });
+
+      await assert.rejects(
+        async () => await repo.update({ userId, data: updateData }),
+        DatabaseQueryError,
+      );
+    });
+
+    test("Should throw 'DatabaseNetworkError' when 'db.findByIdAndUpdate' throws 'MongoError'", async (t) => {
+      const networkError = new mongoose.mongo.MongoError("Network error");
+
+      t.mock.method(User, "findByIdAndUpdate", () => {
+        throw networkError;
+      });
+
+      await assert.rejects(
+        async () => await repo.update({ userId, data: updateData }),
+        DatabaseNetworkError,
+      );
+    });
+
+    test("Should throw 'GenericDatabaseError' when 'db.findByIdAndUpdate' throws unknown error", async (t) => {
+      const unknownError = new Error("Something unexpected happened");
+
+      t.mock.method(User, "findByIdAndUpdate", () => {
+        throw unknownError;
+      });
+
+      await assert.rejects(
+        async () => await repo.update({ userId, data: updateData }),
+        GenericDatabaseError,
       );
     });
   });
@@ -368,39 +563,70 @@ suite("User Repository〖 Unit Tests 〗", () => {
       assert.strictEqual(deletedUser, null);
     });
 
-    test("Should throw 'DatabaseError' when 'db.findByIdAndDelete' throws Mongoose errors", async (t) => {
-      const mongooseError = new mongoose.Error.ValidationError();
-      mongooseError.message = "Validation failed";
+    test("Should throw 'DatabaseValidationError' when 'db.findByIdAndDelete' throws 'ValidationError'", async (t) => {
+      const validationError = new mongoose.Error.ValidationError();
 
-      t.mock.method(User, "findByIdAndDelete", () => ({
-        lean: async () => {
-          throw mongooseError;
-        },
-      }));
+      t.mock.method(User, "findByIdAndDelete", () => {
+        throw validationError;
+      });
 
       await assert.rejects(
         async () => await repo.delete({ userId }),
-        (error: Error) => {
-          assert.ok(error instanceof DatabaseError);
-          assert.strictEqual(error.message, mongooseError.message);
-          assert.strictEqual(error.statusCode, 500);
-          return true;
-        },
+        DatabaseValidationError,
       );
     });
 
-    test("Should throw generic 'DatabaseError' when 'db.findByIdAndDelete' throws unknown error", async (t) => {
-      const unknownError = new Error("Something unexpected happened");
+    test("Should throw 'DatabaseTimeoutError' when 'db.findByIdAndDelete' throws 'MongoNetworkTimeoutError'", async (t) => {
+      const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
+        "Timeout",
+      );
 
-      t.mock.method(User, "findByIdAndDelete", () => ({
-        lean: async () => {
-          throw unknownError;
-        },
-      }));
+      t.mock.method(User, "findByIdAndDelete", () => {
+        throw timeoutError;
+      });
 
       await assert.rejects(
         async () => await repo.delete({ userId }),
-        DatabaseError,
+        DatabaseTimeoutError,
+      );
+    });
+
+    test("Should throw 'DatabaseQueryError' when 'db.findByIdAndDelete' throws 'MongooseError'", async (t) => {
+      const queryError = new mongoose.Error("Query failed");
+
+      t.mock.method(User, "findByIdAndDelete", () => {
+        throw queryError;
+      });
+
+      await assert.rejects(
+        async () => await repo.delete({ userId }),
+        DatabaseQueryError,
+      );
+    });
+
+    test("Should throw 'DatabaseNetworkError' when 'db.findByIdAndDelete' throws 'MongoError'", async (t) => {
+      const networkError = new mongoose.mongo.MongoError("Network error");
+
+      t.mock.method(User, "findByIdAndDelete", () => {
+        throw networkError;
+      });
+
+      await assert.rejects(
+        async () => await repo.delete({ userId }),
+        DatabaseNetworkError,
+      );
+    });
+
+    test("Should throw 'GenericDatabaseError' when 'db.findByIdAndDelete' throws unknown error", async (t) => {
+      const unknownError = new Error("Something unexpected happened");
+
+      t.mock.method(User, "findByIdAndDelete", () => {
+        throw unknownError;
+      });
+
+      await assert.rejects(
+        async () => await repo.delete({ userId }),
+        GenericDatabaseError,
       );
     });
   });
@@ -433,39 +659,70 @@ suite("User Repository〖 Unit Tests 〗", () => {
       assert.strictEqual(result, null);
     });
 
-    test("Should throw 'DatabaseError' when 'db.exists' throws Mongoose errors", async (t) => {
-      const mongooseError = new mongoose.Error.ValidationError();
-      mongooseError.message = "Validation failed";
+    test("Should throw 'DatabaseValidationError' when 'db.exists' throws 'ValidationError'", async (t) => {
+      const validationError = new mongoose.Error.ValidationError();
 
-      t.mock.method(User, "exists", () => ({
-        lean: async () => {
-          throw mongooseError;
-        },
-      }));
+      t.mock.method(User, "exists", () => {
+        throw validationError;
+      });
 
       await assert.rejects(
         async () => await repo.existsByEmail({ email }),
-        (error: Error) => {
-          assert.ok(error instanceof DatabaseError);
-          assert.strictEqual(error.message, mongooseError.message);
-          assert.strictEqual(error.statusCode, 500);
-          return true;
-        },
+        DatabaseValidationError,
       );
     });
 
-    test("Should throw generic 'DatabaseError' when 'db.exists' throws unknown error", async (t) => {
-      const unknownError = new Error("Something unexpected happened");
+    test("Should throw 'DatabaseTimeoutError' when 'db.exists' throws 'MongoNetworkTimeoutError'", async (t) => {
+      const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
+        "Timeout",
+      );
 
-      t.mock.method(User, "exists", () => ({
-        lean: async () => {
-          throw unknownError;
-        },
-      }));
+      t.mock.method(User, "exists", () => {
+        throw timeoutError;
+      });
 
       await assert.rejects(
         async () => await repo.existsByEmail({ email }),
-        DatabaseError,
+        DatabaseTimeoutError,
+      );
+    });
+
+    test("Should throw 'DatabaseQueryError' when 'db.exists' throws 'MongooseError'", async (t) => {
+      const queryError = new mongoose.Error("Query failed");
+
+      t.mock.method(User, "exists", () => {
+        throw queryError;
+      });
+
+      await assert.rejects(
+        async () => await repo.existsByEmail({ email }),
+        DatabaseQueryError,
+      );
+    });
+
+    test("Should throw 'DatabaseNetworkError' when 'db.exists' throws 'MongoError'", async (t) => {
+      const networkError = new mongoose.mongo.MongoError("Network error");
+
+      t.mock.method(User, "exists", () => {
+        throw networkError;
+      });
+
+      await assert.rejects(
+        async () => await repo.existsByEmail({ email }),
+        DatabaseNetworkError,
+      );
+    });
+
+    test("Should throw 'GenericDatabaseError' when 'db.exists' throws unknown error", async (t) => {
+      const unknownError = new Error("Something unexpected happened");
+
+      t.mock.method(User, "exists", () => {
+        throw unknownError;
+      });
+
+      await assert.rejects(
+        async () => await repo.existsByEmail({ email }),
+        GenericDatabaseError,
       );
     });
   });

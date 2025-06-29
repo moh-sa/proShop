@@ -1,7 +1,7 @@
-import mongoose, { Error as MongooseError, Types } from "mongoose";
-import { DatabaseError } from "../errors";
+import { Types } from "mongoose";
 import Order from "../models/orderModel";
 import { InsertOrder, SelectOrder } from "../types";
+import { handleDatabaseError } from "../utils";
 
 export interface IOrderRepository {
   create(data: InsertOrder): Promise<SelectOrder>;
@@ -128,12 +128,6 @@ export class OrderRepository implements IOrderRepository {
   }
 
   private _errorHandler(error: unknown): never {
-    if (
-      error instanceof MongooseError ||
-      error instanceof mongoose.mongo.MongoError
-    ) {
-      throw new DatabaseError(error.message);
-    }
-    throw new DatabaseError();
+    return handleDatabaseError(error);
   }
 }
