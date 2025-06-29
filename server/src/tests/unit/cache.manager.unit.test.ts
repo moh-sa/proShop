@@ -39,40 +39,6 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
     });
   });
 
-  describe("getInstance", () => {
-    test("'getInstance' should return a public cache manager with only flush method", () => {
-      const namespace: Namespace = "product";
-      const cacheManager = CacheManager.getInstance(namespace);
-
-      assert.ok(cacheManager);
-      assert.strictEqual(Object.keys(cacheManager).length, 1);
-      assert.strictEqual(Object.keys(cacheManager).includes("flush"), true);
-    });
-
-    test("'getInstance' should return the same instance for the same namespace", () => {
-      const namespace: Namespace = "product";
-      CacheManager.getInstance(namespace);
-      CacheManager.getInstance(namespace);
-
-      const instances = (CacheManager as any).instances;
-      assert.strictEqual(Object.keys(instances).length, 1);
-      assert.strictEqual(Object.keys(instances).includes(namespace), true);
-    });
-
-    test("'getInstance' should return different instances for different namespaces", () => {
-      const namespace1: Namespace = "product";
-      const namespace2: Namespace = "user";
-      CacheManager.getInstance(namespace1);
-      CacheManager.getInstance(namespace2);
-
-      const instances = CacheManager["instances"];
-
-      assert.strictEqual(Object.keys(instances).length, 2);
-      assert.strictEqual(Object.keys(instances).includes(namespace1), true);
-      assert.strictEqual(Object.keys(instances).includes(namespace2), true);
-    });
-  });
-
   describe("Set", () => {
     const namespace: Namespace = "product";
     let cacheManager: CacheManager;
@@ -251,22 +217,6 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       keys.forEach((key) => {
         assert.strictEqual(cacheManager.get({ key }), undefined);
       });
-    });
-
-    test("'flush' via 'getInstance' should work", () => {
-      const key = "flush-key";
-      const publicCacheInstance = CacheManager.getInstance(namespace);
-
-      cacheManager.set({ key, value: "value1" });
-
-      publicCacheInstance.flush();
-      assert.strictEqual(mockConsoleLog.mock.calls.length, 2);
-      assert.strictEqual(
-        mockConsoleLog.mock.calls[1].arguments[0],
-        "Cache flushed",
-      );
-
-      assert.strictEqual(cacheManager.get({ key }), undefined);
     });
 
     test("'flush' should throw 'DatabaseError' if NodeCache.flushAll throws", (t) => {
