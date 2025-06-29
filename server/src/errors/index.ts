@@ -2,6 +2,7 @@ export * from "./authentication.error";
 export * from "./authorization.error";
 export * from "./base.error";
 export * from "./conflict.error";
+export * from "./database";
 export * from "./database.error";
 export * from "./empty-cart.error";
 export * from "./internal.error";
