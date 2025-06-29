@@ -4,7 +4,7 @@ import { IReviewRepository, ReviewRepository } from "../repositories";
 import { InsertReview, SelectReview } from "../types";
 
 export interface IReviewService {
-  create: (data: { data: InsertReview }) => Promise<SelectReview>;
+  create: (data: InsertReview) => Promise<SelectReview>;
   getById: (data: { reviewId: Types.ObjectId }) => Promise<SelectReview>;
   getAll: () => Promise<Array<SelectReview>>;
   getAllByUserId: (data: {
@@ -36,8 +36,8 @@ export class ReviewService implements IReviewService {
     this.repository = repository;
   }
 
-  async create({ data }: { data: InsertReview }): Promise<SelectReview> {
-    return await this.repository.create({ data });
+  async create(data: InsertReview): Promise<SelectReview> {
+    return await this.repository.create(data);
   }
 
   async getById({

@@ -4,7 +4,7 @@ import Review from "../models/review.model";
 import { InsertReview, SelectReview } from "../types";
 
 export interface IReviewRepository {
-  create: (data: { data: InsertReview }) => Promise<SelectReview>;
+  create: (data: InsertReview) => Promise<SelectReview>;
   getById: (data: { reviewId: Types.ObjectId }) => Promise<SelectReview | null>;
   getAll: () => Promise<Array<SelectReview>>;
   getAllByUserId: (data: {
@@ -37,7 +37,7 @@ export class ReviewRepository implements IReviewRepository {
     this.db = db;
   }
 
-  async create({ data }: { data: InsertReview }): Promise<SelectReview> {
+  async create(data: InsertReview): Promise<SelectReview> {
     try {
       return (await this.db.create(data)).toObject();
     } catch (error) {

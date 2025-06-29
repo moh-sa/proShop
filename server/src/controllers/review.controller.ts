@@ -60,7 +60,7 @@ export class ReviewController implements IReviewController {
       name: res.locals.user.name,
     });
 
-    const newReview = await this.service.create({ data });
+    const newReview = await this.service.create(data);
 
     return sendSuccessResponse({
       responseContext: res,

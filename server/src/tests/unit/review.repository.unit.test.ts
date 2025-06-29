@@ -24,7 +24,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
         toObject: () => mockReview,
       }));
 
-      const review = await repo.create({ data: mockReview });
+      const review = await repo.create(mockReview);
 
       assert.ok(review);
       assert.deepStrictEqual(review, mockReview);
@@ -42,7 +42,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.create({ data: mockReview }),
+        async () => await repo.create(mockReview),
         (error: Error) => {
           assert.ok(error instanceof DatabaseError);
           assert.strictEqual(error.message, mongooseError.message);
@@ -60,7 +60,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.create({ data: mockReview }),
+        async () => await repo.create(mockReview),
         DatabaseError,
       );
     });

@@ -24,15 +24,16 @@ suite("Review Service 〖 Unit Tests 〗", () => {
         Promise.resolve(mockReview),
       );
 
-      const review = await service.create({ data: mockReview });
+      const review = await service.create(mockReview);
 
       assert.ok(review);
       assert.deepStrictEqual(review, mockReview);
 
       assert.strictEqual(mockRepo.create.mock.callCount(), 1);
-      assert.deepStrictEqual(mockRepo.create.mock.calls[0].arguments[0], {
-        data: mockReview,
-      });
+      assert.deepStrictEqual(
+        mockRepo.create.mock.calls[0].arguments[0],
+        mockReview,
+      );
     });
 
     test("Should throw 'DatabaseError' when 'repo.create' throws", {

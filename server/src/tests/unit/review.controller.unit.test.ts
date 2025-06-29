@@ -247,9 +247,10 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
       );
 
       assert.strictEqual(mockService.create.mock.callCount(), 1);
-      assert.deepStrictEqual(mockService.create.mock.calls[0].arguments[0], {
-        data: insertMockReview,
-      });
+      assert.deepStrictEqual(
+        mockService.create.mock.calls[0].arguments[0],
+        insertMockReview,
+      );
     });
 
     test("Should throw 'DatabaseError' if 'service.create' throws", async (t) => {
