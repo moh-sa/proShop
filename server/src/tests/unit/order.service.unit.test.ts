@@ -103,8 +103,8 @@ suite("Order Service 〖 Unit Tests 〗", () => {
     const mockOrders = generateMockOrders(4);
     const userId = mockOrders[0].user;
 
-    test("Should return array of orders when 'repo.getAll' is called once with 'userId'", async () => {
-      mockRepo.getAll.mock.mockImplementationOnce(() =>
+    test("Should return array of orders when 'repo.getAllByUserId' is called once with 'userId'", async () => {
+      mockRepo.getAllByUserId.mock.mockImplementationOnce(() =>
         Promise.resolve(mockOrders),
       );
 
@@ -113,15 +113,17 @@ suite("Order Service 〖 Unit Tests 〗", () => {
       assert.ok(orders);
       assert.deepStrictEqual(orders, mockOrders);
 
-      assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
+      assert.strictEqual(mockRepo.getAllByUserId.mock.callCount(), 1);
       assert.deepStrictEqual(
-        mockRepo.getAll.mock.calls[0].arguments[0],
-        mockOrders[0].user,
+        mockRepo.getAllByUserId.mock.calls[0].arguments[0],
+        { userId },
       );
     });
 
-    test("Should return empty array if 'repo.getAll' returns empty array", async () => {
-      mockRepo.getAll.mock.mockImplementationOnce(() => Promise.resolve([]));
+    test("Should return empty array if 'repo.getAllByUserId' returns empty array", async () => {
+      mockRepo.getAllByUserId.mock.mockImplementationOnce(() =>
+        Promise.resolve([]),
+      );
 
       const orders = await service.getAllByUserId({ userId });
 
@@ -129,8 +131,8 @@ suite("Order Service 〖 Unit Tests 〗", () => {
       assert.strictEqual(orders.length, 0);
     });
 
-    test("Should throw 'DatabaseError' if 'repo.getAll' throws", async () => {
-      mockRepo.getAll.mock.mockImplementationOnce(() =>
+    test("Should throw 'DatabaseError' if 'repo.getAllByUserId' throws", async () => {
+      mockRepo.getAllByUserId.mock.mockImplementationOnce(() =>
         Promise.reject(new DatabaseError()),
       );
 

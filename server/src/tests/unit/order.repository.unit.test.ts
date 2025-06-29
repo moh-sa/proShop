@@ -121,7 +121,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
     });
   });
 
-  describe("getAll(userId)", () => {
+  describe("getAllByUserId", () => {
     const mockOrders = generateMockOrders(4);
     const userId = mockOrders[0].user;
 
@@ -132,7 +132,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
         }),
       }));
 
-      const orders = await repo.getAll(mockOrders[0].user);
+      const orders = await repo.getAllByUserId({ userId });
 
       assert.ok(orders);
       assert.ok(orders instanceof Array);
@@ -152,7 +152,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
         }),
       }));
 
-      const orders = await repo.getAll(userId);
+      const orders = await repo.getAllByUserId({ userId });
 
       assert.ok(orders);
       assert.ok(orders instanceof Array);
@@ -172,7 +172,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.getAll(userId),
+        async () => await repo.getAllByUserId({ userId }),
         (error: Error) => {
           assert.ok(error instanceof DatabaseError);
           assert.strictEqual(error.message, mongooseError.message);
@@ -190,7 +190,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.getAll(userId),
+        async () => await repo.getAllByUserId({ userId }),
         DatabaseError,
       );
     });

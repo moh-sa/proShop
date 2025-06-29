@@ -46,7 +46,7 @@ export class OrderService implements IOrderService {
   }: {
     userId: Types.ObjectId;
   }): Promise<Array<SelectOrder>> {
-    return await this.repository.getAll(userId);
+    return await this.repository.getAllByUserId({ userId });
   }
 
   async updateToPaid({
