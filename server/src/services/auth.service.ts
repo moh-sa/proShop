@@ -11,14 +11,14 @@ export interface IAuthService {
   signup: (data: InsertUser) => Promise<Omit<SelectUser, "password">>;
 }
 export class AuthService implements IAuthService {
-  private readonly repository: IUserRepository;
+  private readonly _repository: IUserRepository;
 
   constructor(repository: IUserRepository = new UserRepository()) {
-    this.repository = repository;
+    this._repository = repository;
   }
 
   async signin(data: RequiredBy<SelectUser, "email" | "password">) {
-    const isUserExists = await this.repository.getByEmail({
+    const isUserExists = await this._repository.getByEmail({
       email: data.email,
     });
 
@@ -40,14 +40,14 @@ export class AuthService implements IAuthService {
   }
 
   async signup(data: InsertUser) {
-    const isUserExists = await this.repository.existsByEmail({
+    const isUserExists = await this._repository.existsByEmail({
       email: data.email,
     });
     if (isUserExists) {
       throw new ConflictError("An account with this email already exists.");
     }
 
-    const createdUser = await this.repository.create(data);
+    const createdUser = await this._repository.create(data);
     const token = generateJwtToken({ id: createdUser._id });
     const userWithToken = Object.assign(createdUser, { token });
     const userWithoutPassword = removeObjectFields(userWithToken, ["password"]);

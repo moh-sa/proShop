@@ -26,15 +26,15 @@ export interface IProductService {
 }
 
 export class ProductService implements IProductService {
-  private readonly repository: IProductRepository;
-  private readonly storage: IImageStorageManager;
+  private readonly _repository: IProductRepository;
+  private readonly _storage: IImageStorageManager;
 
   constructor(
     repository: IProductRepository = new ProductRepository(),
     storage: IImageStorageManager = new ImageStorageManager(),
   ) {
-    this.repository = repository;
-    this.storage = storage;
+    this._repository = repository;
+    this._storage = storage;
   }
 
   async getById({
@@ -42,7 +42,7 @@ export class ProductService implements IProductService {
   }: {
     productId: Types.ObjectId;
   }): Promise<SelectProduct> {
-    const product = await this.repository.getById({ productId });
+    const product = await this._repository.getById({ productId });
     if (!product) throw new NotFoundError("Product");
 
     return product;
@@ -60,10 +60,10 @@ export class ProductService implements IProductService {
       : {};
 
     const numberOfProductsPerPage = 10;
-    const numberOfProducts = await this.repository.count(query);
+    const numberOfProducts = await this._repository.count(query);
     const numberOfPages = Math.ceil(numberOfProducts / numberOfProductsPerPage);
 
-    const products = await this.repository.getAll({
+    const products = await this._repository.getAll({
       query,
       numberOfProductsPerPage,
       currentPage,
@@ -77,13 +77,13 @@ export class ProductService implements IProductService {
   }
 
   async getTopRated(): Promise<Array<TopRatedProduct>> {
-    return await this.repository.getTopRated({});
+    return await this._repository.getTopRated({});
   }
 
   async create(data: InsertProduct): Promise<SelectProduct> {
-    const image = await this.storage.upload({ file: data.image });
+    const image = await this._storage.upload({ file: data.image });
     const dataWithImage = { ...data, image };
-    const createdProduct = await this.repository.create(dataWithImage);
+    const createdProduct = await this._repository.create(dataWithImage);
     return createdProduct;
   }
 
@@ -103,14 +103,14 @@ export class ProductService implements IProductService {
       updatedData = { ...newData };
     } else {
       const currentProduct = await this.getById({ productId });
-      const newImageUrl = await this.storage.replace({
+      const newImageUrl = await this._storage.replace({
         url: currentProduct.image,
         file: data.image,
       });
       updatedData = { ...newData, image: newImageUrl };
     }
 
-    const updatedProduct = await this.repository.update({
+    const updatedProduct = await this._repository.update({
       productId,
       data: updatedData,
     });
@@ -120,9 +120,9 @@ export class ProductService implements IProductService {
   }
 
   async delete({ productId }: { productId: Types.ObjectId }): Promise<void> {
-    const deletedProduct = await this.repository.delete({ productId });
+    const deletedProduct = await this._repository.delete({ productId });
     if (!deletedProduct) throw new NotFoundError("Product");
 
-    await this.storage.delete({ url: deletedProduct.image });
+    await this._storage.delete({ url: deletedProduct.image });
   }
 }

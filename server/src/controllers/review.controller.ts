@@ -47,10 +47,10 @@ export interface IReviewController {
   ) => Promise<void>;
 }
 export class ReviewController implements IReviewController {
-  private readonly service: IReviewService;
+  private readonly _service: IReviewService;
 
   constructor(service: IReviewService = new ReviewService()) {
-    this.service = service;
+    this._service = service;
   }
 
   create = asyncHandler(async (req, res) => {
@@ -60,7 +60,7 @@ export class ReviewController implements IReviewController {
       name: res.locals.user.name,
     });
 
-    const newReview = await this.service.create(data);
+    const newReview = await this._service.create(data);
 
     return sendSuccessResponse({
       responseContext: res,
@@ -72,7 +72,7 @@ export class ReviewController implements IReviewController {
   getById = asyncHandler(async (req, res) => {
     const reviewId = objectIdValidator.parse(req.params.reviewId);
 
-    const review = await this.service.getById({ reviewId });
+    const review = await this._service.getById({ reviewId });
 
     return sendSuccessResponse({
       responseContext: res,
@@ -82,7 +82,7 @@ export class ReviewController implements IReviewController {
   });
 
   getAll = asyncHandler(async (req, res) => {
-    const reviews = await this.service.getAll();
+    const reviews = await this._service.getAll();
 
     return sendSuccessResponse({
       responseContext: res,
@@ -94,7 +94,7 @@ export class ReviewController implements IReviewController {
   getAllByUserId = asyncHandler(async (req, res) => {
     const userId = objectIdValidator.parse(req.params.userId);
 
-    const reviews = await this.service.getAllByUserId({ userId });
+    const reviews = await this._service.getAllByUserId({ userId });
 
     return sendSuccessResponse({
       responseContext: res,
@@ -106,7 +106,7 @@ export class ReviewController implements IReviewController {
   getAllByProductId = asyncHandler(async (req, res) => {
     const productId = objectIdValidator.parse(req.params.productId);
 
-    const reviews = await this.service.getAllByProductId({ productId });
+    const reviews = await this._service.getAllByProductId({ productId });
 
     return sendSuccessResponse({
       responseContext: res,
@@ -121,7 +121,7 @@ export class ReviewController implements IReviewController {
       req.body,
     );
 
-    const updatedReview = await this.service.update({
+    const updatedReview = await this._service.update({
       reviewId,
       data,
     });
@@ -136,7 +136,7 @@ export class ReviewController implements IReviewController {
   delete = asyncHandler(async (req, res) => {
     const reviewId = objectIdValidator.parse(req.params.reviewId);
 
-    await this.service.delete({ reviewId });
+    await this._service.delete({ reviewId });
 
     return sendSuccessResponse({
       responseContext: res,
@@ -146,7 +146,7 @@ export class ReviewController implements IReviewController {
   });
 
   count = asyncHandler(async (req, res) => {
-    const count = await this.service.count();
+    const count = await this._service.count();
 
     return sendSuccessResponse({
       responseContext: res,
@@ -158,7 +158,7 @@ export class ReviewController implements IReviewController {
   countByUserId = asyncHandler(async (req, res) => {
     const userId = objectIdValidator.parse(req.params.userId);
 
-    const count = await this.service.countByUserId({ userId });
+    const count = await this._service.countByUserId({ userId });
 
     return sendSuccessResponse({
       responseContext: res,
@@ -170,7 +170,7 @@ export class ReviewController implements IReviewController {
   countByProductId = asyncHandler(async (req, res) => {
     const productId = objectIdValidator.parse(req.params.productId);
 
-    const count = await this.service.countByProductId({ productId });
+    const count = await this._service.countByProductId({ productId });
 
     return sendSuccessResponse({
       responseContext: res,
@@ -182,7 +182,7 @@ export class ReviewController implements IReviewController {
   existsById = asyncHandler(async (req, res) => {
     const reviewId = objectIdValidator.parse(req.params.reviewId);
 
-    const exists = await this.service.existsById({ reviewId });
+    const exists = await this._service.existsById({ reviewId });
 
     return sendSuccessResponse({
       responseContext: res,
@@ -195,7 +195,7 @@ export class ReviewController implements IReviewController {
     const userId = objectIdValidator.parse(req.params.userId);
     const productId = objectIdValidator.parse(req.params.productId);
 
-    const exists = await this.service.existsByUserIdAndProductId({
+    const exists = await this._service.existsByUserIdAndProductId({
       userId,
       productId,
     });

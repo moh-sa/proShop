@@ -24,17 +24,17 @@ export interface IOrderRepository {
   getAllByUserId(data: { userId: Types.ObjectId }): Promise<Array<SelectOrder>>;
 }
 export class OrderRepository implements IOrderRepository {
-  private readonly db: typeof Order;
+  private readonly _db: typeof Order;
 
   constructor(db: typeof Order = Order) {
-    this.db = db;
+    this._db = db;
   }
 
   async create(data: InsertOrder): Promise<SelectOrder> {
     try {
-      return (await this.db.create(data)).toObject();
+      return (await this._db.create(data)).toObject();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -44,12 +44,12 @@ export class OrderRepository implements IOrderRepository {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder | null> {
     try {
-      return await this.db
+      return await this._db
         .findById(orderId)
         .populate("user", "name email")
         .lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -59,7 +59,7 @@ export class OrderRepository implements IOrderRepository {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder | null> {
     try {
-      return await this.db
+      return await this._db
         .findByIdAndUpdate(
           orderId,
           {
@@ -72,7 +72,7 @@ export class OrderRepository implements IOrderRepository {
         )
         .lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -82,7 +82,7 @@ export class OrderRepository implements IOrderRepository {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder | null> {
     try {
-      return await this.db
+      return await this._db
         .findByIdAndUpdate(
           orderId,
           {
@@ -97,18 +97,18 @@ export class OrderRepository implements IOrderRepository {
         )
         .lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
   async getAll(): Promise<Array<SelectOrder>> {
     try {
-      return await this.db
+      return await this._db
         .find({})
         .select("id createdAt isPaid paidAt isDelivered deliveredAt totalPrice")
         .lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -118,16 +118,16 @@ export class OrderRepository implements IOrderRepository {
     userId: Types.ObjectId;
   }): Promise<Array<SelectOrder>> {
     try {
-      return await this.db
+      return await this._db
         .find({ user: userId })
         .select("id createdAt isPaid paidAt isDelivered deliveredAt totalPrice")
         .lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
-  private errorHandler(error: unknown): never {
+  private _errorHandler(error: unknown): never {
     if (
       error instanceof MongooseError ||
       error instanceof mongoose.mongo.MongoError

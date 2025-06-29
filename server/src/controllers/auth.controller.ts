@@ -8,10 +8,10 @@ export interface IAuthController {
   signup: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 }
 export class AuthController implements IAuthController {
-  private readonly service: IAuthService;
+  private readonly _service: IAuthService;
 
   constructor(service: IAuthService = new AuthService()) {
-    this.service = service;
+    this._service = service;
   }
 
   signin = asyncHandler(async (req, res) => {
@@ -21,7 +21,7 @@ export class AuthController implements IAuthController {
       .pick({ email: true, password: true })
       .parse(data);
 
-    const response = await this.service.signin(parsedData);
+    const response = await this._service.signin(parsedData);
 
     return sendSuccessResponse({
       responseContext: res,
@@ -33,7 +33,7 @@ export class AuthController implements IAuthController {
   signup = asyncHandler(async (req, res) => {
     const data = insertUserSchema.parse(req.body);
 
-    const response = await this.service.signup(data);
+    const response = await this._service.signup(data);
 
     return sendSuccessResponse({
       responseContext: res,

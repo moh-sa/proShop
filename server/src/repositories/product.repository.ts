@@ -27,27 +27,27 @@ export interface IProductRepository {
 }
 
 export class ProductRepository implements IProductRepository {
-  private readonly db: typeof Product;
-  private cache: CacheManager;
+  private readonly _db: typeof Product;
+  private _cache: CacheManager;
 
   constructor(
     db: typeof Product = Product,
     cache: CacheManager = new CacheManager("product"),
   ) {
-    this.db = db;
-    this.cache = cache;
+    this._db = db;
+    this._cache = cache;
   }
 
   async create(data: InsertProductWithStringImage): Promise<SelectProduct> {
     try {
-      const product = (await this.db.create(data)).toObject();
+      const product = (await this._db.create(data)).toObject();
 
-      const cacheKey = this.cache.generateKey({ id: product._id.toString() });
-      this.cache.set({ key: cacheKey, value: product });
+      const cacheKey = this._cache.generateKey({ id: product._id.toString() });
+      this._cache.set({ key: cacheKey, value: product });
 
       return product;
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -56,19 +56,19 @@ export class ProductRepository implements IProductRepository {
   }: {
     productId: Types.ObjectId;
   }): Promise<SelectProduct | null> {
-    const cacheKey = this.cache.generateKey({ id: productId.toString() });
-    const cachedProduct = this.cache.get<SelectProduct>({ key: cacheKey });
+    const cacheKey = this._cache.generateKey({ id: productId.toString() });
+    const cachedProduct = this._cache.get<SelectProduct>({ key: cacheKey });
     if (cachedProduct) return cachedProduct;
 
     try {
-      const product = await this.db.findById(productId).lean();
+      const product = await this._db.findById(productId).lean();
       if (product) {
-        this.cache.set({ key: cacheKey, value: product });
+        this._cache.set({ key: cacheKey, value: product });
       }
 
       return product;
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -80,19 +80,19 @@ export class ProductRepository implements IProductRepository {
     data: Partial<InsertProductWithStringImage>;
   }): Promise<SelectProduct | null> {
     try {
-      const product = await this.db
+      const product = await this._db
         .findByIdAndUpdate(productId, data, {
           new: true,
         })
         .lean();
 
       if (product) {
-        this.invalidateProductCache({ id: productId.toString() });
+        this._invalidateProductCache({ id: productId.toString() });
       }
 
       return product;
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -102,14 +102,14 @@ export class ProductRepository implements IProductRepository {
     productId: Types.ObjectId;
   }): Promise<SelectProduct | null> {
     try {
-      const deletedProduct = await this.db.findByIdAndDelete(productId).lean();
+      const deletedProduct = await this._db.findByIdAndDelete(productId).lean();
       if (deletedProduct) {
-        this.invalidateProductCache({ id: productId.toString() });
+        this._invalidateProductCache({ id: productId.toString() });
       }
 
       return deletedProduct;
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -118,14 +118,14 @@ export class ProductRepository implements IProductRepository {
   }: {
     limit?: number;
   }): Promise<Array<TopRatedProduct>> {
-    const cacheKey = this.cache.generateKey({ id: "top-rated" });
-    const cachedProducts = this.cache.get<Array<TopRatedProduct>>({
+    const cacheKey = this._cache.generateKey({ id: "top-rated" });
+    const cachedProducts = this._cache.get<Array<TopRatedProduct>>({
       key: cacheKey,
     });
     if (cachedProducts) return cachedProducts;
 
     try {
-      const products = await this.db
+      const products = await this._db
         .find({})
         .select("id name price image")
         .sort({ rating: -1 })
@@ -133,12 +133,12 @@ export class ProductRepository implements IProductRepository {
         .lean();
 
       if (products) {
-        this.cache.set({ key: cacheKey, value: products });
+        this._cache.set({ key: cacheKey, value: products });
       }
 
       return products;
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -147,33 +147,33 @@ export class ProductRepository implements IProductRepository {
     numberOfProductsPerPage: number;
     currentPage: number;
   }): Promise<Array<AllProducts>> {
-    const cacheKey = this.cache.generateKey({ id: `all-${data.currentPage}` });
-    const cachedProducts = this.cache.get<Array<AllProducts>>({
+    const cacheKey = this._cache.generateKey({ id: `all-${data.currentPage}` });
+    const cachedProducts = this._cache.get<Array<AllProducts>>({
       key: cacheKey,
     });
     if (cachedProducts) return cachedProducts;
 
     try {
-      return await this.db
+      return await this._db
         .find({ ...data.query })
         .select("id name brand category price rating numReviews image")
         .limit(data.numberOfProductsPerPage)
         .skip(data.numberOfProductsPerPage * (data.currentPage - 1))
         .lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
   async count(query: Record<string, unknown>): Promise<number> {
     try {
-      return await this.db.countDocuments({ ...query }).lean();
+      return await this._db.countDocuments({ ...query }).lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
-  private errorHandler(error: unknown): never {
+  private _errorHandler(error: unknown): never {
     if (
       error instanceof MongooseError ||
       error instanceof mongoose.mongo.MongoError
@@ -183,18 +183,18 @@ export class ProductRepository implements IProductRepository {
     throw new DatabaseError();
   }
 
-  private invalidateProductCache({ id }: { id: string }): void {
+  private _invalidateProductCache({ id }: { id: string }): void {
     // Delete specific product cache
-    const cacheKey = this.cache.generateKey({ id });
-    this.cache.delete({ keys: cacheKey });
+    const cacheKey = this._cache.generateKey({ id });
+    this._cache.delete({ keys: cacheKey });
 
     // Delete all top-rated caches as they might be affected
-    const stats = this.cache.stats();
+    const stats = this._cache.stats();
     const keys = Object.keys(stats).filter((key) =>
       key.startsWith("product:top-rated"),
     );
     if (keys.length > 0) {
-      this.cache.delete({ keys });
+      this._cache.delete({ keys });
     }
   }
 }

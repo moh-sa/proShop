@@ -23,16 +23,16 @@ export interface IProductController {
   delete: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 }
 export class ProductController implements IProductController {
-  private readonly service: IProductService;
+  private readonly _service: IProductService;
 
   constructor(service: IProductService = new ProductService()) {
-    this.service = service;
+    this._service = service;
   }
 
   getById = asyncHandler(async (req, res) => {
     const productId = objectIdValidator.parse(req.params.productId);
 
-    const product = await this.service.getById({ productId });
+    const product = await this._service.getById({ productId });
     if (!product) throw new NotFoundError("Product");
 
     return sendSuccessResponse({
@@ -50,7 +50,7 @@ export class ProductController implements IProductController {
       })
       .parse(req.query);
 
-    const data = await this.service.getAll(query);
+    const data = await this._service.getAll(query);
 
     return sendSuccessResponse({
       responseContext: res,
@@ -64,7 +64,7 @@ export class ProductController implements IProductController {
   });
 
   getTopRated = asyncHandler(async (req, res) => {
-    const products = await this.service.getTopRated();
+    const products = await this._service.getTopRated();
 
     return sendSuccessResponse({
       responseContext: res,
@@ -80,7 +80,7 @@ export class ProductController implements IProductController {
       user: res.locals.user._id,
     });
 
-    const newProduct = await this.service.create(data);
+    const newProduct = await this._service.create(data);
 
     return sendSuccessResponse({
       responseContext: res,
@@ -96,7 +96,7 @@ export class ProductController implements IProductController {
       image: req.file,
     });
 
-    const updatedProduct = await this.service.update({
+    const updatedProduct = await this._service.update({
       productId,
       data,
     });
@@ -111,7 +111,7 @@ export class ProductController implements IProductController {
   delete = asyncHandler(async (req, res) => {
     const productId = objectIdValidator.parse(req.params.productId);
 
-    await this.service.delete({ productId });
+    await this._service.delete({ productId });
 
     return sendSuccessResponse({
       responseContext: res,

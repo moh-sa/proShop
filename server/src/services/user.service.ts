@@ -18,28 +18,28 @@ export interface IUserService {
 }
 
 export class UserService implements IUserService {
-  private readonly repository: IUserRepository;
+  private readonly _repository: IUserRepository;
 
   constructor(repository: IUserRepository = new UserRepository()) {
-    this.repository = repository;
+    this._repository = repository;
   }
 
   async getById({ userId }: { userId: Types.ObjectId }) {
-    const user = await this.repository.getById({ userId });
+    const user = await this._repository.getById({ userId });
     if (!user) throw new NotFoundError("User");
 
     return this._formatResponse({ user });
   }
 
   async getByEmail({ email }: { email: string }): Promise<SelectUser> {
-    const user = await this.repository.getByEmail({ email });
+    const user = await this._repository.getByEmail({ email });
     if (!user) throw new NotFoundError("User");
 
     return user;
   }
 
   async getAll(): Promise<Array<UserWithoutPassword>> {
-    const users = await this.repository.getAll();
+    const users = await this._repository.getAll();
 
     return users.map((user) => this._formatResponse({ user }));
   }
@@ -51,7 +51,7 @@ export class UserService implements IUserService {
     userId: Types.ObjectId;
     data: Partial<InsertUser>;
   }): Promise<UserWithoutPassword> {
-    const updatedUser = await this.repository.update({
+    const updatedUser = await this._repository.update({
       userId,
       data,
     });
@@ -65,7 +65,7 @@ export class UserService implements IUserService {
   }: {
     userId: Types.ObjectId;
   }): Promise<SelectUser | null> {
-    return await this.repository.delete({ userId });
+    return await this._repository.delete({ userId });
   }
 
   private _formatResponse({

@@ -19,17 +19,17 @@ export interface IUserRepository {
 }
 
 export class UserRepository implements IUserRepository {
-  private readonly db: typeof User;
+  private readonly _db: typeof User;
 
   constructor(db: typeof User = User) {
-    this.db = db;
+    this._db = db;
   }
 
   async create(data: InsertUser): Promise<Omit<SelectUser, "token">> {
     try {
-      return (await this.db.create(data)).toObject();
+      return (await this._db.create(data)).toObject();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -39,17 +39,17 @@ export class UserRepository implements IUserRepository {
     userId: Types.ObjectId;
   }): Promise<SelectUser | null> {
     try {
-      return await this.db.findById(userId).lean();
+      return await this._db.findById(userId).lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
   async getByEmail({ email }: { email: string }): Promise<SelectUser | null> {
     try {
-      return await this.db.findOne({ email }).lean();
+      return await this._db.findOne({ email }).lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -61,11 +61,11 @@ export class UserRepository implements IUserRepository {
     data: Partial<InsertUser>;
   }): Promise<SelectUser | null> {
     try {
-      return await this.db
+      return await this._db
         .findByIdAndUpdate(userId, data, { new: true })
         .lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -75,17 +75,17 @@ export class UserRepository implements IUserRepository {
     userId: Types.ObjectId;
   }): Promise<SelectUser | null> {
     try {
-      return await this.db.findByIdAndDelete(userId).lean();
+      return await this._db.findByIdAndDelete(userId).lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
   async getAll(): Promise<Array<SelectUser>> {
     try {
-      return await this.db.find({}).lean();
+      return await this._db.find({}).lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -95,13 +95,13 @@ export class UserRepository implements IUserRepository {
     email: string;
   }): Promise<{ _id: Types.ObjectId } | null> {
     try {
-      return await this.db.exists({ email }).lean();
+      return await this._db.exists({ email }).lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
-  private errorHandler(error: unknown): never {
+  private _errorHandler(error: unknown): never {
     if (
       error instanceof MongooseError ||
       error instanceof mongoose.mongo.MongoError

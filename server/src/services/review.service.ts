@@ -30,14 +30,14 @@ export interface IReviewService {
   }) => Promise<{ _id: Types.ObjectId }>;
 }
 export class ReviewService implements IReviewService {
-  private readonly repository: IReviewRepository;
+  private readonly _repository: IReviewRepository;
 
   constructor(repository: IReviewRepository = new ReviewRepository()) {
-    this.repository = repository;
+    this._repository = repository;
   }
 
   async create(data: InsertReview): Promise<SelectReview> {
-    return await this.repository.create(data);
+    return await this._repository.create(data);
   }
 
   async getById({
@@ -45,14 +45,14 @@ export class ReviewService implements IReviewService {
   }: {
     reviewId: Types.ObjectId;
   }): Promise<SelectReview> {
-    const review = await this.repository.getById({ reviewId });
+    const review = await this._repository.getById({ reviewId });
     if (!review) throw new NotFoundError("Review");
 
     return review;
   }
 
   async getAll(): Promise<Array<SelectReview>> {
-    return await this.repository.getAll();
+    return await this._repository.getAll();
   }
 
   async getAllByUserId({
@@ -60,7 +60,7 @@ export class ReviewService implements IReviewService {
   }: {
     userId: Types.ObjectId;
   }): Promise<Array<SelectReview>> {
-    return await this.repository.getAllByUserId({ userId });
+    return await this._repository.getAllByUserId({ userId });
   }
 
   async getAllByProductId({
@@ -68,7 +68,7 @@ export class ReviewService implements IReviewService {
   }: {
     productId: Types.ObjectId;
   }): Promise<Array<SelectReview>> {
-    return await this.repository.getAllByProductId({ productId });
+    return await this._repository.getAllByProductId({ productId });
   }
 
   async update({
@@ -78,7 +78,7 @@ export class ReviewService implements IReviewService {
     reviewId: Types.ObjectId;
     data: Partial<InsertReview>;
   }): Promise<SelectReview> {
-    const updatedReview = await this.repository.update({
+    const updatedReview = await this._repository.update({
       reviewId,
       data,
     });
@@ -92,18 +92,18 @@ export class ReviewService implements IReviewService {
   }: {
     reviewId: Types.ObjectId;
   }): Promise<SelectReview> {
-    const deletedReview = await this.repository.delete({ reviewId });
+    const deletedReview = await this._repository.delete({ reviewId });
     if (!deletedReview) throw new NotFoundError("Review");
 
     return deletedReview;
   }
 
   async count(): Promise<number> {
-    return await this.repository.count();
+    return await this._repository.count();
   }
 
   async countByUserId({ userId }: { userId: Types.ObjectId }): Promise<number> {
-    return await this.repository.countByUserId({ userId });
+    return await this._repository.countByUserId({ userId });
   }
 
   async countByProductId({
@@ -111,7 +111,7 @@ export class ReviewService implements IReviewService {
   }: {
     productId: Types.ObjectId;
   }): Promise<number> {
-    return await this.repository.countByProductId({ productId });
+    return await this._repository.countByProductId({ productId });
   }
 
   async existsById({
@@ -119,7 +119,7 @@ export class ReviewService implements IReviewService {
   }: {
     reviewId: Types.ObjectId;
   }): Promise<{ _id: Types.ObjectId }> {
-    const exists = await this.repository.existsById({ reviewId });
+    const exists = await this._repository.existsById({ reviewId });
     if (!exists) throw new NotFoundError("Review");
 
     return exists;
@@ -132,7 +132,7 @@ export class ReviewService implements IReviewService {
     userId: Types.ObjectId;
     productId: Types.ObjectId;
   }): Promise<{ _id: Types.ObjectId }> {
-    const exists = await this.repository.existsByUserIdAndProductId({
+    const exists = await this._repository.existsByUserIdAndProductId({
       userId,
       productId,
     });

@@ -31,17 +31,17 @@ export interface IReviewRepository {
 }
 
 export class ReviewRepository implements IReviewRepository {
-  private readonly db: typeof Review;
+  private readonly _db: typeof Review;
 
   constructor(db: typeof Review = Review) {
-    this.db = db;
+    this._db = db;
   }
 
   async create(data: InsertReview): Promise<SelectReview> {
     try {
-      return (await this.db.create(data)).toObject();
+      return (await this._db.create(data)).toObject();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -51,17 +51,17 @@ export class ReviewRepository implements IReviewRepository {
     reviewId: Types.ObjectId;
   }): Promise<SelectReview | null> {
     try {
-      return await this.db.findById(reviewId).lean();
+      return await this._db.findById(reviewId).lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
   async getAll(): Promise<Array<SelectReview>> {
     try {
-      return await this.db.find({}).lean();
+      return await this._db.find({}).lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -71,9 +71,9 @@ export class ReviewRepository implements IReviewRepository {
     userId: Types.ObjectId;
   }): Promise<Array<SelectReview>> {
     try {
-      return await this.db.find({ user: userId }).lean();
+      return await this._db.find({ user: userId }).lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -83,9 +83,9 @@ export class ReviewRepository implements IReviewRepository {
     productId: Types.ObjectId;
   }): Promise<Array<SelectReview>> {
     try {
-      return await this.db.find({ product: productId }).lean();
+      return await this._db.find({ product: productId }).lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -97,11 +97,11 @@ export class ReviewRepository implements IReviewRepository {
     data: Partial<InsertReview>;
   }): Promise<SelectReview | null> {
     try {
-      return await this.db
+      return await this._db
         .findByIdAndUpdate(reviewId, data, { new: true })
         .lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -111,25 +111,25 @@ export class ReviewRepository implements IReviewRepository {
     reviewId: Types.ObjectId;
   }): Promise<SelectReview | null> {
     try {
-      return await this.db.findByIdAndDelete(reviewId).lean();
+      return await this._db.findByIdAndDelete(reviewId).lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
   async count(): Promise<number> {
     try {
-      return await this.db.countDocuments().lean();
+      return await this._db.countDocuments().lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
   async countByUserId({ userId }: { userId: Types.ObjectId }): Promise<number> {
     try {
-      return await this.db.countDocuments({ user: userId }).lean();
+      return await this._db.countDocuments({ user: userId }).lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -139,9 +139,9 @@ export class ReviewRepository implements IReviewRepository {
     productId: Types.ObjectId;
   }): Promise<number> {
     try {
-      return await this.db.countDocuments({ product: productId }).lean();
+      return await this._db.countDocuments({ product: productId }).lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -151,13 +151,13 @@ export class ReviewRepository implements IReviewRepository {
     reviewId: Types.ObjectId;
   }): Promise<{ _id: Types.ObjectId } | null> {
     try {
-      return await this.db
+      return await this._db
         .exists({
           _id: reviewId,
         })
         .lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
@@ -169,18 +169,18 @@ export class ReviewRepository implements IReviewRepository {
     productId: Types.ObjectId;
   }): Promise<{ _id: Types.ObjectId } | null> {
     try {
-      return await this.db
+      return await this._db
         .exists({
           user: userId,
           product: productId,
         })
         .lean();
     } catch (error) {
-      this.errorHandler(error);
+      this._errorHandler(error);
     }
   }
 
-  private errorHandler(error: unknown): never {
+  private _errorHandler(error: unknown): never {
     if (
       error instanceof MongooseError ||
       error instanceof mongoose.mongo.MongoError

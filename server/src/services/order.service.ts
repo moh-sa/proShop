@@ -12,10 +12,10 @@ export interface IOrderService {
   updateToDelivered(data: { orderId: Types.ObjectId }): Promise<SelectOrder>;
 }
 export class OrderService implements IOrderService {
-  private readonly repository: IOrderRepository;
+  private readonly _repository: IOrderRepository;
 
   constructor(repository: IOrderRepository = new OrderRepository()) {
-    this.repository = repository;
+    this._repository = repository;
   }
 
   async create(data: InsertOrder): Promise<SelectOrder> {
@@ -23,7 +23,7 @@ export class OrderService implements IOrderService {
       throw new EmptyCartError();
     }
 
-    return await this.repository.create(data);
+    return await this._repository.create(data);
   }
 
   async getById({
@@ -31,14 +31,14 @@ export class OrderService implements IOrderService {
   }: {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder> {
-    const order = await this.repository.getById({ orderId });
+    const order = await this._repository.getById({ orderId });
     if (!order) throw new NotFoundError("Order");
 
     return order;
   }
 
   async getAll(): Promise<Array<SelectOrder>> {
-    return await this.repository.getAll();
+    return await this._repository.getAll();
   }
 
   async getAllByUserId({
@@ -46,7 +46,7 @@ export class OrderService implements IOrderService {
   }: {
     userId: Types.ObjectId;
   }): Promise<Array<SelectOrder>> {
-    return await this.repository.getAllByUserId({ userId });
+    return await this._repository.getAllByUserId({ userId });
   }
 
   async updateToPaid({
@@ -54,7 +54,7 @@ export class OrderService implements IOrderService {
   }: {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder> {
-    const updatedOrder = await this.repository.updateToPaid({ orderId });
+    const updatedOrder = await this._repository.updateToPaid({ orderId });
     if (!updatedOrder) throw new NotFoundError("Order");
 
     return updatedOrder;
@@ -65,7 +65,7 @@ export class OrderService implements IOrderService {
   }: {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder> {
-    const updatedOrder = await this.repository.updateToDelivered({
+    const updatedOrder = await this._repository.updateToDelivered({
       orderId,
     });
     if (!updatedOrder) throw new NotFoundError("Order");

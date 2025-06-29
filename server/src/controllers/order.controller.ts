@@ -26,10 +26,10 @@ export interface IOrderController {
   ) => Promise<void>;
 }
 export class OrderController implements IOrderController {
-  private readonly service: IOrderService;
+  private readonly _service: IOrderService;
 
   constructor(service: IOrderService = new OrderService()) {
-    this.service = service;
+    this._service = service;
   }
 
   create = asyncHandler(async (req, res) => {
@@ -38,7 +38,7 @@ export class OrderController implements IOrderController {
       user: res.locals.user._id,
     });
 
-    const response = await this.service.create(data);
+    const response = await this._service.create(data);
 
     return sendSuccessResponse({
       responseContext: res,
@@ -50,7 +50,7 @@ export class OrderController implements IOrderController {
   getById = asyncHandler(async (req, res) => {
     const orderId = objectIdValidator.parse(req.params.orderId);
 
-    const order = await this.service.getById({ orderId });
+    const order = await this._service.getById({ orderId });
 
     return sendSuccessResponse({
       responseContext: res,
@@ -60,7 +60,7 @@ export class OrderController implements IOrderController {
   });
 
   getAll = asyncHandler(async (req, res) => {
-    const orders = await this.service.getAll();
+    const orders = await this._service.getAll();
 
     return sendSuccessResponse({
       responseContext: res,
@@ -72,7 +72,7 @@ export class OrderController implements IOrderController {
   getAllByUserId = asyncHandler(async (req, res) => {
     const userId = objectIdValidator.parse(req.params.userId);
 
-    const orders = await this.service.getAllByUserId({ userId });
+    const orders = await this._service.getAllByUserId({ userId });
 
     return sendSuccessResponse({
       responseContext: res,
@@ -84,7 +84,7 @@ export class OrderController implements IOrderController {
   updateToPaid = asyncHandler(async (req, res) => {
     const orderId = objectIdValidator.parse(req.params.orderId);
 
-    const order = await this.service.updateToPaid({ orderId });
+    const order = await this._service.updateToPaid({ orderId });
 
     return sendSuccessResponse({
       responseContext: res,
@@ -96,7 +96,7 @@ export class OrderController implements IOrderController {
   updateToDelivered = asyncHandler(async (req, res) => {
     const orderId = objectIdValidator.parse(req.params.orderId);
 
-    const order = await this.service.updateToDelivered({ orderId });
+    const order = await this._service.updateToDelivered({ orderId });
 
     return sendSuccessResponse({
       responseContext: res,

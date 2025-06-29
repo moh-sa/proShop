@@ -17,17 +17,17 @@ export interface IUserController {
 }
 
 export class UserController implements IUserController {
-  private readonly service: IUserService;
+  private readonly _service: IUserService;
 
   constructor(service: IUserService = new UserService()) {
-    this.service = service;
+    this._service = service;
   }
 
   getById = asyncHandler(async (req, res) => {
     const idReq = req.params?.userId ?? res.locals.user?._id;
     const userId = objectIdValidator.parse(idReq);
 
-    const response = await this.service.getById({ userId });
+    const response = await this._service.getById({ userId });
 
     return sendSuccessResponse({
       responseContext: res,
@@ -37,7 +37,7 @@ export class UserController implements IUserController {
   });
 
   getAll = asyncHandler(async (req, res) => {
-    const response = await this.service.getAll();
+    const response = await this._service.getAll();
 
     return sendSuccessResponse({
       responseContext: res,
@@ -54,7 +54,7 @@ export class UserController implements IUserController {
       req.body,
     );
 
-    const response = await this.service.updateById({
+    const response = await this._service.updateById({
       userId,
       data,
     });
@@ -70,7 +70,7 @@ export class UserController implements IUserController {
     const idReq = req.params.userId;
     const userId = objectIdValidator.parse(idReq);
 
-    const response = await this.service.delete({ userId });
+    const response = await this._service.delete({ userId });
     if (!response) throw new NotFoundError("User");
 
     return sendSuccessResponse({
