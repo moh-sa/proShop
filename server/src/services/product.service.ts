@@ -77,7 +77,8 @@ export class ProductService implements IProductService {
   }
 
   async getTopRated(): Promise<Array<TopRatedProduct>> {
-    return await this._repository.getTopRated({});
+    const limit = 3;
+    return await this._repository.getTopRated({ limit });
   }
 
   async create(data: InsertProduct): Promise<SelectProduct> {

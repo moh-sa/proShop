@@ -17,7 +17,7 @@ export interface IProductRepository {
     data: Partial<InsertProductWithStringImage>;
   }): Promise<SelectProduct | null>;
   delete(data: { productId: Types.ObjectId }): Promise<SelectProduct | null>;
-  getTopRated(data: { limit?: number }): Promise<Array<TopRatedProduct>>;
+  getTopRated(data: { limit: number }): Promise<Array<TopRatedProduct>>;
   getAll(data: {
     query: Record<string, unknown>;
     numberOfProductsPerPage: number;
@@ -114,9 +114,9 @@ export class ProductRepository implements IProductRepository {
   }
 
   async getTopRated({
-    limit = 3,
+    limit,
   }: {
-    limit?: number;
+    limit: number;
   }): Promise<Array<TopRatedProduct>> {
     const cacheKey = this._cache.generateKey({ id: "top-rated" });
     const cachedProducts = this._cache.get<Array<TopRatedProduct>>({

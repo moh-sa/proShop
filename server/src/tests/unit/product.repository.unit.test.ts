@@ -531,6 +531,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
     const mockProducts = generateMockSelectProducts({ count: 3 });
     const cacheId = "top-rated";
     const cacheKey = generateCacheKey({ cacheId });
+    const limit = 3;
 
     test("Should return array of products when 'db.find' is called once with no args", async (t) => {
       mockCacheMiss({
@@ -548,7 +549,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
         }),
       }));
 
-      const products = await repo.getTopRated({});
+      const products = await repo.getTopRated({ limit });
 
       assert.ok(products);
       assert.deepStrictEqual(products, mockProducts);
@@ -573,7 +574,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
         }),
       }));
 
-      await repo.getTopRated({});
+      await repo.getTopRated({ limit });
 
       assert.strictEqual(mockCache.generateKey.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.generateKey.mock.calls[0].arguments[0], {
@@ -593,7 +594,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
         returnValue: mockProducts,
       });
 
-      const products = await repo.getTopRated({});
+      const products = await repo.getTopRated({ limit });
 
       assert.ok(products);
       assert.deepStrictEqual(products, mockProducts);
@@ -622,7 +623,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
         }),
       }));
 
-      const products = await repo.getTopRated({});
+      const products = await repo.getTopRated({ limit });
 
       assert.ok(products);
       assert.strictEqual(products.length, 0);
@@ -636,7 +637,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.getTopRated({}),
+        async () => await repo.getTopRated({ limit }),
         DatabaseValidationError,
       );
     });
@@ -651,7 +652,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.getTopRated({}),
+        async () => await repo.getTopRated({ limit }),
         DatabaseTimeoutError,
       );
     });
@@ -664,7 +665,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.getTopRated({}),
+        async () => await repo.getTopRated({ limit }),
         DatabaseQueryError,
       );
     });
@@ -677,7 +678,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.getTopRated({}),
+        async () => await repo.getTopRated({ limit }),
         DatabaseNetworkError,
       );
     });
@@ -690,7 +691,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.getTopRated({}),
+        async () => await repo.getTopRated({ limit }),
         GenericDatabaseError,
       );
     });
