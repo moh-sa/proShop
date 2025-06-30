@@ -253,10 +253,9 @@ suite("Product Service 〖 Unit Tests 〗", () => {
       assert.deepStrictEqual(result, expectedResult);
 
       assert.strictEqual(mockRepo.getTopRated.mock.callCount(), 1);
-      assert.deepStrictEqual(
-        mockRepo.getTopRated.mock.calls[0].arguments[0],
-        {},
-      );
+      assert.deepStrictEqual(mockRepo.getTopRated.mock.calls[0].arguments[0], {
+        limit: 3,
+      });
     });
 
     test("Should throw 'DatabaseError' if 'repo.getTopRated' rejects", async () => {

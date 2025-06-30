@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import { MAX_TOP_RATED_PRODUCTS } from "../constants";
 import { NotFoundError } from "../errors";
 import { IImageStorageManager, ImageStorageManager } from "../managers";
 import { IProductRepository, ProductRepository } from "../repositories";
@@ -77,7 +78,7 @@ export class ProductService implements IProductService {
   }
 
   async getTopRated(): Promise<Array<TopRatedProduct>> {
-    const limit = 3;
+    const limit = MAX_TOP_RATED_PRODUCTS;
     return await this._repository.getTopRated({ limit });
   }
 
