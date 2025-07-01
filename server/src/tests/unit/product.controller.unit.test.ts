@@ -15,7 +15,7 @@ import {
   mockProductService,
 } from "../mocks";
 
-suite("Review Controller 〖 Unit Tests 〗", () => {
+suite("Product Controller 〖 Unit Tests 〗", () => {
   const mockService = mockProductService();
   const controller = new ProductController(mockService);
 
