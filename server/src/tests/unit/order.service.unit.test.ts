@@ -3,9 +3,10 @@ import test, { beforeEach, describe, suite } from "node:test";
 import { DatabaseError, EmptyCartError, NotFoundError } from "../../errors";
 import { OrderService } from "../../services";
 import {
+  generateMockInsertOrder,
   generateMockObjectId,
-  generateMockOrder,
-  generateMockOrders,
+  generateMockSelectOrder,
+  generateMockSelectOrders,
   mockOrderRepository,
 } from "../mocks";
 
@@ -16,27 +17,29 @@ suite("Order Service 〖 Unit Tests 〗", () => {
   beforeEach(() => mockRepo.reset());
 
   describe("create", () => {
-    const mockOrder = generateMockOrder();
+    const mockInsertOrder = generateMockInsertOrder();
+    const mockSelectOrder = generateMockSelectOrder();
+    mockSelectOrder.user._id = mockInsertOrder.user;
 
     test("Should return the order object when 'repo.create' is called once with order data", async () => {
       mockRepo.create.mock.mockImplementationOnce(() =>
-        Promise.resolve(mockOrder),
+        Promise.resolve(mockSelectOrder),
       );
 
-      const order = await service.create(mockOrder);
+      const order = await service.create(mockInsertOrder);
 
       assert.ok(order);
-      assert.deepStrictEqual(order, mockOrder);
+      assert.deepStrictEqual(order, mockSelectOrder);
 
       assert.strictEqual(mockRepo.create.mock.callCount(), 1);
       assert.deepStrictEqual(
         mockRepo.create.mock.calls[0].arguments[0],
-        mockOrder,
+        mockInsertOrder,
       );
     });
 
     test("Should throw 'EmptyCartError' if 'data.orderItems' length is '0'", async () => {
-      const mockOrder = generateMockOrder();
+      const mockOrder = generateMockInsertOrder();
       mockOrder.orderItems = [];
 
       await assert.rejects(
@@ -51,14 +54,14 @@ suite("Order Service 〖 Unit Tests 〗", () => {
       );
 
       await assert.rejects(
-        async () => await service.create(mockOrder),
+        async () => await service.create(mockInsertOrder),
         DatabaseError,
       );
     });
   });
 
   describe("getAll", () => {
-    const mockOrders = generateMockOrders(4);
+    const mockOrders = generateMockSelectOrders(4);
 
     test("Should return array of orders when 'repo.getAll' is called once with no args", async () => {
       mockRepo.getAll.mock.mockImplementationOnce(() =>
@@ -101,8 +104,8 @@ suite("Order Service 〖 Unit Tests 〗", () => {
   });
 
   describe("getAllByUserId", () => {
-    const mockOrders = generateMockOrders(4);
-    const userId = mockOrders[0].user;
+    const mockOrders = generateMockSelectOrders(4);
+    const userId = mockOrders[0].user._id;
 
     test("Should return array of orders when 'repo.getAllByUserId' is called once with 'userId'", async () => {
       mockRepo.getAllByUserId.mock.mockImplementationOnce(() =>
@@ -145,7 +148,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
   });
 
   describe("getById", () => {
-    const mockOrder = generateMockOrder();
+    const mockOrder = generateMockSelectOrder();
     const orderId = mockOrder._id;
 
     test("Should return order object when 'repo.getById' is called once with 'orderId'", async () => {
@@ -186,7 +189,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
   });
 
   describe("updateToPaid", () => {
-    const mockOrder = generateMockOrder();
+    const mockOrder = generateMockSelectOrder();
     const orderId = mockOrder._id;
 
     test("Should return the order object when 'repo.updateToPaid' is called once with 'orderId'", async () => {
@@ -231,7 +234,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
   });
 
   describe("updateToDelivered", () => {
-    const mockOrder = generateMockOrder();
+    const mockOrder = generateMockSelectOrder();
     const orderId = mockOrder._id;
 
     test("Should return the order object when 'repo.updateToDelivered' is called once with 'orderId", async () => {

@@ -4,11 +4,11 @@ import test, { beforeEach, describe, suite } from "node:test";
 import { ZodError } from "zod";
 import { OrderController } from "../../controllers";
 import { DatabaseError } from "../../errors";
-import { InsertOrder, SelectOrder } from "../../types";
 import { createSuccessResponseObject } from "../../utils";
 import {
-  generateMockOrder,
-  generateMockOrders,
+  generateMockInsertOrder,
+  generateMockSelectOrder,
+  generateMockSelectOrders,
   mockExpressCall,
   mockOrderService,
 } from "../mocks";
@@ -22,16 +22,11 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
   });
 
   describe("create", () => {
-    const { _id, createdAt, updatedAt, ...mockOrder } = generateMockOrder();
+    const mockInsertOrder = generateMockInsertOrder();
+    const mockSelectOrder = generateMockSelectOrder();
+    mockSelectOrder.user._id = mockInsertOrder.user;
 
-    const mockInsertOrder: InsertOrder = mockOrder;
-    const mockSelectOrder: SelectOrder = {
-      ...mockInsertOrder,
-      _id,
-      createdAt,
-      updatedAt,
-    };
-    const userId = mockSelectOrder.user;
+    const userId = mockInsertOrder.user;
 
     test("Should parse 'order data' from 'req.body' and 'userId' from 'res.locals'", async (t) => {
       const { req, res, next } = mockExpressCall({
@@ -175,7 +170,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
   });
 
   describe("getAll", () => {
-    const mockOrders = generateMockOrders(5);
+    const mockOrders = generateMockSelectOrders(5);
 
     test("Should call 'service.getAll' once without args", async (t) => {
       const { req, res, next } = mockExpressCall({
@@ -262,8 +257,8 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
   });
 
   describe("getAllByUserId", () => {
-    const mockOrders = generateMockOrders(2);
-    const userId = mockOrders[0].user;
+    const mockOrders = generateMockSelectOrders(2);
+    const userId = mockOrders[0].user._id;
 
     test("Should parse 'userId' from 'req.params'", async (t) => {
       const { req, res, next } = mockExpressCall({
@@ -401,7 +396,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
   });
 
   describe("getById", () => {
-    const mockOrder = generateMockOrder();
+    const mockOrder = generateMockSelectOrder();
     const orderId = mockOrder._id;
 
     test("Should parse 'orderId' from 'req.params'", async (t) => {
@@ -537,7 +532,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
   });
 
   describe("updateToPaid", () => {
-    const mockOrder = generateMockOrder();
+    const mockOrder = generateMockSelectOrder();
     const orderId = mockOrder._id;
 
     test("Should parse 'orderId' from 'req.params'", async (t) => {
@@ -676,7 +671,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
   });
 
   describe("updateToDelivered", () => {
-    const mockOrder = generateMockOrder();
+    const mockOrder = generateMockSelectOrder();
     const orderId = mockOrder._id;
 
     test("Should parse 'orderId' from 'req.params'", async (t) => {

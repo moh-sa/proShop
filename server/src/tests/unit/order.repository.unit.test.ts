@@ -10,13 +10,17 @@ import {
 } from "../../errors";
 import Order from "../../models/orderModel";
 import { OrderRepository } from "../../repositories";
-import { generateMockOrder, generateMockOrders } from "../mocks";
+import {
+  generateMockInsertOrder,
+  generateMockInsertOrders,
+  generateMockSelectOrder,
+} from "../mocks";
 
 suite("Order Repository 〖 Unit Tests 〗", () => {
   const repo = new OrderRepository();
 
   describe("create", () => {
-    const mockOrder = generateMockOrder();
+    const mockOrder = generateMockInsertOrder();
 
     test("Should return the user object when 'db.create' is called once with user data", async (t) => {
       const mockCreate = t.mock.method(Order, "create", () => ({
@@ -101,7 +105,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
   });
 
   describe("getAll", () => {
-    const mockOrders = generateMockOrders(4);
+    const mockOrders = generateMockInsertOrders(4);
 
     test("Should return array of orders when 'db.find' is called once with empty object arg", async (t) => {
       const findMock = t.mock.method(Order, "find", () => ({
@@ -201,7 +205,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
   });
 
   describe("getAllByUserId", () => {
-    const mockOrders = generateMockOrders(4);
+    const mockOrders = generateMockInsertOrders(4);
     const userId = mockOrders[0].user;
 
     test("Should return array of orders when 'db.find' is called once with 'userId'", async (t) => {
@@ -312,7 +316,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
   });
 
   describe("getById", () => {
-    const mockOrder = generateMockOrder();
+    const mockOrder = generateMockSelectOrder();
     const orderId = mockOrder._id;
 
     test("Should return the order object when 'db.findById' is called once with 'orderId'", async (t) => {
@@ -412,7 +416,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
   });
 
   describe("updateToPaid", () => {
-    const mockOrder = generateMockOrder();
+    const mockOrder = generateMockSelectOrder();
     const orderId = mockOrder._id;
 
     test("Should return the order object with 'isPaid' set to 'true' and 'paidAt' set to the current date when 'db.findByIdAndUpdate' is called once with 'orderId'", async (t) => {
@@ -521,7 +525,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
   });
 
   describe("updateToDelivered", () => {
-    const mockOrder = generateMockOrder();
+    const mockOrder = generateMockSelectOrder();
     const orderId = mockOrder._id;
 
     test("Should return the order object with 'isDelivered' set to 'true' and 'deliveredAt' set to the current date when 'db.findByIdAndUpdate' is called once with 'orderId'", async (t) => {
