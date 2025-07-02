@@ -2,6 +2,7 @@ import { z } from "zod";
 import { objectIdValidator } from "../../validators";
 import { paymentResultSchema } from "../payment/payment-result.schema";
 import { shippingAddressSchema } from "../shipping/shipping-address.schema";
+import { selectUserSchema } from "../user/user.schema";
 import { insertOrderItemSchema } from "./order-item.schema";
 
 const baseOrderSchema = z.object({
@@ -38,6 +39,19 @@ export const insertOrderSchema = baseOrderSchema;
 
 export const selectOrderSchema = baseOrderSchema.extend({
   _id: objectIdValidator,
+  user: selectUserSchema.pick({ _id: true, name: true, email: true }),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
+
+export const allOrdersResponseSchema = z.array(
+  selectOrderSchema.pick({
+    _id: true,
+    isPaid: true,
+    paidAt: true,
+    isDelivered: true,
+    deliveredAt: true,
+    totalPrice: true,
+    createdAt: true,
+  }),
+);

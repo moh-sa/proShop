@@ -1,13 +1,13 @@
 import { Types } from "mongoose";
 import { EmptyCartError, NotFoundError } from "../errors";
 import { IOrderRepository, OrderRepository } from "../repositories";
-import { InsertOrder, SelectOrder } from "../types";
+import { AllOrdersResponse, InsertOrder, SelectOrder } from "../types";
 
 export interface IOrderService {
   create(data: InsertOrder): Promise<SelectOrder>;
   getById(data: { orderId: Types.ObjectId }): Promise<SelectOrder>;
-  getAll(): Promise<Array<SelectOrder>>;
-  getAllByUserId(data: { userId: Types.ObjectId }): Promise<Array<SelectOrder>>;
+  getAll(): Promise<AllOrdersResponse>;
+  getAllByUserId(data: { userId: Types.ObjectId }): Promise<AllOrdersResponse>;
   updateToPaid(data: { orderId: Types.ObjectId }): Promise<SelectOrder>;
   updateToDelivered(data: { orderId: Types.ObjectId }): Promise<SelectOrder>;
 }
@@ -37,7 +37,7 @@ export class OrderService implements IOrderService {
     return order;
   }
 
-  async getAll(): Promise<Array<SelectOrder>> {
+  async getAll(): Promise<AllOrdersResponse> {
     return await this._repository.getAll();
   }
 
@@ -45,7 +45,7 @@ export class OrderService implements IOrderService {
     userId,
   }: {
     userId: Types.ObjectId;
-  }): Promise<Array<SelectOrder>> {
+  }): Promise<AllOrdersResponse> {
     return await this._repository.getAllByUserId({ userId });
   }
 

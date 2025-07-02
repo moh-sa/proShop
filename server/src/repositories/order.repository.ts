@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 import Order from "../models/orderModel";
-import { InsertOrder, SelectOrder } from "../types";
+import { AllOrdersResponse, InsertOrder, SelectOrder } from "../types";
 import { handleDatabaseError } from "../utils";
 
 export interface IOrderRepository {
@@ -20,8 +20,8 @@ export interface IOrderRepository {
   }: {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder | null>;
-  getAll(): Promise<Array<SelectOrder>>;
-  getAllByUserId(data: { userId: Types.ObjectId }): Promise<Array<SelectOrder>>;
+  getAll(): Promise<AllOrdersResponse>;
+  getAllByUserId(data: { userId: Types.ObjectId }): Promise<AllOrdersResponse>;
 }
 export class OrderRepository implements IOrderRepository {
   private readonly _db: typeof Order;
@@ -101,11 +101,13 @@ export class OrderRepository implements IOrderRepository {
     }
   }
 
-  async getAll(): Promise<Array<SelectOrder>> {
+  async getAll(): Promise<AllOrdersResponse> {
     try {
       return await this._db
         .find({})
-        .select("id createdAt isPaid paidAt isDelivered deliveredAt totalPrice")
+        .select(
+          "_id createdAt isPaid paidAt isDelivered deliveredAt totalPrice",
+        )
         .lean();
     } catch (error) {
       this._errorHandler(error);
@@ -116,11 +118,13 @@ export class OrderRepository implements IOrderRepository {
     userId,
   }: {
     userId: Types.ObjectId;
-  }): Promise<Array<SelectOrder>> {
+  }): Promise<AllOrdersResponse> {
     try {
       return await this._db
         .find({ user: userId })
-        .select("id createdAt isPaid paidAt isDelivered deliveredAt totalPrice")
+        .select(
+          "_id createdAt isPaid paidAt isDelivered deliveredAt totalPrice",
+        )
         .lean();
     } catch (error) {
       this._errorHandler(error);
