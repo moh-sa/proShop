@@ -49,7 +49,7 @@ export class CacheManager implements ICacheManager {
     };
   }
 
-  set(args: { key: string; value: {}; ttl?: number }): boolean {
+  set(args: { key: string; value: {}; ttl?: number }): true {
     this._validateMemoryCapacity();
 
     const parsedArgs = this._validateSchema({
@@ -68,15 +68,13 @@ export class CacheManager implements ICacheManager {
       throw new Error("Key already cached");
     }
 
-    try {
-      const isSuccess = this._cache.set(key, parsedArgs.val, parsedArgs.ttl);
-      if (isSuccess) console.log("cache set", key);
-
-      return isSuccess;
-    } catch (error) {
-      console.error(error);
-      throw new DatabaseError();
+    const isSet = this._cache.set(key, parsedArgs.val, parsedArgs.ttl);
+    if (!isSet) {
+      console.error("Failed to set key", key);
+      throw new Error("Failed to set key");
     }
+
+    return isSet;
   }
 
   get<T>(args: { key: string }): T | undefined {
