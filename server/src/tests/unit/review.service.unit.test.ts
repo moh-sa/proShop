@@ -5,8 +5,8 @@ import { ReviewService } from "../../services";
 import { InsertReview } from "../../types";
 import {
   generateMockObjectId,
-  generateMockReview,
-  generateMockReviews,
+  generateMockSelectReview,
+  generateMockSelectReviews,
   mockReviewRepository,
 } from "../mocks";
 
@@ -17,7 +17,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
   beforeEach(() => mockRepo.reset());
 
   describe("Create", () => {
-    const mockReview = generateMockReview();
+    const mockReview = generateMockSelectReview();
 
     test("Should return 'review object' when 'repo.create' is called once with 'review data'", async () => {
       mockRepo.create.mock.mockImplementationOnce(() =>
@@ -42,7 +42,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
   });
 
   describe("getAll", () => {
-    const mockReviews = generateMockReviews(4);
+    const mockReviews = generateMockSelectReviews({ count: 4 });
 
     test("Should return 'array of reviews' when 'repo.getAll' is called once with no arguments", async () => {
       mockRepo.getAll.mock.mockImplementationOnce(() =>
@@ -72,7 +72,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
   });
 
   describe("getAllByUserId", () => {
-    const mockReviews = generateMockReviews(4);
+    const mockReviews = generateMockSelectReviews({ count: 4 });
     const userId = mockReviews[0].user;
 
     test("Should return 'array of reviews' when 'repo.getAllByUserId' is called once with 'userId'", async () => {
@@ -108,7 +108,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
   });
 
   describe("getAllByProductId", () => {
-    const mockReviews = generateMockReviews(5);
+    const mockReviews = generateMockSelectReviews({ count: 5 });
     const productId = mockReviews[0].product;
 
     test("Should return 'array of reviews' when'repo.getAllByProductId' is called once with 'productId'", async () => {
@@ -143,7 +143,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
   });
 
   describe("getById", () => {
-    const mockReview = generateMockReview();
+    const mockReview = generateMockSelectReview();
     const reviewId = mockReview._id;
 
     test("Should return 'review object' when 'repo.getById' is called once with 'reviewId'", async () => {
@@ -182,7 +182,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
   });
 
   describe("update", () => {
-    const mockReview = generateMockReview();
+    const mockReview = generateMockSelectReview();
     const reviewId = mockReview._id;
     const updateData: Partial<InsertReview> = { comment: "new-comment" };
     const expectedResult = { ...mockReview, ...updateData };
@@ -227,7 +227,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
   });
 
   describe("delete", () => {
-    const mockReview = generateMockReview();
+    const mockReview = generateMockSelectReview();
     const reviewId = mockReview._id;
 
     test("Should return 'review object' when 'repo.delete' is called once with 'reviewId'", async () => {

@@ -8,8 +8,8 @@ import { InsertReview } from "../../types";
 import { createSuccessResponseObject } from "../../utils";
 import {
   generateMockObjectId,
-  generateMockReview,
-  generateMockReviews,
+  generateMockSelectReview,
+  generateMockSelectReviews,
   mockExpressCall,
   mockReviewService,
 } from "../mocks";
@@ -23,7 +23,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
   });
 
   describe("create", () => {
-    const mockReview = generateMockReview();
+    const mockReview = generateMockSelectReview();
 
     test("Should parse 'review data' from 'req.body' and 'res.locals'", async (t) => {
       const { req, res, next } = mockExpressCall({
@@ -328,7 +328,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
   });
 
   describe("getAll", () => {
-    const mockReviews = generateMockReviews(5);
+    const mockReviews = generateMockSelectReviews({ count: 5 });
 
     test("Should call 'service.getAll' once without args", async (t) => {
       const { req, res, next } = mockExpressCall({
@@ -415,7 +415,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
   });
 
   describe("getAllByUserId", () => {
-    const mockReviews = generateMockReviews(2);
+    const mockReviews = generateMockSelectReviews({ count: 2 });
     const userId = mockReviews[0].user;
 
     test("Should parse 'userId' from 'req.params'", async (t) => {
@@ -554,7 +554,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
   });
 
   describe("getAllByProductId", () => {
-    const mockReviews = generateMockReviews(2);
+    const mockReviews = generateMockSelectReviews({ count: 2 });
     const productId = mockReviews[0].product;
 
     test("Should parse 'productId' from 'req.params'", async (t) => {
@@ -693,7 +693,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
   });
 
   describe("getById", () => {
-    const mockReview = generateMockReview();
+    const mockReview = generateMockSelectReview();
     const reviewId = mockReview._id;
 
     test("Should parse 'reviewId' from 'req.params'", async (t) => {
@@ -829,7 +829,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
   });
 
   describe("update", () => {
-    const mockReview = generateMockReview();
+    const mockReview = generateMockSelectReview();
     const reviewId = mockReview._id;
 
     test("Should parse 'reviewId' from 'req.params'", async (t) => {
@@ -971,7 +971,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
   });
 
   describe("delete", () => {
-    const mockReview = generateMockReview();
+    const mockReview = generateMockSelectReview();
     const reviewId = mockReview._id;
 
     test("Should parse 'reviewId' from 'req.params'", async (t) => {

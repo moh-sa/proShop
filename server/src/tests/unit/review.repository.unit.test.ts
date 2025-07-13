@@ -12,9 +12,10 @@ import Review from "../../models/review.model";
 import { ReviewRepository } from "../../repositories";
 import { InsertReview } from "../../types";
 import {
+  generateMockInsertReview,
   generateMockObjectId,
-  generateMockReview,
-  generateMockReviews,
+  generateMockSelectReview,
+  generateMockSelectReviews,
 } from "../mocks";
 
 suite("Review Repository 〖 Unit Tests 〗", () => {
@@ -23,7 +24,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
   beforeEach(() => mock.reset());
 
   describe("create", () => {
-    const mockReview = generateMockReview();
+    const mockReview = generateMockInsertReview();
 
     test("Should return review object when 'db.create' is called once with review data", async (t) => {
       const mockCreate = t.mock.method(Review, "create", () => ({
@@ -108,7 +109,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
   });
 
   describe("getAll", () => {
-    const mockReviews = generateMockReviews(4);
+    const mockReviews = generateMockSelectReviews({ count: 4 });
 
     test("Should return array of reviews when 'db.find' is called once with no args", async (t) => {
       const findMock = t.mock.method(Review, "find", () => ({
@@ -200,7 +201,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
   });
 
   describe("getById", () => {
-    const mockReview = generateMockReview();
+    const mockReview = generateMockSelectReview();
     const reviewId = mockReview._id;
 
     test("Should return review object when 'db.findById' is called once with 'reviewId'", async (t) => {
@@ -296,7 +297,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
   });
 
   describe("getAllByUserId", () => {
-    const mockReviews = generateMockReviews(5);
+    const mockReviews = generateMockSelectReviews({ count: 5 });
     const userId = mockReviews[0].user;
 
     test("Should return array of reviews when 'db.find' is called once with 'userId'", async (t) => {
@@ -394,7 +395,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
   });
 
   describe("getAllByProductId", () => {
-    const mockReviews = generateMockReviews(5);
+    const mockReviews = generateMockSelectReviews({ count: 5 });
     const productId = mockReviews[0].product;
 
     test("Should return array of reviews when 'db.find' is called once with 'productId'", async (t) => {
@@ -492,7 +493,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
   });
 
   describe("update", () => {
-    const mockReview = generateMockReview();
+    const mockReview = generateMockSelectReview();
     const reviewId = mockReview._id;
     const updateData: Partial<InsertReview> = { comment: "new-comment" };
     const expectedResult = { ...mockReview, ...updateData };
@@ -601,7 +602,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
   });
 
   describe("delete", () => {
-    const mockReview = generateMockReview();
+    const mockReview = generateMockSelectReview();
     const reviewId = mockReview._id;
 
     test("Should return review object when 'db.findByIdAndDelete' is called once with'reviewId'", async (t) => {
