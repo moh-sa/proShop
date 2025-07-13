@@ -49,9 +49,9 @@ export class CacheManager implements ICacheManager {
   set(args: { key: string; value: unknown; ttl?: number }): boolean {
     this._validateMemoryCapacity();
 
-    const namespaceKey = this.generateCacheKey({ id: args.key });
+    const key = this.generateCacheKey({ id: args.key });
     try {
-      const isSuccess = this._cache.set(namespaceKey, args.value, args.ttl!);
+      const isSuccess = this._cache.set(key, args.value, args.ttl!);
       if (isSuccess) console.log("cache set", args.key);
 
       return isSuccess;
@@ -62,10 +62,10 @@ export class CacheManager implements ICacheManager {
   }
 
   get<T>(args: { key: string }): T | undefined {
-    const namespaceKey = this.generateCacheKey({ id: args.key });
+    const key = this.generateCacheKey({ id: args.key });
 
     try {
-      const value = this._cache.get<T>(namespaceKey);
+      const value = this._cache.get<T>(key);
       if (value) console.log("Cache hit:", args.key);
       else console.log("Cache miss:", args.key);
 
@@ -77,12 +77,12 @@ export class CacheManager implements ICacheManager {
   }
 
   delete(args: { keys: string | string[] }): number {
-    const namespaceKey = Array.isArray(args.keys)
+    const key = Array.isArray(args.keys)
       ? args.keys.map((key) => this.generateCacheKey({ id: key }))
       : this.generateCacheKey({ id: args.keys });
 
     try {
-      const isDeleted = this._cache.del(namespaceKey);
+      const isDeleted = this._cache.del(key);
       console.log("Cache delete", args.keys);
       return isDeleted;
     } catch (error) {
