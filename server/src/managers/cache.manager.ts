@@ -124,7 +124,7 @@ export class CacheManager implements ICacheManager {
     };
   }
 
-  generateCacheKey({ id }: { id: string }) {
+  generateCacheKey({ id }: { id: string }): string {
     return `${this.namespace}:${id}`;
   }
 
