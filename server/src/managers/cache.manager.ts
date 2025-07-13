@@ -120,6 +120,7 @@ export class CacheManager implements ICacheManager {
       numberOfKeys: stats.keys,
       keysSize: stats.ksize,
       valuesSize: stats.vsize,
+      totalSize: stats.vsize + stats.ksize,
     };
   }
 

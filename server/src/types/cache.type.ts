@@ -10,4 +10,5 @@ export type CacheStats = {
   numberOfKeys: number;
   keysSize: number;
   valuesSize: number;
+  totalSize: number;
 };

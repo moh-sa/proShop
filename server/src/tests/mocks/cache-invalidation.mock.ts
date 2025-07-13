@@ -19,5 +19,6 @@ export function mockCacheInvalidation({
     numberOfKeys: 0,
     keysSize: 0,
     valuesSize: 0,
+    totalSize: 0,
   }));
 }
