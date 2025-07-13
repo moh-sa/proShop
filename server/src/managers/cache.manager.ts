@@ -7,17 +7,9 @@ interface IPublicCacheManager {
   flush(): void;
 }
 export interface ICacheManager extends IPublicCacheManager {
-  set({
-    key,
-    value,
-    ttl,
-  }: {
-    key: string;
-    value: unknown;
-    ttl?: number;
-  }): boolean;
-  get<T>({ key }: { key: string }): T | undefined;
-  delete({ keys }: { keys: string | string[] }): number;
+  set(args: { key: string; value: unknown; ttl?: number }): boolean;
+  get<T>(args: { key: string }): T | undefined;
+  delete(args: { keys: string | string[] }): number;
   getStats(): CacheStats;
   generateCacheKey({ id }: { id: string }): string;
 }
@@ -54,24 +46,16 @@ export class CacheManager implements ICacheManager {
     };
   }
 
-  set({
-    key,
-    value,
-    ttl,
-  }: {
-    key: string;
-    value: unknown;
-    ttl?: number;
-  }): boolean {
+  set(args: { key: string; value: unknown; ttl?: number }): boolean {
     const isCacheFull = this.cache.keys().length >= MAX_CACHE_SIZE;
     if (isCacheFull) {
-      return this.deleteLeastUsedKeys({ key, value, ttl });
+      return this.deleteLeastUsedKeys(args);
     }
 
-    const namespaceKey = this.generateCacheKey({ id: key });
+    const namespaceKey = this.generateCacheKey({ id: args.key });
     try {
-      const isSuccess = this.cache.set(namespaceKey, value, ttl!);
-      if (isSuccess) console.log("cache set", key);
+      const isSuccess = this.cache.set(namespaceKey, args.value, args.ttl!);
+      if (isSuccess) console.log("cache set", args.key);
 
       return isSuccess;
     } catch (error) {
@@ -80,13 +64,13 @@ export class CacheManager implements ICacheManager {
     }
   }
 
-  get<T>({ key }: { key: string }): T | undefined {
-    const namespaceKey = this.generateCacheKey({ id: key });
+  get<T>(args: { key: string }): T | undefined {
+    const namespaceKey = this.generateCacheKey({ id: args.key });
 
     try {
       const value = this.cache.get<T>(namespaceKey);
-      if (value) console.log("Cache hit:", key);
-      else console.log("Cache miss:", key);
+      if (value) console.log("Cache hit:", args.key);
+      else console.log("Cache miss:", args.key);
 
       return value;
     } catch (error) {
@@ -95,14 +79,14 @@ export class CacheManager implements ICacheManager {
     }
   }
 
-  delete({ keys }: { keys: string | string[] }): number {
-    const namespaceKey = Array.isArray(keys)
-      ? keys.map((key) => this.generateCacheKey({ id: key }))
-      : this.generateCacheKey({ id: keys });
+  delete(args: { keys: string | string[] }): number {
+    const namespaceKey = Array.isArray(args.keys)
+      ? args.keys.map((key) => this.generateCacheKey({ id: key }))
+      : this.generateCacheKey({ id: args.keys });
 
     try {
       const isDeleted = this.cache.del(namespaceKey);
-      console.log("Cache delete", keys);
+      console.log("Cache delete", args.keys);
       return isDeleted;
     } catch (error) {
       console.error(error);
