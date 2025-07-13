@@ -1,7 +1,9 @@
 import NodeCache from "node-cache";
+import { z } from "zod";
 import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../config";
-import { DatabaseError } from "../errors";
+import { DatabaseError, ValidationError } from "../errors";
 import { CacheConfig, CacheStats, Namespace } from "../types";
+import { formatZodErrors } from "../utils";
 
 interface IPublicCacheManager {
   flush(): void;
@@ -120,6 +122,19 @@ export class CacheManager implements ICacheManager {
   private _validateMemoryCapacity(): void {
     const isMemoryFull = this._cache.keys().length >= MAX_CACHE_SIZE;
     if (isMemoryFull) this._deleteLeastUsedKeys();
+  }
+
+  private _validateSchema<T extends z.ZodType>(args: {
+    schema: T;
+    data: z.infer<T>;
+  }): z.infer<T> {
+    const parsed = args.schema.safeParse(args.data);
+    if (!parsed.success) {
+      const errorMessage = formatZodErrors(parsed.error);
+      throw new ValidationError(errorMessage); // TODO: replace with cache-specific error (?)
+    }
+
+    return parsed.data;
   }
 
   private _deleteLeastUsedKeys(): void {
