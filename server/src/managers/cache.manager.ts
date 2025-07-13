@@ -9,7 +9,7 @@ interface IPublicCacheManager {
   flush(): void;
 }
 export interface ICacheManager extends IPublicCacheManager {
-  set(args: { key: string; value: unknown; ttl?: number }): boolean;
+  set(args: { key: string; value: {}; ttl?: number }): boolean;
   get<T>(args: { key: string }): T | undefined;
   delete(args: { keys: string | string[] }): number;
   getStats(): CacheStats;
@@ -48,7 +48,7 @@ export class CacheManager implements ICacheManager {
     };
   }
 
-  set(args: { key: string; value: unknown; ttl?: number }): boolean {
+  set(args: { key: string; value: {}; ttl?: number }): boolean {
     this._validateMemoryCapacity();
 
     const key = this.generateCacheKey({ id: args.key });
