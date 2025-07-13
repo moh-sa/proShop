@@ -48,9 +48,7 @@ export class CacheManager implements ICacheManager {
 
   set(args: { key: string; value: unknown; ttl?: number }): boolean {
     const isCacheFull = this._cache.keys().length >= MAX_CACHE_SIZE;
-    if (isCacheFull) {
-      return this._deleteLeastUsedKeys(args);
-    }
+    if (isCacheFull) this._deleteLeastUsedKeys();
 
     const namespaceKey = this.generateCacheKey({ id: args.key });
     try {
@@ -120,15 +118,7 @@ export class CacheManager implements ICacheManager {
     return `${this._namespace}:${id}`;
   }
 
-  private _deleteLeastUsedKeys<T>({
-    key,
-    value,
-    ttl,
-  }: {
-    key: string;
-    value: T;
-    ttl?: number;
-  }): boolean {
+  private _deleteLeastUsedKeys(): void {
     console.log("Cache is full, deleting least used keys");
 
     const lruKeys = this._cache
@@ -141,7 +131,5 @@ export class CacheManager implements ICacheManager {
       .slice(0, Math.ceil(MAX_CACHE_SIZE * 0.1)); // remove 10% of the cached items (least recently used)
 
     this._cache.del(lruKeys);
-
-    return this.set({ key, value, ttl });
   }
 }
