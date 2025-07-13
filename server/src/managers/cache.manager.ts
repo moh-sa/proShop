@@ -2,7 +2,12 @@ import NodeCache from "node-cache";
 import { z } from "zod";
 import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../config";
 import { DatabaseError, ValidationError } from "../errors";
-import { cacheKeySchema, cacheKeysSchema, cacheSetSchema } from "../schemas";
+import {
+  cacheKeySchema,
+  cacheKeysSchema,
+  cacheSetManySchema,
+  cacheSetSchema,
+} from "../schemas";
 import { CacheConfig, CacheStats, Namespace } from "../types";
 import { formatZodErrors } from "../utils";
 
@@ -11,6 +16,7 @@ interface IPublicCacheManager {
 }
 export interface ICacheManager extends IPublicCacheManager {
   set(args: { key: string; value: {}; ttl?: number }): boolean;
+  setMany(args: Array<{ key: string; value: {}; ttl?: number }>): true;
   get<T>(args: { key: string }): T | undefined;
   getMany<T>(args: { keys: Array<string> }): Record<string, T | undefined>;
   delete(args: { key: string }): true;
@@ -74,6 +80,36 @@ export class CacheManager implements ICacheManager {
     if (!isSet) {
       console.error("Failed to set key", key);
       throw new Error("Failed to set key");
+    }
+
+    return isSet;
+  }
+
+  setMany(args: Array<{ key: string; value: {}; ttl?: number }>): true {
+    this._validateMemoryCapacity();
+
+    const preparedArgs = args.map((item) => ({
+      key: this.generateCacheKey({ id: item.key }),
+      val: item.value,
+      ttl: item.ttl ?? DEFAULT_CACHE_CONFIG.stdTTL,
+    }));
+
+    const parsedArgs = this._validateSchema({
+      schema: cacheSetManySchema,
+      data: preparedArgs,
+    });
+
+    const keys = parsedArgs.map((item) => item.key);
+    const isKeysCached = keys.filter((key) => this._cache.has(key));
+    if (isKeysCached.length > 0) {
+      console.error("Some keys are already cached", isKeysCached);
+      throw new Error("Some keys are already cached");
+    }
+
+    const isSet = this._cache.mset(parsedArgs);
+    if (!isSet) {
+      console.error("Failed to set keys", parsedArgs);
+      throw new Error("Failed to set keys");
     }
 
     return isSet;
