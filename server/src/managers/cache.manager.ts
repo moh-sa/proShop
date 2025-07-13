@@ -47,8 +47,7 @@ export class CacheManager implements ICacheManager {
   }
 
   set(args: { key: string; value: unknown; ttl?: number }): boolean {
-    const isCacheFull = this._cache.keys().length >= MAX_CACHE_SIZE;
-    if (isCacheFull) this._deleteLeastUsedKeys();
+    this._validateMemoryCapacity();
 
     const namespaceKey = this.generateCacheKey({ id: args.key });
     try {
@@ -116,6 +115,11 @@ export class CacheManager implements ICacheManager {
 
   generateCacheKey({ id }: { id: string }): string {
     return `${this._namespace}:${id}`;
+  }
+
+  private _validateMemoryCapacity(): void {
+    const isMemoryFull = this._cache.keys().length >= MAX_CACHE_SIZE;
+    if (isMemoryFull) this._deleteLeastUsedKeys();
   }
 
   private _deleteLeastUsedKeys(): void {
