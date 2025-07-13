@@ -11,7 +11,7 @@ export interface ICacheManager extends IPublicCacheManager {
   set<T>({ key, value, ttl }: { key: string; value: T; ttl?: number }): boolean;
   delete({ keys }: { keys: string | string[] }): number;
   getStats(): CacheStats;
-  generateKey({ id }: { id: string }): string;
+  generateCacheKey({ id }: { id: string }): string;
 }
 
 export class CacheManager implements ICacheManager {
@@ -124,7 +124,7 @@ export class CacheManager implements ICacheManager {
     };
   }
 
-  generateKey({ id }: { id: string }) {
+  generateCacheKey({ id }: { id: string }) {
     return `${this.namespace}:${id}`;
   }
 

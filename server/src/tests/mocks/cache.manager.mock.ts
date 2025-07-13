@@ -9,21 +9,21 @@ export function mockCacheManager(): FunctionMocksWithReset<ICacheManager> {
     delete: mock.fn(),
     flush: mock.fn(),
     getStats: mock.fn(),
-    generateKey: mock.fn(),
+    generateCacheKey: mock.fn(),
     reset: function () {
       this.set.mock.resetCalls();
       this.get.mock.resetCalls();
       this.delete.mock.resetCalls();
       this.flush.mock.resetCalls();
       this.getStats.mock.resetCalls();
-      this.generateKey.mock.resetCalls();
+      this.generateCacheKey.mock.resetCalls();
 
       this.set.mock.restore();
       this.get.mock.restore();
       this.delete.mock.restore();
       this.flush.mock.restore();
       this.getStats.mock.restore();
-      this.generateKey.mock.restore();
+      this.generateCacheKey.mock.restore();
     },
   };
 }

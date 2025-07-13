@@ -76,10 +76,13 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
       await repo.create(mockInsertProduct);
 
-      assert.strictEqual(mockCache.generateKey.mock.callCount(), 1);
-      assert.deepStrictEqual(mockCache.generateKey.mock.calls[0].arguments[0], {
-        id: productId.toString(),
-      });
+      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        mockCache.generateCacheKey.mock.calls[0].arguments[0],
+        {
+          id: productId.toString(),
+        },
+      );
 
       assert.strictEqual(mockCache.set.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.set.mock.calls[0].arguments[0], {
@@ -212,10 +215,13 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
         currentPage: 1,
       });
 
-      assert.strictEqual(mockCache.generateKey.mock.callCount(), 1);
-      assert.deepStrictEqual(mockCache.generateKey.mock.calls[0].arguments[0], {
-        id: cacheId,
-      });
+      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        mockCache.generateCacheKey.mock.calls[0].arguments[0],
+        {
+          id: cacheId,
+        },
+      );
 
       assert.strictEqual(mockCache.get.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
@@ -240,10 +246,13 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
       assert.deepStrictEqual(products, mockProducts);
 
-      assert.strictEqual(mockCache.generateKey.mock.callCount(), 1);
-      assert.deepStrictEqual(mockCache.generateKey.mock.calls[0].arguments[0], {
-        id: cacheId,
-      });
+      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        mockCache.generateCacheKey.mock.calls[0].arguments[0],
+        {
+          id: cacheId,
+        },
+      );
 
       assert.strictEqual(mockCache.get.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
@@ -407,10 +416,13 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
       await repo.getById({ productId: mockProduct._id });
 
-      assert.strictEqual(mockCache.generateKey.mock.callCount(), 1);
-      assert.deepStrictEqual(mockCache.generateKey.mock.calls[0].arguments[0], {
-        id: cacheId,
-      });
+      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        mockCache.generateCacheKey.mock.calls[0].arguments[0],
+        {
+          id: cacheId,
+        },
+      );
 
       assert.strictEqual(mockCache.get.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
@@ -430,10 +442,13 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
       assert.ok(product);
       assert.deepStrictEqual(product, mockProduct);
 
-      assert.strictEqual(mockCache.generateKey.mock.callCount(), 1);
-      assert.deepStrictEqual(mockCache.generateKey.mock.calls[0].arguments[0], {
-        id: cacheId,
-      });
+      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        mockCache.generateCacheKey.mock.calls[0].arguments[0],
+        {
+          id: cacheId,
+        },
+      );
 
       assert.strictEqual(mockCache.get.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
@@ -576,10 +591,13 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
       await repo.getTopRated({ limit });
 
-      assert.strictEqual(mockCache.generateKey.mock.callCount(), 1);
-      assert.deepStrictEqual(mockCache.generateKey.mock.calls[0].arguments[0], {
-        id: cacheId,
-      });
+      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        mockCache.generateCacheKey.mock.calls[0].arguments[0],
+        {
+          id: cacheId,
+        },
+      );
 
       assert.strictEqual(mockCache.get.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
@@ -599,10 +617,13 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
       assert.ok(products);
       assert.deepStrictEqual(products, mockProducts);
 
-      assert.strictEqual(mockCache.generateKey.mock.callCount(), 1);
-      assert.deepStrictEqual(mockCache.generateKey.mock.calls[0].arguments[0], {
-        id: "top-rated",
-      });
+      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        mockCache.generateCacheKey.mock.calls[0].arguments[0],
+        {
+          id: "top-rated",
+        },
+      );
 
       assert.strictEqual(mockCache.get.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
@@ -756,10 +777,13 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
         data: updateData,
       });
 
-      assert.strictEqual(mockCache.generateKey.mock.callCount(), 1);
-      assert.deepStrictEqual(mockCache.generateKey.mock.calls[0].arguments[0], {
-        id: cacheId,
-      });
+      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        mockCache.generateCacheKey.mock.calls[0].arguments[0],
+        {
+          id: cacheId,
+        },
+      );
 
       assert.strictEqual(mockCache.delete.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.delete.mock.calls[0].arguments[0], {
@@ -916,10 +940,13 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
       await repo.delete({ productId });
 
-      assert.strictEqual(mockCache.generateKey.mock.callCount(), 1);
-      assert.deepStrictEqual(mockCache.generateKey.mock.calls[0].arguments[0], {
-        id: productId.toString(),
-      });
+      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        mockCache.generateCacheKey.mock.calls[0].arguments[0],
+        {
+          id: productId.toString(),
+        },
+      );
 
       assert.strictEqual(mockCache.delete.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.delete.mock.calls[0].arguments[0], {

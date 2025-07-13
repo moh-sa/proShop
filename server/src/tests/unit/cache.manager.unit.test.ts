@@ -272,7 +272,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
     });
 
     test("'generateKey' should create a namespace-prefixed key", () => {
-      const generatedKey = cacheManager.generateKey({ id: "123" });
+      const generatedKey = cacheManager.generateCacheKey({ id: "123" });
 
       assert.ok(generatedKey.startsWith(namespace));
     });

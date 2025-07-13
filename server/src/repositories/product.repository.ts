@@ -42,7 +42,9 @@ export class ProductRepository implements IProductRepository {
     try {
       const product = (await this._db.create(data)).toObject();
 
-      const cacheKey = this._cache.generateKey({ id: product._id.toString() });
+      const cacheKey = this._cache.generateCacheKey({
+        id: product._id.toString(),
+      });
       this._cache.set({ key: cacheKey, value: product });
 
       return product;
@@ -56,7 +58,7 @@ export class ProductRepository implements IProductRepository {
   }: {
     productId: Types.ObjectId;
   }): Promise<SelectProduct | null> {
-    const cacheKey = this._cache.generateKey({ id: productId.toString() });
+    const cacheKey = this._cache.generateCacheKey({ id: productId.toString() });
     const cachedProduct = this._cache.get<SelectProduct>({ key: cacheKey });
     if (cachedProduct) return cachedProduct;
 
@@ -118,7 +120,7 @@ export class ProductRepository implements IProductRepository {
   }: {
     limit: number;
   }): Promise<Array<TopRatedProduct>> {
-    const cacheKey = this._cache.generateKey({ id: "top-rated" });
+    const cacheKey = this._cache.generateCacheKey({ id: "top-rated" });
     const cachedProducts = this._cache.get<Array<TopRatedProduct>>({
       key: cacheKey,
     });
@@ -147,7 +149,9 @@ export class ProductRepository implements IProductRepository {
     numberOfProductsPerPage: number;
     currentPage: number;
   }): Promise<Array<AllProducts>> {
-    const cacheKey = this._cache.generateKey({ id: `all-${data.currentPage}` });
+    const cacheKey = this._cache.generateCacheKey({
+      id: `all-${data.currentPage}`,
+    });
     const cachedProducts = this._cache.get<Array<AllProducts>>({
       key: cacheKey,
     });
@@ -179,7 +183,7 @@ export class ProductRepository implements IProductRepository {
 
   private _invalidateProductCache({ id }: { id: string }): void {
     // Delete specific product cache
-    const cacheKey = this._cache.generateKey({ id });
+    const cacheKey = this._cache.generateCacheKey({ id });
     this._cache.delete({ keys: cacheKey });
 
     // Delete all top-rated caches as they might be affected

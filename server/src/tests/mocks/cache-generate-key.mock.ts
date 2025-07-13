@@ -8,5 +8,5 @@ export function mockGenerateCacheKey({
   instance: FunctionMocksWithReset<ICacheManager>;
   key: string;
 }): void {
-  instance.generateKey.mock.mockImplementationOnce(() => key);
+  instance.generateCacheKey.mock.mockImplementationOnce(() => key);
 }
