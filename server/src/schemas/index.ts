@@ -1,3 +1,4 @@
+export * from "./cache/cache.schema";
 export * from "./order/order.schema";
 export * from "./payment/payment-result.schema";
 export * from "./product";
