@@ -7,7 +7,7 @@ export type CacheConfig = NodeCache.Options;
 export type CacheStats = {
   hits: number;
   misses: number;
-  keys: number;
-  ksize: number;
-  vsize: number;
+  numberOfKeys: number;
+  keysSize: number;
+  valuesSize: number;
 };

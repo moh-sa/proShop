@@ -257,9 +257,9 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 
       assert.strictEqual(stats.hits, 1);
       assert.strictEqual(stats.misses, 1);
-      assert.strictEqual(stats.keys, 1);
-      assert.ok(typeof stats.ksize === "number");
-      assert.ok(typeof stats.ksize === "number");
+      assert.strictEqual(stats.numberOfKeys, 1);
+      assert.ok(typeof stats.keysSize === "number");
+      assert.ok(typeof stats.valuesSize === "number");
     });
   });
 

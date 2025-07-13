@@ -117,9 +117,9 @@ export class CacheManager implements ICacheManager {
     return {
       hits: stats.hits,
       misses: stats.misses,
-      keys: stats.keys,
-      ksize: stats.ksize,
-      vsize: stats.vsize,
+      numberOfKeys: stats.keys,
+      keysSize: stats.ksize,
+      valuesSize: stats.vsize,
     };
   }
 

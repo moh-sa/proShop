@@ -16,8 +16,8 @@ export function mockCacheInvalidation({
   instance.stats.mock.mockImplementationOnce(() => ({
     hits: 0,
     misses: 0,
-    keys: 0,
-    ksize: 0,
-    vsize: 0,
+    numberOfKeys: 0,
+    keysSize: 0,
+    valuesSize: 0,
   }));
 }
