@@ -7,7 +7,15 @@ interface IPublicCacheManager {
   flush(): void;
 }
 export interface ICacheManager extends IPublicCacheManager {
-  set<T>({ key, value, ttl }: { key: string; value: T; ttl?: number }): boolean;
+  set({
+    key,
+    value,
+    ttl,
+  }: {
+    key: string;
+    value: unknown;
+    ttl?: number;
+  }): boolean;
   get<T>({ key }: { key: string }): T | undefined;
   delete({ keys }: { keys: string | string[] }): number;
   getStats(): CacheStats;
@@ -46,13 +54,13 @@ export class CacheManager implements ICacheManager {
     };
   }
 
-  set<T>({
+  set({
     key,
     value,
     ttl,
   }: {
     key: string;
-    value: T;
+    value: unknown;
     ttl?: number;
   }): boolean {
     const isCacheFull = this.cache.keys().length >= MAX_CACHE_SIZE;
