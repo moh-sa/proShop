@@ -84,16 +84,14 @@ export class CacheManager implements ICacheManager {
     });
     const key = this.generateCacheKey({ id: parsedKey });
 
-    try {
-      const value = this._cache.get<T>(key);
-      if (value) console.log("Cache hit:", args.key);
-      else console.log("Cache miss:", args.key);
-
-      return value;
-    } catch (error) {
-      console.error(error);
-      throw new DatabaseError();
+    const value = this._cache.get<T>(key);
+    if (!value) {
+      console.log("Cache miss:", args.key);
+      return undefined;
     }
+
+    console.log("Cache hit:", args.key);
+    return value;
   }
 
   delete(args: { keys: string | string[] }): number {
