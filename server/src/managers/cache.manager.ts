@@ -15,18 +15,18 @@ export interface ICacheManager extends IPublicCacheManager {
 }
 
 export class CacheManager implements ICacheManager {
-  private static instances: Partial<Record<Namespace, CacheManager>> = {};
-  private cache: NodeCache;
-  private readonly namespace: Namespace;
+  private static _instances: Partial<Record<Namespace, CacheManager>> = {};
+  private _cache: NodeCache;
+  private readonly _namespace: Namespace;
 
   constructor(namespace: Namespace, config?: Partial<CacheConfig>) {
-    this.namespace = namespace;
-    this.cache = new NodeCache({
+    this._namespace = namespace;
+    this._cache = new NodeCache({
       ...DEFAULT_CACHE_CONFIG,
       ...config,
     });
 
-    CacheManager.instances[namespace] = this;
+    CacheManager._instances[namespace] = this;
 
     // Error handling
     // type can be: "error" | "expired" | "del" | "set" | "get" | "flush"
@@ -37,24 +37,24 @@ export class CacheManager implements ICacheManager {
     namespace: Namespace,
     config?: Partial<CacheConfig>,
   ): IPublicCacheManager {
-    if (!this.instances[namespace]) {
-      this.instances[namespace] = new CacheManager(namespace, config);
+    if (!this._instances[namespace]) {
+      this._instances[namespace] = new CacheManager(namespace, config);
     }
     // Now we're sure it exists
     return {
-      flush: this.instances[namespace]!.flush.bind(this.instances[namespace]),
+      flush: this._instances[namespace]!.flush.bind(this._instances[namespace]),
     };
   }
 
   set(args: { key: string; value: unknown; ttl?: number }): boolean {
-    const isCacheFull = this.cache.keys().length >= MAX_CACHE_SIZE;
+    const isCacheFull = this._cache.keys().length >= MAX_CACHE_SIZE;
     if (isCacheFull) {
-      return this.deleteLeastUsedKeys(args);
+      return this._deleteLeastUsedKeys(args);
     }
 
     const namespaceKey = this.generateCacheKey({ id: args.key });
     try {
-      const isSuccess = this.cache.set(namespaceKey, args.value, args.ttl!);
+      const isSuccess = this._cache.set(namespaceKey, args.value, args.ttl!);
       if (isSuccess) console.log("cache set", args.key);
 
       return isSuccess;
@@ -68,7 +68,7 @@ export class CacheManager implements ICacheManager {
     const namespaceKey = this.generateCacheKey({ id: args.key });
 
     try {
-      const value = this.cache.get<T>(namespaceKey);
+      const value = this._cache.get<T>(namespaceKey);
       if (value) console.log("Cache hit:", args.key);
       else console.log("Cache miss:", args.key);
 
@@ -85,7 +85,7 @@ export class CacheManager implements ICacheManager {
       : this.generateCacheKey({ id: args.keys });
 
     try {
-      const isDeleted = this.cache.del(namespaceKey);
+      const isDeleted = this._cache.del(namespaceKey);
       console.log("Cache delete", args.keys);
       return isDeleted;
     } catch (error) {
@@ -96,7 +96,7 @@ export class CacheManager implements ICacheManager {
 
   flush(): void {
     try {
-      this.cache.flushAll();
+      this._cache.flushAll();
       console.log("Cache flushed");
     } catch (error) {
       console.error(error);
@@ -105,7 +105,7 @@ export class CacheManager implements ICacheManager {
   }
 
   getStats(): CacheStats {
-    const stats = this.cache.getStats();
+    const stats = this._cache.getStats();
     return {
       hits: stats.hits,
       misses: stats.misses,
@@ -117,10 +117,10 @@ export class CacheManager implements ICacheManager {
   }
 
   generateCacheKey({ id }: { id: string }): string {
-    return `${this.namespace}:${id}`;
+    return `${this._namespace}:${id}`;
   }
 
-  private deleteLeastUsedKeys<T>({
+  private _deleteLeastUsedKeys<T>({
     key,
     value,
     ttl,
@@ -131,16 +131,16 @@ export class CacheManager implements ICacheManager {
   }): boolean {
     console.log("Cache is full, deleting least used keys");
 
-    const lruKeys = this.cache
+    const lruKeys = this._cache
       .keys()
       .sort((a, b) => {
-        const aHit = this.cache.getTtl(a) || 0;
-        const bHit = this.cache.getTtl(b) || 0;
+        const aHit = this._cache.getTtl(a) || 0;
+        const bHit = this._cache.getTtl(b) || 0;
         return aHit - bHit;
       })
       .slice(0, Math.ceil(MAX_CACHE_SIZE * 0.1)); // remove 10% of the cached items (least recently used)
 
-    this.cache.del(lruKeys);
+    this._cache.del(lruKeys);
 
     return this.set({ key, value, ttl });
   }

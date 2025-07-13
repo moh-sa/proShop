@@ -21,9 +21,9 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 
       assert.ok(cacheManager);
       assert.ok(cacheManager instanceof CacheManager);
-      assert.strictEqual(cacheManager["namespace"], namespace);
+      assert.strictEqual(cacheManager["_namespace"], namespace);
       assert.strictEqual(
-        cacheManager["cache"].options.stdTTL,
+        cacheManager["_cache"].options.stdTTL,
         DEFAULT_CACHE_CONFIG.stdTTL,
       );
     });
@@ -35,9 +35,9 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 
       assert.ok(cacheManager);
       assert.ok(cacheManager instanceof CacheManager);
-      assert.strictEqual(cacheManager["namespace"], namespace);
+      assert.strictEqual(cacheManager["_namespace"], namespace);
       assert.strictEqual(
-        cacheManager["cache"].options.stdTTL,
+        cacheManager["_cache"].options.stdTTL,
         cacheConfig.stdTTL,
       );
     });
@@ -69,7 +69,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       const key = "error-key";
       const value = "error-value";
 
-      cacheManager["cache"].set = t.mock.fn(() => {
+      cacheManager["_cache"].set = t.mock.fn(() => {
         throw new Error();
       });
 
@@ -120,7 +120,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
     test("'get' should throw 'DatabaseError' if NodeCache.get throws", (t) => {
       const key = "error-key";
 
-      cacheManager["cache"].get = t.mock.fn(() => {
+      cacheManager["_cache"].get = t.mock.fn(() => {
         throw new Error();
       });
 
@@ -182,7 +182,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
     test("delete should throw 'DatabaseError' if NodeCache.del throws", (t) => {
       const key = "error-key";
 
-      cacheManager["cache"].del = t.mock.fn(() => {
+      cacheManager["_cache"].del = t.mock.fn(() => {
         throw new Error();
       });
 
@@ -224,7 +224,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
     });
 
     test("'flush' should throw 'DatabaseError' if NodeCache.flushAll throws", (t) => {
-      cacheManager["cache"].flushAll = t.mock.fn(() => {
+      cacheManager["_cache"].flushAll = t.mock.fn(() => {
         throw new Error();
       });
 
