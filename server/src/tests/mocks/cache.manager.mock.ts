@@ -16,6 +16,7 @@ export function mockCacheManager(): FunctionMocksWithReset<ICacheManager> {
     getKeys: mock.fn(),
     generateCacheKey: mock.fn(),
     deleteMany: mock.fn(),
+    isKeyCached: mock.fn(),
     reset: function () {
       this.set.mock.resetCalls();
       this.setMany.mock.resetCalls();
@@ -29,6 +30,7 @@ export function mockCacheManager(): FunctionMocksWithReset<ICacheManager> {
       this.getKeys.mock.resetCalls();
       this.generateCacheKey.mock.resetCalls();
       this.deleteMany.mock.resetCalls();
+      this.isKeyCached.mock.resetCalls();
 
       this.set.mock.restore();
       this.setMany.mock.restore();
@@ -42,6 +44,7 @@ export function mockCacheManager(): FunctionMocksWithReset<ICacheManager> {
       this.getKeys.mock.restore();
       this.generateCacheKey.mock.restore();
       this.deleteMany.mock.restore();
+      this.isKeyCached.mock.restore();
     },
   };
 }

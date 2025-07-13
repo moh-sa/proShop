@@ -25,6 +25,7 @@ export interface ICacheManager extends IPublicCacheManager {
   flushStats(): void;
   getStats(): CacheStats;
   getKeys(): Array<string>;
+  isKeyCached(args: { key: string }): boolean;
   generateCacheKey({ id }: { id: string }): string;
 }
 
@@ -239,6 +240,16 @@ export class CacheManager implements ICacheManager {
 
   getKeys(): Array<string> {
     return this._cache.keys();
+  }
+
+  isKeyCached(args: { key: string }): boolean {
+    const parsedKey = this._validateSchema({
+      schema: cacheKeySchema,
+      data: args.key,
+    });
+
+    const key = this.generateCacheKey({ id: parsedKey });
+    return this._cache.has(key);
   }
 
   generateCacheKey({ id }: { id: string }): string {
