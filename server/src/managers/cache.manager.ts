@@ -21,6 +21,7 @@ export interface ICacheManager extends IPublicCacheManager {
   getMany<T>(args: { keys: Array<string> }): Record<string, T | undefined>;
   delete(args: { key: string }): true;
   deleteMany(args: { keys: Array<string> }): true;
+  take<T>(args: { key: string }): T | undefined;
   flushStats(): void;
   getStats(): CacheStats;
   generateCacheKey({ id }: { id: string }): string;
@@ -191,6 +192,22 @@ export class CacheManager implements ICacheManager {
     }
 
     return true;
+  }
+
+  take<T>(args: { key: string }): T | undefined {
+    const parsedKey = this._validateSchema({
+      schema: cacheKeySchema,
+      data: args.key,
+    });
+
+    const key = this.generateCacheKey({ id: parsedKey });
+    const value = this._cache.take(key);
+    if (!value) {
+      console.log("Cache miss:", args.key);
+      return undefined;
+    }
+
+    return value as T;
   }
 
   flushStats(): void {
