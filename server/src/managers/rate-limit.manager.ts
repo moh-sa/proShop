@@ -48,8 +48,8 @@ export class RateLimiterManager {
   }
 
   public clearCache(keys?: string | string[]): void {
+    // FIXME: refactor this. probably gonna split this into multiple functions
     if (!(Array.isArray(keys) || typeof keys === "string")) {
-      keys;
       return this.cache.flush();
     }
 

@@ -192,7 +192,7 @@ export class ProductRepository implements IProductRepository {
       key.startsWith("product:top-rated"),
     );
     if (keys.length > 0) {
-      // this._cache.delete({ keys });
+      this._cache.deleteMany({ keys });
     }
   }
 }

@@ -11,7 +11,7 @@ export function mockCacheInvalidation({
 }): void {
   mockGenerateCacheKey({ instance, key: cacheKey });
 
-  instance.delete.mock.mockImplementationOnce(() => 1);
+  instance.delete.mock.mockImplementationOnce(() => true);
 
   instance.getStats.mock.mockImplementationOnce(() => ({
     hits: 0,

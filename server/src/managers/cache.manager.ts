@@ -2,7 +2,7 @@ import NodeCache from "node-cache";
 import { z } from "zod";
 import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../config";
 import { DatabaseError, ValidationError } from "../errors";
-import { cacheKeySchema, cacheSetSchema } from "../schemas";
+import { cacheKeySchema, cacheKeysSchema, cacheSetSchema } from "../schemas";
 import { CacheConfig, CacheStats, Namespace } from "../types";
 import { formatZodErrors } from "../utils";
 
@@ -13,6 +13,7 @@ export interface ICacheManager extends IPublicCacheManager {
   set(args: { key: string; value: {}; ttl?: number }): boolean;
   get<T>(args: { key: string }): T | undefined;
   delete(args: { key: string }): true;
+  deleteMany(args: { keys: Array<string> }): true;
   getStats(): CacheStats;
   generateCacheKey({ id }: { id: string }): string;
 }
@@ -105,6 +106,38 @@ export class CacheManager implements ICacheManager {
     if (!isDeleted) {
       console.error("Failed to delete key", key);
       throw new Error("Failed to delete key");
+    }
+
+    return true;
+  }
+
+  deleteMany(args: { keys: Array<string> }): true {
+    const parsedKeys = this._validateSchema({
+      schema: cacheKeysSchema,
+      data: args.keys,
+    });
+
+    const cacheKeys = parsedKeys.map((key) =>
+      this.generateCacheKey({ id: key }),
+    );
+    const isKeysCached = cacheKeys.map((key) => this._cache.has(key));
+    if (isKeysCached.some((isCached) => !isCached)) {
+      const notCachedKeys = cacheKeys.filter(
+        (_, index) => !isKeysCached[index],
+      );
+      console.error("Failed to delete keys", notCachedKeys);
+      throw new Error("Failed to delete keys");
+    }
+
+    const isKeysDeleted = this._cache.del(cacheKeys);
+    if (isKeysDeleted !== cacheKeys.length) {
+      const notCachedKeysBool = cacheKeys.map((key) => this._cache.has(key));
+      const notDeletedKeys = cacheKeys.filter(
+        (_, index) => !notCachedKeysBool[index],
+      );
+
+      console.error("Failed to delete keys", notDeletedKeys);
+      throw new Error("Failed to delete keys");
     }
 
     return true;
