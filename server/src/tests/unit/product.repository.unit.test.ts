@@ -766,8 +766,8 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
         keys: cacheKey,
       });
 
-      assert.strictEqual(mockCache.stats.mock.callCount(), 1);
-      assert.strictEqual(mockCache.stats.mock.calls[0].arguments.length, 0);
+      assert.strictEqual(mockCache.getStats.mock.callCount(), 1);
+      assert.strictEqual(mockCache.getStats.mock.calls[0].arguments.length, 0);
     });
 
     test("Should return 'null' when 'db.findByIdAndUpdate' returns 'null'", async (t) => {
@@ -926,8 +926,8 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
         keys: cacheKey,
       });
 
-      assert.strictEqual(mockCache.stats.mock.callCount(), 1);
-      assert.strictEqual(mockCache.stats.mock.calls[0].arguments.length, 0);
+      assert.strictEqual(mockCache.getStats.mock.callCount(), 1);
+      assert.strictEqual(mockCache.getStats.mock.calls[0].arguments.length, 0);
     });
 
     test("Should return 'null' when 'db.findByIdAndDelete' returns 'null'", async (t) => {

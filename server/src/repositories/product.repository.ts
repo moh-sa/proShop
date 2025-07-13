@@ -183,7 +183,7 @@ export class ProductRepository implements IProductRepository {
     this._cache.delete({ keys: cacheKey });
 
     // Delete all top-rated caches as they might be affected
-    const stats = this._cache.stats();
+    const stats = this._cache.getStats();
     const keys = Object.keys(stats).filter((key) =>
       key.startsWith("product:top-rated"),
     );

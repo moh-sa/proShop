@@ -10,7 +10,7 @@ export interface ICacheManager extends IPublicCacheManager {
   get<T>({ key }: { key: string }): T | undefined;
   set<T>({ key, value, ttl }: { key: string; value: T; ttl?: number }): boolean;
   delete({ keys }: { keys: string | string[] }): number;
-  stats(): CacheStats;
+  getStats(): CacheStats;
   generateKey({ id }: { id: string }): string;
 }
 
@@ -112,7 +112,7 @@ export class CacheManager implements ICacheManager {
     }
   }
 
-  stats(): CacheStats {
+  getStats(): CacheStats {
     const stats = this.cache.getStats();
     return {
       hits: stats.hits,

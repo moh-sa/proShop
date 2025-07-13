@@ -13,7 +13,7 @@ export function mockCacheInvalidation({
 
   instance.delete.mock.mockImplementationOnce(() => 1);
 
-  instance.stats.mock.mockImplementationOnce(() => ({
+  instance.getStats.mock.mockImplementationOnce(() => ({
     hits: 0,
     misses: 0,
     numberOfKeys: 0,

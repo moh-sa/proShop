@@ -253,7 +253,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       cacheManager.get({ key }); // hit
       cacheManager.get({ key: "non-existent-key" }); // miss
 
-      const stats = cacheManager.stats();
+      const stats = cacheManager.getStats();
 
       assert.strictEqual(stats.hits, 1);
       assert.strictEqual(stats.misses, 1);
