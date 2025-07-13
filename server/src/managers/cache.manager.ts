@@ -2,7 +2,7 @@ import NodeCache from "node-cache";
 import { z } from "zod";
 import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../config";
 import { DatabaseError, ValidationError } from "../errors";
-import { cacheSetSchema } from "../schemas";
+import { cacheKeySchema, cacheSetSchema } from "../schemas";
 import { CacheConfig, CacheStats, Namespace } from "../types";
 import { formatZodErrors } from "../utils";
 
@@ -78,7 +78,11 @@ export class CacheManager implements ICacheManager {
   }
 
   get<T>(args: { key: string }): T | undefined {
-    const key = this.generateCacheKey({ id: args.key });
+    const parsedKey = this._validateSchema({
+      schema: cacheKeySchema,
+      data: args.key,
+    });
+    const key = this.generateCacheKey({ id: parsedKey });
 
     try {
       const value = this._cache.get<T>(key);
