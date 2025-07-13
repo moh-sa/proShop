@@ -60,8 +60,14 @@ export class CacheManager implements ICacheManager {
         ttl: args.ttl ?? DEFAULT_CACHE_CONFIG.stdTTL,
       },
     });
-
     const key = this.generateCacheKey({ id: parsedArgs.key });
+
+    const isKeyCached = this._cache.has(key);
+    if (isKeyCached) {
+      console.error("Key already cached", key);
+      throw new Error("Key already cached");
+    }
+
     try {
       const isSuccess = this._cache.set(key, parsedArgs.val, parsedArgs.ttl);
       if (isSuccess) console.log("cache set", key);
