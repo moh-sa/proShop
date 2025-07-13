@@ -7,8 +7,8 @@ interface IPublicCacheManager {
   flush(): void;
 }
 export interface ICacheManager extends IPublicCacheManager {
-  get<T>({ key }: { key: string }): T | undefined;
   set<T>({ key, value, ttl }: { key: string; value: T; ttl?: number }): boolean;
+  get<T>({ key }: { key: string }): T | undefined;
   delete({ keys }: { keys: string | string[] }): number;
   getStats(): CacheStats;
   generateCacheKey({ id }: { id: string }): string;
@@ -46,21 +46,6 @@ export class CacheManager implements ICacheManager {
     };
   }
 
-  get<T>({ key }: { key: string }): T | undefined {
-    const namespaceKey = this.generateCacheKey({ id: key });
-
-    try {
-      const value = this.cache.get<T>(namespaceKey);
-      if (value) console.log("Cache hit:", key);
-      else console.log("Cache miss:", key);
-
-      return value;
-    } catch (error) {
-      console.error(error);
-      throw new DatabaseError();
-    }
-  }
-
   set<T>({
     key,
     value,
@@ -81,6 +66,21 @@ export class CacheManager implements ICacheManager {
       if (isSuccess) console.log("cache set", key);
 
       return isSuccess;
+    } catch (error) {
+      console.error(error);
+      throw new DatabaseError();
+    }
+  }
+
+  get<T>({ key }: { key: string }): T | undefined {
+    const namespaceKey = this.generateCacheKey({ id: key });
+
+    try {
+      const value = this.cache.get<T>(namespaceKey);
+      if (value) console.log("Cache hit:", key);
+      else console.log("Cache miss:", key);
+
+      return value;
     } catch (error) {
       console.error(error);
       throw new DatabaseError();
