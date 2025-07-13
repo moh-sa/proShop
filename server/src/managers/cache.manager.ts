@@ -47,7 +47,7 @@ export class CacheManager implements ICacheManager {
   }
 
   get<T>({ key }: { key: string }): T | undefined {
-    const namespaceKey = this.getNamespaceKey(key);
+    const namespaceKey = this.generateCacheKey({ id: key });
 
     try {
       const value = this.cache.get<T>(namespaceKey);
@@ -75,7 +75,7 @@ export class CacheManager implements ICacheManager {
       return this.deleteLeastUsedKeys({ key, value, ttl });
     }
 
-    const namespaceKey = this.getNamespaceKey(key);
+    const namespaceKey = this.generateCacheKey({ id: key });
     try {
       const isSuccess = this.cache.set(namespaceKey, value, ttl!);
       if (isSuccess) console.log("cache set", key);
@@ -89,8 +89,8 @@ export class CacheManager implements ICacheManager {
 
   delete({ keys }: { keys: string | string[] }): number {
     const namespaceKey = Array.isArray(keys)
-      ? keys.map((key) => this.getNamespaceKey(key))
-      : this.getNamespaceKey(keys);
+      ? keys.map((key) => this.generateCacheKey({ id: key }))
+      : this.generateCacheKey({ id: keys });
 
     try {
       const isDeleted = this.cache.del(namespaceKey);
@@ -126,10 +126,6 @@ export class CacheManager implements ICacheManager {
 
   generateCacheKey({ id }: { id: string }): string {
     return `${this.namespace}:${id}`;
-  }
-
-  private getNamespaceKey(key: string): string {
-    return `${this.namespace}:${key}`;
   }
 
   private deleteLeastUsedKeys<T>({
