@@ -1,177 +1,388 @@
-import { Types } from "mongoose";
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
-import { DatabaseError } from "../../errors";
+import {
+  DatabaseDuplicateKeyError,
+  DatabaseValidationError,
+} from "../../errors/database";
 import User from "../../models/userModel";
-import { UserRepository } from "../../repositories";
-import { InsertUser } from "../../types";
-import { generateMockUser, generateMockUsers } from "../mocks";
-import { connectTestDatabase, disconnectTestDatabase } from "../utils";
+import { UserRepository } from "../../repositories/user.repository";
+import { generateMockObjectId } from "../mocks";
+import { generateMockUser, generateMockUsers } from "../mocks/user.mock";
+import {
+  connectTestDatabase,
+  disconnectTestDatabase,
+} from "../utils/database-connection.utils";
 
-before(async () => connectTestDatabase());
-after(async () => disconnectTestDatabase());
-beforeEach(async () => await User.deleteMany({}));
-const repo = new UserRepository();
+suite("UserRepository 〖 Integration Tests 〗", async () => {
+  const repo = new UserRepository();
 
-suite("User Repository", () => {
-  describe("Create User", () => {
-    test("Should create new user in the database", async () => {
+  before(async () => connectTestDatabase());
+  after(async () => disconnectTestDatabase());
+  beforeEach(async () => await User.deleteMany({}));
+
+  describe("create", () => {
+    test("Should create a new user when 'db.create' is called", async () => {
+      // Arrange
       const mockUser = generateMockUser();
 
-      const user = await repo.create(mockUser);
+      // Act
+      const createdUser = await repo.create(mockUser);
 
-      assert.ok(user);
-
-      assert.equal(user.name, mockUser.name);
-      assert.equal(user.email, mockUser.email);
+      // Assert
+      assert.ok(createdUser._id);
+      assert.equal(createdUser.name, mockUser.name);
+      assert.equal(createdUser.email, mockUser.email);
+      assert.equal(createdUser.isAdmin, mockUser.isAdmin);
+      assert.ok(createdUser.createdAt);
+      assert.ok(createdUser.updatedAt);
     });
 
-    test("Should throw 'DatabaseError' if email already exists", async () => {
+    test("Should create admin and non-admin users when 'db.create' is called", async () => {
+      // Arrange
+      const adminUser = generateMockUser(true);
+      const regularUser = generateMockUser(false);
+
+      // Act
+      const createdAdmin = await repo.create(adminUser);
+      const createdRegular = await repo.create(regularUser);
+
+      // Assert
+      assert.equal(createdAdmin.isAdmin, true);
+      assert.equal(createdRegular.isAdmin, false);
+    });
+
+    test("Should set timestamps as Date objects when 'db.create' is called", async () => {
+      // Arrange
       const mockUser = generateMockUser();
 
+      // Act
+      const createdUser = await repo.create(mockUser);
+
+      // Assert
+      assert.ok(createdUser.createdAt instanceof Date);
+      assert.ok(createdUser.updatedAt instanceof Date);
+    });
+
+    test("Should accept Unicode characters in name when 'db.create' is called", async () => {
+      // Arrange
+      const mockUser = generateMockUser();
+      mockUser.name = "Mohamméd 🎉";
+
+      // Act
+      const createdUser = await repo.create(mockUser);
+
+      // Assert
+      assert.equal(createdUser.name, mockUser.name);
+    });
+
+    test("Should throw 'DatabaseDuplicateKeyError' when creating user with existing email", async () => {
+      // Arrange
+      const mockUser = generateMockUser();
       await repo.create(mockUser);
 
-      try {
-        // creating new user with the same email
-        await repo.create(mockUser);
-      } catch (error) {
-        assert.ok(error instanceof DatabaseError);
-        assert.equal(error.type, "DATABASE_ERROR");
-        assert.equal(error.statusCode, 500);
-      }
+      // Act & Assert
+      await assert.rejects(
+        async () => await repo.create(mockUser),
+        DatabaseDuplicateKeyError,
+      );
     });
-  });
 
-  describe("Retrieve User By ID", () => {
-    test("Should retrieve a user by ID", async () => {
+    test("Should throw 'DatabaseValidationError' when creating user with invalid data", async () => {
+      // Arrange
+      const invalidUser = {
+        name: "",
+        email: "invalid-email",
+        password: "pass",
+        isAdmin: false,
+      };
+
+      // Act & Assert
+      await assert.rejects(
+        async () => await repo.create(invalidUser),
+        DatabaseValidationError,
+      );
+    });
+
+    test("Should throw 'DatabaseValidationError' when 'db.create' is called with empty name", async () => {
+      // Arrange
       const mockUser = generateMockUser();
+      mockUser.name = "";
 
-      const created = await repo.create(mockUser);
-      const user = await repo.getById({ userId: created._id });
-
-      assert.ok(user);
-
-      assert.equal(user.email, mockUser.email);
-    });
-
-    test("Should return 'null' if user does not exist", async () => {
-      const user = await repo.getById({ userId: new Types.ObjectId() });
-      assert.equal(user, null);
+      // Act & Assert
+      await assert.rejects(
+        async () => await repo.create(mockUser),
+        DatabaseValidationError,
+      );
     });
   });
 
-  describe("Retrieve User By Email", () => {
-    test("Should retrieve a user by Email", async () => {
-      const mockUser = generateMockUser();
-
-      const created = await repo.create(mockUser);
-      const user = await repo.getByEmail({ email: created.email });
-
-      assert.ok(user);
-
-      assert.equal(user.email, mockUser.email);
-    });
-
-    test("Should return 'null' if user does not exist", async () => {
-      const user = await repo.getByEmail({ email: "RANDOM_EMAIL" });
-      assert.equal(user, null);
-    });
-  });
-
-  describe("Retrieve Users", () => {
-    test("Should retrieve all users", async () => {
-      const numberOfUsers = 5;
-      const mockUsers = generateMockUsers(numberOfUsers);
-
+  describe("getAll", () => {
+    test("Should return all users when 'db.find' is called", async () => {
+      // Arrange
+      const mockUsers = generateMockUsers(3);
       await User.insertMany(mockUsers);
 
+      // Act
       const users = await repo.getAll();
 
-      assert.ok(users);
-
-      assert.equal(users.length, numberOfUsers);
+      // Assert
+      assert.equal(users.length, mockUsers.length);
     });
 
-    test("Should return an empty array if no users exist", async () => {
+    test("Should return empty array when 'db.find' is called with no users exist", async () => {
+      // Act
       const users = await repo.getAll();
+
+      // Assert
       assert.equal(users.length, 0);
     });
   });
 
-  describe("Update User", () => {
-    test("Should find and update a user by ID", async () => {
+  describe("getById", () => {
+    test("Should return user by ID when 'db.findById' is called", async () => {
+      // Arrange
       const mockUser = generateMockUser();
+      const user = await User.create(mockUser);
 
-      const created = await repo.create(mockUser);
+      // Act
+      const foundUser = await repo.getById({ userId: user._id });
 
-      const data: Partial<InsertUser> = {
-        name: "RANDOM_NAME",
-      };
-      const updatedUser = await repo.update({
-        userId: created._id,
-        data,
-      });
-
-      assert.ok(updatedUser);
-
-      assert.equal(updatedUser.name, data.name);
+      // Assert
+      assert.ok(foundUser);
+      assert.equal(foundUser.name, mockUser.name);
+      assert.equal(foundUser.email, mockUser.email);
     });
 
-    test("Should throw 'DatabaseError' if updated with an existing email", async () => {
-      const mockUsers = generateMockUsers(2);
+    test("Should return null for non-existent ID when 'db.findById' is called", async () => {
+      // Arrange
+      const nonExistentId = generateMockObjectId();
 
-      const users = await User.insertMany(mockUsers);
+      // Act
+      const user = await repo.getById({ userId: nonExistentId });
 
-      const data: Partial<InsertUser> = {
-        email: users[1].email,
-      };
-      try {
-        await repo.update({
-          userId: users[0]._id,
-          data,
-        });
-      } catch (error) {
-        if (error instanceof DatabaseError) {
-          assert.equal(error.statusCode, 500);
-          assert.equal(error.type, "DATABASE_ERROR");
-          assert.ok(error.message.includes("E11000")); // error code for duplication
-        }
-      }
+      // Assert
+      assert.equal(user, null);
     });
 
-    test("Should return 'null' if user does not exist", async () => {
-      const updatedUser = await repo.update({
-        userId: new Types.ObjectId(),
-        data: { name: "John Doe" },
-      });
+    test("Should throw 'DatabaseValidationError' when 'db.findById' is called with invalid ObjectId", async () => {
+      // Arrange
+      const invalidId = "invalid-id" as any;
 
-      assert.equal(updatedUser, null);
+      // Act & Assert
+      await assert.rejects(
+        async () => await repo.getById({ userId: invalidId }),
+        DatabaseValidationError,
+      );
     });
   });
 
-  describe("Delete User", () => {
-    test("Should find and delete a user by ID", async () => {
+  describe("getByEmail", () => {
+    test("Should return user by email when 'db.findOne' is called", async () => {
+      // Arrange
       const mockUser = generateMockUser();
+      await User.create(mockUser);
 
-      const created = await repo.create(mockUser);
-
-      const deletedUser = await repo.delete({
-        userId: created._id,
+      // Act
+      const foundUser = await repo.getByEmail({
+        email: mockUser.email,
       });
 
-      // Validate the user is deleted
-      const getUser = await repo.getById({ userId: created._id });
-
-      assert.notEqual(deletedUser, null); // returns the deleted user if successful
-      assert.equal(getUser, null);
+      // Assert
+      assert.ok(foundUser);
+      assert.equal(foundUser?.name, mockUser.name);
+      assert.equal(foundUser?.email, mockUser.email);
     });
 
-    test("Should return 'null' if user does not exist", async () => {
-      const deletedUser = await repo.delete({
-        userId: new Types.ObjectId(),
+    test("Should return null for non-existent email when 'db.findOne' is called", async () => {
+      // Act
+      const foundUser = await repo.getByEmail({
+        email: "nonexistent@example.com",
       });
 
-      assert.equal(deletedUser, null);
+      // Assert
+      assert.equal(foundUser, null);
+    });
+
+    test("Should handle special characters in email when 'db.findOne' is called", async () => {
+      // Arrange
+      const mockUser = generateMockUser();
+      mockUser.email = "test+label@example.com";
+      await User.create(mockUser);
+
+      // Act
+      const foundUser = await repo.getByEmail({
+        email: mockUser.email,
+      });
+
+      // Assert
+      assert.ok(foundUser);
+      assert.equal(foundUser?.email, mockUser.email);
+    });
+  });
+
+  describe("update", () => {
+    test("Should update user data when 'db.update' is called", async () => {
+      // Arrange
+      const mockUser = generateMockUser();
+      const user = await User.create(mockUser);
+      const updateData = {
+        name: "Updated Name",
+        email: "updated@example.com",
+      };
+
+      // Act
+      const updatedUser = await repo.update({
+        userId: user._id,
+        data: updateData,
+      });
+
+      // Assert
+      assert.ok(updatedUser);
+      assert.equal(updatedUser?.name, updateData.name);
+      assert.equal(updatedUser?.email, updateData.email);
+    });
+
+    test("Should handle partial updates when 'db.update' is called", async () => {
+      // Arrange
+      const mockUser = generateMockUser();
+      const user = await User.create(mockUser);
+      const updateData = { name: "Updated Name" };
+
+      // Act
+      const updatedUser = await repo.update({
+        userId: user._id,
+        data: updateData,
+      });
+
+      // Assert
+      assert.ok(updatedUser);
+      assert.equal(updatedUser.name, updateData.name);
+      assert.equal(updatedUser.email, mockUser.email); // Email should remain unchanged
+    });
+
+    test("Should update timestamps when 'db.update' is called", async (t) => {
+      // Arrange
+      t.mock.timers.enable({ apis: ["Date"], now: new Date() });
+      const mockUser = generateMockUser();
+      const user = await User.create(mockUser);
+      const originalUpdatedAt = user.updatedAt;
+
+      t.mock.timers.tick(100);
+
+      // Act
+      const updatedUser = await repo.update({
+        userId: user._id,
+        data: { name: "Updated Name" },
+      });
+
+      // Assert
+      assert.ok(updatedUser);
+      assert.ok(updatedUser.updatedAt > originalUpdatedAt);
+    });
+
+    test("Should return null for non-existent ID when 'db.update' is called", async () => {
+      // Arrange
+      const nonExistentId = generateMockObjectId();
+      const updateData = { name: "Updated Name" };
+
+      // Act
+      const user = await repo.update({
+        userId: nonExistentId,
+        data: updateData,
+      });
+
+      // Assert
+      assert.equal(user, null);
+    });
+
+    test("Should throw 'DatabaseDuplicateKeyError' when 'db.update' is called with existing email", async () => {
+      // Arrange
+      const user1 = await repo.create(generateMockUser());
+      const user2 = await repo.create(generateMockUser());
+
+      // Act & Assert
+      await assert.rejects(
+        async () =>
+          await repo.update({
+            userId: user2._id,
+            data: { email: user1.email },
+          }),
+        DatabaseDuplicateKeyError,
+      );
+    });
+  });
+
+  describe("delete", () => {
+    test("Should delete user when 'db.delete' is called", async () => {
+      // Arrange
+      const mockUser = generateMockUser();
+      const user = await User.create(mockUser);
+
+      // Act
+      const deletedUser = await repo.delete({ userId: user._id });
+      const foundUser = await User.findById(user._id);
+
+      // Assert
+      assert.ok(deletedUser);
+      assert.equal(deletedUser.email, mockUser.email);
+      assert.equal(foundUser, null);
+    });
+
+    test("Should return null for non-existent ID when 'db.delete' is called", async () => {
+      // Arrange
+      const nonExistentId = generateMockObjectId();
+
+      // Act
+      const user = await repo.delete({ userId: nonExistentId });
+
+      // Assert
+      assert.equal(user, null);
+    });
+
+    test("Should throw 'DatabaseValidationError' when 'db.delete' is called with invalid ObjectId", async () => {
+      // Arrange
+      const invalidId = "invalid-id" as any;
+
+      // Act & Assert
+      await assert.rejects(
+        async () => await repo.delete({ userId: invalidId }),
+        DatabaseValidationError,
+      );
+    });
+  });
+
+  describe("existsByEmail", () => {
+    test("Should check if user exists by email when 'db.findOne' is called", async () => {
+      // Arrange
+      const mockUser = generateMockUser();
+      await User.create(mockUser);
+
+      // Act
+      const exists = await repo.existsByEmail({
+        email: mockUser.email,
+      });
+      const notExists = await repo.existsByEmail({
+        email: "nonexistent@example.com",
+      });
+
+      // Assert
+      assert.ok(exists);
+      assert.equal(notExists, null);
+    });
+
+    test("Should handle special characters in email when 'db.findOne' is called", async () => {
+      // Arrange
+      const mockUser = generateMockUser();
+      mockUser.email = "test+label@example.com";
+      await User.create(mockUser);
+
+      // Act
+      const exists = await repo.existsByEmail({
+        email: mockUser.email,
+      });
+
+      // Assert
+      assert.ok(exists);
     });
   });
 });
