@@ -21,6 +21,7 @@ export interface ICacheManager extends IPublicCacheManager {
   getMany<T>(args: { keys: Array<string> }): Record<string, T | undefined>;
   delete(args: { key: string }): true;
   deleteMany(args: { keys: Array<string> }): true;
+  flushStats(): void;
   getStats(): CacheStats;
   generateCacheKey({ id }: { id: string }): string;
 }
@@ -190,6 +191,10 @@ export class CacheManager implements ICacheManager {
     }
 
     return true;
+  }
+
+  flushStats(): void {
+    this._cache.flushStats();
   }
 
   flush(): void {
