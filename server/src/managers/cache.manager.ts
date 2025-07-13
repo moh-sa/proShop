@@ -1,7 +1,7 @@
 import NodeCache from "node-cache";
 import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../config";
 import { DatabaseError } from "../errors";
-import { CacheConfig, Namespace } from "../types";
+import { CacheConfig, CacheStats, Namespace } from "../types";
 
 interface IPublicCacheManager {
   flush(): void;
@@ -10,13 +10,7 @@ export interface ICacheManager extends IPublicCacheManager {
   get<T>({ key }: { key: string }): T | undefined;
   set<T>({ key, value, ttl }: { key: string; value: T; ttl?: number }): boolean;
   delete({ keys }: { keys: string | string[] }): number;
-  stats(): {
-    hits: number;
-    misses: number;
-    keys: number;
-    ksize: number;
-    vsize: number;
-  };
+  stats(): CacheStats;
   generateKey({ id }: { id: string }): string;
 }
 
@@ -118,14 +112,15 @@ export class CacheManager implements ICacheManager {
     }
   }
 
-  stats(): {
-    hits: number;
-    misses: number;
-    keys: number;
-    ksize: number;
-    vsize: number;
-  } {
-    return this.cache.getStats();
+  stats(): CacheStats {
+    const stats = this.cache.getStats();
+    return {
+      hits: stats.hits,
+      misses: stats.misses,
+      keys: stats.keys,
+      ksize: stats.ksize,
+      vsize: stats.vsize,
+    };
   }
 
   generateKey({ id }: { id: string }) {
