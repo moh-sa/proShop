@@ -12,7 +12,7 @@ interface IPublicCacheManager {
 export interface ICacheManager extends IPublicCacheManager {
   set(args: { key: string; value: {}; ttl?: number }): boolean;
   get<T>(args: { key: string }): T | undefined;
-  delete(args: { keys: string | string[] }): number;
+  delete(args: { key: string }): true;
   getStats(): CacheStats;
   generateCacheKey({ id }: { id: string }): string;
 }
@@ -94,19 +94,20 @@ export class CacheManager implements ICacheManager {
     return value;
   }
 
-  delete(args: { keys: string | string[] }): number {
-    const key = Array.isArray(args.keys)
-      ? args.keys.map((key) => this.generateCacheKey({ id: key }))
-      : this.generateCacheKey({ id: args.keys });
+  delete(args: { key: string }): true {
+    const parsedKey = this._validateSchema({
+      schema: cacheKeySchema,
+      data: args.key,
+    });
+    const key = this.generateCacheKey({ id: parsedKey });
 
-    try {
-      const isDeleted = this._cache.del(key);
-      console.log("Cache delete", args.keys);
-      return isDeleted;
-    } catch (error) {
-      console.error(error);
-      throw new DatabaseError();
+    const isDeleted = this._cache.del(key);
+    if (!isDeleted) {
+      console.error("Failed to delete key", key);
+      throw new Error("Failed to delete key");
     }
+
+    return true;
   }
 
   flush(): void {

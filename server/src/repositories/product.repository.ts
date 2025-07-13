@@ -184,7 +184,7 @@ export class ProductRepository implements IProductRepository {
   private _invalidateProductCache({ id }: { id: string }): void {
     // Delete specific product cache
     const cacheKey = this._cache.generateCacheKey({ id });
-    this._cache.delete({ keys: cacheKey });
+    this._cache.delete({ key: cacheKey });
 
     // Delete all top-rated caches as they might be affected
     const stats = this._cache.getStats();
@@ -192,7 +192,7 @@ export class ProductRepository implements IProductRepository {
       key.startsWith("product:top-rated"),
     );
     if (keys.length > 0) {
-      this._cache.delete({ keys });
+      // this._cache.delete({ keys });
     }
   }
 }

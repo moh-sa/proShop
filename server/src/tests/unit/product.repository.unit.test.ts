@@ -787,7 +787,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
       assert.strictEqual(mockCache.delete.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.delete.mock.calls[0].arguments[0], {
-        keys: cacheKey,
+        key: cacheKey,
       });
 
       assert.strictEqual(mockCache.getStats.mock.callCount(), 1);
@@ -950,7 +950,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
       assert.strictEqual(mockCache.delete.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.delete.mock.calls[0].arguments[0], {
-        keys: cacheKey,
+        key: cacheKey,
       });
 
       assert.strictEqual(mockCache.getStats.mock.callCount(), 1);

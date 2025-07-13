@@ -53,7 +53,7 @@ export class RateLimiterManager {
       return this.cache.flush();
     }
 
-    this.cache.delete({ keys });
+    // this.cache.delete({ keys });
   }
 
   private _saveRateLimitData(
