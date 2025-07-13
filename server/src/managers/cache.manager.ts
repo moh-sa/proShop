@@ -1,5 +1,5 @@
 import NodeCache from "node-cache";
-import { MAX_CACHE_SIZE } from "../config";
+import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../config";
 import { DatabaseError } from "../errors";
 import { CacheConfig, Namespace } from "../types";
 
@@ -28,10 +28,7 @@ export class CacheManager implements ICacheManager {
   constructor(namespace: Namespace, config?: Partial<CacheConfig>) {
     this.namespace = namespace;
     this.cache = new NodeCache({
-      stdTTL: 0, // no expiration since the data rarely changes.
-      checkperiod: 7 * 24 * 60 * 60, // check for expired keys every 1 week
-      useClones: false,
-      deleteOnExpire: true,
+      ...DEFAULT_CACHE_CONFIG,
       ...config,
     });
 

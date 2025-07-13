@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, mock, suite } from "node:test";
+import { DEFAULT_CACHE_CONFIG } from "../../config";
 import { DatabaseError } from "../../errors";
 import { CacheManager } from "../../managers";
 import { CacheConfig, Namespace } from "../../types";
@@ -21,7 +22,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       assert.ok(cacheManager);
       assert.ok(cacheManager instanceof CacheManager);
       assert.strictEqual(cacheManager["namespace"], namespace);
-      assert.strictEqual(cacheManager["cache"].options.stdTTL, 0);
+      assert.strictEqual(
+        cacheManager["cache"].options.stdTTL,
+        DEFAULT_CACHE_CONFIG.stdTTL,
+      );
     });
 
     test("Should create a new CacheManager instance with custom config", () => {
