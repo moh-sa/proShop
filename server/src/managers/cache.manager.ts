@@ -2,6 +2,7 @@ import NodeCache from "node-cache";
 import { z } from "zod";
 import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../config";
 import { DatabaseError, ValidationError } from "../errors";
+import { cacheSetSchema } from "../schemas";
 import { CacheConfig, CacheStats, Namespace } from "../types";
 import { formatZodErrors } from "../utils";
 
@@ -51,10 +52,19 @@ export class CacheManager implements ICacheManager {
   set(args: { key: string; value: {}; ttl?: number }): boolean {
     this._validateMemoryCapacity();
 
-    const key = this.generateCacheKey({ id: args.key });
+    const parsedArgs = this._validateSchema({
+      schema: cacheSetSchema,
+      data: {
+        key: args.key,
+        val: args.value,
+        ttl: args.ttl ?? DEFAULT_CACHE_CONFIG.stdTTL,
+      },
+    });
+
+    const key = this.generateCacheKey({ id: parsedArgs.key });
     try {
-      const isSuccess = this._cache.set(key, args.value, args.ttl!);
-      if (isSuccess) console.log("cache set", args.key);
+      const isSuccess = this._cache.set(key, parsedArgs.val, parsedArgs.ttl);
+      if (isSuccess) console.log("cache set", key);
 
       return isSuccess;
     } catch (error) {
