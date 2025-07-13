@@ -12,6 +12,7 @@ interface IPublicCacheManager {
 export interface ICacheManager extends IPublicCacheManager {
   set(args: { key: string; value: {}; ttl?: number }): boolean;
   get<T>(args: { key: string }): T | undefined;
+  getMany<T>(args: { keys: Array<string> }): Record<string, T | undefined>;
   delete(args: { key: string }): true;
   deleteMany(args: { keys: Array<string> }): true;
   getStats(): CacheStats;
@@ -93,6 +94,18 @@ export class CacheManager implements ICacheManager {
 
     console.log("Cache hit:", args.key);
     return value;
+  }
+
+  getMany<T>(args: { keys: Array<string> }): Record<string, T | undefined> {
+    const parsedKeys = this._validateSchema({
+      schema: cacheKeysSchema,
+      data: args.keys,
+    });
+
+    const keys = parsedKeys.map((key) => this.generateCacheKey({ id: key }));
+    const values = this._cache.mget<T>(keys);
+
+    return values;
   }
 
   delete(args: { key: string }): true {
