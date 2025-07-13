@@ -24,6 +24,7 @@ export interface ICacheManager extends IPublicCacheManager {
   take<T>(args: { key: string }): T | undefined;
   flushStats(): void;
   getStats(): CacheStats;
+  getKeys(): Array<string>;
   generateCacheKey({ id }: { id: string }): string;
 }
 
@@ -234,6 +235,10 @@ export class CacheManager implements ICacheManager {
       valuesSize: stats.vsize,
       totalSize: stats.vsize + stats.ksize,
     };
+  }
+
+  getKeys(): Array<string> {
+    return this._cache.keys();
   }
 
   generateCacheKey({ id }: { id: string }): string {
