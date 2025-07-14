@@ -1,252 +1,591 @@
+import { Types } from "mongoose";
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
+import { DatabaseValidationError } from "../../errors/database";
 import { CacheManager } from "../../managers";
 import Product from "../../models/productModel";
 import { ProductRepository } from "../../repositories";
+import { SelectProduct, TopRatedProduct } from "../../types";
+import { removeObjectFields } from "../../utils";
+import { generateMockObjectId } from "../mocks";
 import {
   generateMockInsertProductWithStringImage,
-  generateMockObjectId,
+  generateMockSelectProduct,
   generateMockSelectProducts,
-} from "../mocks";
+} from "../mocks/product.mock";
 import {
   connectTestDatabase,
   disconnectTestDatabase,
-  findTopRatedProduct,
-} from "../utils";
+} from "../utils/database-connection.utils";
 
-const repo = new ProductRepository();
-const cache = CacheManager.getInstance("product");
+suite("Product Repository 〖 Integration Tests 〗", async () => {
+  let productRepository: ProductRepository;
+  let cacheManager: CacheManager;
 
-before(async () => await connectTestDatabase());
-after(async () => await disconnectTestDatabase());
-
-beforeEach(async () => {
-  cache.flush();
-  await Product.deleteMany({});
-});
-
-suite("Product Repository", () => {
-  describe("Create Product", () => {
-    test("Should create new product in the database", async () => {
-      const mockProduct = generateMockInsertProductWithStringImage();
-
-      const product = await repo.create(mockProduct);
-
-      assert.ok(product);
-
-      assert.equal(product.name, mockProduct.name);
-      assert.equal(product.description, mockProduct.description);
-    });
+  before(async () => {
+    await connectTestDatabase();
+    cacheManager = new CacheManager("product");
+    productRepository = new ProductRepository(Product, cacheManager);
   });
 
-  describe("Retrieve Product By Id", () => {
-    test("Should retrieve a product by id", async () => {
-      const mockProduct = generateMockInsertProductWithStringImage();
-      const created = await repo.create(mockProduct);
+  after(async () => {
+    await Product.deleteMany({});
+    await disconnectTestDatabase();
+  });
 
-      const product = await repo.getById({ productId: created._id });
-      assert.ok(product);
-      assert.equal(product.name, created.name);
+  beforeEach(async () => {
+    await Product.deleteMany({});
+    cacheManager.flush();
+  });
+
+  describe("create", () => {
+    test("should create a product when 'db.create' is called with valid product data", async () => {
+      // Arrange
+      const mockProduct = generateMockInsertProductWithStringImage();
+
+      // Act
+      const createdProduct = await productRepository.create(mockProduct);
+
+      // Assert
+      assert.ok(createdProduct._id, "Product should have an ID");
+      assert.equal(createdProduct.name, mockProduct.name);
+      assert.equal(createdProduct.brand, mockProduct.brand);
+      assert.equal(createdProduct.category, mockProduct.category);
+      assert.equal(createdProduct.description, mockProduct.description);
+      assert.equal(createdProduct.price, mockProduct.price);
+      assert.equal(createdProduct.countInStock, mockProduct.countInStock);
+      assert.equal(createdProduct.image, mockProduct.image);
+      assert.equal(createdProduct.rating, 0);
+      assert.equal(createdProduct.numReviews, 0);
     });
 
-    test("Should return null if product does not exist", async () => {
-      const product = await repo.getById({
-        productId: generateMockObjectId(),
+    test("should cache the created product when 'db.create' is called with valid data", async () => {
+      // Arrange
+      const mockProduct = generateMockInsertProductWithStringImage();
+
+      // Act
+      const createdProduct = await productRepository.create(mockProduct);
+      const cachedProduct = cacheManager.get<SelectProduct>({
+        key: createdProduct._id.toString(),
       });
-      assert.equal(product, null);
+
+      // Assert
+      assert.ok(cachedProduct);
+      // IDs does not have the same reference
+      const { _id: createdProductId, ...assertProduct } = createdProduct;
+      const { _id: cachedProductId, ...assertCached } = cachedProduct;
+      assert.deepStrictEqual(
+        createdProductId.toString(),
+        cachedProductId.toString(),
+      );
+      assert.deepStrictEqual(assertProduct, assertCached);
+    });
+
+    test("should throw 'DatabaseValidationError' when 'db.create' is called with invalid data", async () => {
+      // Arrange
+      const invalidProduct = {
+        ...generateMockInsertProductWithStringImage(),
+        price: "invalid-price" as unknown as number,
+      };
+
+      // Act & Assert
+      await assert.rejects(
+        async () => await productRepository.create(invalidProduct),
+        DatabaseValidationError,
+      );
     });
   });
 
-  describe("Retrieve Top Products", () => {
-    test("Should retrieve 3 top rated products", async () => {
-      const mockProducts = generateMockSelectProducts({ count: 4 });
+  describe("getAll", () => {
+    test("should return cached products when 'db.find' is called with page that exists in cache", async () => {
+      // Arrange
+      const mockProducts = generateMockSelectProducts({ count: 3 });
+      await Promise.all(
+        mockProducts.map(
+          async (product) => await productRepository.create(product),
+        ),
+      );
+
+      // Act
+      const products = await productRepository.getAll({
+        query: {},
+        numberOfProductsPerPage: 10,
+        currentPage: 1,
+      });
+
+      // Assert
+      assert.ok(Array.isArray(products));
+      assert.ok(products.length > 0);
+      assert.strictEqual(products.length, mockProducts.length);
+      products.forEach((product, index) => {
+        const { _id: mockProductId, ...assertMockProduct } = removeObjectFields(
+          mockProducts[index],
+          ["user", "countInStock", "createdAt", "updatedAt", "description"],
+        );
+        const { _id: productId, ...assertProduct } = product;
+        assert.strictEqual(mockProductId.toString(), productId.toString());
+        assert.deepStrictEqual(assertMockProduct, assertProduct);
+      });
+    });
+
+    test("should return correct number of products per page when 'db.find' is called", async () => {
+      // Arrange
+      const mockProducts = generateMockSelectProducts({ count: 5 });
+      await Product.insertMany(mockProducts);
+      const productsPerPage = 2;
+
+      // Act
+      const products = await productRepository.getAll({
+        query: {},
+        numberOfProductsPerPage: productsPerPage,
+        currentPage: 1,
+      });
+
+      // Assert
+      assert.equal(products.length, productsPerPage);
+    });
+
+    test("should return correct page of products when 'db.find' is called with specific page", async () => {
+      // Arrange
+      const mockProducts = generateMockSelectProducts({ count: 5 });
+      await Product.insertMany(mockProducts);
+      const productsPerPage = 2;
+      const page = 2;
+
+      // Act
+      const products = await productRepository.getAll({
+        query: {},
+        numberOfProductsPerPage: productsPerPage,
+        currentPage: page,
+      });
+
+      // Assert
+      assert.equal(products.length, productsPerPage);
+      // Verify we got different products than first page
+      const firstPageProducts = await productRepository.getAll({
+        query: {},
+        numberOfProductsPerPage: productsPerPage,
+        currentPage: 1,
+      });
+      assert.notDeepStrictEqual(products[0]._id, firstPageProducts[0]._id);
+    });
+
+    test("should return filtered products when 'getAll' is called with query filters", async () => {
+      // Arrange
+      const mockProducts = generateMockSelectProducts({ count: 5 });
+      const targetBrand = mockProducts[0].brand;
       await Product.insertMany(mockProducts);
 
-      const products = await repo.getTopRated({ limit: 3 });
+      // Act
+      const products = await productRepository.getAll({
+        query: { brand: targetBrand },
+        numberOfProductsPerPage: 10,
+        currentPage: 1,
+      });
+
+      // Assert
+      assert.ok(products.length > 0);
+      products.forEach((product) => {
+        assert.equal(product.brand, targetBrand);
+      });
+    });
+
+    test("should return empty array when 'getAll' is called and no products match criteria", async () => {
+      // Arrange
+      const mockProducts = generateMockSelectProducts({ count: 3 });
+      await Product.insertMany(mockProducts);
+
+      // Act
+      const products = await productRepository.getAll({
+        query: { brand: "Non-existent Brand" },
+        numberOfProductsPerPage: 10,
+        currentPage: 1,
+      });
+
+      // Assert
+      assert.equal(products.length, 0);
+    });
+  });
+
+  describe("getTopRated", () => {
+    test("should return cached products when 'db.getTopRated' is called and cache exists", async () => {
+      // Arrange
+      const mockProducts = generateMockSelectProducts({ count: 3 });
+      await Promise.all(
+        mockProducts.map(
+          async (product) => await productRepository.create(product),
+        ),
+      );
+
+      // Act
+      const products = await productRepository.getTopRated({ limit: 3 });
+
+      // Assert
+      assert.ok(Array.isArray(products));
+      assert.strictEqual(products.length, mockProducts.length);
+      const mockProductsIds = mockProducts.map((product) =>
+        product._id.toString(),
+      );
+      products.forEach((product) => {
+        assert.ok(mockProductsIds.includes(product._id.toString()));
+      });
+    });
+
+    test("should return and cache products when 'db.getTopRated' is called and cache doesn't exist", async () => {
+      // Arrange
+      const mockProducts = generateMockSelectProducts({ count: 3 });
+      await Product.insertMany(mockProducts);
+
+      // Act & Assert
+      const noProductsCached = cacheManager.get({ key: "top-rated" });
+      assert.strictEqual(noProductsCached, undefined);
+
+      const products = await productRepository.getTopRated({ limit: 3 });
       assert.ok(products);
+      assert.ok(Array.isArray(products));
+      assert.equal(products.length, mockProducts.length);
+
+      const cachedProducts = cacheManager.get<Array<TopRatedProduct>>({
+        key: "top-rated",
+      });
+      assert.ok(cachedProducts);
+      assert.strictEqual(cachedProducts.length, mockProducts.length);
+    });
+
+    test("should return correct number of products when 'db.getTopRated' is called with limit", async () => {
+      // Arrange
+      const mockProducts = generateMockSelectProducts({ count: 5 });
+      await Product.insertMany(mockProducts);
+      const limit = 2;
+
+      // Act
+      const products = await productRepository.getTopRated({ limit });
+
+      // Assert
+      assert.equal(products.length, limit);
+    });
+
+    test("should return products sorted by rating when 'db.getTopRated' is called", async () => {
+      // Arrange
+      const mockProducts = generateMockSelectProducts({ count: 3 }).map(
+        (product, index) => ({
+          ...product,
+          rating: 5 - index, // Create descending ratings: 5, 4, 3
+        }),
+      );
+      await Product.insertMany(mockProducts);
+
+      // Act
+      const products = await productRepository.getTopRated({ limit: 3 });
+
+      // Assert
       assert.equal(products.length, 3);
-
-      const topRatedProduct = findTopRatedProduct(mockProducts);
-      assert.equal(products[0].name, topRatedProduct.name);
+      for (let i = 1; i < products.length; i++) {
+        const prevProduct = await Product.findById(products[i - 1]._id).lean();
+        const currentProduct = await Product.findById(products[i]._id).lean();
+        assert.ok(
+          prevProduct!.rating >= currentProduct!.rating,
+          "Products should be sorted by rating in descending order",
+        );
+      }
     });
 
-    test("Should return an empty array if no products exist", async () => {
-      const products = await repo.getTopRated({ limit: 3 });
+    test("should return empty array when 'db.getTopRated' is called and no products exist", async () => {
+      // Arrange - no products in database
 
-      assert.ok(products);
+      // Act
+      const products = await productRepository.getTopRated({ limit: 3 });
+
+      // Assert
       assert.equal(products.length, 0);
     });
   });
 
-  describe("Retrieve Products", () => {
-    test("Should retrieve all products on one page", async () => {
-      const mockProducts = generateMockSelectProducts({ count: 4 });
-      await Product.insertMany(mockProducts);
+  describe("getById", () => {
+    test("should return cached product when 'db.findById' is called with an ID that exists in cache", async () => {
+      // Arrange
+      const mockProduct = generateMockSelectProduct();
+      await productRepository.create(mockProduct);
 
-      const products = await repo.getAll({
-        query: {},
-        currentPage: 1,
-        numberOfProductsPerPage: 4,
+      // Act
+      const product = await productRepository.getById({
+        productId: mockProduct._id,
       });
 
-      assert.ok(products);
-      assert.equal(products.length, 4);
+      // Assert
+      assert.ok(product);
+      assert.strictEqual(product.name, mockProduct.name);
+      assert.strictEqual(product.brand, mockProduct.brand);
+      assert.strictEqual(product.category, mockProduct.category);
+      assert.strictEqual(product.description, mockProduct.description);
+      assert.strictEqual(product.price, mockProduct.price);
+      assert.strictEqual(product.countInStock, mockProduct.countInStock);
+      assert.strictEqual(product.image, mockProduct.image);
+      assert.strictEqual(product.rating, mockProduct.rating);
+      assert.strictEqual(product.numReviews, mockProduct.numReviews);
     });
 
-    test("Should retrieve all products on 2 pages", async () => {
-      const mockProducts = generateMockSelectProducts({ count: 4 });
-      await Product.insertMany(mockProducts);
+    test("should return product and cache it when 'db.findById' is called with valid ID not in cache", async () => {
+      // Arrange
+      const mockProduct = generateMockSelectProduct();
+      await Product.create(mockProduct);
 
-      const firstPage = await repo.getAll({
-        query: {},
-        currentPage: 1,
-        numberOfProductsPerPage: 2,
+      // Act & Assert
+      const noProductCached = cacheManager.get({
+        key: mockProduct._id.toString(),
+      });
+      assert.strictEqual(noProductCached, undefined);
+
+      await productRepository.getById({
+        productId: mockProduct._id,
       });
 
-      assert.ok(firstPage);
-      assert.equal(firstPage.length, 2);
+      const cachedProduct = cacheManager.get<SelectProduct>({
+        key: mockProduct._id.toString(),
+      });
+      assert.ok(cachedProduct);
+      assert.strictEqual(cachedProduct.name, mockProduct.name);
+    });
 
-      const secondPage = await repo.getAll({
-        query: {},
-        currentPage: 2,
-        numberOfProductsPerPage: 2,
+    test("should return null when 'db.findById' is called with non-existent ID", async () => {
+      // Arrange
+      const nonExistentId = new Types.ObjectId();
+
+      // Act
+      const product = await productRepository.getById({
+        productId: nonExistentId,
       });
 
-      assert.ok(secondPage);
-      assert.equal(secondPage.length, 2);
+      // Assert
+      assert.strictEqual(product, null);
     });
 
-    test("Should retrieve the correct number of products when the number of products per page is greater than the total number of products", async () => {
-      const mockProducts = generateMockSelectProducts({ count: 4 });
-      await Product.insertMany(mockProducts);
+    test("should throw 'DatabaseValidationError' when 'db.findById' is called with invalid ObjectId", async () => {
+      // Arrange
+      const invalidId = "invalid-id" as unknown as Types.ObjectId;
 
-      const firstPage = await repo.getAll({
-        query: {},
-        currentPage: 1,
-        numberOfProductsPerPage: 10,
-      });
-
-      assert.ok(firstPage);
-      assert.equal(firstPage.length, 4);
-
-      const secondPage = await repo.getAll({
-        query: {},
-        currentPage: 2,
-        numberOfProductsPerPage: 10,
-      });
-
-      assert.ok(secondPage);
-      assert.equal(secondPage.length, 0);
-    });
-
-    test("Should retrieve products with a specific name", async () => {
-      const mockProducts = generateMockSelectProducts({ count: 4 });
-      await Product.insertMany(mockProducts);
-
-      const products = await repo.getAll({
-        query: { name: mockProducts[0].name },
-        currentPage: 1,
-        numberOfProductsPerPage: 10,
-      });
-
-      assert.ok(products);
-      assert.equal(products.length, 1);
-      assert.equal(products[0].name, mockProducts[0].name);
-    });
-
-    test("Should return empty array", async () => {
-      const products = await repo.getAll({
-        query: {},
-        currentPage: 1,
-        numberOfProductsPerPage: 4,
-      });
-
-      assert.ok(products);
-      assert.equal(products.length, 0);
-    });
-  });
-
-  describe("Count Products", () => {
-    test("Should count all products and return number 4", async () => {
-      const mockProducts = generateMockSelectProducts({ count: 4 });
-      await Product.insertMany(mockProducts);
-
-      const count = await repo.count({ query: {} });
-      assert.equal(count, 4);
-    });
-
-    test("Should count products with a specific name and return number 1", async () => {
-      const mockProducts = generateMockSelectProducts({ count: 4 });
-      await Product.insertMany(mockProducts);
-
-      const count = await repo.count({ name: mockProducts[0].name });
-
-      assert.equal(count, 1);
-    });
-
-    test("Should return 0 if no products match the query", async () => {
-      const mockProducts = generateMockSelectProducts({ count: 4 });
-      await Product.insertMany(mockProducts);
-
-      const count = await repo.count({ name: "RANDOM_NAME" });
-      assert.equal(count, 0);
-    });
-
-    test("Should return 0 if no products exist", async () => {
-      const count = await repo.count({ query: {} });
-      assert.equal(count, 0);
-    });
-  });
-
-  describe("Update Product", () => {
-    test("Should find product by id and update it", async () => {
-      const [mockProduct1, mockProduct2] = generateMockSelectProducts({
-        count: 2,
-      });
-      const created = await repo.create(mockProduct1);
-
-      const updatedProduct = await repo.update({
-        productId: created._id,
-        data: {
-          name: mockProduct2.name,
+      // Act & Assert
+      await assert.rejects(
+        async () => await productRepository.getById({ productId: invalidId }),
+        (error: Error) => {
+          assert.ok(error instanceof DatabaseValidationError);
+          return true;
         },
+      );
+    });
+  });
+
+  describe("update", () => {
+    test("should update and return product when 'db.update' is called with valid ID and data", async () => {
+      // Arrange
+      const mockProduct = generateMockSelectProduct();
+      await productRepository.create(mockProduct);
+      const updateData = {
+        name: "Updated Product Name",
+        price: 999,
+      };
+
+      // Act
+      const updatedProduct = await productRepository.update({
+        productId: mockProduct._id,
+        data: updateData,
       });
 
+      // Assert
       assert.ok(updatedProduct);
-      assert.equal(updatedProduct.name, mockProduct2.name);
+      assert.equal(updatedProduct.name, updateData.name);
+      assert.equal(updatedProduct.price, updateData.price);
+      // Verify other fields remain unchanged
+      assert.equal(updatedProduct.brand, mockProduct.brand);
+      assert.equal(updatedProduct.category, mockProduct.category);
     });
 
-    test("Should return 'null' if product does not exist", async () => {
-      const mockProductId = generateMockObjectId();
+    test("should invalidate product cache when 'db.update' is called successfully", async () => {
+      // Arrange
+      const mockProduct = generateMockSelectProduct();
+      await productRepository.create(mockProduct);
+      const cacheKey = mockProduct._id.toString();
 
-      const updatedProduct = await repo.update({
-        productId: mockProductId,
-        data: {
-          name: "RANDOM_NAME",
-        },
+      const updateData = { name: "Updated Product Name" };
+
+      // Act
+      await productRepository.update({
+        productId: mockProduct._id,
+        data: updateData,
       });
 
-      assert.equal(updatedProduct, null);
+      // Assert
+      const cachedProduct = cacheManager.get<SelectProduct>({
+        key: cacheKey,
+      });
+      assert.strictEqual(cachedProduct, undefined);
+    });
+
+    test("should return null when 'db.update' is called with non-existent ID", async () => {
+      // Arrange
+      const nonExistentId = new Types.ObjectId();
+      const updateData = { name: "Updated Product Name" };
+
+      // Act
+      const updatedProduct = await productRepository.update({
+        productId: nonExistentId,
+        data: updateData,
+      });
+
+      // Assert
+      assert.strictEqual(updatedProduct, null);
+    });
+
+    test("should throw DatabaseValidationError when 'db.update' is called with invalid data", async () => {
+      // Arrange
+      const mockProduct = generateMockSelectProduct();
+      await Product.create(mockProduct);
+      const invalidData = { price: "invalid-price" as unknown as number };
+
+      // Act & Assert
+      await assert.rejects(
+        async () =>
+          await productRepository.update({
+            productId: mockProduct._id,
+            data: invalidData,
+          }),
+        DatabaseValidationError,
+      );
+    });
+
+    test("should throw DatabaseValidationError when 'update' is called with invalid ObjectId", async () => {
+      // Arrange
+      const invalidId = "invalid-id" as unknown as Types.ObjectId;
+      const updateData = { name: "Updated Product Name" };
+
+      // Act & Assert
+      await assert.rejects(
+        async () =>
+          await productRepository.update({
+            productId: invalidId,
+            data: updateData,
+          }),
+        (error: Error) => {
+          assert.ok(error instanceof DatabaseValidationError);
+          return true;
+        },
+      );
     });
   });
 
-  describe("Delete Product", () => {
-    test("Should find product by id and delete it", async () => {
-      const mockProduct = generateMockInsertProductWithStringImage();
-      const created = await repo.create(mockProduct);
+  describe("delete", () => {
+    test("should delete and return product when 'db.delete' is called with valid ID", async () => {
+      // Arrange
+      const mockProduct = generateMockSelectProduct();
+      await productRepository.create(mockProduct);
 
-      await repo.delete({ productId: created._id });
+      // Act
+      const deletedProduct = await productRepository.delete({
+        productId: mockProduct._id,
+      });
 
-      const product = await Product.findById(created._id);
-      assert.equal(product, null);
+      // Assert
+      assert.ok(deletedProduct);
+      assert.equal(deletedProduct.name, mockProduct.name);
+      assert.equal(deletedProduct.description, mockProduct.description);
+      assert.equal(deletedProduct.brand, mockProduct.brand);
+      assert.equal(deletedProduct.category, mockProduct.category);
+      assert.equal(deletedProduct.price, mockProduct.price);
+      assert.equal(deletedProduct.countInStock, mockProduct.countInStock);
+      assert.equal(deletedProduct.image, mockProduct.image);
+      assert.equal(deletedProduct.rating, mockProduct.rating);
+      assert.equal(deletedProduct.numReviews, mockProduct.numReviews);
+      const productInDb = await Product.findById(mockProduct._id).lean();
+      assert.strictEqual(productInDb, null);
     });
 
-    test("Should return 'null' if product does not exist", async () => {
-      const mockId = generateMockObjectId();
+    test("should invalidate product cache when 'db.delete' is called successfully", async () => {
+      // Arrange
+      const mockProduct = generateMockSelectProduct();
+      await productRepository.create(mockProduct);
+      const cacheKey = mockProduct._id.toString();
 
-      const deletedProduct = await repo.delete({ productId: mockId });
+      // Act
+      await productRepository.delete({ productId: mockProduct._id });
 
-      assert.equal(deletedProduct, null);
+      // Assert
+      const cachedProduct = cacheManager.get<SelectProduct>({
+        key: cacheKey,
+      });
+      assert.strictEqual(cachedProduct, undefined);
+    });
+
+    test(
+      "should invalidate top-rated cache when 'db.delete' is called successfully",
+      { todo: true },
+    );
+
+    test("should return null when 'db.delete' is called with non-existent ID", async () => {
+      // Arrange
+      const nonExistentId = generateMockObjectId();
+
+      // Act
+      const deletedProduct = await productRepository.delete({
+        productId: nonExistentId,
+      });
+
+      // Assert
+      assert.strictEqual(deletedProduct, null);
+    });
+
+    test("should throw DatabaseValidationError when 'delete' is called with invalid ObjectId", async () => {
+      // Arrange
+      const invalidId = "invalid-id" as unknown as Types.ObjectId;
+
+      // Act & Assert
+      await assert.rejects(
+        async () => await productRepository.delete({ productId: invalidId }),
+        DatabaseValidationError,
+      );
+    });
+  });
+
+  describe("count", () => {
+    test("should return total count when 'db.count' is called without query", async () => {
+      // Arrange
+      const mockProducts = generateMockSelectProducts({ count: 3 });
+      await Product.insertMany(mockProducts);
+
+      // Act
+      const count = await productRepository.count({});
+
+      // Assert
+      assert.equal(count, mockProducts.length);
+    });
+
+    test("should return filtered count when 'db.count' is called with query filters", async () => {
+      // Arrange
+      const mockProducts = generateMockSelectProducts({ count: 5 });
+      const targetBrand = mockProducts[0].brand;
+      const productsWithTargetBrand = mockProducts.filter(
+        (p) => p.brand === targetBrand,
+      );
+      await Product.insertMany(mockProducts);
+
+      // Act
+      const count = await productRepository.count({ brand: targetBrand });
+
+      // Assert
+      assert.equal(count, productsWithTargetBrand.length);
+    });
+
+    test("should return 0 when 'db.count' is called and no products match criteria", async () => {
+      // Arrange
+      const mockProducts = generateMockSelectProducts({ count: 3 });
+      await Product.insertMany(mockProducts);
+
+      // Act
+      const count = await productRepository.count({
+        brand: "Non-existent Brand",
+      });
+
+      // Assert
+      assert.equal(count, 0);
     });
   });
 });
