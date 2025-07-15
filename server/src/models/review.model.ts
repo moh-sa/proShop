@@ -58,5 +58,14 @@ reviewSchema.post("save", async function () {
   await updateProductRating(this.product);
 });
 
+reviewSchema.post(
+  ["findOneAndUpdate", "findOneAndDelete"],
+  async function (doc) {
+    if (doc) {
+      await updateProductRating(doc.product);
+    }
+  },
+);
+
 const Review = model("Review", reviewSchema);
 export default Review;
