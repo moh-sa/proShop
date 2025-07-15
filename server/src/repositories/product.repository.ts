@@ -41,11 +41,7 @@ export class ProductRepository implements IProductRepository {
   async create(data: InsertProductWithStringImage): Promise<SelectProduct> {
     try {
       const product = (await this._db.create(data)).toObject();
-
-      const cacheKey = this._cache.generateCacheKey({
-        id: product._id.toString(),
-      });
-      this._cache.set({ key: cacheKey, value: product });
+      this._cache.set({ key: product._id.toString(), value: product });
 
       return product;
     } catch (error) {
@@ -58,14 +54,16 @@ export class ProductRepository implements IProductRepository {
   }: {
     productId: Types.ObjectId;
   }): Promise<SelectProduct | null> {
-    const cacheKey = this._cache.generateCacheKey({ id: productId.toString() });
-    const cachedProduct = this._cache.get<SelectProduct>({ key: cacheKey });
+    const cacheId = productId.toString();
+    const cachedProduct = this._cache.get<SelectProduct>({
+      key: cacheId,
+    });
     if (cachedProduct) return cachedProduct;
 
     try {
       const product = await this._db.findById(productId).lean();
       if (product) {
-        this._cache.set({ key: cacheKey, value: product });
+        this._cache.set({ key: cacheId, value: product });
       }
 
       return product;
@@ -120,7 +118,7 @@ export class ProductRepository implements IProductRepository {
   }: {
     limit: number;
   }): Promise<Array<TopRatedProduct>> {
-    const cacheKey = this._cache.generateCacheKey({ id: "top-rated" });
+    const cacheKey = "top-rated";
     const cachedProducts = this._cache.get<Array<TopRatedProduct>>({
       key: cacheKey,
     });
@@ -149,11 +147,8 @@ export class ProductRepository implements IProductRepository {
     numberOfProductsPerPage: number;
     currentPage: number;
   }): Promise<Array<AllProducts>> {
-    const cacheKey = this._cache.generateCacheKey({
-      id: `all-${data.currentPage}`,
-    });
     const cachedProducts = this._cache.get<Array<AllProducts>>({
-      key: cacheKey,
+      key: `all-${data.currentPage}`,
     });
     if (cachedProducts) return cachedProducts;
 
@@ -183,8 +178,7 @@ export class ProductRepository implements IProductRepository {
 
   private _invalidateProductCache({ id }: { id: string }): void {
     // Delete specific product cache
-    const cacheKey = this._cache.generateCacheKey({ id });
-    this._cache.delete({ key: cacheKey });
+    this._cache.delete({ key: id });
 
     // Delete all top-rated caches as they might be affected
     const stats = this._cache.getStats();
