@@ -41,24 +41,9 @@ export class CacheManager implements ICacheManager {
       ...config,
     });
 
-    CacheManager._instances[namespace] = this;
-
     // Error handling
     // type can be: "error" | "expired" | "del" | "set" | "get" | "flush"
     // this.cache.on(type, (error) => {});
-  }
-
-  public static getInstance(
-    namespace: Namespace,
-    config?: Partial<CacheConfig>,
-  ): IPublicCacheManager {
-    if (!this._instances[namespace]) {
-      this._instances[namespace] = new CacheManager(namespace, config);
-    }
-    // Now we're sure it exists
-    return {
-      flush: this._instances[namespace]!.flush.bind(this._instances[namespace]),
-    };
   }
 
   set(args: { key: string; value: {}; ttl?: number }): true {
