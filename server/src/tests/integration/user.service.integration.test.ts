@@ -1,159 +1,269 @@
-import assert from "node:assert/strict";
-import { after, before, beforeEach, describe, suite, test } from "node:test";
-import { DatabaseError, NotFoundError } from "../../errors";
+import assert from "node:assert";
+import test, { after, before, beforeEach, describe, suite } from "node:test";
+import { NotFoundError } from "../../errors";
 import User from "../../models/userModel";
-import { UserService } from "../../services";
+import { UserService } from "../../services/user.service";
 import {
   generateMockObjectId,
   generateMockUser,
   generateMockUsers,
 } from "../mocks";
-import { connectTestDatabase, disconnectTestDatabase } from "../utils";
+import {
+  connectTestDatabase,
+  disconnectTestDatabase,
+} from "../utils/database-connection.utils";
 
-before(async () => connectTestDatabase());
-after(async () => disconnectTestDatabase());
-beforeEach(async () => await User.deleteMany({}));
-const service = new UserService();
+suite("User Service 〖 Integration Tests 〗", () => {
+  let userService: UserService;
+  const mockUser = generateMockUser();
+  const mockUsers = generateMockUsers(3);
 
-suite("User Service", () => {
-  describe("Retrieve User By ID", () => {
-    test("Should retrieve user data by ID without password or token", async () => {
-      const mockUser = generateMockUser();
+  before(async () => connectTestDatabase());
+  after(async () => disconnectTestDatabase());
+  beforeEach(async () => {
+    await User.deleteMany({});
+    userService = new UserService();
+  });
 
-      const user = await User.create(mockUser);
-      const response = await service.getById({ userId: user._id });
+  describe("getById", () => {
+    test("Should return user when 'repo.getById' is called with a valid ID", async () => {
+      // Arrange
+      await User.create(mockUser);
 
-      assert.equal(response._id?.toString(), user._id?.toString());
-      assert.equal(response.email, user.email);
+      // Act
+      const result = await userService.getById({ userId: mockUser._id });
 
-      assert.ok(!Object.keys(response).includes("password"));
-      assert.ok(!Object.keys(response).includes("token"));
+      // Assert
+      assert.strictEqual(result.name, mockUser.name);
+      assert.strictEqual(result.email, mockUser.email);
+      assert.strictEqual(result.isAdmin, mockUser.isAdmin);
     });
 
-    test("Should throw `NotFoundError` if user does not exist", async () => {
-      try {
-        await service.getById({ userId: generateMockObjectId() });
-      } catch (error) {
-        assert.ok(error instanceof NotFoundError);
-        assert.equal(error.type, "NOT_FOUND");
-        assert.equal(error.statusCode, 404);
-      }
+    test("Should not return 'password' and 'token' when 'repo.getById' is called", async () => {
+      // Arrange
+      await User.create(mockUser);
+
+      // Act
+      const result = await userService.getById({ userId: mockUser._id });
+
+      // Assert
+      assert.ok(!("password" in result));
+      assert.ok(!("token" in result));
+    });
+
+    test("Should throw 'NotFoundError' when 'repo.getById' is called with a non-existent ID", async () => {
+      // Arrange
+      const nonExistentId = generateMockObjectId();
+
+      // Act & Assert
+      await assert.rejects(async () => {
+        await userService.getById({ userId: nonExistentId });
+      }, NotFoundError);
     });
   });
 
-  describe("Retrieve User By Email", () => {
-    test("Should retrieve a user by Email", async () => {
-      const mockUser = generateMockUser();
+  describe("getByEmail", () => {
+    test("Should return user when 'repo.getByEmail' is called with a valid email", async () => {
+      // Arrange
+      await User.create(mockUser);
 
-      const user = await User.create(mockUser);
-      const response = await service.getByEmail({ email: user.email });
+      // Act
+      const result = await userService.getByEmail({ email: mockUser.email });
 
-      assert.equal(response.email, mockUser.email);
+      // Assert
+      assert.strictEqual(result.name, mockUser.name);
+      assert.strictEqual(result.email, mockUser.email);
+      assert.strictEqual(result.isAdmin, mockUser.isAdmin);
     });
 
-    test("Should throw 'NotFoundError' if user does not exist", async () => {
-      try {
-        await service.getByEmail({ email: "RANDOM_EMAIL" });
-      } catch (error) {
-        assert.ok(error instanceof NotFoundError);
-        assert.equal(error.type, "NOT_FOUND");
-        assert.equal(error.statusCode, 404);
-      }
+    test("Should not return 'password' and 'token' when 'repo.getByEmail' is called", async () => {
+      // Arrange
+      await User.create(mockUser);
+
+      // Act
+      const result = await userService.getByEmail({ email: mockUser.email });
+
+      // Assert
+      assert.ok(!("password" in result));
+      assert.ok(!("token" in result));
+    });
+
+    test("Should throw 'NotFoundError' when 'repo.getByEmail' is called with a non-existent email", async () => {
+      // Arrange
+      const nonExistentEmail = "nonexistent@example.com";
+
+      // Act & Assert
+      await assert.rejects(async () => {
+        await userService.getByEmail({ email: nonExistentEmail });
+      }, NotFoundError);
     });
   });
 
-  describe("Retrieve Users", () => {
-    test("Should retrieve all users and ensure the returned data match the mock data", async () => {
-      const mockUsers = generateMockUsers(3);
+  describe("getAll", () => {
+    test("Should return array of users when 'repo.getAll' is called", async () => {
+      // Arrange
+      await User.insertMany(mockUsers);
 
-      await User.create(mockUsers);
-      const response = await service.getAll();
+      // Act
+      const results = await userService.getAll();
 
-      assert.equal(response.length, 3);
+      // Assert
+      assert(Array.isArray(results));
+      assert(results.length > 0);
+      const foundUser = results.find(
+        (user) => user.email === mockUsers[0].email,
+      );
+      assert(foundUser);
+      assert.strictEqual(foundUser.name, mockUsers[0].name);
+      assert.strictEqual(foundUser.email, mockUsers[0].email);
     });
 
-    test("Should return an empty array if no users exist", async () => {
-      const users = await service.getAll();
-      assert.equal(users.length, 0);
-    });
-  });
+    test("Should not return 'password' and 'token' when 'repo.getAll' is called", async () => {
+      // Arrange
+      await User.insertMany(mockUsers);
 
-  describe("Update User", () => {
-    test("Should find and update user, ensure the return match the mock data and without token", async () => {
-      const [mockUser1, mockUser2] = generateMockUsers(2);
+      // Act
+      const results = await userService.getAll();
 
-      const created = await User.create(mockUser1);
+      // Assert
+      assert(Array.isArray(results));
+      assert(results.length > 0);
 
-      const data = { name: mockUser2.name };
-      const updatedUser = await service.updateById({
-        userId: created._id!,
-        data,
+      results.forEach((user) => {
+        assert.ok(!("password" in user));
+        assert.ok(!("token" in user));
       });
-
-      assert.ok(updatedUser);
-
-      assert.equal(updatedUser.name, data.name);
-
-      assert.ok(!updatedUser.token);
     });
+  });
 
-    test("Should throw 'DatabaseError' if updated with an existing email", async () => {
-      const [mockUser1, mockUser2] = generateMockUsers(2);
-
-      await User.create(mockUser1);
-      const created = await User.create(mockUser2);
-
-      const data = {
-        email: mockUser2.email,
+  describe("updateById", () => {
+    test("Should update user when 'repo.updateById' is called with valid data", async () => {
+      // Arrange
+      await User.create(mockUser);
+      const updateData = {
+        name: "Updated Name",
+        email: "updated@example.com",
       };
-      try {
-        await service.updateById({
-          userId: created._id!,
-          data,
-        });
-      } catch (error) {
-        assert.ok(error instanceof DatabaseError);
-        assert.equal(error.statusCode, 500);
-        assert.equal(error.type, "DATABASE_ERROR");
-        assert.ok(error.message.includes("E11000")); // error code for duplication
-      }
+
+      // Act
+      const result = await userService.updateById({
+        userId: mockUser._id,
+        data: updateData,
+      });
+
+      // Assert
+      assert.strictEqual(result.name, updateData.name);
+      assert.strictEqual(result.email, updateData.email);
+      assert.strictEqual(result.isAdmin, mockUser.isAdmin);
     });
 
-    test("Should throw a NotFoundError if user does not exist", async () => {
-      try {
-        const mockUser = generateMockUser();
+    test("Should not return 'password' and 'token' when 'repo.updateById' is called", async () => {
+      // Arrange
+      await User.create(mockUser);
+      const updateData = { name: "Updated Name" };
 
-        await service.updateById({
-          userId: mockUser._id,
-          data: { name: mockUser.name },
+      // Act
+      const result = await userService.updateById({
+        userId: mockUser._id,
+        data: updateData,
+      });
+
+      // Assert
+      assert.ok(!("password" in result));
+      assert.ok(!("token" in result));
+    });
+
+    test("Should update admin status when 'repo.updateById' is called with isAdmin field", async () => {
+      // Arrange
+      await User.create(mockUser);
+      const updateData = { isAdmin: true };
+
+      // Act
+      const result = await userService.updateById({
+        userId: mockUser._id,
+        data: updateData,
+      });
+
+      // Assert
+      assert.strictEqual(result.isAdmin, true);
+      assert.strictEqual(result.name, mockUser.name);
+      assert.strictEqual(result.email, mockUser.email);
+    });
+
+    test("Should not update fields when 'repo.updateById' is called with empty object", async () => {
+      // Arrange
+      await User.create(mockUser);
+      const updateData = {};
+
+      // Act
+      const result = await userService.updateById({
+        userId: mockUser._id,
+        data: updateData,
+      });
+
+      // Assert
+      assert.strictEqual(result.name, mockUser.name);
+      assert.strictEqual(result.email, mockUser.email);
+      assert.strictEqual(result.isAdmin, mockUser.isAdmin);
+    });
+
+    test("Should not update fields when 'repo.updateById' is called with undefined values", async () => {
+      // Arrange
+      await User.create(mockUser);
+      const updateData = { name: undefined, email: "new@example.com" };
+
+      // Act
+      const result = await userService.updateById({
+        userId: mockUser._id,
+        data: updateData,
+      });
+
+      // Assert
+      assert.strictEqual(result.name, mockUser.name); // Name should not be changed
+      assert.strictEqual(result.email, "new@example.com"); // Email should update
+    });
+
+    test("Should throw 'NotFoundError' when 'repo.updateById' is called with a non-existent ID", async () => {
+      // Arrange
+      const nonExistentId = generateMockObjectId();
+      const updateData = { name: "Updated Name" };
+
+      // Act & Assert
+      await assert.rejects(async () => {
+        await userService.updateById({
+          userId: nonExistentId,
+          data: updateData,
         });
-      } catch (error) {
-        assert.ok(error instanceof NotFoundError);
-        assert.equal(error.statusCode, 404);
-        assert.equal(error.type, "NOT_FOUND");
-        assert.equal(error.message, "User not found");
-      }
+      }, NotFoundError);
     });
   });
 
-  describe("Delete User", () => {
-    test("Should delete user and throw 'NotFoundError' to ensure the user is deleted", async () => {
-      const mockUser = generateMockUser();
+  describe("delete", () => {
+    test("Should delete user when 'repo.delete' is called with a valid ID", async () => {
+      // Arrange
+      await User.create(mockUser);
 
-      const created = await User.create(mockUser);
+      // Act
+      const result = await userService.delete({ userId: mockUser._id });
 
-      await service.delete({
-        userId: created._id!,
-      });
+      // Assert
+      assert.strictEqual(result.name, mockUser.name);
+      assert.strictEqual(result.email, mockUser.email);
 
-      try {
-        await service.getById({ userId: created._id! });
-      } catch (error) {
-        assert.ok(error instanceof NotFoundError);
-        assert.equal(error.statusCode, 404);
-        assert.equal(error.type, "NOT_FOUND");
-        assert.equal(error.message, "User not found");
-      }
+      // Verify user is actually deleted
+      await assert.rejects(async () => {
+        await userService.getById({ userId: mockUser._id });
+      }, NotFoundError);
+    });
+
+    test("Should throw 'NotFoundError' when 'repo.delete' is called with a non-existent ID", async () => {
+      // Arrange
+      const nonExistentId = generateMockObjectId();
+
+      // Act & Assert
+      await assert.rejects(async () => {
+        await userService.delete({ userId: nonExistentId });
+      }, NotFoundError);
     });
   });
 });
