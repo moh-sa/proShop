@@ -1,226 +1,531 @@
-import assert from "node:assert/strict";
-import { after, before, beforeEach, describe, suite, test } from "node:test";
-import { DatabaseError, NotFoundError } from "../../errors";
+import assert from "node:assert";
+import test, { after, before, beforeEach, describe, suite } from "node:test";
+import { DatabaseDuplicateKeyError, NotFoundError } from "../../errors";
 import Product from "../../models/productModel";
 import Review from "../../models/review.model";
 import User from "../../models/userModel";
-import { ReviewService } from "../../services";
+import { ReviewService } from "../../services/review.service";
+import { InsertReview } from "../../types";
 import {
+  generateMockInsertProductWithStringImage,
+  generateMockInsertReview,
+  generateMockInsertReviews,
   generateMockObjectId,
-  generateMockReview,
-  generateMockReviews,
   generateMockSelectProduct,
 } from "../mocks";
-import { connectTestDatabase, disconnectTestDatabase } from "../utils";
+import {
+  connectTestDatabase,
+  disconnectTestDatabase,
+} from "../utils/database-connection.utils";
 
-before(async () => connectTestDatabase());
-after(async () => disconnectTestDatabase());
-beforeEach(async () => {
-  await User.deleteMany({});
-  await Product.deleteMany({});
-  await Review.deleteMany({});
-});
-const service = new ReviewService();
+suite("Review Service 〖 Integration Tests 〗", () => {
+  const reviewService = new ReviewService();
 
-suite("Review Service", () => {
-  describe("Create Review", () => {
-    test("Should create new review and return the data", async () => {
-      const mockReview = generateMockReview();
+  function calculateAvgRating(reviews: Array<InsertReview>): number {
+    const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+    const avg = sum / reviews.length;
+    const float = parseFloat(avg.toFixed(1));
+    return float;
+  }
 
-      const response = await service.create({ data: mockReview });
-
-      assert.ok(response);
-      assert.equal(response.name, mockReview.name);
-      assert.equal(response.rating, mockReview.rating);
-    });
-
-    test("Should throw 'DatabaseError' if the review already exists", async () => {
-      const mockReview = generateMockReview();
-      await Review.create(mockReview);
-
-      try {
-        // creating duplicate review
-        await service.create({ data: mockReview });
-      } catch (error) {
-        assert.ok(error instanceof DatabaseError);
-        assert.equal(error.statusCode, 500);
-        assert.ok(error.message.includes("E11000")); // error code for duplication
-      }
-    });
-
-    test("Should throw 'DatabaseError' if the product was already reviewed by the same user", async () => {
-      const mockReview = generateMockReview();
-
-      await Review.create(mockReview);
-
-      try {
-        // creating duplicate review
-        await service.create({ data: mockReview });
-      } catch (error) {
-        assert.ok(error instanceof DatabaseError);
-        assert.equal(error.statusCode, 500);
-        assert.ok(error.message.includes("E11000")); // error code for duplication
-      }
-    });
+  before(async () => connectTestDatabase());
+  after(async () => disconnectTestDatabase());
+  beforeEach(async () => {
+    await Review.deleteMany({});
+    await Product.deleteMany({});
+    await User.deleteMany({});
   });
 
-  describe("Retrieve Review By ID", () => {
-    test("Should retrieve a review by ID and return the data", async () => {
-      const mockReview = generateMockReview();
-      await Review.create(mockReview);
+  describe("create", () => {
+    test("Should create a new review when 'repo.create' is called with valid review data", async () => {
+      // Arrange
+      const mockReview = generateMockInsertReview();
 
-      const response = await service.getById({ reviewId: mockReview._id });
+      // Act
+      const review = await reviewService.create(mockReview);
 
-      assert.ok(response);
-      assert.equal(response.name, mockReview.name);
-      assert.equal(response.comment, mockReview.comment);
-      assert.equal(response.rating, mockReview.rating);
+      // Assert
+      assert.ok(review);
+      assert.strictEqual(review.name, mockReview.name);
+      assert.strictEqual(review.rating, mockReview.rating);
+      assert.strictEqual(review.comment, mockReview.comment);
+      assert.strictEqual(review.user.toString(), mockReview.user.toString());
+      assert.strictEqual(
+        review.product.toString(),
+        mockReview.product.toString(),
+      );
     });
 
-    test("Should throw 'NotFoundError' if review does not exist", async () => {
-      const mockId = generateMockObjectId();
+    test("Should update product 'rating' and 'numReviews' when 'repo.create' is called with valid review data", async () => {
+      // Arrange
+      const mockProduct = generateMockInsertProductWithStringImage();
+      const product = await Product.create(mockProduct);
+      const mockReview = generateMockInsertReview({ product: product._id });
 
-      try {
-        await service.getById({ reviewId: mockId });
-      } catch (error) {
-        assert.ok(error instanceof NotFoundError);
-        assert.equal(error.statusCode, 404);
-        assert.equal(error.message, "Review not found");
-      }
-    });
-  });
+      // Act
+      await reviewService.create(mockReview);
 
-  describe("Retrieve Reviews", () => {
-    test("Should retrieve array (4) of reviews", async () => {
-      const mockReviews = generateMockReviews(4);
-      await Review.insertMany(mockReviews);
-
-      const response = await service.getAll();
-      assert.ok(response);
-      assert.equal(response.length, 4);
-
-      const allComments = response.map((review) => review.comment);
-      assert.ok(allComments.includes(mockReviews[0].comment));
+      // Assert
+      const updatedProduct = await Product.findById(product._id);
+      assert.ok(updatedProduct);
+      assert.strictEqual(updatedProduct.rating, mockReview.rating);
+      assert.strictEqual(updatedProduct.numReviews, 1);
     });
 
-    test("Should return an empty (0) array if no reviews exist", async () => {
-      const reviews = await service.getAll();
-      assert.equal(reviews.length, 0);
-    });
-  });
-
-  describe("Retrieve Reviews By User ID", () => {
-    test("Should retrieve (3) reviews for a specific user", async () => {
-      const mockReviews = generateMockReviews(4);
-      mockReviews[1].user = mockReviews[0].user;
-      mockReviews[2].user = mockReviews[0].user;
-
-      await Review.insertMany(mockReviews);
-
-      const response = await service.getAllByUserId({
-        userId: mockReviews[0].user,
-      });
-
-      assert.ok(response);
-      assert.equal(response.length, 3);
-    });
-
-    test("Should return an empty (0) array if no reviews exist", async () => {
-      const mockReviews = generateMockReviews(4);
-      await Review.insertMany(mockReviews);
-
-      const response = await service.getAllByUserId({
-        userId: generateMockObjectId(),
-      });
-      assert.equal(response.length, 0);
-    });
-  });
-
-  describe("Retrieve Reviews By Product ID", () => {
-    test("Should retrieve all (2) reviews for a specific product", async () => {
+    test("Should update the product 'rating' and 'numReviews' when 'repo.create' is called multiple times with valid review data", async () => {
+      // Arrange
       const mockProduct = generateMockSelectProduct();
-      const mockReviews = generateMockReviews(6);
-      mockReviews[0].product = mockProduct._id;
-      mockReviews[1].product = mockProduct._id;
-
-      await Review.insertMany(mockReviews);
-
-      const reviews = await service.getAllByProductId({
-        productId: mockProduct._id,
+      const mockReviews = generateMockInsertReviews({
+        count: 3,
+        options: { product: mockProduct._id },
       });
 
-      assert.ok(reviews);
-      assert.equal(reviews.length, 2);
+      await Product.create(mockProduct);
+
+      // Act
+      await Promise.all(
+        mockReviews.map(async (review) => await reviewService.create(review)),
+      );
+
+      // Assert
+      const updatedProduct = await Product.findById(mockProduct._id);
+      assert.ok(updatedProduct);
+      assert.strictEqual(updatedProduct.numReviews, mockReviews.length);
+      assert.strictEqual(
+        updatedProduct.rating,
+        calculateAvgRating(mockReviews),
+      );
     });
 
-    test("Should return an empty array if no reviews exist", async () => {
-      const mockReviews = generateMockReviews(4);
-      await Review.insertMany(mockReviews);
+    test("Should throw 'DatabaseDuplicateKeyError' when 'repo.create' is called with duplicate user-product review", async () => {
+      // Arrange
+      const mockReview = generateMockInsertReview();
+      await reviewService.create(mockReview);
 
-      const reviews = await service.getAllByProductId({
-        productId: generateMockObjectId(),
-      });
-
-      assert.equal(reviews.length, 0);
+      // Act & Assert
+      await assert.rejects(async () => {
+        await reviewService.create(mockReview); //same user-product review
+      }, DatabaseDuplicateKeyError);
     });
   });
 
-  describe("Update Review", () => {
-    test("Should find and update a review by ID and return the updated data", async () => {
-      const mockReview = generateMockReview();
-      await Review.create(mockReview);
+  describe("getById", () => {
+    test("Should return review when 'repo.getById' is called with valid review ID", async () => {
+      // Arrange
+      const mockReview = generateMockInsertReview();
+      const createdReview = await reviewService.create(mockReview);
 
-      const updateData = { comment: "RANDOM_COMMENT" };
-      const updated = await service.update({
-        reviewId: mockReview._id,
+      // Act
+      const result = await reviewService.getById({
+        reviewId: createdReview._id,
+      });
+
+      // Assert
+      assert.strictEqual(result.name, mockReview.name);
+      assert.strictEqual(result.rating, mockReview.rating);
+      assert.strictEqual(result.comment, mockReview.comment);
+      assert.deepStrictEqual(result.user, mockReview.user);
+      assert.deepStrictEqual(result.product, mockReview.product);
+    });
+
+    test("Should throw 'NotFoundError' when 'repo.getById' is called with non-existent review ID", async () => {
+      // Arrange
+      const nonExistentId = generateMockObjectId();
+
+      // Act & Assert
+      await assert.rejects(async () => {
+        await reviewService.getById({ reviewId: nonExistentId });
+      }, NotFoundError);
+    });
+  });
+
+  describe("getAll", () => {
+    test("Should return all reviews when 'repo.getAll' is called with multiple reviews in database", async () => {
+      // Arrange
+      const mockReviews = generateMockInsertReviews({ count: 3 });
+      await Review.insertMany(mockReviews);
+
+      // Act
+      const results = await reviewService.getAll();
+
+      // Assert
+      assert(Array.isArray(results));
+      assert.strictEqual(results.length, mockReviews.length);
+      results.forEach((result, index) => {
+        const review = mockReviews[index];
+        assert.ok(result._id);
+        assert.ok(result.createdAt);
+        assert.ok(result.updatedAt);
+        assert.strictEqual(result.user.toString(), review.user.toString());
+        assert.strictEqual(
+          result.product.toString(),
+          review.product.toString(),
+        );
+        assert.strictEqual(result.name, review.name);
+        assert.strictEqual(result.rating, review.rating);
+        assert.strictEqual(result.comment, review.comment);
+      });
+    });
+
+    test("Should return empty array when 'repo.getAll' is called with no reviews in database", async () => {
+      // Act
+      const results = await reviewService.getAll();
+
+      // Assert
+      assert(Array.isArray(results));
+      assert.strictEqual(results.length, 0);
+    });
+  });
+
+  describe("getAllByUserId", () => {
+    test("Should return all user reviews when 'repo.getAllByUserId' is called with user having multiple reviews", async () => {
+      // Arrange
+      const userId = generateMockObjectId();
+      const mockReviews = generateMockInsertReviews({
+        count: 3,
+        options: { user: userId },
+      });
+      const otherReviews = generateMockInsertReviews({
+        count: 3,
+      });
+      await Review.insertMany([...mockReviews, ...otherReviews]);
+
+      // Act
+      const results = await reviewService.getAllByUserId({ userId });
+
+      // Assert
+      assert(Array.isArray(results));
+      assert.strictEqual(results.length, mockReviews.length);
+
+      // Verify all reviews belong to the user
+      results.forEach((result) => {
+        assert.deepStrictEqual(result.user.toString(), userId.toString());
+      });
+    });
+
+    test("Should return empty array when 'repo.getAllByUserId' is called with user having no reviews", async () => {
+      // Arrange
+      const userId = generateMockObjectId();
+
+      // Act
+      const results = await reviewService.getAllByUserId({ userId });
+
+      // Assert
+      assert(Array.isArray(results));
+      assert.strictEqual(results.length, 0);
+    });
+  });
+
+  describe("getAllByProductId", () => {
+    test("Should return all product reviews when 'repo.getAllByProductId' is called with product having multiple reviews", async () => {
+      // Arrange
+      const productId = generateMockObjectId();
+      const mockReviews = generateMockInsertReviews({
+        count: 3,
+        options: { product: productId },
+      });
+      const otherReviews = generateMockInsertReviews({ count: 3 });
+      await Review.insertMany([...mockReviews, ...otherReviews]);
+
+      // Act
+      const results = await reviewService.getAllByProductId({ productId });
+
+      // Assert
+      assert(Array.isArray(results));
+      assert.strictEqual(results.length, mockReviews.length);
+
+      // Verify all reviews belong to the product
+      results.forEach((result) => {
+        assert.deepStrictEqual(result.product.toString(), productId.toString());
+      });
+    });
+
+    test("Should return empty array when 'repo.getAllByProductId' is called with product having no reviews", async () => {
+      // Arrange
+      const productId = generateMockObjectId();
+      const mockReviews = generateMockInsertReviews({ count: 3 });
+      await Review.insertMany(mockReviews);
+
+      // Act
+      const results = await reviewService.getAllByProductId({ productId });
+
+      // Assert
+      assert(Array.isArray(results));
+      assert.strictEqual(results.length, 0);
+    });
+  });
+
+  describe("update", () => {
+    test("Should update review when 'repo.update' is called with valid review ID and data", async () => {
+      // Arrange
+      const mockReview = generateMockInsertReview();
+      const createdReview = await Review.create(mockReview);
+      const updateData: Partial<InsertReview> = {
+        name: "Updated Name",
+        comment: "Updated Comment",
+      };
+
+      // Act
+      const result = await reviewService.update({
+        reviewId: createdReview._id,
         data: updateData,
       });
 
-      assert.ok(updated);
-      assert.equal(updated.comment, updateData.comment);
+      // Assert
+      assert.strictEqual(result.name, updateData.name);
+      assert.strictEqual(result.comment, updateData.comment);
+
+      // Ensure other fields are unchanged
+      assert.strictEqual(result.rating, mockReview.rating);
+      assert.strictEqual(result.user.toString(), mockReview.user.toString());
+      assert.strictEqual(
+        result.product.toString(),
+        mockReview.product.toString(),
+      );
     });
 
-    test("Should throw 'NotFoundError' if review does not exist", async () => {
-      const mockReview = generateMockReview();
+    test("Should update product 'rating' when 'repo.update' is called with new rating value", async () => {
+      // Arrange
+      const mockProduct = generateMockSelectProduct();
+      await Product.create(mockProduct);
 
-      try {
-        await service.update({
-          reviewId: mockReview._id,
-          data: { comment: "RANDOM_COMMENT" },
+      const mockReview = generateMockInsertReview({
+        product: mockProduct._id,
+        rating: 3,
+      });
+      const createdReview = await reviewService.create(mockReview);
+
+      const updateData = { rating: 5 };
+      const updatedMock = { ...mockReview, ...updateData };
+      const updatedRating = calculateAvgRating([updatedMock]);
+
+      // Act
+      await reviewService.update({
+        reviewId: createdReview._id,
+        data: updateData,
+      });
+
+      // Assert
+      const updatedProduct = await Product.findById(mockReview.product);
+      assert.ok(updatedProduct);
+      assert.strictEqual(updatedProduct.numReviews, 1);
+      assert.strictEqual(updatedProduct.rating, updatedRating);
+    });
+
+    test("Should throw 'NotFoundError' when 'repo.update' is called with non-existent review ID", async () => {
+      // Arrange
+      const nonExistentId = generateMockObjectId();
+      const updateData = { name: "Updated Name" };
+
+      // Act & Assert
+      await assert.rejects(async () => {
+        await reviewService.update({
+          reviewId: nonExistentId,
+          data: updateData,
         });
-      } catch (error) {
-        assert.ok(error instanceof NotFoundError);
-        assert.equal(error.statusCode, 404);
-        assert.equal(error.message, "Review not found");
-      }
+      }, NotFoundError);
     });
   });
 
-  describe("Delete Review", () => {
-    test("Should delete a review by ID and throw 'NotFoundError' to ensure the review is deleted", async () => {
-      const mockReview = generateMockReview();
-      await Review.create(mockReview);
+  describe("delete", () => {
+    test("Should delete review when 'repo.delete' is called with valid review ID", async () => {
+      // Arrange
+      const mockReview = generateMockInsertReview();
+      const createdReview = await Review.create(mockReview);
 
-      const deleted = await service.delete({
-        reviewId: mockReview._id,
+      // Act
+      const result = await reviewService.delete({
+        reviewId: createdReview._id,
       });
 
-      assert.ok(deleted);
-      assert.equal(deleted.comment, mockReview.comment);
+      // Assert
+      assert.strictEqual(result.name, mockReview.name);
+      assert.strictEqual(result.rating, mockReview.rating);
+      assert.strictEqual(result.comment, mockReview.comment);
+      assert.deepStrictEqual(result.user, mockReview.user);
+      assert.deepStrictEqual(result.product, mockReview.product);
+
+      // Verify review is actually deleted
+      const deletedReview = await Review.findById(createdReview._id);
+      assert.strictEqual(deletedReview, null);
     });
 
-    test("Should throw 'NotFoundError' if review does not exist", async () => {
-      const mockId = generateMockObjectId();
+    test("Should update product 'rating' and 'numReviews' when 'repo.delete' is called with valid review ID", async () => {
+      // Arrange
+      const mockProduct = generateMockSelectProduct();
+      await Product.create(mockProduct);
 
-      try {
-        await service.delete({
-          reviewId: mockId,
+      const mockReview = generateMockInsertReview({
+        product: mockProduct._id,
+      });
+      const createdReview = await reviewService.create(mockReview);
+
+      // Act
+      await reviewService.delete({ reviewId: createdReview._id });
+
+      // Assert
+      const updatedProduct = await Product.findById(mockReview.product);
+      assert.ok(updatedProduct);
+      assert.strictEqual(updatedProduct.rating, 0);
+      assert.strictEqual(updatedProduct.numReviews, 0);
+    });
+
+    test("Should throw 'NotFoundError' when 'repo.delete' is called with non-existent review ID", async () => {
+      // Arrange
+      const nonExistentId = generateMockObjectId();
+
+      // Act & Assert
+      await assert.rejects(async () => {
+        await reviewService.delete({ reviewId: nonExistentId });
+      }, NotFoundError);
+    });
+  });
+
+  describe("count", () => {
+    test("Should return correct count when 'repo.count' is called with multiple reviews in database", async () => {
+      // Arrange
+      const mockReviews = generateMockInsertReviews({ count: 3 });
+      await Review.insertMany(mockReviews);
+
+      // Act
+      const count = await reviewService.count();
+
+      // Assert
+      assert.strictEqual(count, mockReviews.length);
+    });
+
+    test("Should return 0 when 'repo.count' is called with no reviews in database", async () => {
+      // Act
+      const count = await reviewService.count();
+
+      // Assert
+      assert.strictEqual(count, 0);
+    });
+  });
+
+  describe("countByUserId", () => {
+    test("Should return correct count when 'repo.countByUserId' is called with user having multiple reviews", async () => {
+      // Arrange
+      const userId = generateMockObjectId();
+      const mockReviews = generateMockInsertReviews({
+        count: 3,
+        options: { user: userId },
+      });
+      const otherReviews = generateMockInsertReviews({ count: 3 });
+      await Review.insertMany([...mockReviews, ...otherReviews]);
+
+      // Act
+      const count = await reviewService.countByUserId({ userId });
+
+      // Assert
+      assert.strictEqual(count, mockReviews.length);
+    });
+
+    test("Should return 0 when 'repo.countByUserId' is called with user having no reviews", async () => {
+      // Arrange
+      const userId = generateMockObjectId();
+      const mockReviews = generateMockInsertReviews({ count: 3 });
+      await Review.insertMany(mockReviews);
+
+      // Act
+      const count = await reviewService.countByUserId({ userId });
+
+      // Assert
+      assert.strictEqual(count, 0);
+    });
+  });
+
+  describe("countByProductId", () => {
+    test("Should return correct count when 'repo.countByProductId' is called with product having multiple reviews", async () => {
+      // Arrange
+      const productId = generateMockObjectId();
+      const mockReviews = generateMockInsertReviews({
+        count: 3,
+        options: { product: productId },
+      });
+      const otherReviews = generateMockInsertReviews({ count: 3 });
+      await Review.insertMany([...mockReviews, ...otherReviews]);
+
+      // Act
+      const count = await reviewService.countByProductId({ productId });
+
+      // Assert
+      assert.strictEqual(count, mockReviews.length);
+    });
+
+    test("Should return 0 when 'repo.countByProductId' is called with product having no reviews", async () => {
+      // Arrange
+      const productId = generateMockObjectId();
+      const mockReviews = generateMockInsertReviews({ count: 3 });
+      await Review.insertMany(mockReviews);
+
+      // Act
+      const count = await reviewService.countByProductId({ productId });
+
+      // Assert
+      assert.strictEqual(count, 0);
+    });
+  });
+
+  describe("existsById", () => {
+    test("Should return review ID when 'repo.existsById' is called with existing review ID", async () => {
+      // Arrange
+      const mockReview = generateMockInsertReview();
+      const createdReview = await Review.create(mockReview);
+
+      // Act
+      const result = await reviewService.existsById({
+        reviewId: createdReview._id,
+      });
+
+      // Assert
+      assert.ok(result._id);
+      assert.deepStrictEqual(result._id, createdReview._id);
+    });
+
+    test("Should throw 'NotFoundError' when 'repo.existsById' is called with non-existent review ID", async () => {
+      // Arrange
+      const nonExistentId = generateMockObjectId();
+
+      // Act & Assert
+      await assert.rejects(async () => {
+        await reviewService.existsById({ reviewId: nonExistentId });
+      }, NotFoundError);
+    });
+  });
+
+  describe("existsByUserIdAndProductId", () => {
+    test("Should return review ID when 'repo.existsByUserIdAndProductId' is called with existing user-product review", async () => {
+      // Arrange
+      const mockReviews = generateMockInsertReviews({ count: 3 });
+      const createdReview = await Review.insertMany(mockReviews);
+
+      // Act
+      const result = await reviewService.existsByUserIdAndProductId({
+        userId: mockReviews[0].user,
+        productId: mockReviews[0].product,
+      });
+
+      // Assert
+      assert.ok(result._id);
+      assert.strictEqual(
+        result._id.toString(),
+        createdReview[0]._id.toString(),
+      );
+    });
+
+    test("Should throw 'NotFoundError' when 'repo.existsByUserIdAndProductId' is called with non-existent user-product review", async () => {
+      // Arrange
+      const userId = generateMockObjectId();
+      const productId = generateMockObjectId();
+
+      // Act & Assert
+      await assert.rejects(async () => {
+        await reviewService.existsByUserIdAndProductId({
+          userId,
+          productId,
         });
-      } catch (error) {
-        assert.ok(error instanceof NotFoundError);
-        assert.equal(error.statusCode, 404);
-        assert.equal(error.message, "Review not found");
-      }
+      }, NotFoundError);
     });
   });
 });
