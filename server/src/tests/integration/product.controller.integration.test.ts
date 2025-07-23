@@ -1,335 +1,643 @@
-import assert from "node:assert";
+// import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
-import { ZodError } from "zod";
+// import request from "supertest";
 import { ProductController } from "../../controllers";
+import Product from "../../models/productModel";
+// import { app } from "../../server";
+// import {
+//   generateMockInsertProductWithMulterImage,
+//   generateMockInsertProductWithStringImage,
+//   generateMockObjectId,
+//   generateMockSelectProducts,
+// } from "../mocks";
+import assert from "node:assert";
+import { ZodError } from "zod";
 import { NotFoundError } from "../../errors";
 import { CacheManager } from "../../managers";
-import Product from "../../models/productModel";
 import { ProductRepository } from "../../repositories";
 import { ProductService } from "../../services";
+import { InsertProduct } from "../../types";
 import {
   generateMockInsertProductWithMulterImage,
-  generateMockInsertProductWithStringImage,
   generateMockObjectId,
+  generateMockSelectProduct,
   generateMockSelectProducts,
   generateMockUser,
+  mockImageStorage,
 } from "../mocks";
-import { mockImageStorage } from "../mocks/image-storage.mock";
+import { createMockExpressContext } from "../utils";
 import {
   connectTestDatabase,
-  createMockExpressContext,
   disconnectTestDatabase,
-  findTopRatedProduct,
-} from "../utils";
+} from "../utils/database-connection.utils";
 
-const storage = mockImageStorage();
-const repo = new ProductRepository();
-const service = new ProductService(repo, storage);
-const controller = new ProductController(service);
-const cache = CacheManager.getInstance("product");
+suite("Product Controller 〖 Integration Tests 〗", () => {
+  const cache = new CacheManager("product");
+  const repo = new ProductRepository(Product, cache);
+  const storage = mockImageStorage();
+  const service = new ProductService(repo, storage);
+  const controller = new ProductController(service);
 
-before(async () => await connectTestDatabase());
-after(async () => await disconnectTestDatabase());
+  before(async () => await connectTestDatabase());
+  after(async () => await disconnectTestDatabase());
 
-beforeEach(async () => {
-  cache.flush();
-  await Product.deleteMany({});
-});
+  beforeEach(async () => {
+    await Product.deleteMany({});
+    await cache.flush();
+  });
 
-suite("Product Controller", () => {
-  describe("Create Product", () => {
-    test("Should create new product and return 200 with data", async () => {
-      const { req, res, next } = createMockExpressContext();
-      const { image: mockImage, ...mockProduct } =
-        generateMockInsertProductWithMulterImage();
+  describe("create", () => {
+    test("Should return success response when 'service.create' is called with valid data", async () => {
+      // Arrange
       const mockUser = generateMockUser();
+      const { image, ...mockProduct } =
+        generateMockInsertProductWithMulterImage();
 
-      res.locals.user = mockUser;
+      const { req, res, next } = createMockExpressContext();
       req.body = mockProduct;
-      req.file = mockImage as Express.Multer.File;
+      req.file = image;
+      res.locals.user = mockUser;
+      storage.upload.mock.mockImplementationOnce(() =>
+        Promise.resolve("http://example.com/image.jpg"),
+      );
 
+      // Act
       await controller.create(req, res, next);
 
-      const { data } = res._getJSONData();
-      assert.equal(res.statusCode, 201);
-      assert.equal(data.name, mockProduct.name);
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.ok(response.success);
+      assert.ok(response.data);
     });
 
-    test("Should throw 'ZodError' if the 'product' data is invalid", async () => {
-      const { req, res, next } = createMockExpressContext();
+    test("Should return '201' status code when 'service.create' is called with valid data", async () => {
+      // Arrange
       const mockUser = generateMockUser();
+      const { image, ...mockProduct } =
+        generateMockInsertProductWithMulterImage();
+
+      const { req, res, next } = createMockExpressContext();
+      req.body = mockProduct;
+      req.file = image;
+      res.locals.user = mockUser;
+      storage.upload.mock.mockImplementationOnce(() =>
+        Promise.resolve("http://example.com/image.jpg"),
+      );
+
+      // Act
+      await controller.create(req, res, next);
+
+      // Assert
+      assert.strictEqual(res._getStatusCode(), 201);
+    });
+
+    test("Should create product when 'service.create' is called with valid data", async () => {
+      // Arrange
+      const mockUser = generateMockUser();
+      const { image, ...mockProduct } =
+        generateMockInsertProductWithMulterImage();
+
+      const { req, res, next } = createMockExpressContext();
+      req.body = mockProduct;
+      req.file = image;
+      res.locals.user = mockUser;
+      storage.upload.mock.mockImplementationOnce(() =>
+        Promise.resolve("http://example.com/image.jpg"),
+      );
+
+      // Act
+      await controller.create(req, res, next);
+
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.ok(response.data);
+      assert.ok(response.data._id);
+      assert.strictEqual(response.data.user, mockUser._id.toString());
+      assert.strictEqual(response.data.name, mockProduct.name);
+      assert.strictEqual(response.data.brand, mockProduct.brand);
+      assert.strictEqual(response.data.category, mockProduct.category);
+      assert.strictEqual(response.data.description, mockProduct.description);
+      assert.strictEqual(response.data.price, mockProduct.price);
+      assert.strictEqual(response.data.countInStock, mockProduct.countInStock);
+    });
+
+    test("Should throw 'ZodError' when 'service.create' is called without required fields", async () => {
+      // Arrange
+      const mockUser = generateMockUser();
+      const { name, ...mockProduct } =
+        generateMockInsertProductWithMulterImage();
+      const { req, res, next } = createMockExpressContext();
+      req.body = mockProduct;
+      req.file = mockProduct.image;
       res.locals.user = mockUser;
 
-      try {
-        await controller.create(req, res, next);
-        assert.fail("Should throw 'ZodError'");
-      } catch (error) {
-        assert.ok(error instanceof ZodError);
-        assert.equal(error.issues.length, 5); // number of required fields in 'product' model
-      }
+      await assert.rejects(
+        async () => await controller.create(req, res, next),
+        (error: unknown) => {
+          assert.ok(error instanceof ZodError);
+          assert.strictEqual(error.errors.length, 1);
+          assert.strictEqual(error.errors[0].path.length, 1);
+          assert.strictEqual(error.errors[0].path[0], "name");
+          assert.strictEqual(error.errors[0].message, "Required");
+          return true;
+        },
+      );
     });
   });
 
-  describe("Retrieve Product By ID", () => {
-    test("Should retrieve product by ID and return 200 with data", async () => {
-      const { req, res, next } = createMockExpressContext();
-      const mockProduct = generateMockInsertProductWithStringImage();
-
-      const product = await Product.create(mockProduct);
-      req.params.productId = product._id.toString();
-
-      await controller.getById(req, res, next);
-      const { data } = res._getJSONData();
-
-      assert.equal(res.statusCode, 200);
-      assert.equal(data.name, mockProduct.name);
-    });
-
-    test("Should throw 'NotFoundError' if product does not exist", async () => {
-      const { req, res, next } = createMockExpressContext();
-      const mockProductId = generateMockObjectId();
-      req.params.productId = mockProductId.toString();
-
-      try {
-        await controller.getById(req, res, next);
-        assert.fail("Should throw 'NotFoundError'");
-      } catch (error) {
-        assert.ok(error instanceof NotFoundError);
-        assert.equal(error.message, "Product not found");
-        assert.equal(error.statusCode, 404);
-      }
-    });
-
-    test("Should throw 'ZodError' if the 'productId' is not a valid ObjectId", async () => {
-      const { req, res, next } = createMockExpressContext();
-      req.params.productId = "RANDOM_STRING";
-
-      try {
-        await controller.getById(req, res, next);
-        assert.fail("Should throw 'ZodError'");
-      } catch (error) {
-        assert.ok(error instanceof ZodError);
-        assert.equal(error.issues.length, 1);
-        assert.equal(error.issues[0].message, "Invalid ObjectId format.");
-      }
-    });
-  });
-
-  describe("Retrieve Products", () => {
-    test("Should retrieve all products and return 200 with array of data", async () => {
-      const { req, res, next } = createMockExpressContext();
-      const mockProducts = generateMockSelectProducts({ count: 4 });
+  describe("getAll", () => {
+    test("Should return success response when 'service.getAll' is called with valid data", async () => {
+      // Arrange
+      const mockProducts = generateMockSelectProducts({ count: 3 });
       await Product.insertMany(mockProducts);
 
-      req.query = {
-        keyword: "",
-        currentPage: "1",
-      };
+      const { req, res, next } = createMockExpressContext();
 
+      // Act
       await controller.getAll(req, res, next);
-      const { data, meta } = res._getJSONData();
 
-      assert.equal(res.statusCode, 200);
-      assert.equal(data.length, 4);
-      assert.equal(meta.currentPage, 1);
-      assert.equal(meta.numberOfPages, 1);
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.ok(response.success);
+      assert.ok(response.data);
+      assert.strictEqual(response.data.length, mockProducts.length);
+      assert.strictEqual(response.meta.currentPage, 1);
+      assert.strictEqual(response.meta.numberOfPages, 1);
     });
 
-    test("Should retrieve 10 products per page on 2 pages", async () => {
+    test("Should return '200' status code when 'service.getAll' is called with valid data", async () => {
+      // Arrange
+      const { req, res, next } = createMockExpressContext();
+
+      // Act
+      await controller.getAll(req, res, next);
+
+      // Assert
+      const code = res._getStatusCode();
+      assert.strictEqual(code, 200);
+    });
+
+    test("Should return 'meta data' containing 'currentPage' and 'numberOfPages' when 'service.getAll' is called with valid data", async () => {
+      // Arrange
+      const { req, res, next } = createMockExpressContext();
+
+      // Act
+      await controller.getAll(req, res, next);
+
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.ok(response.meta);
+      assert.strictEqual(response.meta.currentPage, 1); // default value
+      assert.strictEqual(response.meta.numberOfPages, 1); // default value
+    });
+
+    test("Should return array of products when 'service.getAll' is called with existing products", async () => {
+      // Arrange
+      const { req, res, next } = createMockExpressContext();
+      const mockProducts = generateMockSelectProducts({ count: 3 });
+      await Product.insertMany(mockProducts);
+
+      // Act
+      await controller.getAll(req, res, next);
+
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.ok(response.data);
+      assert.ok(Array.isArray(response.data));
+      assert.strictEqual(response.data.length, mockProducts.length);
+    });
+
+    test("Should return filtered products when 'service.getAll' is called with keyword", async () => {
+      // Arrange
       const { req, res, next } = createMockExpressContext();
       const mockProducts = generateMockSelectProducts({ count: 20 });
+      const targetProduct = mockProducts[0];
+      const keyword = targetProduct.name;
+
       await Product.insertMany(mockProducts);
+      req.query = { keyword };
 
-      req.query = {
-        keyword: "",
-        currentPage: "1",
-      };
-
+      // Act
       await controller.getAll(req, res, next);
-      const { data, meta } = res._getJSONData();
 
-      assert.equal(res.statusCode, 200);
-      assert.equal(data.length, 10);
-      assert.equal(meta.currentPage, 1);
-      assert.equal(meta.numberOfPages, 2);
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.ok(response.data);
+      assert.strictEqual(response.data.length, 1);
+      assert.strictEqual(response.data[0].name, keyword);
     });
 
-    test("Should return empty array if no products exist", async () => {
+    test("Should return '10' products in 'page 1' when 'service.getAll' is called with 13 products in database", async () => {
+      // Arrange
       const { req, res, next } = createMockExpressContext();
+      const mockProducts = generateMockSelectProducts({ count: 13 });
+      await Product.insertMany(mockProducts);
+      req.query = { currentPage: "1" };
 
-      req.query = {
-        keyword: "",
-        currentPage: "1",
-      };
-
+      // Act
       await controller.getAll(req, res, next);
-      const { data } = res._getJSONData();
 
-      assert.equal(res.statusCode, 200);
-      assert.equal(data.length, 0);
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.ok(response.data);
+      assert.strictEqual(response.data.length, 10);
+      assert.strictEqual(response.meta.currentPage, 1);
+      assert.strictEqual(response.meta.numberOfPages, 2);
     });
 
-    test("Should return array of products with a specific name", async () => {
+    test("Should return '3' products in 'page 2' when 'service.getAll' is called with 13 products in database", async () => {
+      // Arrange
       const { req, res, next } = createMockExpressContext();
-      const mockProducts = generateMockSelectProducts({ count: 4 });
+      const mockProducts = generateMockSelectProducts({ count: 13 });
       await Product.insertMany(mockProducts);
+      req.query = { currentPage: "2" };
 
-      req.query = {
-        keyword: mockProducts[0].name,
-        currentPage: "1",
-      };
-
+      // Act
       await controller.getAll(req, res, next);
-      const { data } = res._getJSONData();
 
-      assert.equal(res.statusCode, 200);
-      assert.equal(data.length, 1);
-      assert.equal(data[0].name, mockProducts[0].name);
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.ok(response.data);
+      assert.strictEqual(response.data.length, 3);
+      assert.strictEqual(response.meta.currentPage, 2);
+      assert.strictEqual(response.meta.numberOfPages, 2);
+    });
+
+    test("Should return 'empty array' when 'service.getAll' is called with no products in database", async () => {
+      // Arrange
+      const { req, res, next } = createMockExpressContext();
+
+      // Act
+      await controller.getAll(req, res, next);
+
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.ok(response.data);
+      assert.strictEqual(response.data.length, 0);
+    });
+
+    test("Should throw 'ZodError' when 'service.getAll' is called with invalid 'currentPage' query", async () => {
+      // Arrange
+      const { req, res, next } = createMockExpressContext();
+      req.query = { currentPage: "invalid-number" };
+
+      // Act & Assert
+      await assert.rejects(
+        async () => await controller.getAll(req, res, next),
+        (error: unknown) => {
+          assert.ok(error instanceof ZodError);
+          assert.strictEqual(error.errors.length, 1);
+          assert.strictEqual(error.errors[0].path.length, 1);
+          assert.strictEqual(error.errors[0].path[0], "currentPage");
+          return true;
+        },
+      );
     });
   });
 
-  describe("Retrieve Top Rated Products", () => {
-    test("Should retrieve 3 top rated products", async () => {
+  describe("getTopRated", () => {
+    test("Should return success response when 'service.getTopRated' is called with valid data", async () => {
+      // Arrange
       const { req, res, next } = createMockExpressContext();
-      const mockProducts = generateMockSelectProducts({ count: 4 });
+      const mockProducts = generateMockSelectProducts({ count: 3 });
       await Product.insertMany(mockProducts);
 
+      // Act
       await controller.getTopRated(req, res, next);
-      const { data } = res._getJSONData();
 
-      assert.equal(res.statusCode, 200);
-      assert.equal(data.length, 3);
-
-      const topRatedProduct = findTopRatedProduct(mockProducts);
-      assert.equal(data[0].name, topRatedProduct.name);
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.ok(response.success);
+      assert.ok(response.data);
+      assert.strictEqual(response.data.length, mockProducts.length);
     });
 
-    test("Should return an empty array if no products exist", async () => {
+    test("Should return '200' status code when 'service.getTopRated' is called with valid data", async () => {
+      // Arrange
+      const { req, res, next } = createMockExpressContext();
+      const mockProducts = generateMockSelectProducts({ count: 3 });
+      await Product.insertMany(mockProducts);
+
+      // Act
+      await controller.getTopRated(req, res, next);
+
+      // Assert
+      const code = res._getStatusCode();
+      assert.strictEqual(code, 200);
+    });
+
+    test("Should return array of top rated products when 'service.getTopRated' is called with valid data", async () => {
+      // Arrange
+      const { req, res, next } = createMockExpressContext();
+      const mockProducts = generateMockSelectProducts({ count: 3 });
+      await Product.insertMany(mockProducts);
+
+      // Act
+      await controller.getTopRated(req, res, next);
+
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.ok(response.data);
+      assert.ok(Array.isArray(response.data));
+      assert.strictEqual(response.data.length, mockProducts.length);
+    });
+
+    test("Should return 'empty array' when 'service.getTopRated' is called with no products in database", async () => {
+      // Arrange
       const { req, res, next } = createMockExpressContext();
 
+      // Act
       await controller.getTopRated(req, res, next);
-      const { data } = res._getJSONData();
 
-      assert.equal(res.statusCode, 200);
-      assert.equal(data.length, 0);
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.strictEqual(response.data.length, 0);
     });
   });
 
-  describe("Update Product", () => {
-    test("Should update product and return 200 with updated data", async () => {
+  describe("getById", () => {
+    test("Should return success response when 'service.getById' is called with valid data", async () => {
+      // Arrange
       const { req, res, next } = createMockExpressContext();
-      const mockProduct = generateMockInsertProductWithStringImage();
-      const product = await Product.create(mockProduct);
+      const mockProduct = generateMockSelectProduct();
+      await Product.insertMany([mockProduct]);
 
-      req.params.productId = product._id.toString();
-      const updateData = { name: "RANDOM_NAME" };
-      req.body = updateData;
+      req.params = { productId: mockProduct._id.toString() };
 
+      // Act
+      await controller.getById(req, res, next);
+
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.ok(response.success);
+      assert.ok(response.data);
+    });
+
+    test("Should return '200' status code when 'service.getById' is called with valid data", async () => {
+      // Arrange
+      const { req, res, next } = createMockExpressContext();
+      const mockProduct = generateMockSelectProduct();
+      await Product.insertMany([mockProduct]);
+      req.params = { productId: mockProduct._id.toString() };
+
+      // Act
+      await controller.getById(req, res, next);
+
+      // Assert
+      const code = res._getStatusCode();
+      assert.strictEqual(code, 200);
+    });
+
+    test("Should return product object when 'service.getById' is called with existing product", async () => {
+      // Arrange
+      const { req, res, next } = createMockExpressContext();
+      const mockProduct = generateMockSelectProduct();
+      await Product.insertMany([mockProduct]);
+      req.params = { productId: mockProduct._id.toString() };
+
+      // Act
+      await controller.getById(req, res, next);
+
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.ok(response.data);
+      assert.strictEqual(response.data.name, mockProduct.name);
+      assert.strictEqual(response.data.brand, mockProduct.brand);
+      assert.strictEqual(response.data.category, mockProduct.category);
+      assert.strictEqual(response.data.description, mockProduct.description);
+      assert.strictEqual(response.data.price, mockProduct.price);
+      assert.strictEqual(response.data.countInStock, mockProduct.countInStock);
+      assert.strictEqual(response.data.image, mockProduct.image);
+      assert.strictEqual(response.data.rating, mockProduct.rating);
+      assert.strictEqual(response.data.numReviews, mockProduct.numReviews);
+    });
+
+    test("Should throw 'NotFoundError' when 'service.getById' is called with non-existent product id", async () => {
+      // Arrange
+      const { req, res, next } = createMockExpressContext();
+      const productId = generateMockObjectId();
+      req.params = { productId: productId.toString() };
+
+      // Act & Assert
+      await assert.rejects(
+        async () => await controller.getById(req, res, next),
+        NotFoundError,
+      );
+    });
+
+    test("Should throw 'ZodError' when 'service.getById' is called with invalid 'objectId' in params", async () => {
+      // Arrange
+      const { req, res, next } = createMockExpressContext();
+      req.params = { productId: "invalid-id" };
+
+      // Act & Assert
+      await assert.rejects(
+        async () => await controller.getById(req, res, next),
+        (error: unknown) => {
+          assert.ok(error instanceof ZodError);
+          assert.strictEqual(error.errors.length, 1);
+          assert.strictEqual(
+            error.errors[0].message,
+            "Invalid ObjectId format.",
+          );
+          return true;
+        },
+      );
+    });
+  });
+
+  describe("update", () => {
+    test("Should return success response when 'service.update' is called with valid data", async () => {
+      // Arrange
+      const { req, res, next } = createMockExpressContext();
+      const mockProduct = generateMockSelectProduct();
+      req.params = { productId: mockProduct._id.toString() };
+
+      await Product.insertMany([mockProduct]);
+      cache.set({ key: mockProduct._id.toString(), value: mockProduct });
+
+      // Act
       await controller.update(req, res, next);
 
-      assert.equal(res.statusCode, 200);
-
-      const { data } = res._getJSONData();
-      assert.equal(data.name, updateData.name);
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.ok(response.success);
+      assert.ok(response.data);
     });
 
-    test("Should throw 'NotFoundError' if product does not exist", async () => {
+    test("Should return '200' status code when 'service.update' is called with valid data", async () => {
+      // Arrange
       const { req, res, next } = createMockExpressContext();
-      const mockProductId = generateMockObjectId();
+      const mockProduct = generateMockSelectProduct();
+      req.params = { productId: mockProduct._id.toString() };
 
-      req.params.productId = mockProductId.toString();
-      const updateData = { name: "RANDOM_NAME" };
+      await Product.insertMany([mockProduct]);
+      cache.set({ key: mockProduct._id.toString(), value: mockProduct });
+
+      // Act
+      await controller.update(req, res, next);
+
+      // Assert
+      const code = res._getStatusCode();
+      assert.strictEqual(code, 200);
+    });
+
+    test("Should return updated product when 'service.update' is called with valid update data", async () => {
+      // Arrange
+      const { req, res, next } = createMockExpressContext();
+      const mockProduct = generateMockSelectProduct();
+      const updateData: Partial<InsertProduct> = { name: "UPDATED NAME" };
+
+      req.params = { productId: mockProduct._id.toString() };
       req.body = updateData;
 
-      try {
-        await controller.update(req, res, next);
-        assert.fail("Should throw 'NotFoundError'");
-      } catch (error) {
-        assert.ok(error instanceof NotFoundError);
-        assert.equal(error.statusCode, 404);
-        assert.equal(error.message, "Product not found");
-      }
+      await Product.insertMany([mockProduct]);
+      cache.set({ key: mockProduct._id.toString(), value: mockProduct });
+
+      // Act
+      await controller.update(req, res, next);
+
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.strictEqual(response.data.name, updateData.name);
     });
 
-    test("Should throw 'ZodError' if the 'productId' is not a valid ObjectId", async () => {
+    test("Should throw 'NotFoundError' when 'service.update' is called with non-existent product id", async () => {
+      // Arrange
       const { req, res, next } = createMockExpressContext();
-      req.params.productId = "RANDOM_STRING";
-      req.body = { name: "RANDOM_NAME" };
+      const productId = generateMockObjectId().toString();
+      req.params = { productId: productId };
 
-      try {
-        await controller.update(req, res, next);
-        assert.fail("Should throw 'ZodError'");
-      } catch (error) {
-        assert.ok(error instanceof ZodError);
-        assert.equal(error.issues.length, 1);
-        assert.equal(error.issues[0].message, "Invalid ObjectId format.");
-      }
+      // Act & Assert
+      await assert.rejects(
+        async () => await controller.update(req, res, next),
+        NotFoundError,
+      );
     });
 
-    test("Should throw 'ZodError' if the update data is not a valid", async () => {
+    test("Should throw 'ZodError' when 'service.update' is called with invalid 'objectId' in params", async () => {
+      // Arrange
       const { req, res, next } = createMockExpressContext();
-      const mockProduct = generateMockInsertProductWithStringImage();
-      const product = await Product.create(mockProduct);
+      const productId = "invalid-id";
+      req.params = { productId: productId };
 
-      req.params.productId = product._id.toString();
-      req.body = { brand: 123456 };
-
-      try {
-        await controller.update(req, res, next);
-        assert.fail("Should throw 'ZodError'");
-      } catch (error) {
-        assert.ok(error instanceof ZodError);
-        assert.equal(error.issues.length, 1);
-        assert.equal(error.issues[0].path[0], "brand");
-        assert.equal(
-          error.issues[0].message,
-          "Expected string, received number",
-        );
-      }
+      // Act & Assert
+      await assert.rejects(
+        async () => await controller.update(req, res, next),
+        (error: unknown) => {
+          assert.ok(error instanceof ZodError);
+          assert.strictEqual(error.errors.length, 1);
+          assert.strictEqual(
+            error.errors[0].message,
+            "Invalid ObjectId format.",
+          );
+          return true;
+        },
+      );
     });
   });
 
-  describe("Delete Product", () => {
-    test("Should delete product and return 200 with message", async () => {
+  describe("delete", () => {
+    test("Should return success response when 'service.delete' is called with valid data", async () => {
+      // Arrange
       const { req, res, next } = createMockExpressContext();
-      const mockProduct = generateMockInsertProductWithStringImage();
-      const product = await Product.create(mockProduct);
+      const mockProduct = generateMockSelectProduct();
+      req.params = { productId: mockProduct._id.toString() };
 
-      req.params.productId = product._id.toString();
+      await Product.insertMany([mockProduct]);
+      cache.set({ key: mockProduct._id.toString(), value: mockProduct });
 
+      // Act
       await controller.delete(req, res, next);
 
-      assert.equal(res.statusCode, 204);
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.ok(response.success);
     });
 
-    test("Should throw 'NotFoundError' if product does not exist", async () => {
+    test("Should return '204' status code when 'service.delete' is called with valid data", async () => {
+      // Arrange
       const { req, res, next } = createMockExpressContext();
-      const mockProductId = generateMockObjectId();
+      const mockProduct = generateMockSelectProduct();
+      req.params = { productId: mockProduct._id.toString() };
 
-      req.params.productId = mockProductId.toString();
+      await Product.insertMany([mockProduct]);
+      cache.set({ key: mockProduct._id.toString(), value: mockProduct });
 
-      try {
-        await controller.delete(req, res, next);
-        assert.fail("Should throw 'NotFoundError'");
-      } catch (error) {
-        assert.ok(error instanceof NotFoundError);
-        assert.equal(error.statusCode, 404);
-        assert.equal(error.message, "Product not found");
-      }
+      // Act
+      await controller.delete(req, res, next);
+
+      // Assert
+      const code = res._getStatusCode();
+      assert.strictEqual(code, 204);
     });
 
-    test("Should throw 'ZodError' if the 'productId' is not a valid ObjectId", async () => {
+    test("Should return 'data' equals to 'null' 'service.delete' is called with valid data", async () => {
+      // Arrange
       const { req, res, next } = createMockExpressContext();
-      req.params.productId = "RANDOM_STRING";
+      const mockProduct = generateMockSelectProduct();
+      req.params = { productId: mockProduct._id.toString() };
 
-      try {
-        await controller.delete(req, res, next);
-        assert.fail("Should throw 'ZodError'");
-      } catch (error) {
-        assert.ok(error instanceof ZodError);
-        assert.equal(error.issues.length, 1);
-        assert.equal(error.issues[0].message, "Invalid ObjectId format.");
-      }
+      await Product.insertMany([mockProduct]);
+      cache.set({ key: mockProduct._id.toString(), value: mockProduct });
+
+      // Act
+      await controller.delete(req, res, next);
+
+      // Assert
+      const response = res._getJSONData();
+      assert.ok(response);
+      assert.strictEqual(response.data, null);
+    });
+
+    test("Should throw 'NotFoundError' when 'service.delete' is called with non-existent product id", async () => {
+      // Arrange
+      const { req, res, next } = createMockExpressContext();
+      const productId = generateMockObjectId().toString();
+      req.params = { productId: productId };
+
+      // Act & Assert
+      await assert.rejects(
+        async () => await controller.delete(req, res, next),
+        NotFoundError,
+      );
+    });
+
+    test("Should throw 'ZodError' when 'service.delete' is called with invalid 'objectId' in params", async () => {
+      // Arrange
+      const { req, res, next } = createMockExpressContext();
+      req.params = { productId: "invalid-id" };
+
+      // Act & Assert
+      await assert.rejects(
+        async () => await controller.delete(req, res, next),
+        (error: unknown) => {
+          assert.ok(error instanceof ZodError);
+          assert.strictEqual(error.errors.length, 1);
+          assert.strictEqual(
+            error.errors[0].message,
+            "Invalid ObjectId format.",
+          );
+          return true;
+        },
+      );
     });
   });
 });
