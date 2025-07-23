@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
-import { NotFoundError } from "../errors";
 import { insertProductSchema } from "../schemas";
 import { IProductService, ProductService } from "../services";
 import {
@@ -33,7 +32,6 @@ export class ProductController implements IProductController {
     const productId = objectIdValidator.parse(req.params.productId);
 
     const product = await this._service.getById({ productId });
-    if (!product) throw new NotFoundError("Product");
 
     return sendSuccessResponse({
       responseContext: res,
