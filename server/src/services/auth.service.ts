@@ -1,5 +1,5 @@
 import { compare } from "bcryptjs";
-import { ConflictError, ValidationError } from "../errors";
+import { AuthenticationError } from "../errors";
 import { IUserRepository, UserRepository } from "../repositories";
 import { InsertUser, RequiredBy, SelectUser } from "../types";
 import { generateJwtToken, removeObjectFields } from "../utils";
@@ -23,12 +23,12 @@ export class AuthService implements IAuthService {
     });
 
     if (!isUserExists) {
-      throw new ConflictError("Invalid email or password.");
+      throw new AuthenticationError("Invalid email or password.");
     }
 
     const isPasswordValid = await compare(data.password, isUserExists.password);
     if (!isPasswordValid) {
-      throw new ValidationError("Invalid email or password.");
+      throw new AuthenticationError("Invalid email or password.");
     }
 
     const user = isUserExists;
@@ -44,7 +44,9 @@ export class AuthService implements IAuthService {
       email: data.email,
     });
     if (isUserExists) {
-      throw new ConflictError("An account with this email already exists.");
+      throw new AuthenticationError(
+        "An account with this email already exists.",
+      );
     }
 
     const createdUser = await this._repository.create(data);

@@ -1,7 +1,7 @@
 import bcryptjs from "bcryptjs";
 import assert from "node:assert";
 import test, { afterEach, describe, suite } from "node:test";
-import { ConflictError, DatabaseError, ValidationError } from "../../errors";
+import { AuthenticationError, DatabaseError } from "../../errors";
 import { AuthService } from "../../services";
 import { removeObjectFields } from "../../utils";
 import { generateMockUser, mockUserRepository } from "../mocks";
@@ -54,14 +54,14 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
       );
     });
 
-    test("Should throw 'ConflictError' if 'repo.existsByEmail' returns a value", async () => {
+    test("Should throw 'AuthenticationError' if 'repo.existsByEmail' returns a value", async () => {
       mockRepo.existsByEmail.mock.mockImplementationOnce(() =>
         Promise.resolve(mockUser),
       );
 
       await assert.rejects(async () => {
         await service.signup(mockUser);
-      }, ConflictError);
+      }, AuthenticationError);
     });
 
     test("Should throw 'DatabaseError' if 'repo.existsByEmail' throws", async () => {
@@ -132,18 +132,18 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
       );
     });
 
-    test("Should throw 'ConflictError' if 'repo.getByEmail' returns 'null'", async () => {
+    test("Should throw 'AuthenticationError' if 'repo.getByEmail' returns 'null'", async () => {
       mockRepo.getByEmail.mock.mockImplementationOnce(() =>
         Promise.resolve(null),
       );
 
       await assert.rejects(
         async () => await service.signin(mockUser),
-        ConflictError,
+        AuthenticationError,
       );
     });
 
-    test("Should throw 'ValidationError' if 'bcrypt.compare' returns 'false'", async (t) => {
+    test("Should throw 'AuthenticationError' if 'bcrypt.compare' returns 'false'", async (t) => {
       mockRepo.getByEmail.mock.mockImplementationOnce(() =>
         Promise.resolve(mockUser),
       );
@@ -152,7 +152,7 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 
       await assert.rejects(
         async () => await service.signin(mockUser),
-        ValidationError,
+        AuthenticationError,
       );
     });
 
