@@ -11,7 +11,7 @@ import {
 import { CacheManager } from "../../managers";
 import Product from "../../models/productModel";
 import { ProductRepository } from "../../repositories";
-import { InsertProductWithStringImage, Namespace } from "../../types";
+import { InsertProductWithStringImage } from "../../types";
 import {
   generateMockInsertProductWithStringImage,
   generateMockSelectProduct,
@@ -24,16 +24,11 @@ import {
 } from "../mocks";
 
 suite("Product Repository 〖 Unit Tests 〗", () => {
-  const cacheNamespace: Namespace = "product";
   const mockCache = mockCacheManager();
   const repo = new ProductRepository(
     Product,
     mockCache as unknown as CacheManager,
   );
-
-  function generateCacheKey({ cacheId }: { cacheId: string }): string {
-    return `${cacheNamespace}:${cacheId}`;
-  }
 
   beforeEach(() => mockCache.reset());
 
@@ -44,9 +39,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
       ...mockInsertProduct,
     };
     const productId = mockSelectProduct._id;
-    const cacheKey = generateCacheKey({
-      cacheId: productId.toString(),
-    });
+    const cacheKey = productId.toString();
 
     test("Should return product object when 'db.create' is called once with product data", async () => {
       const mockCreate = mock.method(Product, "create", async () => ({
@@ -75,14 +68,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
       mockSetCache({ instance: mockCache, cacheKey });
 
       await repo.create(mockInsertProduct);
-
-      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
-      assert.deepStrictEqual(
-        mockCache.generateCacheKey.mock.calls[0].arguments[0],
-        {
-          id: productId.toString(),
-        },
-      );
 
       assert.strictEqual(mockCache.set.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.set.mock.calls[0].arguments[0], {
@@ -160,8 +145,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
   });
 
   describe("getAll", () => {
-    const cacheId = "all-1";
-    const cacheKey = generateCacheKey({ cacheId });
+    const cacheKey = "all-1";
     const mockProducts = generateMockSelectProducts({ count: 8 });
 
     test("Should return array of products when 'db.find' is called once with no args", async (t) => {
@@ -215,14 +199,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
         currentPage: 1,
       });
 
-      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
-      assert.deepStrictEqual(
-        mockCache.generateCacheKey.mock.calls[0].arguments[0],
-        {
-          id: cacheId,
-        },
-      );
-
       assert.strictEqual(mockCache.get.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
         key: cacheKey,
@@ -245,14 +221,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
       assert.ok(products);
 
       assert.deepStrictEqual(products, mockProducts);
-
-      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
-      assert.deepStrictEqual(
-        mockCache.generateCacheKey.mock.calls[0].arguments[0],
-        {
-          id: cacheId,
-        },
-      );
 
       assert.strictEqual(mockCache.get.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
@@ -379,8 +347,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
   describe("getById", () => {
     const mockProduct = generateMockSelectProduct();
     const productId = mockProduct._id;
-    const cacheId = productId.toString();
-    const cacheKey = generateCacheKey({ cacheId });
+    const cacheKey = productId.toString();
 
     test("Should return product object when 'db.findById' is called once with 'productId'", async (t) => {
       mockCacheMiss({
@@ -416,14 +383,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
       await repo.getById({ productId: mockProduct._id });
 
-      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
-      assert.deepStrictEqual(
-        mockCache.generateCacheKey.mock.calls[0].arguments[0],
-        {
-          id: cacheId,
-        },
-      );
-
       assert.strictEqual(mockCache.get.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
         key: cacheKey,
@@ -441,14 +400,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
       assert.ok(product);
       assert.deepStrictEqual(product, mockProduct);
-
-      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
-      assert.deepStrictEqual(
-        mockCache.generateCacheKey.mock.calls[0].arguments[0],
-        {
-          id: cacheId,
-        },
-      );
 
       assert.strictEqual(mockCache.get.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
@@ -544,8 +495,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
   describe("getTopRated", () => {
     const mockProducts = generateMockSelectProducts({ count: 3 });
-    const cacheId = "top-rated";
-    const cacheKey = generateCacheKey({ cacheId });
+    const cacheKey = "top-rated";
     const limit = 3;
 
     test("Should return array of products when 'db.find' is called once with no args", async (t) => {
@@ -591,14 +541,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
       await repo.getTopRated({ limit });
 
-      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
-      assert.deepStrictEqual(
-        mockCache.generateCacheKey.mock.calls[0].arguments[0],
-        {
-          id: cacheId,
-        },
-      );
-
       assert.strictEqual(mockCache.get.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
         key: cacheKey,
@@ -616,14 +558,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
       assert.ok(products);
       assert.deepStrictEqual(products, mockProducts);
-
-      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
-      assert.deepStrictEqual(
-        mockCache.generateCacheKey.mock.calls[0].arguments[0],
-        {
-          id: "top-rated",
-        },
-      );
 
       assert.strictEqual(mockCache.get.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
@@ -726,8 +660,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
     };
     const expectedResult = { ...mockProduct, ...updateData };
 
-    const cacheId = productId.toString();
-    const cacheKey = generateCacheKey({ cacheId });
+    const cacheKey = productId.toString();
 
     test("Should return product object when 'db.findByIdAndUpdate' is called once  with 'productId' and 'data'", async (t) => {
       mockCacheInvalidation({
@@ -776,14 +709,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
         productId: mockProduct._id,
         data: updateData,
       });
-
-      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
-      assert.deepStrictEqual(
-        mockCache.generateCacheKey.mock.calls[0].arguments[0],
-        {
-          id: cacheId,
-        },
-      );
 
       assert.strictEqual(mockCache.delete.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.delete.mock.calls[0].arguments[0], {
@@ -899,8 +824,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
     const mockProduct = generateMockSelectProduct();
     const productId = mockProduct._id;
 
-    const cacheId = productId.toString();
-    const cacheKey = generateCacheKey({ cacheId });
+    const cacheKey = productId.toString();
 
     test("Should return product object when 'db.findByIdAndDelete' is called once", async (t) => {
       mockCacheInvalidation({
@@ -939,14 +863,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
       }));
 
       await repo.delete({ productId });
-
-      assert.strictEqual(mockCache.generateCacheKey.mock.callCount(), 1);
-      assert.deepStrictEqual(
-        mockCache.generateCacheKey.mock.calls[0].arguments[0],
-        {
-          id: productId.toString(),
-        },
-      );
 
       assert.strictEqual(mockCache.delete.mock.callCount(), 1);
       assert.deepStrictEqual(mockCache.delete.mock.calls[0].arguments[0], {
