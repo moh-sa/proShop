@@ -62,7 +62,8 @@ export class ProductService implements IProductService {
 
     const numberOfProductsPerPage = 10;
     const numberOfProducts = await this._repository.count(query);
-    const numberOfPages = Math.ceil(numberOfProducts / numberOfProductsPerPage);
+    const numberOfPages =
+      Math.ceil(numberOfProducts / numberOfProductsPerPage) || 1;
 
     const products = await this._repository.getAll({
       query,
