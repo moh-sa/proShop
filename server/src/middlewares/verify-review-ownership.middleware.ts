@@ -1,7 +1,9 @@
 import { AuthorizationError } from "../errors";
-import { reviewService } from "../services";
+import { ReviewService } from "../services";
 import { asyncHandler } from "../utils";
 import { objectIdValidator } from "../validators";
+
+const reviewService = new ReviewService();
 
 export const verifyReviewOwnership = asyncHandler(async (req, res, next) => {
   const rawReviewId = req.params.reviewId;
