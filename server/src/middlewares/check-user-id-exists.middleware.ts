@@ -1,6 +1,8 @@
 import { AuthenticationError } from "../errors";
-import { userRepository } from "../repositories";
+import { UserRepository } from "../repositories";
 import { asyncHandler } from "../utils";
+
+const userRepository = new UserRepository();
 
 /**
  * Middleware to verify user existence by ID
