@@ -106,7 +106,7 @@ export class OrderRepository implements IOrderRepository {
       return await this._db
         .find({})
         .select(
-          "_id createdAt isPaid paidAt isDelivered deliveredAt totalPrice",
+          "_id createdAt isPaid paidAt isDelivered deliveredAt totalPrice user",
         )
         .lean();
     } catch (error) {
@@ -123,7 +123,7 @@ export class OrderRepository implements IOrderRepository {
       return await this._db
         .find({ user: userId })
         .select(
-          "_id createdAt isPaid paidAt isDelivered deliveredAt totalPrice",
+          "_id createdAt isPaid paidAt isDelivered deliveredAt totalPrice user",
         )
         .lean();
     } catch (error) {
