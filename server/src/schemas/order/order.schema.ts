@@ -7,7 +7,9 @@ import { insertOrderItemSchema } from "./order-item.schema";
 
 const baseOrderSchema = z.object({
   user: objectIdValidator,
-  orderItems: z.array(insertOrderItemSchema),
+  orderItems: z.array(insertOrderItemSchema).min(1, {
+    message: "Order items are required.",
+  }),
 
   shippingAddress: shippingAddressSchema,
 
