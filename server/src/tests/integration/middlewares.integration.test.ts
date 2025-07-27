@@ -1,7 +1,12 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 import { ZodError } from "zod";
-import { AuthenticationError, AuthorizationError } from "../../errors";
+import {
+  AuthenticationError,
+  AuthorizationError,
+  InvalidJwtTokenError,
+  InvalidJwtTokenPayloadError,
+} from "../../errors";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
@@ -13,7 +18,7 @@ import User from "../../models/userModel";
 import { generateJwtToken } from "../../utils";
 import {
   generateMockObjectId,
-  generateMockReview,
+  generateMockSelectReview,
   generateMockUser,
 } from "../mocks";
 import {
@@ -22,69 +27,69 @@ import {
   disconnectTestDatabase,
 } from "../utils";
 
-before(async () => await connectTestDatabase());
-after(async () => await disconnectTestDatabase());
-beforeEach(async () => await User.deleteMany({}));
-
-suite("Middlewares Unit Tests", () => {
+suite("Middlewares 〖 Integration Tests 〗", () => {
+  before(async () => await connectTestDatabase());
+  after(async () => await disconnectTestDatabase());
+  beforeEach(async () => await User.deleteMany({}));
   describe("checkJwtTokenValidation", () => {
-    test("Should parse JWT and set set decoded data in res.locals.token", async () => {
-      const { req, res, next } = createMockExpressContext();
+    test("Should parse JWT and set decoded data in 'res.locals.token'", async () => {
       const mockId = generateMockObjectId();
-      const jwt = generateJwtToken({ id: mockId });
+      const jwt = generateJwtToken({ _id: mockId });
 
+      const { req, res, next } = createMockExpressContext();
       req.headers.authorization = `Bearer ${jwt}`;
-
-      // Ensure the res.locals.token is undefined
-      assert.equal(res.locals.token, undefined);
 
       await checkJwtTokenValidation(req, res, next);
 
       assert.ok(res.locals.token);
       assert.equal(Object.keys(res.locals.token).length, 3);
-      assert.equal(res.locals.token.id.toString(), mockId);
+      assert.equal(res.locals.token._id.toString(), mockId);
     });
 
-    test("Should throw 'ZodError' if req.headers.authorization is empty", async () => {
+    test("Should throw 'ZodError' if 'req.headers.authorization' is empty", async () => {
       const { req, res, next } = createMockExpressContext();
 
-      try {
-        await checkJwtTokenValidation(req, res, next);
-      } catch (error) {
-        assert.ok(error instanceof ZodError);
-        assert.equal(error.issues.length, 1);
+      await assert.rejects(
+        async () => await checkJwtTokenValidation(req, res, next),
+        (error) => {
+          assert.ok(error instanceof ZodError);
+          assert.equal(error.issues.length, 1);
 
-        assert.equal(error.issues[0].message, "Required");
-        assert.equal(error.issues[0].code, "invalid_type");
-      }
+          assert.equal(error.issues[0].message, "Required");
+          assert.equal(error.issues[0].code, "invalid_type");
+          return true;
+        },
+      );
     });
 
-    test("Should throw 'ZodError' if JWT is invalid", async () => {
+    test("Should throw 'InvalidJwtTokenError' if JWT is invalid", async () => {
       const { req, res, next } = createMockExpressContext();
 
       req.headers.authorization = `Bearer RANDOM_STRING`;
 
-      try {
-        await checkJwtTokenValidation(req, res, next);
-      } catch (error) {
-        assert.ok(error instanceof ZodError);
-        assert.equal(error.issues.length, 1);
-        assert.equal(error.issues[0].message, "Invalid jwt token format.");
-      }
+      await assert.rejects(
+        async () => await checkJwtTokenValidation(req, res, next),
+        (error) => {
+          assert.ok(error instanceof InvalidJwtTokenError);
+          assert.strictEqual(error.message, "Invalid JWT token format");
+          return true;
+        },
+      );
     });
 
-    test("Should throw 'ZodError' if userId is not a valid ObjectId", async () => {
+    test("Should throw 'InvalidJwtTokenPayloadError' if userId is not a valid ObjectId", async () => {
       const { req, res, next } = createMockExpressContext();
       const jwt = generateJwtToken({ id: "RANDOM_STRING" });
       req.headers.authorization = `Bearer ${jwt}`;
 
-      try {
-        await checkJwtTokenValidation(req, res, next);
-      } catch (error) {
-        assert.ok(error instanceof ZodError);
-        assert.equal(error.issues.length, 1);
-        assert.equal(error.issues[0].message, "Invalid ObjectId format.");
-      }
+      await assert.rejects(
+        async () => await checkJwtTokenValidation(req, res, next),
+        (error) => {
+          assert.ok(error instanceof InvalidJwtTokenPayloadError);
+          assert.strictEqual(error.message, "Invalid JWT token payload");
+          return true;
+        },
+      );
     });
   });
 
@@ -94,7 +99,7 @@ suite("Middlewares Unit Tests", () => {
       const mockUser = generateMockUser();
 
       const user = await User.create(mockUser);
-      res.locals.token = { id: user._id, iat: 123, exp: 456 };
+      res.locals.token = { _id: user._id, iat: 123, exp: 456 };
 
       await checkUserIdExists(req, res, next);
 
@@ -106,7 +111,7 @@ suite("Middlewares Unit Tests", () => {
       const { req, res, next } = createMockExpressContext();
       const mockId = generateMockObjectId();
 
-      res.locals.token = { id: mockId, iat: 123, exp: 456 };
+      res.locals.token = { _id: mockId, iat: 123, exp: 456 };
 
       try {
         await checkUserIdExists(req, res, next);
@@ -150,7 +155,7 @@ suite("Middlewares Unit Tests", () => {
       const mockUser = generateMockUser();
       res.locals.user = mockUser;
 
-      const mockReview = generateMockReview();
+      const mockReview = generateMockSelectReview();
       const created = await Review.create({
         ...mockReview,
         user: mockUser._id,
@@ -168,7 +173,7 @@ suite("Middlewares Unit Tests", () => {
       const mockUser = generateMockUser();
       res.locals.user = mockUser;
 
-      const mockReview = generateMockReview();
+      const mockReview = generateMockSelectReview();
       await Review.create(mockReview);
       req.params.reviewId = mockReview._id.toString();
 
