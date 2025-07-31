@@ -55,7 +55,7 @@ export class CacheManager implements ICacheManager {
       },
     });
 
-    this._validateMemoryCapacity();
+    this._validateMemoryCapacity(1);
 
     const key = this.generateCacheKey({ id: parsedArgs.key });
 
@@ -81,7 +81,7 @@ export class CacheManager implements ICacheManager {
       ttl: item.ttl ?? DEFAULT_CACHE_CONFIG.stdTTL,
     }));
 
-    this._validateMemoryCapacity();
+    this._validateMemoryCapacity(args.length);
 
     const parsedArgs = this._validateSchema({
       schema: cacheItemsSchema,
@@ -241,9 +241,36 @@ export class CacheManager implements ICacheManager {
     return `${this._namespace}:${id}`;
   }
 
-  private _validateMemoryCapacity(): void {
-    const isMemoryFull = this._cache.keys().length >= MAX_CACHE_SIZE;
-    if (isMemoryFull) this._deleteLeastUsedKeys();
+  private _validateMemoryCapacity(batchSize: number): void {
+    if (batchSize === 0) return;
+    if (batchSize > MAX_CACHE_SIZE)
+      throw new Error(`Batch size (${batchSize}) exceeds max cache size`);
+
+    const currentKeys = this._cache.keys();
+    const usedCacheSpace = currentKeys.length;
+    if (usedCacheSpace === 0) return;
+
+    const availableSpace = MAX_CACHE_SIZE - usedCacheSpace;
+    if (availableSpace >= batchSize) return;
+
+    const spaceNeeded = batchSize - availableSpace;
+    const fallbackSpace = Math.ceil(usedCacheSpace * 0.1); // 10% of current keys size
+    const keysToDeleteCount = Math.max(spaceNeeded, fallbackSpace);
+
+    // NodeCache doesn't support LRU (least recently used)
+    // so we sort by TTL and delete the oldest keys
+    const keysByTTL = currentKeys
+      .map((key) => ({
+        key,
+        ttl: this._cache.getTtl(key) ?? DEFAULT_CACHE_CONFIG.stdTTL,
+      }))
+      .sort((a, b) => a.ttl - b.ttl)
+      .map((entity) => entity.key);
+
+    const keysToDelete = keysByTTL.slice(0, keysToDeleteCount);
+    this._cache.del(keysToDelete);
+
+    console.log(`[Cache] Deleted ${keysToDelete.length} keys`, keysToDelete);
   }
 
   private _validateSchema<T extends z.ZodType>(args: {
