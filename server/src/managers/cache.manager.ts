@@ -23,7 +23,7 @@ export interface ICacheManager {
   get<T>(args: { key: string }): T | undefined;
   getMany<T>(args: { keys: Array<string> }): Record<string, T | undefined>;
   delete(args: { key: string }): boolean;
-  deleteMany(args: { keys: Array<string> }): true;
+  deleteMany(args: { keys: Array<string> }): Array<boolean>;
   take<T>(args: { key: string }): T | undefined;
   flushStats(): void;
   flush(): void;
@@ -136,7 +136,7 @@ export class CacheManager implements ICacheManager {
     }
   }
 
-  deleteMany(args: { keys: Array<string> }): true {
+  deleteMany(args: { keys: Array<string> }): Array<boolean> {
     const parsedKeys = this._validateSchema({
       schema: cacheKeysSchema,
       data: args.keys,
@@ -145,27 +145,16 @@ export class CacheManager implements ICacheManager {
     const cacheKeys = parsedKeys.map((key) =>
       this._generateCacheKey({ id: key }),
     );
-    const isKeysCached = cacheKeys.map((key) => this._cache.has(key));
-    if (isKeysCached.some((isCached) => !isCached)) {
-      const notCachedKeys = cacheKeys.filter(
-        (_, index) => !isKeysCached[index],
-      );
-      console.error("Failed to delete keys", notCachedKeys);
-      throw new Error("Failed to delete keys");
-    }
 
-    const isKeysDeleted = this._cache.del(cacheKeys);
-    if (isKeysDeleted !== cacheKeys.length) {
-      const notCachedKeysBool = cacheKeys.map((key) => this._cache.has(key));
-      const notDeletedKeys = cacheKeys.filter(
-        (_, index) => !notCachedKeysBool[index],
-      );
-
-      console.error("Failed to delete keys", notDeletedKeys);
-      throw new Error("Failed to delete keys");
-    }
-
-    return true;
+    return cacheKeys.map((key) => {
+      try {
+        const isDeleted = this._cache.del(key);
+        return isDeleted === 0 ? false : true;
+      } catch (error) {
+        console.error("Failed to delete key", key);
+        return false;
+      }
+    });
   }
 
   take<T>(args: { key: string }): T | undefined {
