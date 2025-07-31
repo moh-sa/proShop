@@ -125,8 +125,7 @@ export class RateLimiterManager {
   }
 
   private _generateId(req: Request): string {
-    const id = `${req.ip}:${req.baseUrl + req.path}`;
-    return this.cache.generateCacheKey({ id });
+    return `${req.ip}:${req.baseUrl + req.path}`;
   }
 
   private _handleError(error: unknown, next: NextFunction): void {
