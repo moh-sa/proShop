@@ -12,3 +12,6 @@ export type CacheStats = {
   valuesSize: number;
   totalSize: number;
 };
+
+export type CacheItem = { key: string; value: {}; ttl?: number };
+export type CacheItems = Array<CacheItem>;

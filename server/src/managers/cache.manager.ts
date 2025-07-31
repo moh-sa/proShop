@@ -8,12 +8,18 @@ import {
   cacheKeySchema,
   cacheKeysSchema,
 } from "../schemas";
-import { CacheConfig, CacheStats, Namespace } from "../types";
+import {
+  CacheConfig,
+  CacheItem,
+  CacheItems,
+  CacheStats,
+  Namespace,
+} from "../types";
 import { formatZodErrors } from "../utils";
 
 export interface ICacheManager {
-  set(args: { key: string; value: {}; ttl?: number }): boolean;
-  setMany(args: Array<{ key: string; value: {}; ttl?: number }>): true;
+  set(args: CacheItem): boolean;
+  setMany(args: CacheItems): true;
   get<T>(args: { key: string }): T | undefined;
   getMany<T>(args: { keys: Array<string> }): Record<string, T | undefined>;
   delete(args: { key: string }): true;
@@ -39,7 +45,7 @@ export class CacheManager implements ICacheManager {
     });
   }
 
-  set(args: { key: string; value: {}; ttl?: number }): true {
+  set(args: CacheItem): true {
     this._validateMemoryCapacity();
 
     const parsedArgs = this._validateSchema({
@@ -67,7 +73,7 @@ export class CacheManager implements ICacheManager {
     return isSet;
   }
 
-  setMany(args: Array<{ key: string; value: {}; ttl?: number }>): true {
+  setMany(args: CacheItems): true {
     this._validateMemoryCapacity();
 
     const preparedArgs = args.map((item) => ({
