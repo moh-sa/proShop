@@ -46,8 +46,6 @@ export class CacheManager implements ICacheManager {
   }
 
   set(args: CacheItem): true {
-    this._validateMemoryCapacity();
-
     const parsedArgs = this._validateSchema({
       schema: cacheItemSchema,
       data: {
@@ -56,6 +54,9 @@ export class CacheManager implements ICacheManager {
         ttl: args.ttl ?? DEFAULT_CACHE_CONFIG.stdTTL,
       },
     });
+
+    this._validateMemoryCapacity();
+
     const key = this.generateCacheKey({ id: parsedArgs.key });
 
     const isKeyCached = this._cache.has(key);
@@ -74,13 +75,13 @@ export class CacheManager implements ICacheManager {
   }
 
   setMany(args: CacheItems): true {
-    this._validateMemoryCapacity();
-
     const preparedArgs = args.map((item) => ({
       key: this.generateCacheKey({ id: item.key }),
       val: item.value,
       ttl: item.ttl ?? DEFAULT_CACHE_CONFIG.stdTTL,
     }));
+
+    this._validateMemoryCapacity();
 
     const parsedArgs = this._validateSchema({
       schema: cacheItemsSchema,
