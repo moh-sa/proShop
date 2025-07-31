@@ -285,18 +285,4 @@ export class CacheManager implements ICacheManager {
 
     return parsed.data;
   }
-
-  private _deleteLeastUsedKeys(): void {
-    // get the least recently used keys by ttl
-    const lruKeys = this._cache.keys().sort((a, b) => {
-      const aHit = this._cache.getTtl(a) || 0;
-      const bHit = this._cache.getTtl(b) || 0;
-      return aHit - bHit;
-    });
-
-    // remove 10% of the least recently used cached items
-    const keysToDelete = lruKeys.slice(0, Math.ceil(MAX_CACHE_SIZE * 0.1));
-
-    this._cache.del(keysToDelete);
-  }
 }
