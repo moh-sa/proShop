@@ -61,11 +61,15 @@ export class RateLimiterManager {
     config: RateLimitConfig,
     key: string,
   ): void {
-    this._cache.set({
+    const isSet = this._cache.set({
       key,
       value: data,
       ttl: Math.ceil(config.windowMs / 1000),
     });
+    if (!isSet) {
+      console.error("Failed to set rate limit data", key);
+      throw new Error("Failed to set rate limit data");
+    }
   }
 
   private _handleRateLimitExceeded(
