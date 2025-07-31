@@ -9,10 +9,10 @@ interface RateLimitData {
 }
 
 export class RateLimiterManager {
-  private cache: CacheManager;
+  private _cache: CacheManager;
 
   constructor(cache: CacheManager = new CacheManager("rate-limit")) {
-    this.cache = cache;
+    this._cache = cache;
   }
 
   public getLimiter(
@@ -50,7 +50,7 @@ export class RateLimiterManager {
   public clearCache(keys?: string | string[]): void {
     // FIXME: refactor this. probably gonna split this into multiple functions
     if (!(Array.isArray(keys) || typeof keys === "string")) {
-      return this.cache.flush();
+      return this._cache.flush();
     }
 
     // this.cache.delete({ keys });
@@ -61,7 +61,7 @@ export class RateLimiterManager {
     config: RateLimitConfig,
     key: string,
   ): void {
-    this.cache.set({
+    this._cache.set({
       key,
       value: data,
       ttl: Math.ceil(config.windowMs / 1000),
@@ -121,7 +121,7 @@ export class RateLimiterManager {
       firstRequestTime: Date.now(),
     };
 
-    return this.cache.get<RateLimitData>({ key }) || fallback;
+    return this._cache.get<RateLimitData>({ key }) || fallback;
   }
 
   private _generateId(req: Request): string {
