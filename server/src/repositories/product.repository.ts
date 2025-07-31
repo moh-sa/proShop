@@ -41,7 +41,13 @@ export class ProductRepository implements IProductRepository {
   async create(data: InsertProductWithStringImage): Promise<SelectProduct> {
     try {
       const product = (await this._db.create(data)).toObject();
-      this._cache.set({ key: product._id.toString(), value: product });
+      const isSet = this._cache.set({
+        key: product._id.toString(),
+        value: product,
+      });
+      if (!isSet) {
+        console.error("Failed to set product cache", product._id.toString());
+      }
 
       return product;
     } catch (error) {
@@ -63,7 +69,10 @@ export class ProductRepository implements IProductRepository {
     try {
       const product = await this._db.findById(productId).lean();
       if (product) {
-        this._cache.set({ key: cacheId, value: product });
+        const isSet = this._cache.set({ key: cacheId, value: product });
+        if (!isSet) {
+          console.error("Failed to set product cache", cacheId);
+        }
       }
 
       return product;
@@ -133,7 +142,10 @@ export class ProductRepository implements IProductRepository {
         .lean();
 
       if (products) {
-        this._cache.set({ key: cacheKey, value: products });
+        const isSet = this._cache.set({ key: cacheKey, value: products });
+        if (!isSet) {
+          console.error("Failed to set top-rated products cache", cacheKey);
+        }
       }
 
       return products;
