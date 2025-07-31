@@ -19,7 +19,7 @@ import { formatZodErrors } from "../utils";
 
 export interface ICacheManager {
   set(args: CacheItem): boolean;
-  setMany(args: CacheItems): true;
+  setMany(args: CacheItems): Array<boolean>;
   get<T>(args: { key: string }): T | undefined;
   getMany<T>(args: { keys: Array<string> }): Record<string, T | undefined>;
   delete(args: { key: string }): true;
@@ -66,7 +66,7 @@ export class CacheManager implements ICacheManager {
     }
   }
 
-  setMany(args: CacheItems): true {
+  setMany(args: CacheItems): Array<boolean> {
     const preparedArgs = args.map((item) => ({
       key: this._generateCacheKey({ id: item.key }),
       val: item.value,
@@ -80,20 +80,14 @@ export class CacheManager implements ICacheManager {
       data: preparedArgs,
     });
 
-    const keys = parsedArgs.map((item) => item.key);
-    const isKeysCached = keys.filter((key) => this._cache.has(key));
-    if (isKeysCached.length > 0) {
-      console.error("Some keys are already cached", isKeysCached);
-      throw new Error("Some keys are already cached");
-    }
-
-    const isSet = this._cache.mset(parsedArgs);
-    if (!isSet) {
-      console.error("Failed to set keys", parsedArgs);
-      throw new Error("Failed to set keys");
-    }
-
-    return isSet;
+    return parsedArgs.map((arg) => {
+      try {
+        return this._cache.set(arg.key, arg.val, arg.ttl);
+      } catch (error) {
+        console.error("Failed to set key", arg.key);
+        return false;
+      }
+    });
   }
 
   get<T>(args: { key: string }): T | undefined {
