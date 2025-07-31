@@ -3,10 +3,10 @@ import { z } from "zod";
 import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../config";
 import { DatabaseError, ValidationError } from "../errors";
 import {
+  cacheItemSchema,
+  cacheItemsSchema,
   cacheKeySchema,
   cacheKeysSchema,
-  cacheSetManySchema,
-  cacheSetSchema,
 } from "../schemas";
 import { CacheConfig, CacheStats, Namespace } from "../types";
 import { formatZodErrors } from "../utils";
@@ -43,7 +43,7 @@ export class CacheManager implements ICacheManager {
     this._validateMemoryCapacity();
 
     const parsedArgs = this._validateSchema({
-      schema: cacheSetSchema,
+      schema: cacheItemSchema,
       data: {
         key: args.key,
         val: args.value,
@@ -77,7 +77,7 @@ export class CacheManager implements ICacheManager {
     }));
 
     const parsedArgs = this._validateSchema({
-      schema: cacheSetManySchema,
+      schema: cacheItemsSchema,
       data: preparedArgs,
     });
 
