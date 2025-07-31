@@ -29,7 +29,7 @@ export class RateLimiterManager {
   private _limiter(config: RateLimitConfig = RATE_LIMIT_CONFIG.DEFAULT) {
     return async (req: Request, res: Response, next: NextFunction) => {
       try {
-        const key = this._generateCacheKey(req);
+        const key = this._generateId(req);
         const data = this._getRateLimitData(key);
 
         const updatedData = this._updateRateLimitData(data, config);
@@ -124,7 +124,7 @@ export class RateLimiterManager {
     return this.cache.get<RateLimitData>({ key }) || fallback;
   }
 
-  private _generateCacheKey(req: Request): string {
+  private _generateId(req: Request): string {
     const id = `${req.ip}:${req.baseUrl + req.path}`;
     return this.cache.generateCacheKey({ id });
   }
