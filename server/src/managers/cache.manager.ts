@@ -11,10 +11,7 @@ import {
 import { CacheConfig, CacheStats, Namespace } from "../types";
 import { formatZodErrors } from "../utils";
 
-interface IPublicCacheManager {
-  flush(): void;
-}
-export interface ICacheManager extends IPublicCacheManager {
+export interface ICacheManager {
   set(args: { key: string; value: {}; ttl?: number }): boolean;
   setMany(args: Array<{ key: string; value: {}; ttl?: number }>): true;
   get<T>(args: { key: string }): T | undefined;
@@ -23,6 +20,7 @@ export interface ICacheManager extends IPublicCacheManager {
   deleteMany(args: { keys: Array<string> }): true;
   take<T>(args: { key: string }): T | undefined;
   flushStats(): void;
+  flush(): void;
   getStats(): CacheStats;
   getKeys(): Array<string>;
   isKeyCached(args: { key: string }): boolean;
