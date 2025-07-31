@@ -1,6 +1,5 @@
 import { ICacheManager } from "../../managers";
 import { FunctionMocksWithReset } from "../types/mocked.type";
-import { mockGenerateCacheKey } from "./cache-generate-key.mock";
 
 export function mockCacheInvalidation({
   instance,
@@ -9,8 +8,6 @@ export function mockCacheInvalidation({
   instance: FunctionMocksWithReset<ICacheManager>;
   cacheKey: string;
 }): void {
-  mockGenerateCacheKey({ instance, key: cacheKey });
-
   instance.delete.mock.mockImplementationOnce(() => true);
 
   instance.getStats.mock.mockImplementationOnce(() => ({

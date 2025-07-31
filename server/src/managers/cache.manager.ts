@@ -30,7 +30,6 @@ export interface ICacheManager {
   getStats(): CacheStats;
   getKeys(): Array<string>;
   isKeyCached(args: { key: string }): boolean;
-  generateCacheKey({ id }: { id: string }): string;
 }
 
 export class CacheManager implements ICacheManager {
@@ -57,7 +56,7 @@ export class CacheManager implements ICacheManager {
 
     this._validateMemoryCapacity(1);
 
-    const key = this.generateCacheKey({ id: parsedArgs.key });
+    const key = this._generateCacheKey({ id: parsedArgs.key });
 
     const isKeyCached = this._cache.has(key);
     if (isKeyCached) {
@@ -76,7 +75,7 @@ export class CacheManager implements ICacheManager {
 
   setMany(args: CacheItems): true {
     const preparedArgs = args.map((item) => ({
-      key: this.generateCacheKey({ id: item.key }),
+      key: this._generateCacheKey({ id: item.key }),
       val: item.value,
       ttl: item.ttl ?? DEFAULT_CACHE_CONFIG.stdTTL,
     }));
@@ -109,7 +108,7 @@ export class CacheManager implements ICacheManager {
       schema: cacheKeySchema,
       data: args.key,
     });
-    const key = this.generateCacheKey({ id: parsedKey });
+    const key = this._generateCacheKey({ id: parsedKey });
 
     const value = this._cache.get<T>(key);
     if (!value) {
@@ -127,7 +126,7 @@ export class CacheManager implements ICacheManager {
       data: args.keys,
     });
 
-    const keys = parsedKeys.map((key) => this.generateCacheKey({ id: key }));
+    const keys = parsedKeys.map((key) => this._generateCacheKey({ id: key }));
     const values = this._cache.mget<T>(keys);
 
     return values;
@@ -138,7 +137,7 @@ export class CacheManager implements ICacheManager {
       schema: cacheKeySchema,
       data: args.key,
     });
-    const key = this.generateCacheKey({ id: parsedKey });
+    const key = this._generateCacheKey({ id: parsedKey });
 
     const isDeleted = this._cache.del(key);
     if (!isDeleted) {
@@ -156,7 +155,7 @@ export class CacheManager implements ICacheManager {
     });
 
     const cacheKeys = parsedKeys.map((key) =>
-      this.generateCacheKey({ id: key }),
+      this._generateCacheKey({ id: key }),
     );
     const isKeysCached = cacheKeys.map((key) => this._cache.has(key));
     if (isKeysCached.some((isCached) => !isCached)) {
@@ -187,7 +186,7 @@ export class CacheManager implements ICacheManager {
       data: args.key,
     });
 
-    const key = this.generateCacheKey({ id: parsedKey });
+    const key = this._generateCacheKey({ id: parsedKey });
     const value = this._cache.take(key);
     if (!value) {
       console.log("Cache miss:", args.key);
@@ -233,11 +232,11 @@ export class CacheManager implements ICacheManager {
       data: args.key,
     });
 
-    const key = this.generateCacheKey({ id: parsedKey });
+    const key = this._generateCacheKey({ id: parsedKey });
     return this._cache.has(key);
   }
 
-  generateCacheKey({ id }: { id: string }): string {
+  private _generateCacheKey({ id }: { id: string }): string {
     return `${this._namespace}:${id}`;
   }
 

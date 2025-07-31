@@ -212,21 +212,6 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
     });
   });
 
-  describe("Key Generation", () => {
-    const namespace: Namespace = "rate-limit";
-    let cacheManager: CacheManager;
-
-    beforeEach(() => {
-      cacheManager = new CacheManager(namespace);
-    });
-
-    test("'generateKey' should create a namespace-prefixed key", () => {
-      const generatedKey = cacheManager.generateCacheKey({ id: "123" });
-
-      assert.ok(generatedKey.startsWith(namespace));
-    });
-  });
-
   describe(
     "Full Cache Handling - Delete Least Used Keys",
     { todo: "figure out how to lower the max-cache-size in tests" },
