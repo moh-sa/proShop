@@ -30,7 +30,6 @@ export interface ICacheManager extends IPublicCacheManager {
 }
 
 export class CacheManager implements ICacheManager {
-  private static _instances: Partial<Record<Namespace, CacheManager>> = {};
   private _cache: NodeCache;
   private readonly _namespace: Namespace;
 
@@ -40,10 +39,6 @@ export class CacheManager implements ICacheManager {
       ...DEFAULT_CACHE_CONFIG,
       ...config,
     });
-
-    // Error handling
-    // type can be: "error" | "expired" | "del" | "set" | "get" | "flush"
-    // this.cache.on(type, (error) => {});
   }
 
   set(args: { key: string; value: {}; ttl?: number }): true {
