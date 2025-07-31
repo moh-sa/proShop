@@ -139,16 +139,15 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       },
     );
 
-    test("delete should throw 'DatabaseError' if NodeCache.del throws", (t) => {
+    test("Should return 'false' if 'NodeCache.del' throws", (t) => {
       const key = "error-key";
 
       cacheManager["_cache"].del = t.mock.fn(() => {
         throw new Error();
       });
 
-      assert.throws(() => {
-        cacheManager.delete({ key });
-      }, Error);
+      const deleteResult = cacheManager.delete({ key });
+      assert.strictEqual(deleteResult, false);
     });
   });
 
