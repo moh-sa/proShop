@@ -44,7 +44,7 @@ export class CacheManager implements ICacheManager {
     });
   }
 
-  set(args: CacheItem): true {
+  set(args: CacheItem): boolean {
     const parsedArgs = this._validateSchema({
       schema: cacheItemSchema,
       data: {
@@ -58,19 +58,12 @@ export class CacheManager implements ICacheManager {
 
     const key = this._generateCacheKey({ id: parsedArgs.key });
 
-    const isKeyCached = this._cache.has(key);
-    if (isKeyCached) {
-      console.error("Key already cached", key);
-      throw new Error("Key already cached");
-    }
-
-    const isSet = this._cache.set(key, parsedArgs.val, parsedArgs.ttl);
-    if (!isSet) {
+    try {
+      return this._cache.set(key, parsedArgs.val, parsedArgs.ttl);
+    } catch (error) {
       console.error("Failed to set key", key);
-      throw new Error("Failed to set key");
+      return false;
     }
-
-    return isSet;
   }
 
   setMany(args: CacheItems): true {

@@ -51,7 +51,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       assert.strictEqual(setResult, true);
     });
 
-    test("set should throw 'DatabaseError' if NodeCache.set throws", (t) => {
+    test("set should return 'false' if NodeCache.set throws", (t) => {
       const key = "error-key";
       const value = "error-value";
 
@@ -59,9 +59,8 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
         throw new Error();
       });
 
-      assert.throws(() => {
-        cacheManager.set({ key, value });
-      }, Error);
+      const setResult = cacheManager.set({ key, value });
+      assert.strictEqual(setResult, false);
     });
   });
 
