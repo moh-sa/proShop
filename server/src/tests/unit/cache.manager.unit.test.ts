@@ -139,6 +139,26 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       },
     );
 
+    test("Should return 'false' if 'NodeCache.del' tries to remove a non-existent key", (t) => {
+      const key = "delete-key";
+
+      cacheManager["_cache"].del = t.mock.fn(() => 0);
+
+      const deleteResult = cacheManager.delete({ key });
+      assert.strictEqual(deleteResult, false);
+    });
+
+    test("Should return 'false' if 'NodeCache.del' returns 0", (t) => {
+      const key = "delete-key";
+      const value = "delete-value";
+      cacheManager.set({ key, value });
+
+      cacheManager["_cache"].del = t.mock.fn(() => 0);
+
+      const deleteResult = cacheManager.delete({ key });
+      assert.strictEqual(deleteResult, false);
+    });
+
     test("Should return 'false' if 'NodeCache.del' throws", (t) => {
       const key = "error-key";
 
