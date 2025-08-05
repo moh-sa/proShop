@@ -729,6 +729,116 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
     });
   });
 
+  describe("take", () => {
+    const namespace: Namespace = "product";
+    let cacheManager: CacheManager;
+
+    beforeEach(() => {
+      cacheManager = new CacheManager(namespace);
+    });
+
+    test("Should return 'success' and 'data' when '_cache.take' returns data", (t) => {
+      // Arrange
+      const key = "test-key";
+      const value = "test-value";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].take = t.mock.fn(() => value as any);
+
+      // Act
+      const result = cacheManager.take({ key });
+
+      // Assert
+      assert.ok(result.success);
+      assert.ok(result.data);
+    });
+
+    test("Should return 'success', 'key', and 'error' when '_cache.take' returns 'undefined'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].take = t.mock.fn(() => undefined);
+
+      // Act
+      const result = cacheManager.take({ key });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.ok(result.key);
+      assert.ok(result.error);
+    });
+
+    test("Should return the correct 'data' when '_cache.take' returns data", (t) => {
+      // Arrange
+      const key = "test-key";
+      const value = "test-value";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].take = t.mock.fn(() => value as any);
+
+      // Act
+      const result = cacheManager.take({ key });
+
+      // Assert
+      assert.ok(result.success);
+      assert.strictEqual(result.data, value);
+    });
+
+    test("Should return the correct 'key' when '_cache.take' returns 'undefined'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].take = t.mock.fn(() => undefined);
+
+      // Act
+      const result = cacheManager.take({ key });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.strictEqual(result.key, key);
+    });
+
+    test("Should return 'error' instance of 'CacheOperationError' when '_cache.take' returns 'undefined'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].take = t.mock.fn(() => undefined);
+
+      // Act
+      const result = cacheManager.take({ key });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.ok(result.error instanceof CacheOperationError);
+    });
+
+    test("Should return 'error' instance of 'CacheOperationError' when '_cache.take' throws", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].take = t.mock.fn(() => {
+        throw new Error();
+      });
+
+      // Act
+      const result = cacheManager.take({ key });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.ok(result.error instanceof CacheOperationError);
+    });
+  });
+
   describe("Flush", () => {
     let cacheManager: CacheManager;
     const namespace: Namespace = "user";
