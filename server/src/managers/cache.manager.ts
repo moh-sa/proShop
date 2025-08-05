@@ -1,7 +1,7 @@
 import NodeCache from "node-cache";
 import { z } from "zod";
 import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../config";
-import { DatabaseError, ValidationError } from "../errors";
+import { CacheOperationError, DatabaseError, ValidationError } from "../errors";
 import {
   cacheItemSchema,
   cacheItemsSchema,
@@ -13,6 +13,7 @@ import {
   CacheFailureResult,
   CacheItem,
   CacheItems,
+  CacheResult,
   CacheStats,
   CacheSuccessResult,
   Namespace,
@@ -20,7 +21,7 @@ import {
 import { formatZodErrors } from "../utils";
 
 export interface ICacheManager {
-  set(args: CacheItem): boolean;
+  set(args: CacheItem): CacheResult;
   setMany(args: CacheItems): Array<boolean>;
   get<T>(args: { key: string }): T | undefined;
   getMany<T>(args: { keys: Array<string> }): Record<string, T | undefined>;
@@ -46,7 +47,7 @@ export class CacheManager implements ICacheManager {
     });
   }
 
-  set(args: CacheItem): boolean {
+  set(args: CacheItem): CacheResult {
     const parsedArgs = this._validateSchema({
       schema: cacheItemSchema,
       data: {
@@ -61,10 +62,19 @@ export class CacheManager implements ICacheManager {
     const key = this._generateCacheKey({ id: parsedArgs.key });
 
     try {
-      return this._cache.set(key, parsedArgs.val, parsedArgs.ttl);
+      const result = this._cache.set(key, parsedArgs.val, parsedArgs.ttl);
+      if (!result) {
+        console.error("Failed to set key", key);
+        return this._createFailureResult(key, CacheOperationError.set(key));
+      }
+
+      return this._createSuccessResult(key);
     } catch (error) {
       console.error("Failed to set key", key);
-      return false;
+      return this._createFailureResult(
+        key,
+        CacheOperationError.set(key, error),
+      );
     }
   }
 

@@ -66,9 +66,9 @@ export class RateLimiterManager {
       value: data,
       ttl: Math.ceil(config.windowMs / 1000),
     });
-    if (!isSet) {
+    if (!isSet.success) {
       console.error("Failed to set rate limit data", key);
-      throw new Error("Failed to set rate limit data");
+      throw isSet.error;
     }
   }
 

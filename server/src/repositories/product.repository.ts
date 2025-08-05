@@ -45,7 +45,7 @@ export class ProductRepository implements IProductRepository {
         key: product._id.toString(),
         value: product,
       });
-      if (!isSet) {
+      if (!isSet.success) {
         console.error("Failed to set product cache", product._id.toString());
       }
 
@@ -70,7 +70,7 @@ export class ProductRepository implements IProductRepository {
       const product = await this._db.findById(productId).lean();
       if (product) {
         const isSet = this._cache.set({ key: cacheId, value: product });
-        if (!isSet) {
+        if (isSet && !isSet.success) {
           console.error("Failed to set product cache", cacheId);
         }
       }
@@ -143,7 +143,7 @@ export class ProductRepository implements IProductRepository {
 
       if (products) {
         const isSet = this._cache.set({ key: cacheKey, value: products });
-        if (!isSet) {
+        if (isSet && !isSet.success) {
           console.error("Failed to set top-rated products cache", cacheKey);
         }
       }

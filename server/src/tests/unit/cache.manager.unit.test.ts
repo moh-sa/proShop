@@ -48,7 +48,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       const value = { data: "test-data" };
 
       const setResult = cacheManager.set({ key, value });
-      assert.strictEqual(setResult, true);
+      assert.strictEqual(setResult.success, true);
     });
 
     test("set should return 'false' if NodeCache.set throws", (t) => {
@@ -60,7 +60,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       });
 
       const setResult = cacheManager.set({ key, value });
-      assert.strictEqual(setResult, false);
+      assert.strictEqual(setResult.success, false);
     });
   });
 
