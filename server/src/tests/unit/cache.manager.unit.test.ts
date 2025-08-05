@@ -157,31 +157,100 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       cacheManager = new CacheManager(namespace);
     });
 
-    test("Should get a value", () => {
+    test("Should return 'success' and 'data' when '_cache.get' returns data", (t) => {
+      // Arrange
       const key = "test-key";
-      const value = { data: "test-data" };
-      cacheManager.set({ key, value });
+      const value = "test-data";
 
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_cache"].get = t.mock.fn(() => value as any);
+
+      // Act
       const result = cacheManager.get({ key });
+
+      // Assert
       assert.ok(result.success);
-      assert.deepStrictEqual(result.data, value);
+      assert.ok(result.data);
     });
 
-    test("'get' should return undefined for non-existent key", () => {
-      const result = cacheManager.get({ key: "non-existent-key" });
+    test("Should return 'success', 'key', and 'error' when '_cache.get' returns 'undefined'", (t) => {
+      // Arrange
+      const key = "test-key";
 
-      assert.strictEqual(result.success, false);
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_cache"].get = t.mock.fn(() => undefined);
+
+      // Act
+      const result = cacheManager.get({ key });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.ok(result.key);
+      assert.ok(result.error);
     });
 
-    test("'get' should throw 'DatabaseError' if NodeCache.get throws", (t) => {
-      const key = "error-key";
+    test("Should return the correct 'data' when '_cache.get' returns data", (t) => {
+      // Arrange
+      const key = "test-key";
+      const value = "test-data";
 
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_cache"].get = t.mock.fn(() => value as any);
+
+      // Act
+      const result = cacheManager.get({ key });
+
+      // Assert
+      assert.ok(result.success);
+      assert.strictEqual(result.data, value);
+    });
+
+    test("Should return the correct 'key' when '_cache.get' returns 'undefined'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_cache"].get = t.mock.fn(() => undefined);
+
+      // Act
+      const result = cacheManager.get({ key });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.strictEqual(result.key, `${namespace}:${key}`);
+    });
+
+    test("Should return 'error' instance of 'CacheOperationError' when '_cache.get' returns 'undefined'", (t) => {
+      // Arrange
+      const key = "test-key";
+      const value = "test-data";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_cache"].get = t.mock.fn(() => undefined);
+
+      // Act
+      const result = cacheManager.get({ key });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.ok(result.error instanceof CacheOperationError);
+    });
+
+    test("Should return 'error' instance of 'CacheOperationError' when '_cache.get' throws", (t) => {
+      // Arrange
+      const key = "test-key";
+      const value = "test-data";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
       cacheManager["_cache"].get = t.mock.fn(() => {
         throw new Error();
       });
 
+      // Act
       const result = cacheManager.get({ key });
-      assert.strictEqual(result.success, false);
+
+      // Assert
+      assert.ok(!result.success);
       assert.ok(result.error instanceof CacheOperationError);
     });
   });
