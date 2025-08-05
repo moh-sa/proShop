@@ -25,7 +25,7 @@ export interface ICacheManager {
   setMany(args: CacheItems): Array<CacheResult>;
   get<T>(args: { key: string }): CacheResult<T>;
   getMany<T>(args: { keys: Array<string> }): Array<CacheResult<T>>;
-  delete(args: { key: string }): boolean;
+  delete(args: { key: string }): CacheResult;
   deleteMany(args: { keys: Array<string> }): Array<boolean>;
   take<T>(args: { key: string }): T | undefined;
   flushStats(): void;
@@ -166,7 +166,7 @@ export class CacheManager implements ICacheManager {
     });
   }
 
-  delete(args: { key: string }): boolean {
+  delete(args: { key: string }): CacheResult {
     const parsedKey = this._validateSchema({
       schema: cacheKeySchema,
       data: args.key,
@@ -175,11 +175,16 @@ export class CacheManager implements ICacheManager {
     const key = this._generateCacheKey({ id: parsedKey });
 
     try {
-      const isDeleted = this._cache.del(key);
-      return isDeleted === 0 ? false : true;
+      const result = this._cache.del(key) === 0 ? false : true;
+
+      return result
+        ? this._createSuccessResult(key)
+        : this._createFailureResult(key, CacheOperationError.delete(key));
     } catch (error) {
-      console.error("Failed to delete key", key);
-      return false;
+      return this._createFailureResult(
+        key,
+        CacheOperationError.delete(key, error),
+      );
     }
   }
 

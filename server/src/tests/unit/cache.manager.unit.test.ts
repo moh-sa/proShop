@@ -554,7 +554,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       cacheManager["_cache"].del = t.mock.fn(() => 0);
 
       const deleteResult = cacheManager.delete({ key });
-      assert.strictEqual(deleteResult, false);
+      assert.strictEqual(deleteResult.success, false);
     });
 
     test("Should return 'false' if 'NodeCache.del' returns 0", (t) => {
@@ -565,7 +565,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       cacheManager["_cache"].del = t.mock.fn(() => 0);
 
       const deleteResult = cacheManager.delete({ key });
-      assert.strictEqual(deleteResult, false);
+      assert.strictEqual(deleteResult.success, false);
     });
 
     test("Should return 'false' if 'NodeCache.del' throws", (t) => {
@@ -576,7 +576,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       });
 
       const deleteResult = cacheManager.delete({ key });
-      assert.strictEqual(deleteResult, false);
+      assert.strictEqual(deleteResult.success, false);
     });
   });
 
