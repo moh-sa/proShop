@@ -10,9 +10,11 @@ import {
 } from "../schemas";
 import {
   CacheConfig,
+  CacheFailureResult,
   CacheItem,
   CacheItems,
   CacheStats,
+  CacheSuccessResult,
   Namespace,
 } from "../types";
 import { formatZodErrors } from "../utils";
@@ -211,6 +213,24 @@ export class CacheManager implements ICacheManager {
 
     const key = this._generateCacheKey({ id: parsedKey });
     return this._cache.has(key);
+  }
+
+  private _createSuccessResult<T>(data: T): CacheSuccessResult<T> {
+    return {
+      success: true,
+      data,
+    };
+  }
+
+  private _createFailureResult<T, E = Error>(
+    key: T,
+    error: E,
+  ): CacheFailureResult<T, E> {
+    return {
+      key,
+      success: false,
+      error,
+    };
   }
 
   private _generateCacheKey({ id }: { id: string }): string {
