@@ -884,6 +884,114 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
     });
   });
 
+  describe("isKeyCached", () => {
+    const namespace: Namespace = "product";
+    let cacheManager: CacheManager;
+
+    beforeEach(() => {
+      cacheManager = new CacheManager(namespace);
+    });
+
+    test("Should return 'success' and 'data' when '_cache.has' returns 'true'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].has = t.mock.fn(() => true);
+
+      // Act
+      const result = cacheManager.isKeyCached({ key });
+
+      // Assert
+      assert.ok(result.success);
+      assert.ok(result.data);
+    });
+
+    test("Should return 'success', 'key', and 'error' when '_cache.has' returns 'false'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].has = t.mock.fn(() => false);
+
+      // Act
+      const result = cacheManager.isKeyCached({ key });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.ok(result.key);
+      assert.ok(result.error);
+    });
+
+    test("Should return the correct 'data' when '_cache.has' returns 'true'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].has = t.mock.fn(() => true);
+
+      // Act
+      const result = cacheManager.isKeyCached({ key });
+
+      // Assert
+      assert.ok(result.success);
+      assert.strictEqual(result.data, key);
+    });
+
+    test("Should return the correct 'key' when '_cache.has' returns 'false'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].has = t.mock.fn(() => false);
+
+      // Act
+      const result = cacheManager.isKeyCached({ key });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.strictEqual(result.key, key);
+    });
+
+    test("Should return 'error' instance of 'CacheOperationError' when '_cache.has' returns 'false'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].has = t.mock.fn(() => false);
+
+      // Act
+      const result = cacheManager.isKeyCached({ key });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.ok(result.error instanceof CacheOperationError);
+    });
+
+    test("Should return 'error' instance of 'CacheOperationError' when '_cache.has' throws", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].has = t.mock.fn(() => {
+        throw new Error();
+      });
+
+      // Act
+      const result = cacheManager.isKeyCached({ key });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.ok(result.error instanceof CacheOperationError);
+    });
+  });
+
   describe(
     "Full Cache Handling - Delete Least Used Keys",
     { todo: "figure out how to lower the max-cache-size in tests" },
