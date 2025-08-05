@@ -43,24 +43,109 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       cacheManager = new CacheManager(namespace);
     });
 
-    test("Should set a value", () => {
+    test("Should return 'success' and 'data' when '_cache.set' returns 'true'", (t) => {
+      // Arrange
       const key = "test-key";
-      const value = { data: "test-data" };
+      const value = "test-data";
 
-      const setResult = cacheManager.set({ key, value });
-      assert.strictEqual(setResult.success, true);
+      cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
+      cacheManager["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
+      cacheManager["_cache"].set = t.mock.fn(() => true);
+
+      // Act
+      const result = cacheManager.set({ key, value });
+
+      // Assert
+      assert.ok(result.success);
+      assert.ok(result.data);
     });
 
-    test("set should return 'false' if NodeCache.set throws", (t) => {
-      const key = "error-key";
-      const value = "error-value";
+    test("Should return 'success', 'key', and 'error' when '_cache.set' returns 'false'", (t) => {
+      // Arrange
+      const key = "test-key";
+      const value = "test-data";
 
+      cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
+      cacheManager["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
+      cacheManager["_cache"].set = t.mock.fn(() => false);
+
+      // Act
+      const result = cacheManager.set({ key, value });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.ok(result.key);
+      assert.ok(result.error);
+    });
+
+    test("Should return the correct 'data' when '_cache.set' returns 'true'", (t) => {
+      // Arrange
+      const key = "test-key";
+      const value = "test-data";
+
+      cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
+      cacheManager["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
+      cacheManager["_cache"].set = t.mock.fn(() => true);
+
+      // Act
+      const result = cacheManager.set({ key, value });
+
+      // Assert
+      assert.ok(result.success);
+      assert.strictEqual(result.data, `${namespace}:${key}`);
+    });
+
+    test("Should return the correct 'key' when '_cache.set' returns 'false'", (t) => {
+      // Arrange
+      const key = "test-key";
+      const value = "test-data";
+
+      cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
+      cacheManager["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
+      cacheManager["_cache"].set = t.mock.fn(() => false);
+
+      // Act
+      const result = cacheManager.set({ key, value });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.strictEqual(result.key, `${namespace}:${key}`);
+    });
+
+    test("Should return 'error' instance of 'CacheOperationError' when '_cache.set' returns 'false'", (t) => {
+      // Arrange
+      const key = "test-key";
+      const value = "test-data";
+
+      cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
+      cacheManager["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
+      cacheManager["_cache"].set = t.mock.fn(() => false);
+
+      // Act
+      const result = cacheManager.set({ key, value });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.ok(result.error instanceof CacheOperationError);
+    });
+
+    test("Should return 'error' instance of 'CacheOperationError' when '_cache.set' throws", (t) => {
+      // Arrange
+      const key = "test-key";
+      const value = "test-data";
+
+      cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
+      cacheManager["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
       cacheManager["_cache"].set = t.mock.fn(() => {
         throw new Error();
       });
 
-      const setResult = cacheManager.set({ key, value });
-      assert.strictEqual(setResult.success, false);
+      // Act
+      const result = cacheManager.set({ key, value });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.ok(result.error instanceof CacheOperationError);
     });
   });
 
