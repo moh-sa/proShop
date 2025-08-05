@@ -9,11 +9,13 @@ export const cacheKeySchema = z
 export const ttlSchema = z.number().positive("TTL must be positive");
 
 export const cacheKeysSchema = z.array(cacheKeySchema);
-export const cacheValueSchema = z.unknown();
+export const cacheValueSchema = z
+  .unknown()
+  .refine((val) => val !== undefined && val !== null);
 
 export const cacheItemSchema = z.object({
   key: cacheKeySchema,
-  val: z.unknown().refine((val) => val !== undefined && val !== null),
+  val: cacheValueSchema,
   ttl: ttlSchema,
 });
 
