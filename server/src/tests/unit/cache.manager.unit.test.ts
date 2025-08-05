@@ -255,6 +255,128 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
     });
   });
 
+  describe("getMany", () => {
+    const namespace: Namespace = "product";
+    let cacheManager: CacheManager;
+
+    beforeEach(() => {
+      cacheManager = new CacheManager(namespace);
+    });
+
+    test("Should return 'array' of 'success' and 'data' when '_cache.getMany' returns data", (t) => {
+      // Arrange
+      const key = "test-key";
+      const value = "test-value";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].get = t.mock.fn(() => value as any);
+
+      // Act
+      const result = cacheManager.getMany({ keys: [key] });
+
+      // Arrest
+      assert.ok(Array.isArray(result));
+      assert.ok(result.length === 1);
+      assert.ok(result[0].success);
+      assert.ok(result[0].data);
+    });
+
+    test("Should return 'array' of 'success', 'key', and 'error' when '_cache.getMany' returns 'undefined'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].get = t.mock.fn(() => undefined);
+
+      // Act
+      const result = cacheManager.getMany({ keys: [key] });
+
+      // Arrest
+      assert.ok(Array.isArray(result));
+      assert.ok(result.length === 1);
+      assert.ok(!result[0].success);
+      assert.ok(result[0].key);
+      assert.ok(result[0].error);
+    });
+
+    test("Should return the correct 'data' when '_cache.getMany' returns data", (t) => {
+      // Arrange
+      const key = "test-key";
+      const value = "test-value";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].get = t.mock.fn(() => value as any);
+
+      // Act
+      const result = cacheManager.getMany({ keys: [key] });
+
+      // Arrest
+      assert.ok(Array.isArray(result));
+      assert.ok(result.length === 1);
+      assert.ok(result[0].success);
+      assert.strictEqual(result[0].data, value);
+    });
+
+    test("Should return the correct 'key' when '_cache.getMany' returns 'undefined'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].get = t.mock.fn(() => undefined);
+
+      // Act
+      const result = cacheManager.getMany({ keys: [key] });
+
+      // Arrest
+      assert.ok(Array.isArray(result));
+      assert.ok(result.length === 1);
+      assert.ok(!result[0].success);
+      assert.strictEqual(result[0].key, key);
+    });
+
+    test("Should return 'error' instance of 'CacheOperationError' when '_cache.getMany' returns 'undefined'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].get = t.mock.fn(() => undefined);
+
+      // Act
+      const result = cacheManager.getMany({ keys: [key] });
+
+      // Arrest
+      assert.ok(Array.isArray(result));
+      assert.ok(result.length === 1);
+      assert.ok(!result[0].success);
+      assert.ok(result[0].error instanceof CacheOperationError);
+    });
+
+    test("Should return 'error' instance of 'CacheOperationError' when '_cache.getMany' throws", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].get = t.mock.fn(() => {
+        throw new Error();
+      });
+
+      // Act
+      const result = cacheManager.getMany({ keys: [key] });
+
+      // Arrest
+      assert.ok(Array.isArray(result));
+      assert.ok(result.length === 1);
+      assert.ok(!result[0].success);
+      assert.ok(result[0].error instanceof CacheOperationError);
+    });
+  });
+
   describe("Delete", () => {
     const namespace: Namespace = "product";
     let cacheManager: CacheManager;
