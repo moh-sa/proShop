@@ -517,66 +517,103 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       cacheManager = new CacheManager(namespace);
     });
 
-    test("Should delete a key", () => {
-      const key = "delete-key";
-      const value = "delete-value";
+    test("Should return 'success' and 'data' when '_cache.delete' returns '1'", (t) => {
+      // Arrange
+      const key = "test-key";
 
-      cacheManager.set({ key, value });
-      const deleteResult = cacheManager.delete({ key });
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].del = t.mock.fn(() => 1);
 
-      assert.ok(deleteResult);
+      // Act
+      const result = cacheManager.delete({ key });
+
+      // Assert
+      assert.ok(result.success);
+      assert.ok(result.data);
     });
 
-    // FIXME: fix this test
-    test(
-      "Should delete multiple keys",
-      { todo: "fix this test", skip: true },
-      () => {
-        const keys = ["delete-key-1", "delete-key-2"];
-        const values = ["delete-value-1", "delete-value-2"];
+    test("Should return 'success', 'key', and 'error' when '_cache.delete' returns '0'", (t) => {
+      // Arrange
+      const key = "test-key";
 
-        keys.forEach((key, index) => {
-          cacheManager.set({ key, value: values[index] });
-        });
-
-        // const deleteResult = cacheManager.delete({ keys });
-
-        // assert.strictEqual(deleteResult, keys.length);
-
-        assert.strictEqual(cacheManager.get({ key: keys[0] }), undefined);
-        assert.strictEqual(cacheManager.get({ key: keys[1] }), undefined);
-      },
-    );
-
-    test("Should return 'false' if 'NodeCache.del' tries to remove a non-existent key", (t) => {
-      const key = "delete-key";
-
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
       cacheManager["_cache"].del = t.mock.fn(() => 0);
 
-      const deleteResult = cacheManager.delete({ key });
-      assert.strictEqual(deleteResult.success, false);
+      // Act
+      const result = cacheManager.delete({ key });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.ok(result.key);
+      assert.ok(result.error);
     });
 
-    test("Should return 'false' if 'NodeCache.del' returns 0", (t) => {
-      const key = "delete-key";
-      const value = "delete-value";
-      cacheManager.set({ key, value });
+    test("Should return the correct 'data' when '_cache.delete' returns '1'", (t) => {
+      // Arrange
+      const key = "test-key";
 
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].del = t.mock.fn(() => 1);
+
+      // Act
+      const result = cacheManager.delete({ key });
+
+      // Assert
+      assert.ok(result.success);
+      assert.strictEqual(result.data, key);
+    });
+
+    test("Should return the correct 'key' when '_cache.delete' returns '0'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
       cacheManager["_cache"].del = t.mock.fn(() => 0);
 
-      const deleteResult = cacheManager.delete({ key });
-      assert.strictEqual(deleteResult.success, false);
+      // Act
+      const result = cacheManager.delete({ key });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.strictEqual(result.key, key);
     });
 
-    test("Should return 'false' if 'NodeCache.del' throws", (t) => {
-      const key = "error-key";
+    test("Should return 'error' instance of 'CacheOperationError' when '_cache.delete' returns '0'", (t) => {
+      // Arrange
+      const key = "test-key";
 
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].del = t.mock.fn(() => 0);
+
+      // Act
+      const result = cacheManager.delete({ key });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.ok(result.error instanceof CacheOperationError);
+    });
+
+    test("Should return 'error' instance of 'CacheOperationError' when '_cache.delete' throws", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => key);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
       cacheManager["_cache"].del = t.mock.fn(() => {
         throw new Error();
       });
 
-      const deleteResult = cacheManager.delete({ key });
-      assert.strictEqual(deleteResult.success, false);
+      // Act
+      const result = cacheManager.delete({ key });
+
+      // Assert
+      assert.ok(!result.success);
+      assert.ok(result.error instanceof CacheOperationError);
     });
   });
 
