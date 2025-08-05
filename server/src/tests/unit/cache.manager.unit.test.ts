@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 import { DEFAULT_CACHE_CONFIG } from "../../config";
-import { DatabaseError } from "../../errors";
+import { CacheOperationError, DatabaseError } from "../../errors";
 import { CacheManager } from "../../managers";
 import { CacheConfig, Namespace } from "../../types";
 
@@ -77,14 +77,15 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       const value = { data: "test-data" };
       cacheManager.set({ key, value });
 
-      const retrievedValue = cacheManager.get({ key });
-      assert.deepStrictEqual(retrievedValue, value);
+      const result = cacheManager.get({ key });
+      assert.ok(result.success);
+      assert.deepStrictEqual(result.data, value);
     });
 
     test("'get' should return undefined for non-existent key", () => {
-      const retrievedValue = cacheManager.get({ key: "non-existent-key" });
+      const result = cacheManager.get({ key: "non-existent-key" });
 
-      assert.strictEqual(retrievedValue, undefined);
+      assert.strictEqual(result.success, false);
     });
 
     test("'get' should throw 'DatabaseError' if NodeCache.get throws", (t) => {
@@ -94,9 +95,9 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
         throw new Error();
       });
 
-      assert.throws(() => {
-        cacheManager.get({ key });
-      }, Error);
+      const result = cacheManager.get({ key });
+      assert.strictEqual(result.success, false);
+      assert.ok(result.error instanceof CacheOperationError);
     });
   });
 
@@ -189,7 +190,8 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       cacheManager.flush();
 
       keys.forEach((key) => {
-        assert.strictEqual(cacheManager.get({ key }), undefined);
+        const result = cacheManager.get({ key });
+        assert.strictEqual(result.success, false);
       });
     });
 

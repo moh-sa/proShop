@@ -64,7 +64,7 @@ export class ProductRepository implements IProductRepository {
     const cachedProduct = this._cache.get<SelectProduct>({
       key: cacheId,
     });
-    if (cachedProduct) return cachedProduct;
+    if (cachedProduct.success) return cachedProduct.data;
 
     try {
       const product = await this._db.findById(productId).lean();
@@ -131,7 +131,7 @@ export class ProductRepository implements IProductRepository {
     const cachedProducts = this._cache.get<Array<TopRatedProduct>>({
       key: cacheKey,
     });
-    if (cachedProducts) return cachedProducts;
+    if (cachedProducts.success) return cachedProducts.data;
 
     try {
       const products = await this._db
@@ -162,7 +162,7 @@ export class ProductRepository implements IProductRepository {
     const cachedProducts = this._cache.get<Array<AllProducts>>({
       key: `all-${data.currentPage}`,
     });
-    if (cachedProducts) return cachedProducts;
+    if (cachedProducts.success) return cachedProducts.data;
 
     try {
       return await this._db

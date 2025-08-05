@@ -23,7 +23,7 @@ import { formatZodErrors } from "../utils";
 export interface ICacheManager {
   set(args: CacheItem): CacheResult;
   setMany(args: CacheItems): Array<CacheResult>;
-  get<T>(args: { key: string }): T | undefined;
+  get<T>(args: { key: string }): CacheResult<T>;
   getMany<T>(args: { keys: Array<string> }): Record<string, T | undefined>;
   delete(args: { key: string }): boolean;
   deleteMany(args: { keys: Array<string> }): Array<boolean>;
@@ -117,21 +117,29 @@ export class CacheManager implements ICacheManager {
     });
   }
 
-  get<T>(args: { key: string }): T | undefined {
+  get<T>(args: { key: string }): CacheResult<T> {
     const parsedKey = this._validateSchema({
       schema: cacheKeySchema,
       data: args.key,
     });
     const key = this._generateCacheKey({ id: parsedKey });
 
-    const value = this._cache.get<T>(key);
-    if (!value) {
-      console.log("Cache miss:", args.key);
-      return undefined;
-    }
+    try {
+      const result = this._cache.get<T>(key);
+      if (!result) {
+        console.log("Cache miss:", args.key);
+        return this._createFailureResult(key, CacheOperationError.get(key));
+      }
 
-    console.log("Cache hit:", args.key);
-    return value;
+      console.log("Cache hit:", args.key);
+      return this._createSuccessResult(result);
+    } catch (error) {
+      console.error("Failed to get key", key);
+      return this._createFailureResult(
+        key,
+        CacheOperationError.get(key, error),
+      );
+    }
   }
 
   getMany<T>(args: { keys: Array<string> }): Record<string, T | undefined> {

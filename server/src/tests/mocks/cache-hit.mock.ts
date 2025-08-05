@@ -10,5 +10,8 @@ export function mockCacheHit<T>({
   cacheKey: string;
   returnValue: T;
 }): void {
-  instance.get.mock.mockImplementationOnce(() => returnValue);
+  instance.get.mock.mockImplementationOnce(() => ({
+    success: true,
+    data: returnValue,
+  }));
 }

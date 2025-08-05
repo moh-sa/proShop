@@ -125,7 +125,8 @@ export class RateLimiterManager {
       firstRequestTime: Date.now(),
     };
 
-    return this._cache.get<RateLimitData>({ key }) || fallback;
+    const result = this._cache.get<RateLimitData>({ key });
+    return result.success ? result.data : fallback;
   }
 
   private _generateId(req: Request): string {
