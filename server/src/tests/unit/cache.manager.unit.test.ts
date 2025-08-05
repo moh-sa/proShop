@@ -858,29 +858,54 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
     });
   });
 
-  describe("Stats", () => {
-    const namespace: Namespace = "order";
+  describe("getStats", () => {
+    const namespace: Namespace = "user";
     let cacheManager: CacheManager;
 
     beforeEach(() => {
       cacheManager = new CacheManager(namespace);
     });
 
-    test("stats should return cache statistics", () => {
-      const key = "stats-key";
-      const value = "stats-value";
+    test("Should return 'hits', 'misses', 'numberOfKeys', 'keysSize', and 'valuesSize' when '_cache.getStats' is called", (t) => {
+      // Arrange
+      const stats = {
+        hits: 1,
+        misses: 1,
+        keys: 1,
+        ksize: 1,
+        vsize: 1,
+      };
 
-      cacheManager.set({ key, value });
-      cacheManager.get({ key }); // hit
-      cacheManager.get({ key: "non-existent-key" }); // miss
+      cacheManager["_cache"].getStats = t.mock.fn(() => stats);
 
-      const stats = cacheManager.getStats();
+      // Act
+      const result = cacheManager.getStats();
 
-      assert.strictEqual(stats.hits, 1);
-      assert.strictEqual(stats.misses, 1);
-      assert.strictEqual(stats.numberOfKeys, 1);
-      assert.ok(typeof stats.keysSize === "number");
-      assert.ok(typeof stats.valuesSize === "number");
+      // Assert
+      assert.ok(result.hits);
+      assert.ok(result.misses);
+      assert.ok(result.numberOfKeys);
+      assert.ok(result.keysSize);
+      assert.ok(result.valuesSize);
+    });
+
+    test("Should return 'totalSize' which is the sum of 'keysSize' and 'valuesSize' when '_cache.getStats' is called", (t) => {
+      // Arrange
+      const stats = {
+        hits: 1,
+        misses: 1,
+        keys: 1,
+        ksize: 1,
+        vsize: 1,
+      };
+
+      cacheManager["_cache"].getStats = t.mock.fn(() => stats);
+
+      // Act
+      const result = cacheManager.getStats();
+
+      // Assert
+      assert.strictEqual(result.totalSize, stats.ksize + stats.vsize);
     });
   });
 
