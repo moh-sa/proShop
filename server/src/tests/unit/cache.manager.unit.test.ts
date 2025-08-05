@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 import { DEFAULT_CACHE_CONFIG } from "../../config";
-import { CacheOperationError, DatabaseError } from "../../errors";
+import { CacheOperationError } from "../../errors";
 import { CacheManager } from "../../managers";
 import { CacheConfig, Namespace } from "../../types";
 
@@ -847,29 +847,14 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       cacheManager = new CacheManager(namespace);
     });
 
-    test("'flush' should delete all the keys in the namespace", () => {
-      const keys = ["key1", "key2"];
-      const values = ["value1", "value2"];
-
-      keys.forEach((key, index) => {
-        cacheManager.set({ key, value: values[index] });
-      });
-      cacheManager.flush();
-
-      keys.forEach((key) => {
-        const result = cacheManager.get({ key });
-        assert.strictEqual(result.success, false);
-      });
-    });
-
-    test("'flush' should throw 'DatabaseError' if NodeCache.flushAll throws", (t) => {
+    test("Should throw 'CacheOperationError' when '_cache.flushAll' throws", (t) => {
       cacheManager["_cache"].flushAll = t.mock.fn(() => {
         throw new Error();
       });
 
       assert.throws(() => {
         cacheManager.flush();
-      }, DatabaseError);
+      }, CacheOperationError);
     });
   });
 

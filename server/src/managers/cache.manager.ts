@@ -1,7 +1,7 @@
 import NodeCache from "node-cache";
 import { z } from "zod";
 import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../config";
-import { CacheOperationError, DatabaseError, ValidationError } from "../errors";
+import { CacheOperationError, ValidationError } from "../errors";
 import {
   cacheItemSchema,
   cacheItemsSchema,
@@ -244,10 +244,9 @@ export class CacheManager implements ICacheManager {
   flush(): void {
     try {
       this._cache.flushAll();
-      console.log("Cache flushed");
     } catch (error) {
-      console.error(error);
-      throw new DatabaseError();
+      console.error("Failed to flush cache");
+      throw CacheOperationError.flush(error);
     }
   }
 
