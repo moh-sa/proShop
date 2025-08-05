@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-export const cacheKeySchema = z.string().min(1);
+export const cacheKeySchema = z
+  .string()
+  .trim()
+  .min(1, "Cache key cannot be empty")
+  .max(250, "Cache key too long");
+
 export const cacheKeysSchema = z.array(cacheKeySchema);
 export const cacheValueSchema = z.unknown();
 
