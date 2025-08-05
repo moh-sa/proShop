@@ -617,6 +617,118 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
     });
   });
 
+  describe("deleteMany", () => {
+    const namespace: Namespace = "product";
+    let cacheManager: CacheManager;
+
+    beforeEach(() => {
+      cacheManager = new CacheManager(namespace);
+    });
+
+    test("Should return 'array' of 'success' and 'data' when '_cache.deleteMany' returns '1'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].del = t.mock.fn(() => 1);
+
+      // Act
+      const result = cacheManager.deleteMany({ keys: [key] });
+
+      // Assert
+      assert.ok(Array.isArray(result));
+      assert.ok(result.length === 1);
+      assert.ok(result[0].success);
+      assert.ok(result[0].data);
+    });
+
+    test("Should return 'array' of 'success', 'key', and 'error' when '_cache.deleteMany' returns '0'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].del = t.mock.fn(() => 0);
+
+      // Act
+      const result = cacheManager.deleteMany({ keys: [key] });
+
+      // Assert
+      assert.ok(Array.isArray(result));
+      assert.ok(result.length === 1);
+      assert.ok(!result[0].success);
+      assert.ok(result[0].key);
+      assert.ok(result[0].error);
+    });
+
+    test("Should return the correct 'data' when '_cache.deleteMany' returns '1'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].del = t.mock.fn(() => 1);
+
+      // Act
+      const result = cacheManager.deleteMany({ keys: [key] });
+
+      // Assert
+      assert.ok(result[0].success);
+      assert.strictEqual(result[0].data, key);
+    });
+
+    test("Should return the correct 'key' when '_cache.deleteMany' returns '0'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].del = t.mock.fn(() => 0);
+
+      // Act
+      const result = cacheManager.deleteMany({ keys: [key] });
+
+      // Assert
+      assert.ok(!result[0].success);
+      assert.strictEqual(result[0].key, key);
+    });
+
+    test("Should return 'error' instance of 'CacheOperationError' when '_cache.deleteMany' returns '0'", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].del = t.mock.fn(() => 0);
+
+      // Act
+      const result = cacheManager.deleteMany({ keys: [key] });
+
+      // Assert
+      assert.ok(!result[0].success);
+      assert.ok(result[0].error instanceof CacheOperationError);
+    });
+
+    test("Should return 'error' instance of 'CacheOperationError' when '_cache.deleteMany' throws", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].del = t.mock.fn(() => {
+        throw new Error();
+      });
+
+      // Act
+      const result = cacheManager.deleteMany({ keys: [key] });
+
+      // Assert
+      assert.ok(!result[0].success);
+      assert.ok(result[0].error instanceof CacheOperationError);
+    });
+  });
+
   describe("Flush", () => {
     let cacheManager: CacheManager;
     const namespace: Namespace = "user";
