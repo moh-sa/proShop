@@ -1,6 +1,7 @@
 export * from "./authentication.error";
 export * from "./authorization.error";
 export * from "./base.error";
+export * from "./cache";
 export * from "./conflict.error";
 export * from "./database";
 export * from "./database.error";
