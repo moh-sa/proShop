@@ -32,7 +32,7 @@ export interface ICacheManager {
   flush(): void;
   getStats(): CacheStats;
   getKeys(): Array<string>;
-  isKeyCached(args: { key: string }): boolean;
+  isKeyCached(args: { key: string }): CacheResult;
 }
 
 export class CacheManager implements ICacheManager {
@@ -266,14 +266,27 @@ export class CacheManager implements ICacheManager {
     return this._cache.keys();
   }
 
-  isKeyCached(args: { key: string }): boolean {
+  isKeyCached(args: { key: string }): CacheResult {
     const parsedKey = this._validateSchema({
       schema: cacheKeySchema,
       data: args.key,
     });
 
     const key = this._generateCacheKey({ id: parsedKey });
-    return this._cache.has(key);
+    try {
+      const result = this._cache.has(key);
+      if (!result) {
+        return this._createFailureResult(key, CacheOperationError.has(key));
+      }
+
+      return this._createSuccessResult(key);
+    } catch (error) {
+      console.error("Failed to check if key is cached", key);
+      return this._createFailureResult(
+        key,
+        CacheOperationError.has(key, error),
+      );
+    }
   }
 
   private _createSuccessResult<T>(data: T): CacheSuccessResult<T> {
