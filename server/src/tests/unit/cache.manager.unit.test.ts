@@ -149,6 +149,138 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
     });
   });
 
+  describe("setMany", () => {
+    const namespace: Namespace = "product";
+    let cacheManager: CacheManager;
+
+    beforeEach(() => {
+      cacheManager = new CacheManager(namespace);
+    });
+
+    test("Should return 'array' of 'success' and 'data' when '_cache.setMany' returns 'true''", (t) => {
+      // Arrange
+      const key = "test-key";
+      const val = "test-value";
+
+      cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
+      cacheManager["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].set = t.mock.fn(() => true);
+
+      // Act
+      const result = cacheManager.setMany([{ key, value: val }]);
+
+      // Arrest
+      assert.ok(Array.isArray(result));
+      assert.ok(result.length === 1);
+      assert.ok(result[0].success);
+      assert.ok(result[0].data);
+    });
+
+    test("Should return 'array' of 'success', 'key', and 'error' when '_cache.setMany' returns 'false'", (t) => {
+      // Arrange
+      const key = "test-key";
+      const val = "test-value";
+
+      cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
+      cacheManager["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].set = t.mock.fn(() => false);
+
+      // Act
+      const result = cacheManager.setMany([{ key, value: val }]);
+
+      // Arrest
+      assert.ok(Array.isArray(result));
+      assert.ok(result.length === 1);
+      assert.ok(!result[0].success);
+      assert.ok(result[0].key);
+      assert.ok(result[0].error);
+    });
+
+    test("Should return the correct 'data' when '_cache.setMany' returns 'true'", (t) => {
+      // Arrange
+      const key = "test-key";
+      const val = "test-value";
+
+      cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
+      cacheManager["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].set = t.mock.fn(() => true);
+
+      // Act
+      const result = cacheManager.setMany([{ key, value: val }]);
+
+      // Arrest
+      assert.ok(Array.isArray(result));
+      assert.ok(result.length === 1);
+      assert.ok(result[0].success);
+      assert.strictEqual(result[0].data, key);
+    });
+
+    test("Should return the correct 'key' when '_cache.setMany' returns 'false'", (t) => {
+      // Arrange
+      const key = "test-key";
+      const val = "test-value";
+
+      cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
+      cacheManager["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].set = t.mock.fn(() => false);
+
+      // Act
+      const result = cacheManager.setMany([{ key, value: val }]);
+
+      // Arrest
+      assert.ok(Array.isArray(result));
+      assert.ok(result.length === 1);
+      assert.ok(!result[0].success);
+      assert.strictEqual(result[0].key, key);
+    });
+
+    test("Should return 'error' instance of 'CacheOperationError' when '_cache.setMany' returns 'false'", (t) => {
+      // Arrange
+      const key = "test-key";
+      const val = "test-value";
+
+      cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
+      cacheManager["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].set = t.mock.fn(() => false);
+
+      // Act
+      const result = cacheManager.setMany([{ key, value: val }]);
+
+      // Arrest
+      assert.ok(Array.isArray(result));
+      assert.ok(result.length === 1);
+      assert.ok(!result[0].success);
+      assert.ok(result[0].error instanceof CacheOperationError);
+    });
+
+    test("Should return 'error' instance of 'CacheOperationError' when '_cache.setMany' throws", (t) => {
+      // Arrange
+      const key = "test-key";
+      const val = "test-value";
+
+      cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
+      cacheManager["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
+      cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+      cacheManager["_cache"].set = t.mock.fn(() => {
+        throw new Error();
+      });
+
+      // Act
+      const result = cacheManager.setMany([{ key, value: val }]);
+
+      // Arrest
+      assert.ok(Array.isArray(result));
+      assert.ok(result.length === 1);
+      assert.ok(!result[0].success);
+      assert.ok(result[0].error instanceof CacheOperationError);
+    });
+  });
+
   describe("Get", () => {
     const namespace: Namespace = "product";
     let cacheManager: CacheManager;
