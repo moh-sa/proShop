@@ -79,20 +79,23 @@ export class CacheManager implements ICacheManager {
   }
 
   setMany(args: CacheItems): Array<boolean> {
-    const preparedArgs = args.map((item) => ({
-      key: this._generateCacheKey({ id: item.key }),
-      val: item.value,
-      ttl: item.ttl ?? DEFAULT_CACHE_CONFIG.stdTTL,
-    }));
-
     this._validateMemoryCapacity(args.length);
 
     const parsedArgs = this._validateSchema({
       schema: cacheItemsSchema,
-      data: preparedArgs,
+      data: args.map((arg) => ({
+        key: arg.key,
+        val: arg.value,
+        ttl: arg.ttl ?? DEFAULT_CACHE_CONFIG.stdTTL,
+      })),
     });
 
-    return parsedArgs.map((arg) => {
+    const parsedArgsWithCacheKeys = parsedArgs.map((arg) => ({
+      ...arg,
+      key: this._generateCacheKey({ id: arg.key }),
+    }));
+
+    return parsedArgsWithCacheKeys.map((arg) => {
       try {
         return this._cache.set(arg.key, arg.val, arg.ttl);
       } catch (error) {
