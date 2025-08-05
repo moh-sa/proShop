@@ -22,7 +22,7 @@ import { formatZodErrors } from "../utils";
 
 export interface ICacheManager {
   set(args: CacheItem): CacheResult;
-  setMany(args: CacheItems): Array<boolean>;
+  setMany(args: CacheItems): Array<CacheResult>;
   get<T>(args: { key: string }): T | undefined;
   getMany<T>(args: { keys: Array<string> }): Record<string, T | undefined>;
   delete(args: { key: string }): boolean;
@@ -78,7 +78,7 @@ export class CacheManager implements ICacheManager {
     }
   }
 
-  setMany(args: CacheItems): Array<boolean> {
+  setMany(args: CacheItems): Array<CacheResult> {
     this._validateMemoryCapacity(args.length);
 
     const parsedArgs = this._validateSchema({
@@ -97,10 +97,22 @@ export class CacheManager implements ICacheManager {
 
     return parsedArgsWithCacheKeys.map((arg) => {
       try {
-        return this._cache.set(arg.key, arg.val, arg.ttl);
+        const result = this._cache.set(arg.key, arg.val, arg.ttl);
+        if (!result) {
+          console.error("Failed to set key", arg.key);
+          return this._createFailureResult(
+            arg.key,
+            CacheOperationError.set(arg.key),
+          );
+        }
+
+        return this._createSuccessResult(arg.key);
       } catch (error) {
         console.error("Failed to set key", arg.key);
-        return false;
+        return this._createFailureResult(
+          arg.key,
+          CacheOperationError.set(arg.key, error),
+        );
       }
     });
   }
