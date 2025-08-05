@@ -24,7 +24,7 @@ export interface ICacheManager {
   set(args: CacheItem): CacheResult;
   setMany(args: CacheItems): Array<CacheResult>;
   get<T>(args: { key: string }): CacheResult<T>;
-  getMany<T>(args: { keys: Array<string> }): Record<string, T | undefined>;
+  getMany<T>(args: { keys: Array<string> }): Array<CacheResult<T>>;
   delete(args: { key: string }): boolean;
   deleteMany(args: { keys: Array<string> }): Array<boolean>;
   take<T>(args: { key: string }): T | undefined;
@@ -142,16 +142,28 @@ export class CacheManager implements ICacheManager {
     }
   }
 
-  getMany<T>(args: { keys: Array<string> }): Record<string, T | undefined> {
+  getMany<T>(args: { keys: Array<string> }): Array<CacheResult<T>> {
     const parsedKeys = this._validateSchema({
       schema: cacheKeysSchema,
       data: args.keys,
     });
 
-    const keys = parsedKeys.map((key) => this._generateCacheKey({ id: key }));
-    const values = this._cache.mget<T>(keys);
+    return parsedKeys.map((item) => {
+      const key = this._generateCacheKey({ id: item });
 
-    return values;
+      try {
+        const result = this._cache.get<T>(key);
+
+        return result
+          ? this._createSuccessResult(result)
+          : this._createFailureResult(key, CacheOperationError.get(key));
+      } catch (error) {
+        return this._createFailureResult(
+          key,
+          CacheOperationError.get(key, error),
+        );
+      }
+    });
   }
 
   delete(args: { key: string }): boolean {
