@@ -27,7 +27,7 @@ export interface ICacheManager {
   getMany<T>(args: { keys: Array<string> }): Array<CacheResult<T>>;
   delete(args: { key: string }): CacheResult;
   deleteMany(args: { keys: Array<string> }): Array<CacheResult>;
-  take<T>(args: { key: string }): T | undefined;
+  take<T>(args: { key: string }): CacheResult<T>;
   flushStats(): void;
   flush(): void;
   getStats(): CacheStats;
@@ -212,20 +212,29 @@ export class CacheManager implements ICacheManager {
     });
   }
 
-  take<T>(args: { key: string }): T | undefined {
+  take<T>(args: { key: string }): CacheResult<T> {
     const parsedKey = this._validateSchema({
       schema: cacheKeySchema,
       data: args.key,
     });
 
     const key = this._generateCacheKey({ id: parsedKey });
-    const value = this._cache.take(key);
-    if (!value) {
-      console.log("Cache miss:", args.key);
-      return undefined;
-    }
 
-    return value as T;
+    try {
+      const result = this._cache.take<T>(key);
+      if (!result) {
+        console.log("Cache miss:", args.key);
+        return this._createFailureResult(key, CacheOperationError.take(key));
+      }
+
+      return this._createSuccessResult(result);
+    } catch (error) {
+      console.error("Failed to take key", key);
+      return this._createFailureResult(
+        key,
+        CacheOperationError.take(key, error),
+      );
+    }
   }
 
   flushStats(): void {
