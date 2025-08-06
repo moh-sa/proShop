@@ -1017,6 +1017,27 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
     });
   });
 
+  describe("generateCacheKey", () => {
+    const namespace: Namespace = "user";
+    let cacheManager: CacheManager;
+
+    beforeEach(() => {
+      cacheManager = new CacheManager(namespace);
+    });
+
+    test("Should add 'namespace' as a prefix to the key", (t) => {
+      // Arrange
+      const key = "test-key";
+
+      // Act
+      const result = cacheManager["_generateCacheKey"]({ id: key });
+
+      // Assert
+      const expectedKey = `${namespace}:${key}`;
+      assert.strictEqual(result, expectedKey);
+    });
+  });
+
   describe(
     "Full Cache Handling - Delete Least Used Keys",
     { todo: "figure out how to lower the max-cache-size in tests" },
