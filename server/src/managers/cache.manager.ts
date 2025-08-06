@@ -321,7 +321,7 @@ export class CacheManager implements ICacheManager {
     if (usedCacheSpace === 0) return;
 
     const availableSpace = MAX_CACHE_SIZE - usedCacheSpace;
-    if (availableSpace >= batchSize) return;
+    if (availableSpace > batchSize) return;
 
     const spaceNeeded = batchSize - availableSpace;
     const fallbackSpace = Math.ceil(usedCacheSpace * 0.1); // 10% of current keys size
