@@ -1,8 +1,9 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 import { DEFAULT_CACHE_CONFIG } from "../../config";
-import { CacheOperationError } from "../../errors";
+import { CacheOperationError, ValidationError } from "../../errors";
 import { CacheManager } from "../../managers";
+import { cacheItemSchema } from "../../schemas";
 import { CacheConfig, Namespace } from "../../types";
 
 suite("Cache Manager 〖 Unit Tests 〗", () => {
@@ -1038,9 +1039,54 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
     });
   });
 
-  describe(
-    "Full Cache Handling - Delete Least Used Keys",
-    { todo: "figure out how to lower the max-cache-size in tests" },
-    () => {},
-  );
+  describe("validateSchema", () => {
+    const namespace: Namespace = "user";
+    let cacheManager: CacheManager;
+
+    beforeEach(() => {
+      cacheManager = new CacheManager(namespace);
+    });
+
+    test("Should take 'schema' and 'data' and return the correct data", (t) => {
+      // Arrange
+      const data = {
+        key: "test-key",
+        val: "test-value",
+        ttl: 1000,
+      };
+
+      // Act
+      const result = cacheManager["_validateSchema"]({
+        schema: cacheItemSchema,
+        data,
+      });
+
+      // Assert
+      assert.ok(result);
+      assert.ok(result.key);
+      assert.strictEqual(result.key, data.key);
+      assert.ok(result.val);
+      assert.strictEqual(result.val, data.val);
+      assert.ok(result.ttl);
+      assert.strictEqual(result.ttl, data.ttl);
+    });
+
+    test("Should throw 'ValidationError' when 'data.key' is invalid", (t) => {
+      // Arrange
+      const data = {
+        key: 1234,
+        val: "test-value",
+        ttl: "1000",
+      };
+
+      // Act & Assert
+      assert.throws(() => {
+        cacheManager["_validateSchema"]({
+          schema: cacheItemSchema,
+          // @ts-expect-error - test case
+          data,
+        });
+      }, ValidationError);
+    });
+  });
 });
