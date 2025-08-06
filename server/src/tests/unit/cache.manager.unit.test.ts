@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
-import { DEFAULT_CACHE_CONFIG } from "../../config";
+import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../../config";
 import { CacheOperationError, ValidationError } from "../../errors";
 import { CacheManager } from "../../managers";
 import { cacheItemSchema } from "../../schemas";
@@ -1087,6 +1087,200 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
           data,
         });
       }, ValidationError);
+    });
+  });
+
+  describe("validateMemoryCapacity", () => {
+    const namespace: Namespace = "user";
+    let cacheManager: CacheManager;
+
+    beforeEach(() => {
+      cacheManager = new CacheManager(namespace);
+    });
+
+    function populateCache(numberOfKeys: number) {
+      const now = Date.now();
+
+      const items = Array(numberOfKeys)
+        .fill(0)
+        .map((_, i) => ({
+          key: `user:test-key-${i}`,
+          val: `test-val-${i}`,
+          ttl: now + i * 1000, // ascending order
+        }));
+
+      cacheManager["_cache"].mset(items);
+
+      return items;
+    }
+
+    function validateMemoryCapacity(batchSize: number) {
+      cacheManager["_validateMemoryCapacity"](batchSize);
+    }
+
+    describe("Early Return Scenarios", () => {
+      test("Should return early when batchSize is 0", () => {
+        // Arrange
+        const initialKeyCount = populateCache(5).length;
+
+        // Act & Assert
+        assert.doesNotThrow(() => validateMemoryCapacity(0));
+
+        const finalKeyCount = cacheManager["_cache"].keys().length;
+        assert.strictEqual(finalKeyCount, initialKeyCount);
+      });
+
+      test("Should return early when cache is empty", () => {
+        // Act & Assert
+        assert.doesNotThrow(() => validateMemoryCapacity(100));
+      });
+
+      test("Should return early when sufficient space is available", () => {
+        // Arrange
+        const initialKeyCount = populateCache(10).length;
+        const batchSize = 5;
+        const availableSpace = MAX_CACHE_SIZE - initialKeyCount;
+
+        // Act & Assert
+        assert.doesNotThrow(() => validateMemoryCapacity(batchSize));
+
+        const finalKeyCount = cacheManager["_cache"].keys().length;
+        assert.strictEqual(finalKeyCount, initialKeyCount);
+      });
+    });
+
+    describe("Error Scenarios", () => {
+      test("Should throw 'Error' when batchSize exceeds MAX_CACHE_SIZE", () => {
+        // Arrange
+        const invalidBatchSize = MAX_CACHE_SIZE + 1;
+
+        // Act & Assert
+        assert.throws(() => validateMemoryCapacity(invalidBatchSize), {
+          name: "Error",
+          message: `Batch size (${invalidBatchSize}) exceeds max cache size`,
+        });
+      });
+
+      test("Should throw 'Error' when batchSize equals MAX_CACHE_SIZE + large number", () => {
+        // Arrange
+        const invalidBatchSize = MAX_CACHE_SIZE + 500;
+
+        // Act & Assert
+        assert.throws(() => validateMemoryCapacity(invalidBatchSize), {
+          name: "Error",
+          message: `Batch size (${invalidBatchSize}) exceeds max cache size`,
+        });
+      });
+    });
+
+    describe("Cache Eviction Logic", () => {
+      test("Should delete keys when available space is insufficient", () => {
+        // Arrange
+        const initialCount = 990;
+        const batchSize = 20; // Needs 10 items to be deleted (990 + 20 - 1000)
+        populateCache(initialCount);
+
+        // Act
+        validateMemoryCapacity(batchSize);
+
+        // Assert
+        const finalKeyCount = cacheManager["_cache"].keys().length;
+        assert.ok(finalKeyCount < initialCount);
+      });
+
+      test("Should use fallback space (10%) when spaceNeeded is small", () => {
+        // Arrange
+        const initialCount = 100;
+        const batchSize = MAX_CACHE_SIZE - initialCount + 1; // Need to delete 1 key
+        const expectedFallbackKeys = Math.ceil(initialCount * 0.1); // 10 keys
+        const initialKeyCount = populateCache(initialCount).length;
+
+        // Act
+        validateMemoryCapacity(batchSize);
+
+        // Assert
+        const finalKeyCount = cacheManager["_cache"].keys().length;
+        const deletedCount = initialKeyCount - finalKeyCount;
+        assert.strictEqual(deletedCount, expectedFallbackKeys);
+      });
+
+      test("Should delete keys in TTL order (oldest first)", () => {
+        // Arrange
+        const numberOfKeys = 999;
+        const batchSize = 3;
+        const items = populateCache(numberOfKeys);
+
+        // Act
+        validateMemoryCapacity(batchSize);
+
+        // Assert
+        const remainingKeys = cacheManager["_cache"].keys();
+        assert.notStrictEqual(items.length, remainingKeys.length);
+        // check the first 100 keys are deleted
+        assert.ok(!remainingKeys.includes(items[0].key));
+        assert.ok(!remainingKeys.includes(items[99].key));
+        // check the rest of the keys are not deleted
+        assert.ok(remainingKeys.includes(items[100].key));
+        assert.ok(remainingKeys.includes(items[400].key));
+        assert.ok(remainingKeys.includes(items[800].key));
+      });
+    });
+
+    describe("Edge Cases and Boundary Conditions", () => {
+      test("Should handle batchSize exactly equal to MAX_CACHE_SIZE", () => {
+        // Act & Assert
+        assert.doesNotThrow(() => validateMemoryCapacity(MAX_CACHE_SIZE));
+      });
+
+      test("Should handle cache at exact capacity", () => {
+        // Arrange
+        const maxSize = MAX_CACHE_SIZE - 1; // NodeCache throws if you try to populate at max size
+        const batchSize = 1;
+        const expectedDeleteCount = Math.max(1, Math.ceil(maxSize * 0.1));
+        populateCache(maxSize);
+
+        // Act
+        validateMemoryCapacity(batchSize);
+
+        // Assert
+        const finalKeyCount = cacheManager["_cache"].keys().length;
+        assert.strictEqual(finalKeyCount, maxSize - expectedDeleteCount);
+      });
+
+      test("Should delete correct number when spaceNeeded equals fallbackSpace", () => {
+        // Arrange
+        const initialCount = 100;
+        const spaceNeeded = Math.ceil(initialCount * 0.1); // 10
+        const batchSize = MAX_CACHE_SIZE - initialCount + spaceNeeded; // Need to delete exactly 10
+        populateCache(initialCount);
+        const initialKeyCount = cacheManager["_cache"].keys().length;
+
+        // Act
+        validateMemoryCapacity(batchSize);
+
+        // Assert
+        const finalKeyCount = cacheManager["_cache"].keys().length;
+        const deletedCount = initialKeyCount - finalKeyCount;
+        assert.strictEqual(deletedCount, spaceNeeded);
+      });
+
+      test("Should handle large batch deletions correctly", () => {
+        // Arrange
+        const initialCount = 800;
+        const batchSize = 400; // Need to delete 200 keys
+        const expectedDeleteCount = batchSize - (MAX_CACHE_SIZE - initialCount);
+        populateCache(initialCount);
+
+        // Act
+        validateMemoryCapacity(batchSize);
+
+        // Assert
+        const finalKeyCount = cacheManager["_cache"].keys().length;
+        const deletedCount = initialCount - finalKeyCount;
+
+        assert.ok(deletedCount >= expectedDeleteCount);
+        assert.ok(finalKeyCount + batchSize <= MAX_CACHE_SIZE);
+      });
     });
   });
 });
