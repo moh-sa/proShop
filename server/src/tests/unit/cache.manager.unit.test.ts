@@ -1164,6 +1164,18 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
           CacheCapacityError,
         );
       });
+
+      test("Should throw 'CacheOperationError' when '_cache.del' throws", (t) => {
+        // Arrange
+        populateCache(MAX_CACHE_SIZE - 1);
+
+        cacheManager["_cache"].del = t.mock.fn(() => {
+          throw new Error();
+        });
+
+        // Act & Assert
+        assert.throws(() => validateMemoryCapacity(5), CacheOperationError);
+      });
     });
 
     describe("Cache Eviction Logic", () => {

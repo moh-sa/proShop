@@ -343,9 +343,14 @@ export class CacheManager implements ICacheManager {
       .map((entity) => entity.key);
 
     const keysToDelete = keysByTTL.slice(0, keysToDeleteCount);
-    this._cache.del(keysToDelete);
 
-    console.log(`[Cache] Deleted ${keysToDelete.length} keys`, keysToDelete);
+    try {
+      this._cache.del(keysToDelete);
+      console.log(`[Cache] Deleted ${keysToDelete.length} keys`, keysToDelete);
+    } catch (error) {
+      console.error("Failed to delete keys", keysToDelete);
+      throw CacheOperationError.delete(keysToDelete, error);
+    }
   }
 
   private _validateSchema<T extends z.ZodType>(args: {
