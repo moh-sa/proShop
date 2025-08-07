@@ -533,6 +533,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
       });
 
       mockService.delete.mock.mockImplementationOnce(() =>
+        // @ts-expect-error - test case
         Promise.resolve(null),
       );
 
