@@ -1,7 +1,11 @@
 import NodeCache from "node-cache";
 import { z } from "zod";
 import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../config";
-import { CacheOperationError, ValidationError } from "../errors";
+import {
+  CacheCapacityError,
+  CacheOperationError,
+  ValidationError,
+} from "../errors";
 import {
   cacheItemSchema,
   cacheItemsSchema,
@@ -313,8 +317,9 @@ export class CacheManager implements ICacheManager {
 
   private _validateMemoryCapacity(batchSize: number): void {
     if (batchSize === 0) return;
-    if (batchSize > MAX_CACHE_SIZE)
-      throw new Error(`Batch size (${batchSize}) exceeds max cache size`);
+    if (batchSize > MAX_CACHE_SIZE) {
+      throw CacheCapacityError.batchTooLarge(batchSize, MAX_CACHE_SIZE);
+    }
 
     const currentKeys = this._cache.keys();
     const usedCacheSpace = currentKeys.length;

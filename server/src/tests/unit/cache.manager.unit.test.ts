@@ -1,7 +1,11 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../../config";
-import { CacheOperationError, ValidationError } from "../../errors";
+import {
+  CacheCapacityError,
+  CacheOperationError,
+  ValidationError,
+} from "../../errors";
 import { CacheManager } from "../../managers";
 import { cacheItemSchema } from "../../schemas";
 import { CacheConfig, Namespace } from "../../types";
@@ -1150,26 +1154,15 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
     });
 
     describe("Error Scenarios", () => {
-      test("Should throw 'Error' when batchSize exceeds MAX_CACHE_SIZE", () => {
+      test("Should throw 'CacheCapacityError' when batchSize exceeds MAX_CACHE_SIZE", () => {
         // Arrange
         const invalidBatchSize = MAX_CACHE_SIZE + 1;
 
         // Act & Assert
-        assert.throws(() => validateMemoryCapacity(invalidBatchSize), {
-          name: "Error",
-          message: `Batch size (${invalidBatchSize}) exceeds max cache size`,
-        });
-      });
-
-      test("Should throw 'Error' when batchSize equals MAX_CACHE_SIZE + large number", () => {
-        // Arrange
-        const invalidBatchSize = MAX_CACHE_SIZE + 500;
-
-        // Act & Assert
-        assert.throws(() => validateMemoryCapacity(invalidBatchSize), {
-          name: "Error",
-          message: `Batch size (${invalidBatchSize}) exceeds max cache size`,
-        });
+        assert.throws(
+          () => validateMemoryCapacity(invalidBatchSize),
+          CacheCapacityError,
+        );
       });
     });
 
