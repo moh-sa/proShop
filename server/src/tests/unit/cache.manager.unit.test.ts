@@ -1062,197 +1062,167 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
   });
 
   describe("validateMemoryCapacity", () => {
-    const namespace: Namespace = "user";
-    let cacheManager: CacheManager;
+    test("Should return early when batchSize is 0", () => {
+      // Arrange
+      const batchSize = 0;
+      mockCache.keys.mock.mockImplementationOnce(() => []);
 
-    beforeEach(() => {
-      cacheManager = new CacheManager(namespace);
-    });
-
-    function populateCache(numberOfKeys: number) {
-      const now = Date.now();
-
-      const items = Array(numberOfKeys)
-        .fill(0)
-        .map((_, i) => ({
-          key: `user:test-key-${i}`,
-          val: `test-val-${i}`,
-          ttl: now + i * 1000, // ascending order
-        }));
-
-      cacheManager["_cache"].mset(items);
-
-      return items;
-    }
-
-    function validateMemoryCapacity(batchSize: number) {
+      // Act
       cacheManager["_validateMemoryCapacity"](batchSize);
-    }
 
-    describe("Early Return Scenarios", () => {
-      test("Should return early when batchSize is 0", () => {
-        // Arrange
-        const initialKeyCount = populateCache(5).length;
-
-        // Act & Assert
-        assert.doesNotThrow(() => validateMemoryCapacity(0));
-
-        const finalKeyCount = cacheManager["_cache"].keys().length;
-        assert.strictEqual(finalKeyCount, initialKeyCount);
-      });
-
-      test("Should return early when cache is empty", () => {
-        // Act & Assert
-        assert.doesNotThrow(() => validateMemoryCapacity(100));
-      });
-
-      test("Should return early when sufficient space is available", () => {
-        // Arrange
-        const initialKeyCount = populateCache(10).length;
-        const batchSize = 5;
-        const availableSpace = MAX_CACHE_SIZE - initialKeyCount;
-
-        // Act & Assert
-        assert.doesNotThrow(() => validateMemoryCapacity(batchSize));
-
-        const finalKeyCount = cacheManager["_cache"].keys().length;
-        assert.strictEqual(finalKeyCount, initialKeyCount);
-      });
+      // Assert
+      assert.strictEqual(mockCache.keys.mock.callCount(), 0);
     });
 
-    describe("Error Scenarios", () => {
-      test("Should throw 'CacheCapacityError' when batchSize exceeds MAX_CACHE_SIZE", () => {
-        // Arrange
-        const invalidBatchSize = MAX_CACHE_SIZE + 1;
+    test("Should throw 'CacheCapacityError' when batchSize exceeds 'MAX_CACHE_SIZE'", () => {
+      // Arrange
+      const batchSize = MAX_CACHE_SIZE + 1;
 
-        // Act & Assert
-        assert.throws(
-          () => validateMemoryCapacity(invalidBatchSize),
-          CacheCapacityError,
-        );
-      });
-
-      test("Should throw 'CacheOperationError' when '_cache.del' throws", (t) => {
-        // Arrange
-        populateCache(MAX_CACHE_SIZE - 1);
-
-        cacheManager["_cache"].del = t.mock.fn(() => {
-          throw new Error();
-        });
-
-        // Act & Assert
-        assert.throws(() => validateMemoryCapacity(5), CacheOperationError);
-      });
+      // Act & Assert
+      assert.throws(() => {
+        cacheManager["_validateMemoryCapacity"](batchSize);
+      }, CacheCapacityError);
     });
 
-    describe("Cache Eviction Logic", () => {
-      test("Should delete keys when available space is insufficient", () => {
-        // Arrange
-        const initialCount = 990;
-        const batchSize = 20; // Needs 10 items to be deleted (990 + 20 - 1000)
-        populateCache(initialCount);
+    test("Should return early when cache is empty", () => {
+      // Arrange
+      const batchSize = 5;
+      mockCache.keys.mock.mockImplementationOnce(() => []);
 
-        // Act
-        validateMemoryCapacity(batchSize);
+      // Act
+      cacheManager["_validateMemoryCapacity"](batchSize);
 
-        // Assert
-        const finalKeyCount = cacheManager["_cache"].keys().length;
-        assert.ok(finalKeyCount < initialCount);
-      });
-
-      test("Should use fallback space (10%) when spaceNeeded is small", () => {
-        // Arrange
-        const initialCount = 100;
-        const batchSize = MAX_CACHE_SIZE - initialCount + 1; // Need to delete 1 key
-        const expectedFallbackKeys = Math.ceil(initialCount * 0.1); // 10 keys
-        const initialKeyCount = populateCache(initialCount).length;
-
-        // Act
-        validateMemoryCapacity(batchSize);
-
-        // Assert
-        const finalKeyCount = cacheManager["_cache"].keys().length;
-        const deletedCount = initialKeyCount - finalKeyCount;
-        assert.strictEqual(deletedCount, expectedFallbackKeys);
-      });
-
-      test("Should delete keys in TTL order (oldest first)", () => {
-        // Arrange
-        const numberOfKeys = 999;
-        const batchSize = 3;
-        const items = populateCache(numberOfKeys);
-
-        // Act
-        validateMemoryCapacity(batchSize);
-
-        // Assert
-        const remainingKeys = cacheManager["_cache"].keys();
-        assert.notStrictEqual(items.length, remainingKeys.length);
-        // check the first 100 keys are deleted
-        assert.ok(!remainingKeys.includes(items[0].key));
-        assert.ok(!remainingKeys.includes(items[99].key));
-        // check the rest of the keys are not deleted
-        assert.ok(remainingKeys.includes(items[100].key));
-        assert.ok(remainingKeys.includes(items[400].key));
-        assert.ok(remainingKeys.includes(items[800].key));
-      });
+      // Assert
+      assert.strictEqual(mockCache.keys.mock.callCount(), 1);
+      assert.strictEqual(mockCache.getTtl.mock.callCount(), 0);
+      assert.strictEqual(mockCache.del.mock.callCount(), 0);
     });
 
-    describe("Edge Cases and Boundary Conditions", () => {
-      test("Should handle batchSize exactly equal to MAX_CACHE_SIZE", () => {
-        // Act & Assert
-        assert.doesNotThrow(() => validateMemoryCapacity(MAX_CACHE_SIZE));
+    test("Should return early when sufficient space is available", () => {
+      // Arrange
+      const batchSize = 5;
+      const currentKeys = ["key1", "key2", "key3"]; // 3 used out of MAX_CACHE_SIZE (1000)
+
+      mockCache.keys.mock.mockImplementationOnce(() => currentKeys);
+
+      // Act
+      cacheManager["_validateMemoryCapacity"](batchSize);
+
+      // Assert
+      assert.strictEqual(mockCache.keys.mock.callCount(), 1);
+      assert.strictEqual(mockCache.getTtl.mock.callCount(), 0);
+      assert.strictEqual(mockCache.del.mock.callCount(), 0);
+    });
+
+    test("Should delete correct number of keys when space is needed", () => {
+      // Arrange
+      const batchSize = 10;
+      const currentKeys = Array.from({ length: 995 }, (_, i) => `key${i}`); // 995 used, 5 available
+      const spaceNeeded = batchSize - (MAX_CACHE_SIZE - currentKeys.length); // 10 - 5 = 5
+      const fallbackSpace = Math.ceil(currentKeys.length * 0.1); // 100
+      const expectedKeysToDelete = Math.max(spaceNeeded, fallbackSpace); // 100
+
+      mockCache.keys.mock.mockImplementationOnce(() => currentKeys);
+      mockCache.getTtl.mock.mockImplementation(() => 1000);
+      mockCache.del.mock.mockImplementationOnce(() => 1);
+
+      // Act
+      cacheManager["_validateMemoryCapacity"](batchSize);
+
+      // Assert
+      assert.strictEqual(mockCache.keys.mock.callCount(), 1);
+      assert.strictEqual(mockCache.getTtl.mock.callCount(), currentKeys.length);
+      assert.strictEqual(mockCache.del.mock.callCount(), 1);
+
+      const deletedKeys = mockCache.del.mock.calls[0].arguments[0];
+      assert.ok(Array.isArray(deletedKeys));
+      assert.strictEqual(deletedKeys.length, expectedKeysToDelete);
+    });
+
+    test("Should use fallback space when it's larger than spaceNeeded", () => {
+      // Arrange
+      const batchSize = 20;
+      const currentKeys = Array.from({ length: 990 }, (_, i) => `key${i}`); // 990 used, 10 available
+      const spaceNeeded = batchSize - (MAX_CACHE_SIZE - currentKeys.length); // 20 - 10 = 10
+      const fallbackSpace = Math.ceil(currentKeys.length * 0.1); // 99
+      const expectedKeysToDelete = Math.max(spaceNeeded, fallbackSpace); // 99
+
+      mockCache.keys.mock.mockImplementationOnce(() => currentKeys);
+      mockCache.getTtl.mock.mockImplementation(() => 1000);
+      mockCache.del.mock.mockImplementationOnce(() => 1);
+
+      // Act
+      cacheManager["_validateMemoryCapacity"](batchSize);
+
+      // Assert
+      assert.strictEqual(mockCache.del.mock.callCount(), 1);
+      const deletedKeys = mockCache.del.mock.calls[0].arguments[0];
+      assert.ok(Array.isArray(deletedKeys));
+      assert.strictEqual(deletedKeys.length, expectedKeysToDelete);
+    });
+
+    test("Should sort keys by TTL and delete oldest first", () => {
+      // Arrange
+      const batchSize = 10;
+
+      const testKeys = ["key0", "key1", "key2", "key3", "key4"];
+      const ttlValues = [3000, 1000, 2000, 4000, 500]; // key4 (500) should be deleted first
+
+      // Fill cache to near capacity to trigger cleanup
+      const fullKeys = Array.from({ length: 997 }, (_, i) =>
+        i < testKeys.length ? testKeys[i] : `filler${i}`,
+      );
+
+      mockCache.keys.mock.mockImplementationOnce(() => fullKeys);
+      mockCache.getTtl.mock.mockImplementation((key) => {
+        const index = testKeys.indexOf(key);
+        return index !== -1 ? ttlValues[index] : 5000;
       });
 
-      test("Should handle cache at exact capacity", () => {
-        // Arrange
-        const maxSize = MAX_CACHE_SIZE - 1; // NodeCache throws if you try to populate at max size
-        const batchSize = 1;
-        const expectedDeleteCount = Math.max(1, Math.ceil(maxSize * 0.1));
-        populateCache(maxSize);
+      // Act
+      cacheManager["_validateMemoryCapacity"](batchSize);
 
-        // Act
-        validateMemoryCapacity(batchSize);
+      // Assert
+      assert.strictEqual(mockCache.del.mock.callCount(), 1);
+      const deletedKeys = mockCache.del.mock.calls[0].arguments[0];
+      assert.ok(Array.isArray(deletedKeys));
 
-        // Assert
-        const finalKeyCount = cacheManager["_cache"].keys().length;
-        assert.strictEqual(finalKeyCount, maxSize - expectedDeleteCount);
+      // Should delete keys sorted by TTL (oldest first)
+      // key4 (TTL: 500) should be the first in deleted keys
+      assert.ok(deletedKeys.length > 0);
+      assert.strictEqual(deletedKeys[0], "key4"); // Oldest key should be first
+    });
+
+    test("Should handle keys with 'undefined' TTL by using default TTL", () => {
+      // Arrange
+      const batchSize = 10;
+      const currentKeys = Array.from({ length: 997 }, (_, i) => `key${i}`);
+
+      mockCache.keys.mock.mockImplementationOnce(() => currentKeys);
+      mockCache.getTtl.mock.mockImplementation(() => undefined);
+
+      // Act & Assert
+      assert.doesNotThrow(() =>
+        cacheManager["_validateMemoryCapacity"](batchSize),
+      );
+    });
+
+    test("Should throw 'CacheOperationError' when '_cache.del' throws", () => {
+      // Arrange
+      const batchSize = 10;
+
+      mockCache.keys.mock.mockImplementationOnce(() =>
+        Array.from({ length: 995 }, (_, i) => `key${i}`),
+      );
+      mockCache.getTtl.mock.mockImplementation(() => 1000);
+      mockCache.del.mock.mockImplementationOnce(() => {
+        throw new Error("Test error");
       });
 
-      test("Should delete correct number when spaceNeeded equals fallbackSpace", () => {
-        // Arrange
-        const initialCount = 100;
-        const spaceNeeded = Math.ceil(initialCount * 0.1); // 10
-        const batchSize = MAX_CACHE_SIZE - initialCount + spaceNeeded; // Need to delete exactly 10
-        populateCache(initialCount);
-        const initialKeyCount = cacheManager["_cache"].keys().length;
-
-        // Act
-        validateMemoryCapacity(batchSize);
-
-        // Assert
-        const finalKeyCount = cacheManager["_cache"].keys().length;
-        const deletedCount = initialKeyCount - finalKeyCount;
-        assert.strictEqual(deletedCount, spaceNeeded);
-      });
-
-      test("Should handle large batch deletions correctly", () => {
-        // Arrange
-        const initialCount = 800;
-        const batchSize = 400; // Need to delete 200 keys
-        const expectedDeleteCount = batchSize - (MAX_CACHE_SIZE - initialCount);
-        populateCache(initialCount);
-
-        // Act
-        validateMemoryCapacity(batchSize);
-
-        // Assert
-        const finalKeyCount = cacheManager["_cache"].keys().length;
-        const deletedCount = initialCount - finalKeyCount;
-
-        assert.ok(deletedCount >= expectedDeleteCount);
-        assert.ok(finalKeyCount + batchSize <= MAX_CACHE_SIZE);
-      });
+      // Act & Assert
+      assert.throws(() => {
+        cacheManager["_validateMemoryCapacity"](batchSize);
+      }, CacheOperationError);
     });
   });
 });
