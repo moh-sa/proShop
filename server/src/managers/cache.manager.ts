@@ -359,6 +359,11 @@ export class CacheManager implements ICacheManager {
   }): z.infer<T> {
     const parsed = args.schema.safeParse(args.data);
     if (!parsed.success) {
+      const paths = parsed.error.issues.map((issue) => issue.path.join("."));
+
+      if (paths.includes("key")) {
+        throw CacheValidationError.invalidKey(String(args.data));
+      }
       throw new CacheValidationError(formatZodErrors(parsed.error));
     }
 

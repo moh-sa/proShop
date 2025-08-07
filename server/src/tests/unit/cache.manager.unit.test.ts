@@ -1080,6 +1080,24 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       const data = {
         key: 1234,
         val: "test-value",
+        ttl: "1000", // string instead of number
+      };
+
+      // Act & Assert
+      assert.throws(() => {
+        cacheManager["_validateSchema"]({
+          schema: cacheItemSchema,
+          // @ts-expect-error - test case
+          data,
+        });
+      }, CacheValidationError);
+    });
+
+    test("Should throw 'CacheValidationError' when 'data.key' is invalid", (t) => {
+      // Arrange
+      const data = {
+        key: 1234,
+        val: "test-value",
         ttl: "1000",
       };
 
