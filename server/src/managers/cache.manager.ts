@@ -4,7 +4,7 @@ import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../config";
 import {
   CacheCapacityError,
   CacheOperationError,
-  ValidationError,
+  CacheValidationError,
 } from "../errors";
 import {
   cacheItemSchema,
@@ -359,8 +359,7 @@ export class CacheManager implements ICacheManager {
   }): z.infer<T> {
     const parsed = args.schema.safeParse(args.data);
     if (!parsed.success) {
-      const errorMessage = formatZodErrors(parsed.error);
-      throw new ValidationError(errorMessage); // TODO: replace with cache-specific error (?)
+      throw new CacheValidationError(formatZodErrors(parsed.error));
     }
 
     return parsed.data;

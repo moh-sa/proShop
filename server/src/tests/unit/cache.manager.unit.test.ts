@@ -4,7 +4,7 @@ import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../../config";
 import {
   CacheCapacityError,
   CacheOperationError,
-  ValidationError,
+  CacheValidationError,
 } from "../../errors";
 import { CacheManager } from "../../managers";
 import { cacheItemSchema } from "../../schemas";
@@ -1075,7 +1075,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       assert.strictEqual(result.ttl, data.ttl);
     });
 
-    test("Should throw 'ValidationError' when 'data.key' is invalid", (t) => {
+    test("Should throw 'CacheValidationError' when 'data.key' is invalid", (t) => {
       // Arrange
       const data = {
         key: 1234,
@@ -1090,7 +1090,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
           // @ts-expect-error - test case
           data,
         });
-      }, ValidationError);
+      }, CacheValidationError);
     });
   });
 
