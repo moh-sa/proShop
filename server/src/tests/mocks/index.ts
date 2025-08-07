@@ -2,6 +2,7 @@ export * from "./auth-service.mock";
 export * from "./cache-hit.mock";
 export * from "./cache-invalidation.mock";
 export * from "./cache-miss.mock";
+export * from "./cache-NodeCache.mock";
 export * from "./cache-set.mock";
 export * from "./cache.manager.mock";
 export * from "./express-http-call.mock";
