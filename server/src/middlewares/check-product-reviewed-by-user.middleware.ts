@@ -1,6 +1,8 @@
-import { reviewService } from "../services";
+import { ReviewService } from "../services";
 import { asyncHandler } from "../utils";
 import { objectIdValidator } from "../validators";
+
+const reviewService = new ReviewService();
 
 export const checkProductReviewedByUser = asyncHandler(
   async (req, res, next) => {
