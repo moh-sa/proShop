@@ -364,6 +364,11 @@ export class CacheManager implements ICacheManager {
       if (paths.includes("key")) {
         throw CacheValidationError.invalidKey(String(args.data));
       }
+
+      if (paths.includes("ttl")) {
+        throw CacheValidationError.invalidTTL(Number(args.data));
+      }
+
       throw new CacheValidationError(formatZodErrors(parsed.error));
     }
 
