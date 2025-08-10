@@ -563,8 +563,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       assert.strictEqual(response.data.isPaid, true);
     });
 
-    test("Should set 'paidAt' timestamp when 'service.updateToPaid' is called with existing order", async () => {
+    test("Should set 'paidAt' timestamp when 'service.updateToPaid' is called with existing order", async (t) => {
       // Arrange
+      t.mock.timers.enable({ apis: ["Date"], now: new Date() });
+
       const mockOrder = generateMockSelectOrder({
         isPaid: false,
         paidAt: undefined,
@@ -582,6 +584,8 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       assert.ok(response);
       assert.ok(response.data);
       assert.ok(response.data.paidAt);
+
+      t.mock.timers.tick(100); // Ensure that current date is at least 100ms ahead of response date
       assert.ok(new Date(response.data.paidAt) < new Date());
     });
 
@@ -676,8 +680,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       assert.strictEqual(response.data.isDelivered, true);
     });
 
-    test("Should set 'deliveredAt' timestamp when 'service.updateToDelivered' is called with existing order", async () => {
+    test("Should set 'deliveredAt' timestamp when 'service.updateToDelivered' is called with existing order", async (t) => {
       // Arrange
+      t.mock.timers.enable({ apis: ["Date"], now: new Date() });
+
       const mockOrder = generateMockSelectOrder({
         deliveredAt: undefined,
         isDelivered: false,
@@ -695,6 +701,8 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       assert.ok(response);
       assert.ok(response.data);
       assert.ok(response.data.deliveredAt);
+
+      t.mock.timers.tick(100); // Ensure that current date is at least 100ms ahead of response date
       assert.ok(new Date(response.data.deliveredAt) < new Date());
     });
 
