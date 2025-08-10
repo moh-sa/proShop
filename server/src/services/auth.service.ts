@@ -8,58 +8,58 @@ import { UserRepository } from "../repositories/index.js";
 import { generateJwtToken, removeObjectFields } from "../utils/index.js";
 
 export interface IAuthService {
-  signin: (
-    data: RequiredBy<SelectUser, "email" | "password">,
-  ) => Promise<Omit<SelectUser, "password">>;
-  signup: (data: InsertUser) => Promise<Omit<SelectUser, "password">>;
+	signin: (
+		data: RequiredBy<SelectUser, "email" | "password">,
+	) => Promise<Omit<SelectUser, "password">>;
+	signup: (data: InsertUser) => Promise<Omit<SelectUser, "password">>;
 }
 export class AuthService implements IAuthService {
-  private readonly _repository: IUserRepository;
+	private readonly _repository: IUserRepository;
 
-  constructor(repository: IUserRepository = new UserRepository()) {
-    this._repository = repository;
-  }
+	constructor(repository: IUserRepository = new UserRepository()) {
+		this._repository = repository;
+	}
 
-  async signin(data: RequiredBy<SelectUser, "email" | "password">) {
-    const isUserExists = await this._repository.getByEmail({
-      email: data.email,
-    });
+	async signin(data: RequiredBy<SelectUser, "email" | "password">) {
+		const isUserExists = await this._repository.getByEmail({
+			email: data.email,
+		});
 
-    if (!isUserExists) {
-      throw new AuthenticationError("Invalid email or password.");
-    }
+		if (!isUserExists) {
+			throw new AuthenticationError("Invalid email or password.");
+		}
 
-    const isPasswordValid = await bcrypt.compare(
-      data.password,
-      isUserExists.password,
-    );
-    if (!isPasswordValid) {
-      throw new AuthenticationError("Invalid email or password.");
-    }
+		const isPasswordValid = await bcrypt.compare(
+			data.password,
+			isUserExists.password,
+		);
+		if (!isPasswordValid) {
+			throw new AuthenticationError("Invalid email or password.");
+		}
 
-    const user = isUserExists;
-    const token = generateJwtToken({ id: user._id });
-    const userWithToken = Object.assign(user, { token });
-    const userWithoutPassword = removeObjectFields(userWithToken, ["password"]);
+		const user = isUserExists;
+		const token = generateJwtToken({ id: user._id });
+		const userWithToken = Object.assign(user, { token });
+		const userWithoutPassword = removeObjectFields(userWithToken, ["password"]);
 
-    return userWithoutPassword;
-  }
+		return userWithoutPassword;
+	}
 
-  async signup(data: InsertUser) {
-    const isUserExists = await this._repository.existsByEmail({
-      email: data.email,
-    });
-    if (isUserExists) {
-      throw new AuthenticationError(
-        "An account with this email already exists.",
-      );
-    }
+	async signup(data: InsertUser) {
+		const isUserExists = await this._repository.existsByEmail({
+			email: data.email,
+		});
+		if (isUserExists) {
+			throw new AuthenticationError(
+				"An account with this email already exists.",
+			);
+		}
 
-    const createdUser = await this._repository.create(data);
-    const token = generateJwtToken({ id: createdUser._id });
-    const userWithToken = Object.assign(createdUser, { token });
-    const userWithoutPassword = removeObjectFields(userWithToken, ["password"]);
+		const createdUser = await this._repository.create(data);
+		const token = generateJwtToken({ id: createdUser._id });
+		const userWithToken = Object.assign(createdUser, { token });
+		const userWithoutPassword = removeObjectFields(userWithToken, ["password"]);
 
-    return userWithoutPassword;
-  }
+		return userWithoutPassword;
+	}
 }

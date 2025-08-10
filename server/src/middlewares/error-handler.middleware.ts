@@ -9,74 +9,74 @@ import { ErrorType } from "../types/index.js";
 import { sendErrorResponse } from "../utils/index.js";
 
 export function errorHandler(error: Error, req: Request, res: Response) {
-  // Handle different types of errors
-  if (error instanceof BaseError) {
-    return sendErrorResponse({
-      code: error.type,
-      errors: [
-        {
-          message: error.message,
-          path: req.path,
-        },
-      ],
-      responseContext: res,
-      statusCode: error.statusCode,
-    });
-  }
+	// Handle different types of errors
+	if (error instanceof BaseError) {
+		return sendErrorResponse({
+			code: error.type,
+			errors: [
+				{
+					message: error.message,
+					path: req.path,
+				},
+			],
+			responseContext: res,
+			statusCode: error.statusCode,
+		});
+	}
 
-  // Handle Zod validation errors
-  if (error instanceof ZodError) {
-    error.format();
-    return sendErrorResponse({
-      code: ErrorType.VALIDATION,
-      errors: error.issues.map((issue) => ({
-        message: issue.message,
-        path: issue.path.join("."),
-      })),
-      responseContext: res,
-      statusCode: 400,
-    });
-  }
+	// Handle Zod validation errors
+	if (error instanceof ZodError) {
+		error.format();
+		return sendErrorResponse({
+			code: ErrorType.VALIDATION,
+			errors: error.issues.map((issue) => ({
+				message: issue.message,
+				path: issue.path.join("."),
+			})),
+			responseContext: res,
+			statusCode: 400,
+		});
+	}
 
-  // Handle JWT errors
-  if (error instanceof JwtBaseError) {
-    return sendErrorResponse({
-      code: error.type,
-      errors: [
-        {
-          message: error.message,
-          path: req.path,
-        },
-      ],
-      responseContext: res,
-      statusCode: error.statusCode,
-    });
-  }
+	// Handle JWT errors
+	if (error instanceof JwtBaseError) {
+		return sendErrorResponse({
+			code: error.type,
+			errors: [
+				{
+					message: error.message,
+					path: req.path,
+				},
+			],
+			responseContext: res,
+			statusCode: error.statusCode,
+		});
+	}
 
-  if (error instanceof MulterError) {
-    return sendErrorResponse({
-      code: ErrorType.BAD_REQUEST, // FIXME: add a better error type
-      errors: [
-        {
-          message: error.message || "File upload failed",
-          path: req.path,
-        },
-      ],
-      responseContext: res,
-      statusCode: 400,
-    });
-  }
+	if (error instanceof MulterError) {
+		return sendErrorResponse({
+			code: ErrorType.BAD_REQUEST, // FIXME: add a better error type
+			errors: [
+				{
+					message: error.message || "File upload failed",
+					path: req.path,
+				},
+			],
+			responseContext: res,
+			statusCode: 400,
+		});
+	}
 
-  return sendErrorResponse({
-    code: ErrorType.INTERNAL,
-    errors: [
-      {
-        message: error.message || "Internal server error",
-        path: req.path,
-        ...(env.NODE_ENV === "development" && { stack: error.stack }),
-      },
-    ],
-    responseContext: res,
-    statusCode: 500,
-  });
+	return sendErrorResponse({
+		code: ErrorType.INTERNAL,
+		errors: [
+			{
+				message: error.message || "Internal server error",
+				path: req.path,
+				...(env.NODE_ENV === "development" && { stack: error.stack }),
+			},
+		],
+		responseContext: res,
+		statusCode: 500,
+	});
 }

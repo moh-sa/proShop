@@ -1,13 +1,13 @@
 import type { z } from "zod";
 
 import type {
-  allOrdersResponseSchema,
-  insertOrderSchema,
-  selectOrderSchema,
+	allOrdersResponseSchema,
+	insertOrderSchema,
+	selectOrderSchema,
 } from "../schemas/index.js";
 import type {
-  insertOrderItemSchema,
-  selectOrderItemSchema,
+	insertOrderItemSchema,
+	selectOrderItemSchema,
 } from "../schemas/order/order-item.schema.js";
 
 export type AllOrdersResponse = z.infer<typeof allOrdersResponseSchema>;

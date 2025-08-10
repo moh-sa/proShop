@@ -4,9 +4,9 @@ import { uploadSingle as uploadSingleMiddleware } from "../../config/multer.conf
 import { ProductController } from "../../controllers/index.js";
 import { adminLimiter, defaultLimiter } from "../../managers/index.js";
 import {
-  checkIfUserIsAdmin,
-  checkJwtTokenValidation,
-  checkUserIdExists,
+	checkIfUserIsAdmin,
+	checkJwtTokenValidation,
+	checkUserIdExists,
 } from "../../middlewares/index.js";
 
 const controller = new ProductController();
@@ -23,34 +23,34 @@ publicRouter.route("/").get(defaultLimiter, controller.getAll);
 publicRouter.route("/top-rated").get(defaultLimiter, controller.getTopRated);
 
 adminRouter
-  .route("/")
-  .post(
-    adminLimiter,
-    checkJwtTokenValidation,
-    checkUserIdExists,
-    checkIfUserIsAdmin,
-    uploadSingleMiddleware,
-    controller.create,
-  );
+	.route("/")
+	.post(
+		adminLimiter,
+		checkJwtTokenValidation,
+		checkUserIdExists,
+		checkIfUserIsAdmin,
+		uploadSingleMiddleware,
+		controller.create,
+	);
 
 adminRouter
-  .route("/:productId")
-  .get(defaultLimiter, controller.getById)
-  .delete(
-    adminLimiter,
-    checkJwtTokenValidation,
-    checkUserIdExists,
-    checkIfUserIsAdmin,
-    controller.delete,
-  )
-  .patch(
-    adminLimiter,
-    checkJwtTokenValidation,
-    checkUserIdExists,
-    checkIfUserIsAdmin,
-    uploadSingleMiddleware,
-    controller.update,
-  );
+	.route("/:productId")
+	.get(defaultLimiter, controller.getById)
+	.delete(
+		adminLimiter,
+		checkJwtTokenValidation,
+		checkUserIdExists,
+		checkIfUserIsAdmin,
+		controller.delete,
+	)
+	.patch(
+		adminLimiter,
+		checkJwtTokenValidation,
+		checkUserIdExists,
+		checkIfUserIsAdmin,
+		uploadSingleMiddleware,
+		controller.update,
+	);
 
 protectedRoutes.use("/admin", adminRouter);
 

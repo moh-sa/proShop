@@ -8,12 +8,14 @@ const userRepository = new UserRepository();
  * Middleware to verify user existence by ID
  */
 export const checkUserIdExists = asyncHandler(async (req, res, next) => {
-  const userId = res.locals.token._id;
-  const user = await userRepository.getById({ userId });
-  if (!user) throw new AuthenticationError();
+	const userId = res.locals.token._id;
+	const user = await userRepository.getById({ userId });
+	if (!user) {
+		throw new AuthenticationError();
+	}
 
-  // eslint-disable-next-line require-atomic-updates
-  res.locals.user = user;
+	// eslint-disable-next-line require-atomic-updates
+	res.locals.user = user;
 
-  next();
+	next();
 });

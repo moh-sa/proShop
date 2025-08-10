@@ -12,13 +12,13 @@ import type { NextFunction, Request, Response } from "express";
  * ```
  */
 export function asyncHandler(
-  fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>,
+	fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>,
 ) {
-  return async function (req: Request, res: Response, next: NextFunction) {
-    try {
-      await fn(req, res, next);
-    } catch (error) {
-      next(error);
-    }
-  };
+	return async function (req: Request, res: Response, next: NextFunction) {
+		try {
+			await fn(req, res, next);
+		} catch (error) {
+			next(error);
+		}
+	};
 }

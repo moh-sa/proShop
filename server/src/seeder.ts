@@ -8,39 +8,39 @@ import User from "./models/userModel.js";
 connectDB();
 
 const importData = async () => {
-  try {
-    const createdUsers = await User.insertMany(users);
-    const adminUser = createdUsers[0]._id;
+	try {
+		const createdUsers = await User.insertMany(users);
+		const adminUser = createdUsers[0]._id;
 
-    const sampleProducts = products.map((p) => {
-      return { ...p, user: adminUser };
-    });
+		const sampleProducts = products.map((p) => {
+			return { ...p, user: adminUser };
+		});
 
-    await Product.insertMany(sampleProducts);
+		await Product.insertMany(sampleProducts);
 
-    console.info("Data Imported!");
-    process.exit(); // eslint-disable-line n/no-process-exit
-  } catch (error) {
-    console.error(error);
-    process.exit(1); // eslint-disable-line n/no-process-exit
-  }
+		console.info("Data Imported!");
+		process.exit(); // eslint-disable-line n/no-process-exit
+	} catch (error) {
+		console.error(error);
+		process.exit(1); // eslint-disable-line n/no-process-exit
+	}
 };
 
 const destroyData = async () => {
-  try {
-    await Order.deleteMany();
-    await Product.deleteMany();
-    await User.deleteMany();
-    console.info("Data Destroyed!");
-    process.exit(); // eslint-disable-line n/no-process-exit
-  } catch (error) {
-    console.error(error);
-    process.exit(1); // eslint-disable-line n/no-process-exit
-  }
+	try {
+		await Order.deleteMany();
+		await Product.deleteMany();
+		await User.deleteMany();
+		console.info("Data Destroyed!");
+		process.exit(); // eslint-disable-line n/no-process-exit
+	} catch (error) {
+		console.error(error);
+		process.exit(1); // eslint-disable-line n/no-process-exit
+	}
 };
 
 if (process.argv[2] === "-d") {
-  destroyData();
+	destroyData();
 } else {
-  importData();
+	importData();
 }

@@ -5,16 +5,16 @@ import { objectIdValidator } from "../validators/index.js";
 const reviewService = new ReviewService();
 
 export const checkProductReviewedByUser = asyncHandler(
-  async (req, res, next) => {
-    const userId = res.locals.user._id;
-    const productId = objectIdValidator.parse(req.params.productId);
+	async (req, res, next) => {
+		const userId = res.locals.user._id;
+		const productId = objectIdValidator.parse(req.params.productId);
 
-    // Will throw 'NotFound' error if doesn't exist
-    await reviewService.existsByUserIdAndProductId({
-      productId,
-      userId,
-    });
+		// Will throw 'NotFound' error if doesn't exist
+		await reviewService.existsByUserIdAndProductId({
+			productId,
+			userId,
+		});
 
-    next();
-  },
+		next();
+	},
 );

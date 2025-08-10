@@ -7,143 +7,143 @@ import { RateLimitError } from "../errors/index.js";
 import { CacheManager } from "./cache.manager.js";
 
 interface RateLimitData {
-  count: number;
-  firstRequestTime: number;
+	count: number;
+	firstRequestTime: number;
 }
 
 export class RateLimiterManager {
-  private _cache: CacheManager;
+	private _cache: CacheManager;
 
-  constructor(cache: CacheManager = new CacheManager("rate-limit")) {
-    this._cache = cache;
-  }
+	constructor(cache: CacheManager = new CacheManager("rate-limit")) {
+		this._cache = cache;
+	}
 
-  public clearCache(keys?: Array<string> | string): void {
-    // FIXME: refactor this. probably gonna split this into multiple functions
-    if (!(Array.isArray(keys) || typeof keys === "string")) {
-      return this._cache.flush();
-    }
+	public clearCache(keys?: Array<string> | string): void {
+		// FIXME: refactor this. probably gonna split this into multiple functions
+		if (!(Array.isArray(keys) || typeof keys === "string")) {
+			return this._cache.flush();
+		}
 
-    // this.cache.delete({ keys });
-  }
+		// this.cache.delete({ keys });
+	}
 
-  public getLimiter(
-    options:
-      | keyof typeof RATE_LIMIT_CONFIG
-      | RateLimitConfig = RATE_LIMIT_CONFIG.DEFAULT,
-  ) {
-    const config =
-      typeof options === "string" ? RATE_LIMIT_CONFIG[options] : options;
+	public getLimiter(
+		options:
+			| keyof typeof RATE_LIMIT_CONFIG
+			| RateLimitConfig = RATE_LIMIT_CONFIG.DEFAULT,
+	) {
+		const config =
+			typeof options === "string" ? RATE_LIMIT_CONFIG[options] : options;
 
-    return this._limiter(config);
-  }
+		return this._limiter(config);
+	}
 
-  private _generateId(req: Request): string {
-    return `${req.ip}:${req.baseUrl + req.path}`;
-  }
+	private _generateId(req: Request): string {
+		return `${req.ip}:${req.baseUrl + req.path}`;
+	}
 
-  private _getRateLimitData(key: string): RateLimitData {
-    const fallback: RateLimitData = {
-      count: 0,
-      firstRequestTime: Date.now(),
-    };
+	private _getRateLimitData(key: string): RateLimitData {
+		const fallback: RateLimitData = {
+			count: 0,
+			firstRequestTime: Date.now(),
+		};
 
-    const result = this._cache.get<RateLimitData>({ key });
-    return result.success ? result.data : fallback;
-  }
+		const result = this._cache.get<RateLimitData>({ key });
+		return result.success ? result.data : fallback;
+	}
 
-  private _handleError(error: unknown, next: NextFunction): void {
-    console.error("Rate limiter error: ", error);
-    if (error instanceof RateLimitError) {
-      next(error);
-    } else {
-      next(new RateLimitError());
-    }
-  }
+	private _handleError(error: unknown, next: NextFunction): void {
+		console.error("Rate limiter error: ", error);
+		if (error instanceof RateLimitError) {
+			next(error);
+		} else {
+			next(new RateLimitError());
+		}
+	}
 
-  private _handleRateLimitExceeded(
-    res: Response,
-    next: NextFunction,
-    data: RateLimitData,
-    config: RateLimitConfig,
-    key: string,
-  ): void {
-    const currentTime = Date.now();
-    const retryAfter = Math.ceil(
-      (config.windowMs - (currentTime - data.firstRequestTime)) / 1000,
-    );
+	private _handleRateLimitExceeded(
+		res: Response,
+		next: NextFunction,
+		data: RateLimitData,
+		config: RateLimitConfig,
+		key: string,
+	): void {
+		const currentTime = Date.now();
+		const retryAfter = Math.ceil(
+			(config.windowMs - (currentTime - data.firstRequestTime)) / 1000,
+		);
 
-    res.setHeader("Retry-After", retryAfter);
-    console.warn(
-      `Rate limit exceeded for ${key}. Retry after ${retryAfter} seconds.`,
-    );
+		res.setHeader("Retry-After", retryAfter);
+		console.warn(
+			`Rate limit exceeded for ${key}. Retry after ${retryAfter} seconds.`,
+		);
 
-    this._handleError(new RateLimitError(config.message), next);
-  }
+		this._handleError(new RateLimitError(config.message), next);
+	}
 
-  private _limiter(config: RateLimitConfig = RATE_LIMIT_CONFIG.DEFAULT) {
-    return async (req: Request, res: Response, next: NextFunction) => {
-      try {
-        const key = this._generateId(req);
-        const data = this._getRateLimitData(key);
+	private _limiter(config: RateLimitConfig = RATE_LIMIT_CONFIG.DEFAULT) {
+		return async (req: Request, res: Response, next: NextFunction) => {
+			try {
+				const key = this._generateId(req);
+				const data = this._getRateLimitData(key);
 
-        const updatedData = this._updateRateLimitData(data, config);
-        this._setRateLimitHeaders(res, updatedData, config);
+				const updatedData = this._updateRateLimitData(data, config);
+				this._setRateLimitHeaders(res, updatedData, config);
 
-        if (updatedData.count > config.maxRequests) {
-          this._handleRateLimitExceeded(res, next, updatedData, config, key);
-        } else {
-          this._saveRateLimitData(updatedData, config, key);
-          next();
-        }
-      } catch (error) {
-        this._handleError(error, next);
-      }
-    };
-  }
+				if (updatedData.count > config.maxRequests) {
+					this._handleRateLimitExceeded(res, next, updatedData, config, key);
+				} else {
+					this._saveRateLimitData(updatedData, config, key);
+					next();
+				}
+			} catch (error) {
+				this._handleError(error, next);
+			}
+		};
+	}
 
-  private _saveRateLimitData(
-    data: RateLimitData,
-    config: RateLimitConfig,
-    key: string,
-  ): void {
-    const isSet = this._cache.set({
-      key,
-      ttl: Math.ceil(config.windowMs / 1000),
-      value: data,
-    });
-    if (!isSet.success) {
-      console.error("Failed to set rate limit data", key);
-      throw isSet.error;
-    }
-  }
+	private _saveRateLimitData(
+		data: RateLimitData,
+		config: RateLimitConfig,
+		key: string,
+	): void {
+		const isSet = this._cache.set({
+			key,
+			ttl: Math.ceil(config.windowMs / 1000),
+			value: data,
+		});
+		if (!isSet.success) {
+			console.error("Failed to set rate limit data", key);
+			throw isSet.error;
+		}
+	}
 
-  private _setRateLimitHeaders(
-    res: Response,
-    data: RateLimitData,
-    config: RateLimitConfig,
-  ): void {
-    res.setHeader("X-RateLimit-Limit", config.maxRequests);
-    res.setHeader(
-      "X-RateLimit-Remaining",
-      Math.max(0, config.maxRequests - data.count),
-    );
-  }
+	private _setRateLimitHeaders(
+		res: Response,
+		data: RateLimitData,
+		config: RateLimitConfig,
+	): void {
+		res.setHeader("X-RateLimit-Limit", config.maxRequests);
+		res.setHeader(
+			"X-RateLimit-Remaining",
+			Math.max(0, config.maxRequests - data.count),
+		);
+	}
 
-  private _updateRateLimitData(
-    data: RateLimitData,
-    config: RateLimitConfig,
-  ): RateLimitData {
-    const currentTime = Date.now();
-    const isTimeWindowExceeded =
-      currentTime - data.firstRequestTime > config.windowMs;
+	private _updateRateLimitData(
+		data: RateLimitData,
+		config: RateLimitConfig,
+	): RateLimitData {
+		const currentTime = Date.now();
+		const isTimeWindowExceeded =
+			currentTime - data.firstRequestTime > config.windowMs;
 
-    if (isTimeWindowExceeded) {
-      return { count: 1, firstRequestTime: currentTime };
-    }
+		if (isTimeWindowExceeded) {
+			return { count: 1, firstRequestTime: currentTime };
+		}
 
-    return { ...data, count: data.count + 1 };
-  }
+		return { ...data, count: data.count + 1 };
+	}
 }
 
 const rateLimiter = new RateLimiterManager();

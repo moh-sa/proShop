@@ -5,16 +5,16 @@ import { z } from "zod";
 
 import { env } from "../config/index.js";
 import {
-  InvalidJwtTokenError,
-  InvalidJwtTokenPayloadError,
-  JwtTokenExpiredError,
-  JwtVerificationError,
+	InvalidJwtTokenError,
+	InvalidJwtTokenPayloadError,
+	JwtTokenExpiredError,
+	JwtVerificationError,
 } from "../errors/index.js";
 import { jwtTokenValidator } from "../validators/index.js";
 
 const standardJwtPayloadSchema = z.object({
-  exp: z.number(),
-  iat: z.number(),
+	exp: z.number(),
+	iat: z.number(),
 });
 
 type DecodedJwtToken<S extends ZodSchema> = StandardJwtPayload & z.infer<S>;
@@ -24,89 +24,89 @@ type StandardJwtPayload = z.infer<typeof standardJwtPayloadSchema>;
 // based on the provided payload schema
 export function verifyJwtToken(token: string): StandardJwtPayload;
 export function verifyJwtToken<S extends ZodSchema>(
-  token: string,
-  customPayloadSchema: S,
+	token: string,
+	customPayloadSchema: S,
 ): DecodedJwtToken<S>;
 export function verifyJwtToken<S extends ZodSchema>(
-  token: string,
-  customPayloadSchema?: S,
+	token: string,
+	customPayloadSchema?: S,
 ): DecodedJwtToken<S> | StandardJwtPayload {
-  // step 1: validate token format
-  const tokenResult = validateTokenFormat(token);
+	// step 1: validate token format
+	const tokenResult = validateTokenFormat(token);
 
-  // step 2: decode and verify JWT
-  const decodedToken = decodeJwtToken(tokenResult);
+	// step 2: decode and verify JWT
+	const decodedToken = decodeJwtToken(tokenResult);
 
-  // step 3: validate payload
-  const validatedPayload = validatePayload(decodedToken, customPayloadSchema);
+	// step 3: validate payload
+	const validatedPayload = validatePayload(decodedToken, customPayloadSchema);
 
-  return validatedPayload;
+	return validatedPayload;
 }
 
 function decodeJwtToken(token: string): jwt.JwtPayload | undefined {
-  try {
-    const decodedToken = jwt.verify(token, env.JWT_SECRET);
-    if (!(decodedToken instanceof Object)) {
-      throw new jwt.JsonWebTokenError("Invalid JWT token");
-    }
+	try {
+		const decodedToken = jwt.verify(token, env.JWT_SECRET);
+		if (!(decodedToken instanceof Object)) {
+			throw new jwt.JsonWebTokenError("Invalid JWT token");
+		}
 
-    return decodedToken;
-  } catch (error) {
-    mapJwtLibraryError(error);
-  }
+		return decodedToken;
+	} catch (error) {
+		mapJwtLibraryError(error);
+	}
 }
 
 function mapJwtLibraryError(error: unknown) {
-  if (error instanceof jwt.TokenExpiredError) {
-    throw new JwtTokenExpiredError();
-  }
+	if (error instanceof jwt.TokenExpiredError) {
+		throw new JwtTokenExpiredError();
+	}
 
-  if (error instanceof jwt.JsonWebTokenError) {
-    throw new InvalidJwtTokenError();
-  }
+	if (error instanceof jwt.JsonWebTokenError) {
+		throw new InvalidJwtTokenError();
+	}
 
-  throw new JwtVerificationError();
+	throw new JwtVerificationError();
 }
 
 function validateCustomPayload<S extends ZodSchema>(
-  payload: unknown,
-  customSchema: S,
+	payload: unknown,
+	customSchema: S,
 ): DecodedJwtToken<S> {
-  const payloadParsed = standardJwtPayloadSchema
-    .and(customSchema)
-    .safeParse(payload);
-  if (!payloadParsed.success) {
-    throw new InvalidJwtTokenPayloadError(payloadParsed.error.format());
-  }
+	const payloadParsed = standardJwtPayloadSchema
+		.and(customSchema)
+		.safeParse(payload);
+	if (!payloadParsed.success) {
+		throw new InvalidJwtTokenPayloadError(payloadParsed.error.format());
+	}
 
-  return payloadParsed.data;
+	return payloadParsed.data;
 }
 
 function validatePayload<S extends ZodSchema>(
-  payload: unknown,
-  customSchema?: S,
+	payload: unknown,
+	customSchema?: S,
 ): DecodedJwtToken<S> | StandardJwtPayload {
-  if (!customSchema) {
-    return validateStandardPayload(payload);
-  }
+	if (!customSchema) {
+		return validateStandardPayload(payload);
+	}
 
-  return validateCustomPayload(payload, customSchema);
+	return validateCustomPayload(payload, customSchema);
 }
 
 function validateStandardPayload(payload: unknown): StandardJwtPayload {
-  const payloadParsed = standardJwtPayloadSchema.safeParse(payload);
-  if (!payloadParsed.success) {
-    throw new InvalidJwtTokenPayloadError(payloadParsed.error.format());
-  }
+	const payloadParsed = standardJwtPayloadSchema.safeParse(payload);
+	if (!payloadParsed.success) {
+		throw new InvalidJwtTokenPayloadError(payloadParsed.error.format());
+	}
 
-  return payloadParsed.data;
+	return payloadParsed.data;
 }
 
 function validateTokenFormat(token: string): string {
-  const tokenParsed = jwtTokenValidator.safeParse(token);
-  if (!tokenParsed.success) {
-    throw new InvalidJwtTokenError(tokenParsed.error.format());
-  }
+	const tokenParsed = jwtTokenValidator.safeParse(token);
+	if (!tokenParsed.success) {
+		throw new InvalidJwtTokenError(tokenParsed.error.format());
+	}
 
-  return tokenParsed.data;
+	return tokenParsed.data;
 }

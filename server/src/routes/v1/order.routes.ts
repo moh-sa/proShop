@@ -3,9 +3,9 @@ import express from "express";
 import { OrderController } from "../../controllers/index.js";
 import { defaultLimiter, strictLimiter } from "../../managers/index.js";
 import {
-  checkIfUserIsAdmin,
-  checkJwtTokenValidation,
-  checkUserIdExists,
+	checkIfUserIsAdmin,
+	checkJwtTokenValidation,
+	checkUserIdExists,
 } from "../../middlewares/index.js";
 
 const controller = new OrderController();
@@ -16,61 +16,61 @@ const userRouter = express.Router();
 const adminRouter = express.Router();
 
 userRouter
-  .route("/")
-  .post(
-    strictLimiter,
-    checkJwtTokenValidation,
-    checkUserIdExists,
-    controller.create,
-  );
+	.route("/")
+	.post(
+		strictLimiter,
+		checkJwtTokenValidation,
+		checkUserIdExists,
+		controller.create,
+	);
 
 userRouter
-  .route("/user/:userId")
-  .get(
-    defaultLimiter,
-    checkJwtTokenValidation,
-    checkUserIdExists,
-    controller.getAllByUserId,
-  );
+	.route("/user/:userId")
+	.get(
+		defaultLimiter,
+		checkJwtTokenValidation,
+		checkUserIdExists,
+		controller.getAllByUserId,
+	);
 
 userRouter
-  .route("/:orderId")
-  .get(
-    defaultLimiter,
-    checkJwtTokenValidation,
-    checkUserIdExists,
-    controller.getById,
-  );
+	.route("/:orderId")
+	.get(
+		defaultLimiter,
+		checkJwtTokenValidation,
+		checkUserIdExists,
+		controller.getById,
+	);
 
 adminRouter
-  .route("/")
-  .get(
-    defaultLimiter,
-    checkJwtTokenValidation,
-    checkUserIdExists,
-    checkIfUserIsAdmin,
-    controller.getAll,
-  );
+	.route("/")
+	.get(
+		defaultLimiter,
+		checkJwtTokenValidation,
+		checkUserIdExists,
+		checkIfUserIsAdmin,
+		controller.getAll,
+	);
 
 adminRouter
-  .route("/:orderId/payment")
-  .patch(
-    strictLimiter,
-    checkJwtTokenValidation,
-    checkUserIdExists,
-    checkIfUserIsAdmin,
-    controller.updateToPaid,
-  );
+	.route("/:orderId/payment")
+	.patch(
+		strictLimiter,
+		checkJwtTokenValidation,
+		checkUserIdExists,
+		checkIfUserIsAdmin,
+		controller.updateToPaid,
+	);
 
 adminRouter
-  .route("/:orderId/delivery")
-  .patch(
-    strictLimiter,
-    checkJwtTokenValidation,
-    checkUserIdExists,
-    checkIfUserIsAdmin,
-    controller.updateToDelivered,
-  );
+	.route("/:orderId/delivery")
+	.patch(
+		strictLimiter,
+		checkJwtTokenValidation,
+		checkUserIdExists,
+		checkIfUserIsAdmin,
+		controller.updateToDelivered,
+	);
 
 protectedRoutes.use("/", userRouter);
 protectedRoutes.use("/admin", adminRouter);

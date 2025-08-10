@@ -4,24 +4,24 @@ import type { IUserService } from "../../services/index.js";
 import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
 export function mockUserService(): FunctionMocksWithReset<IUserService> {
-  return {
-    delete: mock.fn(),
-    getAll: mock.fn(),
-    getByEmail: mock.fn(),
-    getById: mock.fn(),
-    reset() {
-      this.getAll.mock.resetCalls();
-      this.getById.mock.resetCalls();
-      this.getByEmail.mock.resetCalls();
-      this.updateById.mock.resetCalls();
-      this.delete.mock.resetCalls();
+	return {
+		delete: mock.fn(),
+		getAll: mock.fn(),
+		getByEmail: mock.fn(),
+		getById: mock.fn(),
+		reset() {
+			this.getAll.mock.resetCalls();
+			this.getById.mock.resetCalls();
+			this.getByEmail.mock.resetCalls();
+			this.updateById.mock.resetCalls();
+			this.delete.mock.resetCalls();
 
-      this.getAll.mock.restore();
-      this.getById.mock.restore();
-      this.getByEmail.mock.restore();
-      this.updateById.mock.restore();
-      this.delete.mock.restore();
-    },
-    updateById: mock.fn(),
-  };
+			this.getAll.mock.restore();
+			this.getById.mock.restore();
+			this.getByEmail.mock.restore();
+			this.updateById.mock.restore();
+			this.delete.mock.restore();
+		},
+		updateById: mock.fn(),
+	};
 }
