@@ -1,8 +1,8 @@
 // import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 // import request from "supertest";
-import { ProductController } from "../../controllers";
-import Product from "../../models/productModel";
+import { ProductController } from "../../controllers/index.js";
+import Product from "../../models/productModel.js";
 // import { app } from "../../server";
 // import {
 //   generateMockInsertProductWithMulterImage,
@@ -12,11 +12,13 @@ import Product from "../../models/productModel";
 // } from "../mocks";
 import assert from "node:assert";
 import { ZodError } from "zod";
-import { NotFoundError } from "../../errors";
-import { CacheManager } from "../../managers";
-import { ProductRepository } from "../../repositories";
-import { ProductService } from "../../services";
-import { InsertProduct } from "../../types";
+
+import type { InsertProduct } from "../../types/index.js";
+
+import { NotFoundError } from "../../errors/index.js";
+import { CacheManager } from "../../managers/index.js";
+import { ProductRepository } from "../../repositories/index.js";
+import { ProductService } from "../../services/index.js";
 import {
   generateMockInsertProductWithMulterImage,
   generateMockObjectId,
@@ -24,12 +26,12 @@ import {
   generateMockSelectProducts,
   generateMockUser,
   mockImageStorage,
-} from "../mocks";
-import { createMockExpressContext } from "../utils";
+} from "../mocks/index.js";
 import {
   connectTestDatabase,
   disconnectTestDatabase,
-} from "../utils/database-connection.utils";
+} from "../utils/database-connection.utils.js";
+import { createMockExpressContext } from "../utils/index.js";
 
 suite("Product Controller 〖 Integration Tests 〗", () => {
   const cache = new CacheManager("product");
@@ -53,7 +55,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
       const { image, ...mockProduct } =
         generateMockInsertProductWithMulterImage();
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockProduct;
       req.file = image;
       res.locals.user = mockUser;
@@ -77,7 +79,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
       const { image, ...mockProduct } =
         generateMockInsertProductWithMulterImage();
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockProduct;
       req.file = image;
       res.locals.user = mockUser;
@@ -98,7 +100,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
       const { image, ...mockProduct } =
         generateMockInsertProductWithMulterImage();
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockProduct;
       req.file = image;
       res.locals.user = mockUser;
@@ -126,9 +128,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
     test("Should throw 'ZodError' when 'service.create' is called without required fields", async () => {
       // Arrange
       const mockUser = generateMockUser();
-      const { name, ...mockProduct } =
+      const { name: _name, ...mockProduct } =
         generateMockInsertProductWithMulterImage();
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockProduct;
       req.file = mockProduct.image;
       res.locals.user = mockUser;
@@ -153,7 +155,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
       const mockProducts = generateMockSelectProducts({ count: 3 });
       await Product.insertMany(mockProducts);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.getAll(req, res, next);
@@ -170,7 +172,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should return '200' status code when 'service.getAll' is called with valid data", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.getAll(req, res, next);
@@ -182,7 +184,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should return 'meta data' containing 'currentPage' and 'numberOfPages' when 'service.getAll' is called with valid data", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.getAll(req, res, next);
@@ -197,7 +199,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should return array of products when 'service.getAll' is called with existing products", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockProducts = generateMockSelectProducts({ count: 3 });
       await Product.insertMany(mockProducts);
 
@@ -214,7 +216,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should return filtered products when 'service.getAll' is called with keyword", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockProducts = generateMockSelectProducts({ count: 20 });
       const targetProduct = mockProducts[0];
       const keyword = targetProduct.name;
@@ -235,7 +237,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should return '10' products in 'page 1' when 'service.getAll' is called with 13 products in database", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockProducts = generateMockSelectProducts({ count: 13 });
       await Product.insertMany(mockProducts);
       req.query = { currentPage: "1" };
@@ -254,7 +256,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should return '3' products in 'page 2' when 'service.getAll' is called with 13 products in database", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockProducts = generateMockSelectProducts({ count: 13 });
       await Product.insertMany(mockProducts);
       req.query = { currentPage: "2" };
@@ -273,7 +275,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should return 'empty array' when 'service.getAll' is called with no products in database", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.getAll(req, res, next);
@@ -287,7 +289,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.getAll' is called with invalid 'currentPage' query", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.query = { currentPage: "invalid-number" };
 
       // Act & Assert
@@ -307,7 +309,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
   describe("getTopRated", () => {
     test("Should return success response when 'service.getTopRated' is called with valid data", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockProducts = generateMockSelectProducts({ count: 3 });
       await Product.insertMany(mockProducts);
 
@@ -324,7 +326,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should return '200' status code when 'service.getTopRated' is called with valid data", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockProducts = generateMockSelectProducts({ count: 3 });
       await Product.insertMany(mockProducts);
 
@@ -338,7 +340,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should return array of top rated products when 'service.getTopRated' is called with valid data", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockProducts = generateMockSelectProducts({ count: 3 });
       await Product.insertMany(mockProducts);
 
@@ -355,7 +357,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should return 'empty array' when 'service.getTopRated' is called with no products in database", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.getTopRated(req, res, next);
@@ -370,7 +372,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
   describe("getById", () => {
     test("Should return success response when 'service.getById' is called with valid data", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockProduct = generateMockSelectProduct();
       await Product.insertMany([mockProduct]);
 
@@ -388,7 +390,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should return '200' status code when 'service.getById' is called with valid data", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockProduct = generateMockSelectProduct();
       await Product.insertMany([mockProduct]);
       req.params = { productId: mockProduct._id.toString() };
@@ -403,7 +405,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should return product object when 'service.getById' is called with existing product", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockProduct = generateMockSelectProduct();
       await Product.insertMany([mockProduct]);
       req.params = { productId: mockProduct._id.toString() };
@@ -428,7 +430,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'NotFoundError' when 'service.getById' is called with non-existent product id", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const productId = generateMockObjectId();
       req.params = { productId: productId.toString() };
 
@@ -441,7 +443,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.getById' is called with invalid 'objectId' in params", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { productId: "invalid-id" };
 
       // Act & Assert
@@ -463,7 +465,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
   describe("update", () => {
     test("Should return success response when 'service.update' is called with valid data", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockProduct = generateMockSelectProduct();
       req.params = { productId: mockProduct._id.toString() };
 
@@ -482,7 +484,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should return '200' status code when 'service.update' is called with valid data", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockProduct = generateMockSelectProduct();
       req.params = { productId: mockProduct._id.toString() };
 
@@ -499,7 +501,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should return updated product when 'service.update' is called with valid update data", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockProduct = generateMockSelectProduct();
       const updateData: Partial<InsertProduct> = { name: "UPDATED NAME" };
 
@@ -520,9 +522,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'NotFoundError' when 'service.update' is called with non-existent product id", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const productId = generateMockObjectId().toString();
-      req.params = { productId: productId };
+      req.params = { productId };
 
       // Act & Assert
       await assert.rejects(
@@ -533,9 +535,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.update' is called with invalid 'objectId' in params", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const productId = "invalid-id";
-      req.params = { productId: productId };
+      req.params = { productId };
 
       // Act & Assert
       await assert.rejects(
@@ -556,7 +558,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
   describe("delete", () => {
     test("Should return success response when 'service.delete' is called with valid data", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockProduct = generateMockSelectProduct();
       req.params = { productId: mockProduct._id.toString() };
 
@@ -574,7 +576,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should return '204' status code when 'service.delete' is called with valid data", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockProduct = generateMockSelectProduct();
       req.params = { productId: mockProduct._id.toString() };
 
@@ -591,7 +593,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should return 'data' equals to 'null' 'service.delete' is called with valid data", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockProduct = generateMockSelectProduct();
       req.params = { productId: mockProduct._id.toString() };
 
@@ -609,9 +611,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'NotFoundError' when 'service.delete' is called with non-existent product id", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const productId = generateMockObjectId().toString();
-      req.params = { productId: productId };
+      req.params = { productId };
 
       // Act & Assert
       await assert.rejects(
@@ -622,7 +624,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.delete' is called with invalid 'objectId' in params", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { productId: "invalid-id" };
 
       // Act & Assert

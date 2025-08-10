@@ -1,2 +1,2 @@
-export * from "./image.schema";
-export * from "./product.schema";
+export * from "./image.schema.js";
+export * from "./product.schema.js";

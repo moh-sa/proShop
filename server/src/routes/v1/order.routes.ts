@@ -1,11 +1,12 @@
 import express from "express";
-import { OrderController } from "../../controllers";
-import { defaultLimiter, strictLimiter } from "../../managers";
+
+import { OrderController } from "../../controllers/index.js";
+import { defaultLimiter, strictLimiter } from "../../managers/index.js";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
   checkUserIdExists,
-} from "../../middlewares";
+} from "../../middlewares/index.js";
 
 const controller = new OrderController();
 

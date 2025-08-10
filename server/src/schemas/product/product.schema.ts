@@ -1,26 +1,27 @@
 import { z } from "zod";
-import { IMAGE_FIELD_NAME } from "../../constants";
-import { objectIdValidator } from "../../validators";
-import { insertImageSchema, selectImageSchema } from "./image.schema";
+
+import { IMAGE_FIELD_NAME } from "../../constants/index.js";
+import { objectIdValidator } from "../../validators/index.js";
+import { insertImageSchema, selectImageSchema } from "./image.schema.js";
 
 const baseProductSchema = z.object({
-  user: objectIdValidator,
-
-  name: z.string().min(1, { message: "Name is required." }),
-
   brand: z.string().min(1, { message: "Brand is required." }),
 
   category: z.string().min(1, { message: "Category is required." }),
-
-  description: z.string().min(1, { message: "Description is required." }),
-
-  price: z.coerce.number().min(0, { message: "Price is required." }).default(0),
 
   countInStock: z.coerce
     .number()
     .int()
     .min(0, { message: "Count in stock is required." })
     .default(0),
+
+  description: z.string().min(1, { message: "Description is required." }),
+
+  name: z.string().min(1, { message: "Name is required." }),
+
+  price: z.coerce.number().min(0, { message: "Price is required." }).default(0),
+
+  user: objectIdValidator,
 });
 
 export const insertProductSchema = baseProductSchema.extend({
@@ -29,16 +30,16 @@ export const insertProductSchema = baseProductSchema.extend({
 
 export const selectProductSchema = baseProductSchema.extend({
   _id: objectIdValidator,
-  [IMAGE_FIELD_NAME]: selectImageSchema,
+  createdAt: z.date(),
 
-  rating: z
-    .number()
-    .min(0, { message: "Rating is required." })
-    .max(5, { message: "Rating must be between 1 and 5." }),
+  [IMAGE_FIELD_NAME]: selectImageSchema,
   numReviews: z
     .number()
     .int()
     .min(0, { message: "Number of reviews is required." }),
-  createdAt: z.date(),
+  rating: z
+    .number()
+    .min(0, { message: "Rating is required." })
+    .max(5, { message: "Rating must be between 1 and 5." }),
   updatedAt: z.date(),
 });

@@ -1,3 +1,3 @@
-export * from "./cache.manager";
-export * from "./image-storage.manager";
-export * from "./rate-limit.manager";
+export * from "./cache.manager.js";
+export * from "./image-storage.manager.js";
+export * from "./rate-limit.manager.js";

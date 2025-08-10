@@ -1,14 +1,14 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 
-import { AuthenticationError } from "../../errors";
-import User from "../../models/userModel";
-import { AuthService } from "../../services";
-import { generateMockUser } from "../mocks";
+import { AuthenticationError } from "../../errors/index.js";
+import User from "../../models/userModel.js";
+import { AuthService } from "../../services/index.js";
+import { generateMockUser } from "../mocks/index.js";
 import {
   connectTestDatabase,
   disconnectTestDatabase,
-} from "../utils/database-connection.utils";
+} from "../utils/database-connection.utils.js";
 
 suite("Auth Service 〖 Integration Tests 〗", () => {
   let authService: AuthService;
@@ -25,10 +25,10 @@ suite("Auth Service 〖 Integration Tests 〗", () => {
     test("Should create a new user when 'signup' is called with valid data", async () => {
       // Arrange
       const newUser = {
-        name: "New User",
         email: "new@example.com",
-        password: "newpass123",
         isAdmin: false,
+        name: "New User",
+        password: "newpass123",
       };
 
       // Act
@@ -56,10 +56,10 @@ suite("Auth Service 〖 Integration Tests 〗", () => {
     test("Should handle signup with minimum required fields", async () => {
       // Arrange
       const minimalUser = {
-        name: "Minimal",
         email: "minimal@example.com",
-        password: "pass123",
         isAdmin: false,
+        name: "Minimal",
+        password: "pass123",
       };
 
       // Act

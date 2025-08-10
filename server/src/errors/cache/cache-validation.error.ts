@@ -1,5 +1,5 @@
-import { ErrorType } from "../../types";
-import { CacheBaseError } from "./cache-base.error";
+import { ErrorType } from "../../types/index.js";
+import { CacheBaseError } from "./cache-base.error.js";
 
 export class CacheValidationError extends CacheBaseError {
   constructor(message: string, details?: Record<string, unknown>) {

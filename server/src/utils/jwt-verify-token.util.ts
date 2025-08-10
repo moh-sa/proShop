@@ -1,21 +1,24 @@
+import type { ZodSchema } from "zod";
+
 import jwt from "jsonwebtoken";
-import { z, ZodSchema } from "zod";
-import { env } from "../config/env";
+import { z } from "zod";
+
+import { env } from "../config/index.js";
 import {
   InvalidJwtTokenError,
   InvalidJwtTokenPayloadError,
   JwtTokenExpiredError,
   JwtVerificationError,
-} from "../errors";
-import { jwtTokenValidator } from "../validators";
+} from "../errors/index.js";
+import { jwtTokenValidator } from "../validators/index.js";
 
 const standardJwtPayloadSchema = z.object({
-  iat: z.number(),
   exp: z.number(),
+  iat: z.number(),
 });
 
+type DecodedJwtToken<S extends ZodSchema> = StandardJwtPayload & z.infer<S>;
 type StandardJwtPayload = z.infer<typeof standardJwtPayloadSchema>;
-type DecodedJwtToken<S extends ZodSchema> = z.infer<S> & StandardJwtPayload;
 
 // 'function overloading' is used to ensure the correct return type
 // based on the provided payload schema
@@ -27,7 +30,7 @@ export function verifyJwtToken<S extends ZodSchema>(
 export function verifyJwtToken<S extends ZodSchema>(
   token: string,
   customPayloadSchema?: S,
-): StandardJwtPayload | DecodedJwtToken<S> {
+): DecodedJwtToken<S> | StandardJwtPayload {
   // step 1: validate token format
   const tokenResult = validateTokenFormat(token);
 
@@ -38,15 +41,6 @@ export function verifyJwtToken<S extends ZodSchema>(
   const validatedPayload = validatePayload(decodedToken, customPayloadSchema);
 
   return validatedPayload;
-}
-
-function validateTokenFormat(token: string): string {
-  const tokenParsed = jwtTokenValidator.safeParse(token);
-  if (!tokenParsed.success) {
-    throw new InvalidJwtTokenError(tokenParsed.error.format());
-  }
-
-  return tokenParsed.data;
 }
 
 function decodeJwtToken(token: string): jwt.JwtPayload | undefined {
@@ -62,13 +56,16 @@ function decodeJwtToken(token: string): jwt.JwtPayload | undefined {
   }
 }
 
-function validateStandardPayload(payload: unknown): StandardJwtPayload {
-  const payloadParsed = standardJwtPayloadSchema.safeParse(payload);
-  if (!payloadParsed.success) {
-    throw new InvalidJwtTokenPayloadError(payloadParsed.error.format());
+function mapJwtLibraryError(error: unknown) {
+  if (error instanceof jwt.TokenExpiredError) {
+    throw new JwtTokenExpiredError();
   }
 
-  return payloadParsed.data;
+  if (error instanceof jwt.JsonWebTokenError) {
+    throw new InvalidJwtTokenError();
+  }
+
+  throw new JwtVerificationError();
 }
 
 function validateCustomPayload<S extends ZodSchema>(
@@ -88,7 +85,7 @@ function validateCustomPayload<S extends ZodSchema>(
 function validatePayload<S extends ZodSchema>(
   payload: unknown,
   customSchema?: S,
-): StandardJwtPayload | DecodedJwtToken<S> {
+): DecodedJwtToken<S> | StandardJwtPayload {
   if (!customSchema) {
     return validateStandardPayload(payload);
   }
@@ -96,14 +93,20 @@ function validatePayload<S extends ZodSchema>(
   return validateCustomPayload(payload, customSchema);
 }
 
-function mapJwtLibraryError(error: unknown) {
-  if (error instanceof jwt.TokenExpiredError) {
-    throw new JwtTokenExpiredError();
+function validateStandardPayload(payload: unknown): StandardJwtPayload {
+  const payloadParsed = standardJwtPayloadSchema.safeParse(payload);
+  if (!payloadParsed.success) {
+    throw new InvalidJwtTokenPayloadError(payloadParsed.error.format());
   }
 
-  if (error instanceof jwt.JsonWebTokenError) {
-    throw new InvalidJwtTokenError();
+  return payloadParsed.data;
+}
+
+function validateTokenFormat(token: string): string {
+  const tokenParsed = jwtTokenValidator.safeParse(token);
+  if (!tokenParsed.success) {
+    throw new InvalidJwtTokenError(tokenParsed.error.format());
   }
 
-  throw new JwtVerificationError();
+  return tokenParsed.data;
 }

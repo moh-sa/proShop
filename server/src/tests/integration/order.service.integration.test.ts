@@ -1,23 +1,24 @@
 import { Types } from "mongoose";
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
+
 import {
   DatabaseValidationError,
   EmptyCartError,
   NotFoundError,
-} from "../../errors";
-import Order from "../../models/orderModel";
-import User from "../../models/userModel";
-import { OrderService } from "../../services";
-import { generateMockObjectId } from "../mocks/objectid.mock";
+} from "../../errors/index.js";
+import Order from "../../models/orderModel.js";
+import User from "../../models/userModel.js";
+import { OrderService } from "../../services/index.js";
+import { generateMockObjectId } from "../mocks/objectid.mock.js";
 import {
   generateMockInsertOrder,
   generateMockInsertOrders,
-} from "../mocks/order.mock";
+} from "../mocks/order.mock.js";
 import {
   connectTestDatabase,
   disconnectTestDatabase,
-} from "../utils/database-connection.utils";
+} from "../utils/database-connection.utils.js";
 
 suite("OrderService 〖 Integration Tests 〗", async () => {
   let orderService: OrderService;
@@ -128,8 +129,8 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
       const totalPrice = 130;
       const mockOrder = generateMockInsertOrder({
         itemsPrice,
-        taxPrice,
         shippingPrice,
+        taxPrice,
         totalPrice,
       });
 

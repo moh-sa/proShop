@@ -1,16 +1,16 @@
 import { mock } from "node:test";
-import { IProductService } from "../../services";
-import { FunctionMocksWithReset } from "../types/mocked.type";
+
+import type { IProductService } from "../../services/index.js";
+import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
 export function mockProductService(): FunctionMocksWithReset<IProductService> {
   return {
     create: mock.fn(),
-    getAll: mock.fn(),
-    getTopRated: mock.fn(),
-    getById: mock.fn(),
-    update: mock.fn(),
     delete: mock.fn(),
-    reset: function () {
+    getAll: mock.fn(),
+    getById: mock.fn(),
+    getTopRated: mock.fn(),
+    reset() {
       this.create.mock.resetCalls();
       this.getAll.mock.resetCalls();
       this.getTopRated.mock.resetCalls();
@@ -25,5 +25,6 @@ export function mockProductService(): FunctionMocksWithReset<IProductService> {
       this.update.mock.restore();
       this.delete.mock.restore();
     },
+    update: mock.fn(),
   };
 }

@@ -1,16 +1,17 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { ZodError } from "zod";
-import { AuthController } from "../../controllers";
-import { AuthenticationError } from "../../errors";
-import User from "../../models/userModel";
-import { AuthService } from "../../services";
-import { generateMockUser } from "../mocks";
-import { createMockExpressContext } from "../utils";
+
+import { AuthController } from "../../controllers/index.js";
+import { AuthenticationError } from "../../errors/index.js";
+import User from "../../models/userModel.js";
+import { AuthService } from "../../services/index.js";
+import { generateMockUser } from "../mocks/index.js";
 import {
   connectTestDatabase,
   disconnectTestDatabase,
-} from "../utils/database-connection.utils";
+} from "../utils/database-connection.utils.js";
+import { createMockExpressContext } from "../utils/index.js";
 
 suite("Auth Controller 〖 Integration Tests 〗", () => {
   const service = new AuthService();
@@ -27,7 +28,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
     test("Should return success response when 'service.signup' is called with valid data", async () => {
       // Arrange
       const mockUser = generateMockUser();
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockUser;
 
       // Act
@@ -43,7 +44,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
     test("Should return '201' status code when 'service.signup' is called with valid data", async () => {
       // Arrange
       const mockUser = generateMockUser();
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockUser;
 
       // Act
@@ -57,7 +58,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
     test("Should create user when 'service.signup' is called with valid data", async () => {
       // Arrange
       const mockUser = generateMockUser();
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockUser;
       mockUser.email = mockUser.email.toLowerCase();
 
@@ -77,8 +78,8 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.signup' is called without required fields", async () => {
       // Arrange
-      const { name, ...mockUser } = generateMockUser();
-      const { req, res, next } = createMockExpressContext();
+      const { name: _name, ...mockUser } = generateMockUser();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockUser;
 
       // Act & Assert
@@ -100,7 +101,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
       // Arrange
       const mockUser = generateMockUser();
       mockUser.email = "invalid-email";
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockUser;
 
       // Act & Assert
@@ -121,7 +122,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
       // Arrange
       const mockUser = generateMockUser();
       mockUser.password = "123"; // Too short
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockUser;
 
       // Act & Assert
@@ -141,14 +142,14 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
     test("Should throw 'AuthenticationError' when 'service.signup' is called with existing email", async () => {
       // Arrange
       const mockUser = generateMockUser();
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockUser;
 
       // Create a user first
       await controller.signup(req, res, next);
 
       // Try to create another user with the same email
-      const { req: req2, res: res2, next: next2 } = createMockExpressContext();
+      const { next: next2, req: req2, res: res2 } = createMockExpressContext();
       req2.body = mockUser;
 
       // Act & Assert
@@ -173,7 +174,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
       mockUser.email = mockUser.email.toLowerCase();
       await User.create(mockUser);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = {
         email: mockUser.email,
         password: mockUser.password,
@@ -195,7 +196,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
       mockUser.email = mockUser.email.toLowerCase();
       await User.create(mockUser);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = {
         email: mockUser.email,
         password: mockUser.password,
@@ -214,7 +215,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
       mockUser.email = mockUser.email.toLowerCase();
       await User.create(mockUser);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = {
         email: mockUser.email,
         password: mockUser.password,
@@ -240,7 +241,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
       mockUser.email = mockUser.email.toLowerCase();
       await User.create(mockUser);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = {
         email: mockUser.email,
         password: mockUser.password,
@@ -261,7 +262,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
       mockUser.email = mockUser.email.toLowerCase();
       await User.create(mockUser);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = {
         email: "wrong@example.com",
         password: "wrong-123-password",
@@ -280,7 +281,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.signin' is called without required fields", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = { email: "test@example.com" }; // Missing password
 
       // Act & Assert
@@ -298,7 +299,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.signin' is called with invalid email format", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = {
         email: "invalid-email",
         password: "password123",
@@ -324,7 +325,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
       mockUser.email = mockUser.email.toLowerCase();
       await User.create(mockUser);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = {
         email: mockUser.email,
         password: "short", // Invalid password format
@@ -345,7 +346,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'AuthenticationError' when 'service.signin' is called with non-existent email", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = {
         email: "nonexistent@example.com",
         password: "password123",
@@ -368,7 +369,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
       mockUser.email = mockUser.email.toLowerCase();
       await User.create(mockUser);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = {
         email: mockUser.email,
         password: "wrong-123-password",

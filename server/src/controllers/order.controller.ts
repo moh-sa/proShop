@@ -1,15 +1,22 @@
-import { NextFunction } from "@sentry/node/build/types/integrations/tracing/nest/types";
-import { Request, Response } from "express";
-import { insertOrderSchema } from "../schemas";
-import { IOrderService, OrderService } from "../services";
-import { asyncHandler, sendSuccessResponse } from "../utils";
-import { objectIdValidator } from "../validators";
+import type { NextFunction, Request, Response } from "express";
+
+import type { IOrderService } from "../services/index.js";
+
+import { insertOrderSchema } from "../schemas/index.js";
+import { OrderService } from "../services/index.js";
+import { asyncHandler, sendSuccessResponse } from "../utils/index.js";
+import { objectIdValidator } from "../validators/index.js";
 
 export interface IOrderController {
   create: (req: Request, res: Response, next: NextFunction) => Promise<void>;
-  getById: (req: Request, res: Response, next: NextFunction) => Promise<void>;
   getAll: (req: Request, res: Response, next: NextFunction) => Promise<void>;
   getAllByUserId: (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => Promise<void>;
+  getById: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  updateToDelivered: (
     req: Request,
     res: Response,
     next: NextFunction,
@@ -19,18 +26,9 @@ export interface IOrderController {
     res: Response,
     next: NextFunction,
   ) => Promise<void>;
-  updateToDelivered: (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => Promise<void>;
 }
 export class OrderController implements IOrderController {
   private readonly _service: IOrderService;
-
-  constructor(service: IOrderService = new OrderService()) {
-    this._service = service;
-  }
 
   create = asyncHandler(async (req, res) => {
     const data = insertOrderSchema.parse({
@@ -41,21 +39,9 @@ export class OrderController implements IOrderController {
     const response = await this._service.create(data);
 
     return sendSuccessResponse({
+      data: response,
       responseContext: res,
       statusCode: 201,
-      data: response,
-    });
-  });
-
-  getById = asyncHandler(async (req, res) => {
-    const orderId = objectIdValidator.parse(req.params.orderId);
-
-    const order = await this._service.getById({ orderId });
-
-    return sendSuccessResponse({
-      responseContext: res,
-      statusCode: 200,
-      data: order,
     });
   });
 
@@ -63,9 +49,9 @@ export class OrderController implements IOrderController {
     const orders = await this._service.getAll();
 
     return sendSuccessResponse({
+      data: orders,
       responseContext: res,
       statusCode: 200,
-      data: orders,
     });
   });
 
@@ -75,21 +61,21 @@ export class OrderController implements IOrderController {
     const orders = await this._service.getAllByUserId({ userId });
 
     return sendSuccessResponse({
+      data: orders,
       responseContext: res,
       statusCode: 200,
-      data: orders,
     });
   });
 
-  updateToPaid = asyncHandler(async (req, res) => {
+  getById = asyncHandler(async (req, res) => {
     const orderId = objectIdValidator.parse(req.params.orderId);
 
-    const order = await this._service.updateToPaid({ orderId });
+    const order = await this._service.getById({ orderId });
 
     return sendSuccessResponse({
+      data: order,
       responseContext: res,
       statusCode: 200,
-      data: order,
     });
   });
 
@@ -99,9 +85,25 @@ export class OrderController implements IOrderController {
     const order = await this._service.updateToDelivered({ orderId });
 
     return sendSuccessResponse({
+      data: order,
       responseContext: res,
       statusCode: 200,
-      data: order,
     });
   });
+
+  updateToPaid = asyncHandler(async (req, res) => {
+    const orderId = objectIdValidator.parse(req.params.orderId);
+
+    const order = await this._service.updateToPaid({ orderId });
+
+    return sendSuccessResponse({
+      data: order,
+      responseContext: res,
+      statusCode: 200,
+    });
+  });
+
+  constructor(service: IOrderService = new OrderService()) {
+    this._service = service;
+  }
 }

@@ -1,18 +1,19 @@
 import { z } from "zod";
-import { objectIdValidator } from "../../validators";
+
+import { objectIdValidator } from "../../validators/index.js";
 
 const baseReviewSchema = z.object({
-  user: objectIdValidator,
-  product: objectIdValidator,
-
+  comment: z.string().min(1, { message: "Comment is required." }),
   name: z.string().min(1, { message: "Name is required." }),
+
+  product: objectIdValidator,
 
   rating: z.coerce
     .number()
     .positive({ message: "Rating must be a positive number." })
     .max(5, { message: "Rating must be between 1 and 5." }),
 
-  comment: z.string().min(1, { message: "Comment is required." }),
+  user: objectIdValidator,
 });
 
 export const insertReviewSchema = baseReviewSchema;

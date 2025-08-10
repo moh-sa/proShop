@@ -1,27 +1,29 @@
 import bcrypt from "bcryptjs";
 import { model, Schema } from "mongoose";
-import { UserSchema } from "../types";
-import { hashData } from "../utils";
+
+import type { UserSchema } from "../types/index.js";
+
+import { hashData } from "../utils/index.js";
 
 const userSchema = new Schema<UserSchema>(
   {
-    name: {
-      type: String,
-      required: true,
-    },
     email: {
-      type: String,
       required: true,
+      type: String,
       unique: true,
     },
-    password: {
-      type: String,
-      required: true,
-    },
     isAdmin: {
-      type: Boolean,
-      required: true,
       default: false,
+      required: true,
+      type: Boolean,
+    },
+    name: {
+      required: true,
+      type: String,
+    },
+    password: {
+      required: true,
+      type: String,
     },
   },
   {

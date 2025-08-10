@@ -1,17 +1,17 @@
-import { ICacheManager } from "../../managers";
-import { FunctionMocksWithReset } from "../types/mocked.type";
+import type { ICacheManager } from "../../managers/index.js";
+import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
 export function mockCacheHit<T>({
+  cacheKey, // eslint-disable-line @typescript-eslint/no-unused-vars
   instance,
-  cacheKey,
   returnValue,
 }: {
-  instance: FunctionMocksWithReset<ICacheManager>;
   cacheKey: string;
+  instance: FunctionMocksWithReset<ICacheManager>;
   returnValue: T;
 }): void {
   instance.get.mock.mockImplementationOnce(() => ({
-    success: true,
     data: returnValue,
+    success: true,
   }));
 }

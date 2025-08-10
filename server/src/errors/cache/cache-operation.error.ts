@@ -1,7 +1,7 @@
-import { ErrorType } from "../../types";
-import { CacheBaseError } from "./cache-base.error";
+import { ErrorType } from "../../types/index.js";
+import { CacheBaseError } from "./cache-base.error.js";
 
-type CacheOperation = "GET" | "SET" | "DELETE" | "FLUSH" | "TAKE" | "HAS";
+type CacheOperation = "DELETE" | "FLUSH" | "GET" | "HAS" | "SET" | "TAKE";
 
 export class CacheOperationError extends CacheBaseError {
   readonly operation: CacheOperation;
@@ -9,7 +9,7 @@ export class CacheOperationError extends CacheBaseError {
   constructor(
     operation: CacheOperation,
     message: string,
-    details?: { key?: string; keys?: string[]; cause?: unknown },
+    details?: { cause?: unknown; key?: string; keys?: Array<string> },
   ) {
     super(
       `Cache ${operation.toLowerCase()} failed: ${message}`,
@@ -20,43 +20,43 @@ export class CacheOperationError extends CacheBaseError {
     this.operation = operation;
   }
 
-  static set(key: string, cause?: unknown) {
-    return new CacheOperationError("SET", "Failed to set cache value", {
-      key,
-      cause,
-    });
-  }
-
-  static get(key: string, cause?: unknown) {
-    return new CacheOperationError("GET", "Failed to retrieve cache value", {
-      key,
-      cause,
-    });
-  }
-
-  static delete(keys: string | Array<string>, cause?: unknown) {
+  static delete(keys: Array<string> | string, cause?: unknown) {
     return new CacheOperationError("DELETE", "Failed to delete cache value", {
+      cause,
       key: Array.isArray(keys) ? undefined : keys,
       keys: Array.isArray(keys) ? keys : undefined,
-      cause,
-    });
-  }
-
-  static take(key: string, cause?: unknown) {
-    return new CacheOperationError("TAKE", "Failed to take cache value", {
-      key,
-      cause,
-    });
-  }
-
-  static has(key: string, cause?: unknown) {
-    return new CacheOperationError("HAS", "Failed to check if key is cached", {
-      key,
-      cause,
     });
   }
 
   static flush(cause?: unknown) {
     return new CacheOperationError("FLUSH", "Failed to flush cache", { cause });
+  }
+
+  static get(key: string, cause?: unknown) {
+    return new CacheOperationError("GET", "Failed to retrieve cache value", {
+      cause,
+      key,
+    });
+  }
+
+  static has(key: string, cause?: unknown) {
+    return new CacheOperationError("HAS", "Failed to check if key is cached", {
+      cause,
+      key,
+    });
+  }
+
+  static set(key: string, cause?: unknown) {
+    return new CacheOperationError("SET", "Failed to set cache value", {
+      cause,
+      key,
+    });
+  }
+
+  static take(key: string, cause?: unknown) {
+    return new CacheOperationError("TAKE", "Failed to take cache value", {
+      cause,
+      key,
+    });
   }
 }

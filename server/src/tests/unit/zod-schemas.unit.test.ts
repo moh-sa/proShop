@@ -3,13 +3,14 @@ import { Types } from "mongoose";
 import assert from "node:assert";
 import { describe, suite, test } from "node:test";
 import { ZodError } from "zod";
+
 import {
   bearerTokenValidator,
   emailValidator,
   jwtTokenValidator,
   objectIdValidator,
   passwordValidator,
-} from "../../validators";
+} from "../../validators/index.js";
 
 suite("Zod Schemas 〖 Unit Tests 〗", () => {
   describe("bearerTokenValidator", () => {
@@ -334,7 +335,7 @@ suite("Zod Schemas 〖 Unit Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'invalid jwt token' is given", () => {
       const jwt = faker.internet.jwt();
-      const token = jwt.slice(0, 10) + "#$%" + jwt.slice(10);
+      const token = `${jwt.slice(0, 10)}#$%${jwt.slice(10)}`;
 
       assert.throws(
         () => jwtTokenValidator.parse(token),
@@ -420,8 +421,9 @@ suite("Zod Schemas 〖 Unit Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'invalid ObjectId' is given", () => {
       const ogId = new Types.ObjectId();
-      const id =
-        ogId.toString().slice(0, 10) + "#$%" + ogId.toString().slice(10);
+      const id = `${ogId.toString().slice(0, 10)}#$%${ogId
+        .toString()
+        .slice(10)}`;
 
       assert.throws(
         () => objectIdValidator.parse(id),

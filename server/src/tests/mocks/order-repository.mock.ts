@@ -1,6 +1,7 @@
 import { mock } from "node:test";
-import { IOrderRepository } from "../../repositories";
-import { FunctionMocksWithReset } from "../types/mocked.type";
+
+import type { IOrderRepository } from "../../repositories/index.js";
+import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
 export function mockOrderRepository(): FunctionMocksWithReset<IOrderRepository> {
   return {
@@ -8,10 +9,7 @@ export function mockOrderRepository(): FunctionMocksWithReset<IOrderRepository> 
     getAll: mock.fn(),
     getAllByUserId: mock.fn(),
     getById: mock.fn(),
-    updateToDelivered: mock.fn(),
-    updateToPaid: mock.fn(),
-
-    reset: function () {
+    reset() {
       this.create.mock.resetCalls();
       this.getAll.mock.resetCalls();
       this.getAllByUserId.mock.resetCalls();
@@ -26,5 +24,8 @@ export function mockOrderRepository(): FunctionMocksWithReset<IOrderRepository> 
       this.updateToDelivered.mock.restore();
       this.updateToPaid.mock.restore();
     },
+    updateToDelivered: mock.fn(),
+
+    updateToPaid: mock.fn(),
   };
 }

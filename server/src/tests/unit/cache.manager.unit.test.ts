@@ -1,16 +1,19 @@
-import NodeCache from "node-cache";
+import type NodeCache from "node-cache";
+
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
-import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../../config";
+
+import type { CacheConfig, Namespace } from "../../types/index.js";
+
+import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../../config/index.js";
 import {
   CacheCapacityError,
   CacheOperationError,
   CacheValidationError,
-} from "../../errors";
-import { CacheManager } from "../../managers";
-import { cacheItemSchema } from "../../schemas";
-import { CacheConfig, Namespace } from "../../types";
-import { mockNodeCache } from "../mocks";
+} from "../../errors/index.js";
+import { CacheManager } from "../../managers/index.js";
+import { cacheItemSchema } from "../../schemas/index.js";
+import { mockNodeCache } from "../mocks/index.js";
 
 suite("Cache Manager 〖 Unit Tests 〗", () => {
   const namespace: Namespace = "product";
@@ -353,7 +356,6 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
     test("Should return 'error' instance of 'CacheOperationError' when '_cache.get' returns 'undefined'", (t) => {
       // Arrange
       const key = "test-key";
-      const value = "test-data";
 
       cacheManager["_validateSchema"] = t.mock.fn(() => key);
       cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
@@ -823,13 +825,13 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
   });
 
   describe("getStats", () => {
-    test("Should return 'hits', 'misses', 'numberOfKeys', 'keysSize', and 'valuesSize' when '_cache.getStats' is called", (t) => {
+    test("Should return 'hits', 'misses', 'numberOfKeys', 'keysSize', and 'valuesSize' when '_cache.getStats' is called", () => {
       // Arrange
       const stats = {
         hits: 1,
-        misses: 1,
         keys: 1,
         ksize: 1,
+        misses: 1,
         vsize: 1,
       };
 
@@ -846,13 +848,13 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       assert.ok(result.valuesSize);
     });
 
-    test("Should return 'totalSize' which is the sum of 'keysSize' and 'valuesSize' when '_cache.getStats' is called", (t) => {
+    test("Should return 'totalSize' which is the sum of 'keysSize' and 'valuesSize' when '_cache.getStats' is called", () => {
       // Arrange
       const stats = {
         hits: 1,
-        misses: 1,
         keys: 1,
         ksize: 1,
+        misses: 1,
         vsize: 1,
       };
 
@@ -986,14 +988,14 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       // Arrange
       const data = {
         key: "test-key",
-        val: "test-value",
         ttl: 1000,
+        val: "test-value",
       };
 
       // Act
       const result = cacheManager["_validateSchema"]({
-        schema: cacheItemSchema,
         data,
+        schema: cacheItemSchema,
       });
 
       // Assert
@@ -1010,8 +1012,8 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       // Arrange
       const data = {
         key: 1234,
-        val: "test-value",
         ttl: "1000", // string instead of number
+        val: "test-value",
       };
 
       // Act & Assert
@@ -1028,8 +1030,8 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       // Arrange
       const data = {
         key: "test-key",
-        val: "test-value",
         ttl: "1000", // string instead of number
+        val: "test-value",
       };
 
       // Act & Assert
@@ -1046,8 +1048,8 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
       // Arrange
       const data = {
         key: 1234,
-        val: "test-value",
         ttl: "1000",
+        val: "test-value",
       };
 
       // Act & Assert

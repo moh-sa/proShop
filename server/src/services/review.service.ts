@@ -1,33 +1,36 @@
-import { Types } from "mongoose";
-import { NotFoundError } from "../errors";
-import { IReviewRepository, ReviewRepository } from "../repositories";
-import { InsertReview, SelectReview } from "../types";
+import type { Types } from "mongoose";
+
+import type { IReviewRepository } from "../repositories/index.js";
+import type { InsertReview, SelectReview } from "../types/index.js";
+
+import { NotFoundError } from "../errors/index.js";
+import { ReviewRepository } from "../repositories/index.js";
 
 export interface IReviewService {
-  create: (data: InsertReview) => Promise<SelectReview>;
-  getById: (data: { reviewId: Types.ObjectId }) => Promise<SelectReview>;
-  getAll: () => Promise<Array<SelectReview>>;
-  getAllByUserId: (data: {
-    userId: Types.ObjectId;
-  }) => Promise<Array<SelectReview>>;
-  getAllByProductId: (data: {
-    productId: Types.ObjectId;
-  }) => Promise<Array<SelectReview>>;
-  update: (data: {
-    reviewId: Types.ObjectId;
-    data: Partial<InsertReview>;
-  }) => Promise<SelectReview>;
-  delete: (data: { reviewId: Types.ObjectId }) => Promise<SelectReview>;
   count: () => Promise<number>;
-  countByUserId: (data: { userId: Types.ObjectId }) => Promise<number>;
   countByProductId: (data: { productId: Types.ObjectId }) => Promise<number>;
+  countByUserId: (data: { userId: Types.ObjectId }) => Promise<number>;
+  create: (data: InsertReview) => Promise<SelectReview>;
+  delete: (data: { reviewId: Types.ObjectId }) => Promise<SelectReview>;
   existsById: (data: {
     reviewId: Types.ObjectId;
   }) => Promise<{ _id: Types.ObjectId }>;
   existsByUserIdAndProductId: (data: {
-    userId: Types.ObjectId;
     productId: Types.ObjectId;
+    userId: Types.ObjectId;
   }) => Promise<{ _id: Types.ObjectId }>;
+  getAll: () => Promise<Array<SelectReview>>;
+  getAllByProductId: (data: {
+    productId: Types.ObjectId;
+  }) => Promise<Array<SelectReview>>;
+  getAllByUserId: (data: {
+    userId: Types.ObjectId;
+  }) => Promise<Array<SelectReview>>;
+  getById: (data: { reviewId: Types.ObjectId }) => Promise<SelectReview>;
+  update: (data: {
+    data: Partial<InsertReview>;
+    reviewId: Types.ObjectId;
+  }) => Promise<SelectReview>;
 }
 export class ReviewService implements IReviewService {
   private readonly _repository: IReviewRepository;
@@ -36,55 +39,24 @@ export class ReviewService implements IReviewService {
     this._repository = repository;
   }
 
-  async create(data: InsertReview): Promise<SelectReview> {
-    return await this._repository.create(data);
+  async count(): Promise<number> {
+    return await this._repository.count();
   }
 
-  async getById({
-    reviewId,
-  }: {
-    reviewId: Types.ObjectId;
-  }): Promise<SelectReview> {
-    const review = await this._repository.getById({ reviewId });
-    if (!review) throw new NotFoundError("Review");
-
-    return review;
-  }
-
-  async getAll(): Promise<Array<SelectReview>> {
-    return await this._repository.getAll();
-  }
-
-  async getAllByUserId({
-    userId,
-  }: {
-    userId: Types.ObjectId;
-  }): Promise<Array<SelectReview>> {
-    return await this._repository.getAllByUserId({ userId });
-  }
-
-  async getAllByProductId({
+  async countByProductId({
     productId,
   }: {
     productId: Types.ObjectId;
-  }): Promise<Array<SelectReview>> {
-    return await this._repository.getAllByProductId({ productId });
+  }): Promise<number> {
+    return await this._repository.countByProductId({ productId });
   }
 
-  async update({
-    reviewId,
-    data,
-  }: {
-    reviewId: Types.ObjectId;
-    data: Partial<InsertReview>;
-  }): Promise<SelectReview> {
-    const updatedReview = await this._repository.update({
-      reviewId,
-      data,
-    });
-    if (!updatedReview) throw new NotFoundError("Review");
+  async countByUserId({ userId }: { userId: Types.ObjectId }): Promise<number> {
+    return await this._repository.countByUserId({ userId });
+  }
 
-    return updatedReview;
+  async create(data: InsertReview): Promise<SelectReview> {
+    return await this._repository.create(data);
   }
 
   async delete({
@@ -96,22 +68,6 @@ export class ReviewService implements IReviewService {
     if (!deletedReview) throw new NotFoundError("Review");
 
     return deletedReview;
-  }
-
-  async count(): Promise<number> {
-    return await this._repository.count();
-  }
-
-  async countByUserId({ userId }: { userId: Types.ObjectId }): Promise<number> {
-    return await this._repository.countByUserId({ userId });
-  }
-
-  async countByProductId({
-    productId,
-  }: {
-    productId: Types.ObjectId;
-  }): Promise<number> {
-    return await this._repository.countByProductId({ productId });
   }
 
   async existsById({
@@ -126,18 +82,65 @@ export class ReviewService implements IReviewService {
   }
 
   async existsByUserIdAndProductId({
-    userId,
     productId,
+    userId,
   }: {
-    userId: Types.ObjectId;
     productId: Types.ObjectId;
+    userId: Types.ObjectId;
   }): Promise<{ _id: Types.ObjectId }> {
     const exists = await this._repository.existsByUserIdAndProductId({
-      userId,
       productId,
+      userId,
     });
     if (!exists) throw new NotFoundError("Review");
 
     return exists;
+  }
+
+  async getAll(): Promise<Array<SelectReview>> {
+    return await this._repository.getAll();
+  }
+
+  async getAllByProductId({
+    productId,
+  }: {
+    productId: Types.ObjectId;
+  }): Promise<Array<SelectReview>> {
+    return await this._repository.getAllByProductId({ productId });
+  }
+
+  async getAllByUserId({
+    userId,
+  }: {
+    userId: Types.ObjectId;
+  }): Promise<Array<SelectReview>> {
+    return await this._repository.getAllByUserId({ userId });
+  }
+
+  async getById({
+    reviewId,
+  }: {
+    reviewId: Types.ObjectId;
+  }): Promise<SelectReview> {
+    const review = await this._repository.getById({ reviewId });
+    if (!review) throw new NotFoundError("Review");
+
+    return review;
+  }
+
+  async update({
+    data,
+    reviewId,
+  }: {
+    data: Partial<InsertReview>;
+    reviewId: Types.ObjectId;
+  }): Promise<SelectReview> {
+    const updatedReview = await this._repository.update({
+      data,
+      reviewId,
+    });
+    if (!updatedReview) throw new NotFoundError("Review");
+
+    return updatedReview;
   }
 }

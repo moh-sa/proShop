@@ -1,11 +1,14 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
+
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 import { ZodError } from "zod";
-import { ProductController } from "../../controllers";
-import { DatabaseError } from "../../errors";
-import { InsertProduct } from "../../types";
-import { createSuccessResponseObject } from "../../utils";
+
+import type { InsertProduct } from "../../types/index.js";
+
+import { ProductController } from "../../controllers/index.js";
+import { DatabaseError } from "../../errors/index.js";
+import { createSuccessResponseObject } from "../../utils/index.js";
 import {
   generateMockInsertProductWithMulterImage,
   generateMockObjectId,
@@ -13,7 +16,7 @@ import {
   generateMockSelectProducts,
   mockExpressCall,
   mockProductService,
-} from "../mocks";
+} from "../mocks/index.js";
 
 suite("Product Controller 〖 Unit Tests 〗", () => {
   const mockService = mockProductService();
@@ -28,8 +31,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     const mockSelectProduct = generateMockSelectProduct();
 
     test("Should parse 'product data' from 'req.body' and 'res.locals'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: mockInsertProduct,
           file: mockInsertProduct.image,
@@ -37,6 +39,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       mockService.create.mock.mockImplementationOnce(() =>
@@ -54,8 +57,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'product.user' is invalid objectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: mockInsertProduct,
           file: mockInsertProduct.image,
@@ -63,6 +65,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: "invalid-user-id" } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -85,8 +88,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'product.name' is less than 1 char", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: { ...mockInsertProduct, name: "" },
           file: mockInsertProduct.image,
@@ -94,6 +96,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -113,8 +116,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'product.name' is not a string", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: { ...mockInsertProduct, name: 123 },
           file: mockInsertProduct.image,
@@ -122,6 +124,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -144,8 +147,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'product.brand' is less than 1 char", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: { ...mockInsertProduct, brand: "" },
           file: mockInsertProduct.image,
@@ -153,6 +155,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -172,8 +175,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'product.brand' is not a string", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: { ...mockInsertProduct, brand: 123 },
           file: mockInsertProduct.image,
@@ -181,6 +183,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -203,8 +206,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'product.category' is less than 1 char", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: { ...mockInsertProduct, category: "" },
           file: mockInsertProduct.image,
@@ -212,6 +214,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -231,8 +234,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'product.category' is not a string", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: { ...mockInsertProduct, category: 123 },
           file: mockInsertProduct.image,
@@ -240,6 +242,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -262,8 +265,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'product.description' is less than 1 char", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: { ...mockInsertProduct, description: "" },
           file: mockInsertProduct.image,
@@ -271,6 +273,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -293,8 +296,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'product.description' is not a string", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: { ...mockInsertProduct, description: 123 },
           file: mockInsertProduct.image,
@@ -302,6 +304,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -324,8 +327,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should convert a negative 'product.price' to '0'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: { ...mockInsertProduct, price: 0 },
           file: mockInsertProduct.image,
@@ -333,14 +335,16 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       await controller.create(
         req as unknown as Request,
         res as unknown as Response,
         next,
-      ),
-        assert.strictEqual(mockService.create.mock.callCount(), 1);
+      );
+
+      assert.strictEqual(mockService.create.mock.callCount(), 1);
       assert.deepStrictEqual(mockService.create.mock.calls[0].arguments[0], {
         ...mockInsertProduct,
         price: 0,
@@ -348,8 +352,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'product.price' is not a number", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: { ...mockInsertProduct, price: "invalid-price" },
           file: mockInsertProduct.image,
@@ -357,6 +360,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -379,8 +383,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should convert a negative 'product.countInStock' to '0'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: { ...mockInsertProduct, countInStock: 0 },
           file: mockInsertProduct.image,
@@ -388,14 +391,16 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       await controller.create(
         req as unknown as Request,
         res as unknown as Response,
         next,
-      ),
-        assert.strictEqual(mockService.create.mock.callCount(), 1);
+      );
+
+      assert.strictEqual(mockService.create.mock.callCount(), 1);
       assert.deepStrictEqual(mockService.create.mock.calls[0].arguments[0], {
         ...mockInsertProduct,
         countInStock: 0,
@@ -403,8 +408,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'product.countInStock' is not a number", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: { ...mockInsertProduct, countInStock: "invalid-stock" },
           file: mockInsertProduct.image,
@@ -412,6 +416,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -434,8 +439,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.create' once with the correct 'product data'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: mockInsertProduct,
           file: mockInsertProduct.image,
@@ -443,6 +447,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       mockService.create.mock.mockImplementationOnce(() =>
@@ -462,8 +467,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.create' rejects", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: mockInsertProduct,
           file: mockInsertProduct.image,
@@ -471,6 +475,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       mockService.create.mock.mockImplementationOnce(() =>
@@ -489,8 +494,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '201' after successfully creating product data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: mockInsertProduct,
           file: mockInsertProduct.image,
@@ -498,6 +502,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       mockService.create.mock.mockImplementationOnce(() =>
@@ -515,8 +520,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing product data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: mockInsertProduct,
           file: mockInsertProduct.image,
@@ -524,6 +528,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
         res: {
           locals: { user: { _id: mockInsertProduct.user.toString() } },
         },
+        testContext: t,
       });
 
       mockService.create.mock.mockImplementationOnce(() =>
@@ -547,19 +552,19 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
   describe("getAll", () => {
     const mockProducts = generateMockSelectProducts({ count: 5 });
     const serviceResult = {
-      products: mockProducts,
-      numberOfPages: 1,
       currentPage: 1,
+      numberOfPages: 1,
+      products: mockProducts,
     };
 
     test("Should parse 'keyword' from 'req.query'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           query: {
             keyword: mockProducts[0].name,
           },
         },
+        testContext: t,
       });
 
       mockService.getAll.mock.mockImplementationOnce(() =>
@@ -582,13 +587,13 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should parse empty 'keyword' from 'req.query'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           query: {
             keyword: "",
           },
         },
+        testContext: t,
       });
 
       mockService.getAll.mock.mockImplementationOnce(() =>
@@ -611,9 +616,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should parse undefined 'keyword' from 'req.query' and default to empty string ", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { query: {} },
+        testContext: t,
       });
 
       mockService.getAll.mock.mockImplementationOnce(() =>
@@ -636,13 +641,13 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should parse 'currentPage' from 'req.query'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           query: {
             currentPage: "1",
           },
         },
+        testContext: t,
       });
 
       mockService.getAll.mock.mockImplementationOnce(() =>
@@ -665,9 +670,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should parse undefined 'currentPage' from 'req.query' and default to '1'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { query: {} },
+        testContext: t,
       });
 
       mockService.getAll.mock.mockImplementationOnce(() =>
@@ -690,13 +695,13 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'currentPage' is not a number", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           query: {
             currentPage: "invalid-current-page",
           },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -719,13 +724,13 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'currentPage' is '0'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           query: {
             currentPage: "0",
           },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -748,13 +753,13 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'currentPage' is a negative number", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           query: {
             currentPage: "-1",
           },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -777,13 +782,13 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'currentPage' is non-integer number", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           query: {
             currentPage: "1.5",
           },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -806,14 +811,14 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.getAll' once with the correct 'keyword' and 'currentPage'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           query: {
-            keyword: mockProducts[0].name,
             currentPage: "1",
+            keyword: mockProducts[0].name,
           },
         },
+        testContext: t,
       });
 
       mockService.getAll.mock.mockImplementationOnce(() =>
@@ -828,15 +833,15 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
       assert.strictEqual(mockService.getAll.mock.callCount(), 1);
       assert.deepStrictEqual(mockService.getAll.mock.calls[0].arguments[0], {
-        keyword: mockProducts[0].name,
         currentPage: 1,
+        keyword: mockProducts[0].name,
       });
     });
 
     test("Should throw 'DatabaseError' if 'service.getAll' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { query: {} },
+        testContext: t,
       });
 
       mockService.getAll.mock.mockImplementationOnce(() =>
@@ -855,9 +860,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully fetching all products", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { query: {} },
+        testContext: t,
       });
 
       mockService.getAll.mock.mockImplementationOnce(() =>
@@ -875,9 +880,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing all products", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { query: {} },
+        testContext: t,
       });
 
       mockService.getAll.mock.mockImplementationOnce(() =>
@@ -909,7 +914,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     const serviceResult = mockProducts;
 
     test("Should call 'service.getTopRated' once without args", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -931,7 +936,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.getTopRated' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -951,7 +956,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully fetching top rated products", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -970,7 +975,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing top rated products", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -999,9 +1004,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     const productId = mockProduct._id;
 
     test("Should parse 'productId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -1019,9 +1024,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'productId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: "invalid-product-id" } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -1044,9 +1049,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.getById' once with the correct 'productId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -1066,9 +1071,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.getById' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -1087,9 +1092,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully fetching product data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -1107,9 +1112,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing product data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -1134,17 +1139,17 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     const mockProduct = generateMockSelectProduct();
     const productId = mockProduct._id;
     const updateData: Partial<InsertProduct> = {
-      name: "new-name",
       image: undefined,
+      name: "new-name",
     };
 
     test("Should parse 'productId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
-          params: { productId: productId.toString() },
           body: updateData,
+          params: { productId: productId.toString() },
         },
+        testContext: t,
       });
 
       mockService.update.mock.mockImplementationOnce(() =>
@@ -1162,12 +1167,12 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'productId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
-          params: { productId: "invalid-product-id" },
           body: updateData,
+          params: { productId: "invalid-product-id" },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -1190,12 +1195,12 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.update' once with the correct 'productId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
-          params: { productId: productId.toString() },
           body: updateData,
+          params: { productId: productId.toString() },
         },
+        testContext: t,
       });
 
       mockService.update.mock.mockImplementationOnce(() =>
@@ -1210,18 +1215,18 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
       assert.strictEqual(mockService.update.mock.callCount(), 1);
       assert.deepStrictEqual(mockService.update.mock.calls[0].arguments[0], {
-        productId,
         data: updateData,
+        productId,
       });
     });
 
     test("Should throw 'DatabaseError' if 'service.update' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
-          params: { productId: productId.toString() },
           body: updateData,
+          params: { productId: productId.toString() },
         },
+        testContext: t,
       });
 
       mockService.update.mock.mockImplementationOnce(() =>
@@ -1240,12 +1245,12 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully updating product data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
-          params: { productId: productId.toString() },
           body: updateData,
+          params: { productId: productId.toString() },
         },
+        testContext: t,
       });
 
       mockService.update.mock.mockImplementationOnce(() =>
@@ -1263,12 +1268,12 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing product data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
-          params: { productId: productId.toString() },
           body: updateData,
+          params: { productId: productId.toString() },
         },
+        testContext: t,
       });
 
       mockService.update.mock.mockImplementationOnce(() =>
@@ -1293,9 +1298,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     const productId = generateMockObjectId();
 
     test("Should parse 'productId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.delete.mock.mockImplementationOnce(() => Promise.resolve());
@@ -1311,9 +1316,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'productId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: "invalid-product-id" } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -1336,9 +1341,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.delete' once with the correct 'productId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.delete.mock.mockImplementationOnce(() => Promise.resolve());
@@ -1356,9 +1361,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.delete' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.delete.mock.mockImplementationOnce(() =>
@@ -1377,9 +1382,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '204' after successfully deleting product data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.delete.mock.mockImplementationOnce(() => Promise.resolve());
@@ -1395,9 +1400,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing product data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.delete.mock.mockImplementationOnce(() => Promise.resolve());

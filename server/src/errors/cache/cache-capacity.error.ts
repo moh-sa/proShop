@@ -1,13 +1,13 @@
-import { ErrorType } from "../../types";
-import { CacheBaseError } from "./cache-base.error";
+import { ErrorType } from "../../types/index.js";
+import { CacheBaseError } from "./cache-base.error.js";
 
 export class CacheCapacityError extends CacheBaseError {
   constructor(
     message: string,
     details?: {
       batchSize?: number;
-      maxSize?: number;
       currentSize?: number;
+      maxSize?: number;
     },
   ) {
     super(

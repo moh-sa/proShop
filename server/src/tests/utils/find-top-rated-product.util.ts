@@ -1,4 +1,4 @@
-import { SelectProduct } from "../../types";
+import type { SelectProduct } from "../../types/index.js";
 
 export function findTopRatedProduct(products: Array<SelectProduct>) {
   return products.reduce((highest, product) => {

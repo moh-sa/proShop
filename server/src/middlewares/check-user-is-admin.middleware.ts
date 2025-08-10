@@ -1,5 +1,5 @@
-import { AuthorizationError } from "../errors";
-import { asyncHandler } from "../utils";
+import { AuthorizationError } from "../errors/index.js";
+import { asyncHandler } from "../utils/index.js";
 
 /**
  * Middleware to check admin privileges

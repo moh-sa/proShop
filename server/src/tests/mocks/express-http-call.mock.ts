@@ -1,26 +1,7 @@
-import { Request, Response } from "express";
-import { TestContext } from "node:test";
-import { DeepPartialObject } from "../../types";
+import type { Request, Response } from "express";
+import type { TestContext } from "node:test";
 
-function mockRequest(data: Partial<Request>): Partial<Request> {
-  return data;
-}
-
-function mockResponse({
-  testContext,
-  locals = {},
-}: {
-  testContext: TestContext;
-  locals?: DeepPartialObject<Response["locals"]>;
-}) {
-  const res = {
-    json: testContext.mock.fn((input: unknown) => input),
-    status: testContext.mock.fn((code: number) => res),
-    locals,
-  };
-
-  return res;
-}
+import type { DeepPartialObject } from "../../types/index.js";
 
 export function mockExpressCall({
   req = {},
@@ -32,10 +13,30 @@ export function mockExpressCall({
   testContext: TestContext;
 }) {
   return {
-    req: mockRequest(req),
-    res: mockResponse({ testContext: testContext, locals: res.locals }),
     next: testContext.mock.fn((err) => {
       if (err) throw err;
     }),
+    req: mockRequest(req),
+    res: mockResponse({ locals: res.locals, testContext }),
   };
+}
+
+function mockRequest(data: Partial<Request>): Partial<Request> {
+  return data;
+}
+
+function mockResponse({
+  locals = {},
+  testContext,
+}: {
+  locals?: DeepPartialObject<Response["locals"]>;
+  testContext: TestContext;
+}) {
+  const res = {
+    json: testContext.mock.fn((input: unknown) => input),
+    locals,
+    status: testContext.mock.fn((_code: number) => res),
+  };
+
+  return res;
 }

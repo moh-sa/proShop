@@ -1,20 +1,21 @@
 import mongoose from "mongoose";
 import assert from "node:assert";
 import test, { describe, suite } from "node:test";
+
 import {
   DatabaseNetworkError,
   DatabaseQueryError,
   DatabaseTimeoutError,
   DatabaseValidationError,
   GenericDatabaseError,
-} from "../../errors";
-import Order from "../../models/orderModel";
-import { OrderRepository } from "../../repositories";
+} from "../../errors/index.js";
+import Order from "../../models/orderModel.js";
+import { OrderRepository } from "../../repositories/index.js";
 import {
   generateMockInsertOrder,
   generateMockInsertOrders,
   generateMockSelectOrder,
-} from "../mocks";
+} from "../mocks/index.js";
 
 suite("Order Repository 〖 Unit Tests 〗", () => {
   const repo = new OrderRepository();
@@ -549,8 +550,8 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
       assert.strictEqual(mockFindByIdAndUpdate.mock.callCount(), 1);
       assert.deepStrictEqual(mockFindByIdAndUpdate.mock.calls[0].arguments[1], {
         $set: {
-          isDelivered: true,
           deliveredAt: new Date(),
+          isDelivered: true,
         },
       });
     });

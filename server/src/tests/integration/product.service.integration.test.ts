@@ -1,18 +1,19 @@
 import { Types } from "mongoose";
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
-import { DatabaseValidationError, NotFoundError } from "../../errors";
-import { CacheManager } from "../../managers";
-import Product from "../../models/productModel";
-import { ProductRepository } from "../../repositories";
-import { ProductService } from "../../services";
-import { mockImageStorage, mockMulterImageFile } from "../mocks";
+
+import { DatabaseValidationError, NotFoundError } from "../../errors/index.js";
+import { CacheManager } from "../../managers/index.js";
+import Product from "../../models/productModel.js";
+import { ProductRepository } from "../../repositories/index.js";
+import { ProductService } from "../../services/index.js";
+import { mockImageStorage, mockMulterImageFile } from "../mocks/index.js";
 import {
   generateMockInsertProductWithMulterImage,
   generateMockSelectProduct,
   generateMockSelectProducts,
-} from "../mocks/product.mock";
-import { connectTestDatabase, disconnectTestDatabase } from "../utils";
+} from "../mocks/product.mock.js";
+import { connectTestDatabase, disconnectTestDatabase } from "../utils/index.js";
 
 suite("Product Service 〖 Integration Tests 〗", async () => {
   let productService: ProductService;
@@ -134,7 +135,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
       const currentPage = 1;
 
       // Act
-      const result = await productService.getAll({ keyword, currentPage });
+      const result = await productService.getAll({ currentPage, keyword });
 
       // Assert
       assert.ok(Array.isArray(result.products));
@@ -151,7 +152,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
       const currentPage = 1;
 
       // Act
-      const result = await productService.getAll({ keyword, currentPage });
+      const result = await productService.getAll({ currentPage, keyword });
 
       // Assert
       assert.ok(result.products.length > 0);
@@ -168,7 +169,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
       const currentPage = 2;
 
       // Act
-      const result = await productService.getAll({ keyword, currentPage });
+      const result = await productService.getAll({ currentPage, keyword });
 
       // Assert
       assert.equal(result.currentPage, currentPage);
@@ -176,8 +177,8 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
       // Get first page to compare
       const firstPageResult = await productService.getAll({
-        keyword,
         currentPage: 1,
+        keyword,
       });
       const firstPageIds = firstPageResult.products.map((p) =>
         p._id.toString(),
@@ -201,7 +202,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
       const currentPage = 1;
 
       // Act
-      const result = await productService.getAll({ keyword, currentPage });
+      const result = await productService.getAll({ currentPage, keyword });
 
       // Assert
       assert.equal(result.products.length, 0);
@@ -217,7 +218,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
       const currentPage = undefined as unknown as number;
 
       // Act
-      const result = await productService.getAll({ keyword, currentPage });
+      const result = await productService.getAll({ currentPage, keyword });
 
       // Assert
       assert.equal(result.currentPage, 1);
@@ -233,7 +234,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
       const productsPerPage = 10;
 
       // Act
-      const result = await productService.getAll({ keyword, currentPage });
+      const result = await productService.getAll({ currentPage, keyword });
 
       // Assert
       const expectedPages = Math.ceil(mockProducts.length / productsPerPage);
@@ -258,8 +259,8 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
       // Assert
       assert.ok(products.length > 0);
       for (let i = 1; i < products.length; i++) {
-        const prevProduct = await Product.findById(products[i - 1]._id).lean();
-        const currentProduct = await Product.findById(products[i]._id).lean();
+        const prevProduct = await Product.findById(products[i - 1]._id).lean(); // eslint-disable-line no-await-in-loop
+        const currentProduct = await Product.findById(products[i]._id).lean(); // eslint-disable-line no-await-in-loop
         assert.ok(
           prevProduct!.rating >= currentProduct!.rating,
           "Products should be sorted by rating in descending order",
@@ -367,8 +368,8 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
       // Act
       const updatedProduct = await productService.update({
-        productId: mockProduct._id,
         data: updateData,
+        productId: mockProduct._id,
       });
 
       // Assert
@@ -391,8 +392,8 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
       // Act
       const updatedProduct = await productService.update({
-        productId: mockProduct._id,
         data: updateData,
+        productId: mockProduct._id,
       });
 
       // Assert
@@ -407,8 +408,8 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
       const newImage = mockMulterImageFile();
       const newImageUrl = "https://example.com/new-image.jpg";
       const updateData = {
-        name: "Updated Product Name",
         image: newImage,
+        name: "Updated Product Name",
       };
       imageStorageMock.replace.mock.mockImplementationOnce(
         async () => newImageUrl,
@@ -416,8 +417,8 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
       // Act
       const updatedProduct = await productService.update({
-        productId: mockProduct._id,
         data: updateData,
+        productId: mockProduct._id,
       });
 
       // Assert
@@ -425,7 +426,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
       assert.equal(imageStorageMock.replace.mock.calls.length, 1);
       assert.deepStrictEqual(
         imageStorageMock.replace.mock.calls[0].arguments[0],
-        { url: mockProduct.image, file: newImage },
+        { file: newImage, url: mockProduct.image },
       );
     });
 
@@ -438,8 +439,8 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
       await assert.rejects(
         async () =>
           await productService.update({
-            productId: nonExistentId,
             data: updateData,
+            productId: nonExistentId,
           }),
         NotFoundError,
       );
@@ -455,8 +456,8 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
       await assert.rejects(
         async () =>
           await productService.update({
-            productId: mockProduct._id,
             data: invalidData,
+            productId: mockProduct._id,
           }),
         DatabaseValidationError,
       );
@@ -468,8 +469,8 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
       await Product.create(mockProduct);
       const mockError = new Error("Replace failed");
       const updateData = {
-        name: "Updated Product Name",
         image: mockMulterImageFile(),
+        name: "Updated Product Name",
       };
       imageStorageMock.replace.mock.mockImplementationOnce(async () => {
         throw mockError;
@@ -479,8 +480,8 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
       await assert.rejects(
         async () =>
           await productService.update({
-            productId: mockProduct._id,
             data: updateData,
+            productId: mockProduct._id,
           }),
         (error: Error) => {
           assert.equal(error, mockError);

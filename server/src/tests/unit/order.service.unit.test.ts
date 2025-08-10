@@ -1,14 +1,19 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
-import { DatabaseError, EmptyCartError, NotFoundError } from "../../errors";
-import { OrderService } from "../../services";
+
+import {
+  DatabaseError,
+  EmptyCartError,
+  NotFoundError,
+} from "../../errors/index.js";
+import { OrderService } from "../../services/index.js";
 import {
   generateMockInsertOrder,
   generateMockObjectId,
   generateMockSelectOrder,
   generateMockSelectOrders,
   mockOrderRepository,
-} from "../mocks";
+} from "../mocks/index.js";
 
 suite("Order Service 〖 Unit Tests 〗", () => {
   const mockRepo = mockOrderRepository();

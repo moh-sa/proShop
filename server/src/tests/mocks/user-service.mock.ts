@@ -1,15 +1,15 @@
 import { mock } from "node:test";
-import { IUserService } from "../../services";
-import { FunctionMocksWithReset } from "../types/mocked.type";
+
+import type { IUserService } from "../../services/index.js";
+import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
 export function mockUserService(): FunctionMocksWithReset<IUserService> {
   return {
-    getAll: mock.fn(),
-    getById: mock.fn(),
-    getByEmail: mock.fn(),
-    updateById: mock.fn(),
     delete: mock.fn(),
-    reset: function () {
+    getAll: mock.fn(),
+    getByEmail: mock.fn(),
+    getById: mock.fn(),
+    reset() {
       this.getAll.mock.resetCalls();
       this.getById.mock.resetCalls();
       this.getByEmail.mock.resetCalls();
@@ -22,5 +22,6 @@ export function mockUserService(): FunctionMocksWithReset<IUserService> {
       this.updateById.mock.restore();
       this.delete.mock.restore();
     },
+    updateById: mock.fn(),
   };
 }

@@ -1,23 +1,24 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { ZodError } from "zod";
-import { OrderController } from "../../controllers";
-import { NotFoundError } from "../../errors";
-import Order from "../../models/orderModel";
-import Product from "../../models/productModel";
-import User from "../../models/userModel";
+
+import { OrderController } from "../../controllers/index.js";
+import { NotFoundError } from "../../errors/index.js";
+import Order from "../../models/orderModel.js";
+import Product from "../../models/productModel.js";
+import User from "../../models/userModel.js";
 import {
   generateMockInsertOrder,
   generateMockObjectId,
   generateMockSelectOrder,
   generateMockSelectOrders,
   generateMockUser,
-} from "../mocks";
-import { createMockExpressContext } from "../utils";
+} from "../mocks/index.js";
 import {
   connectTestDatabase,
+  createMockExpressContext,
   disconnectTestDatabase,
-} from "../utils/database-connection.utils";
+} from "../utils/index.js";
 
 suite("Order Controller 〖 Integration Tests 〗", () => {
   const controller = new OrderController();
@@ -37,7 +38,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockUser = generateMockUser();
       const mockOrderData = generateMockInsertOrder();
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockOrderData;
       res.locals.user = mockUser;
 
@@ -56,7 +57,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockUser = generateMockUser();
       const mockOrderData = generateMockInsertOrder();
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockOrderData;
       res.locals.user = mockUser;
 
@@ -73,7 +74,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockUser = generateMockUser();
       const mockOrderData = generateMockInsertOrder();
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockOrderData;
       res.locals.user = mockUser;
 
@@ -102,7 +103,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockUser = generateMockUser();
       const mockOrderData = generateMockInsertOrder();
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockOrderData;
       res.locals.user = mockUser;
 
@@ -119,9 +120,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
     test("Should set 'PaymentMethod' to 'PayPal' if not provided when 'service.create' is called", async () => {
       // Arrange
       const mockUser = generateMockUser();
-      const { paymentMethod, ...mockOrderData } = generateMockInsertOrder();
+      const { paymentMethod: _paymentMethod, ...mockOrderData } =
+        generateMockInsertOrder();
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockOrderData;
       res.locals.user = mockUser;
 
@@ -138,9 +140,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
     test("Should throw 'ZodError' when 'service.create' is called without orderItems", async () => {
       // Arrange
       const mockUser = generateMockUser();
-      const { orderItems, ...mockOrderData } = generateMockInsertOrder();
+      const { orderItems: _orderItems, ...mockOrderData } =
+        generateMockInsertOrder();
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockOrderData;
       res.locals.user = mockUser;
 
@@ -161,9 +164,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
     test("Should throw 'ZodError' when 'service.create' is called without shippingAddress", async () => {
       // Arrange
       const mockUser = generateMockUser();
-      const { shippingAddress, ...mockOrderData } = generateMockInsertOrder();
+      const { shippingAddress: _shippingAddress, ...mockOrderData } =
+        generateMockInsertOrder();
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockOrderData;
       res.locals.user = mockUser;
 
@@ -186,7 +190,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockUser = generateMockUser();
       const mockOrderData = generateMockInsertOrder({ orderItems: [] });
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockOrderData;
       res.locals.user = mockUser;
 
@@ -214,7 +218,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockOrder = generateMockSelectOrder();
       await Order.insertMany([mockOrder]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { orderId: mockOrder._id.toString() };
 
       // Act
@@ -232,7 +236,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockOrder = generateMockSelectOrder();
       await Order.insertMany([mockOrder]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { orderId: mockOrder._id.toString() };
 
       // Act
@@ -247,7 +251,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       // Arrange
       const mockOrder = generateMockSelectOrder();
       await Order.insertMany([mockOrder]);
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       req.params = { orderId: mockOrder._id.toString() };
 
@@ -271,7 +275,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockOrder = generateMockSelectOrder({ user: mockUser });
       await Order.insertMany([mockOrder]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { orderId: mockOrder._id.toString() };
 
       // Act
@@ -288,7 +292,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       // Arrange
       const orderId = generateMockObjectId();
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { orderId: orderId.toString() };
 
       // Act & Assert
@@ -304,7 +308,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.getById' is called with invalid 'objectId' in params", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { orderId: "invalid-id" };
 
       // Act & Assert
@@ -328,7 +332,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockOrders = generateMockSelectOrders(2);
       await Order.insertMany(mockOrders);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.getAll(req, res, next);
@@ -342,7 +346,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
     test("Should return '200' status code when 'service.getAll' is called with valid data", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.getAll(req, res, next);
@@ -357,7 +361,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockOrders = generateMockSelectOrders(2);
       await Order.insertMany(mockOrders);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.getAll(req, res, next);
@@ -372,7 +376,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
     test("Should return 'empty array' when 'service.getAll' is called with no orders in database", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.getAll(req, res, next);
@@ -391,7 +395,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockOrder = generateMockSelectOrder();
       await Order.insertMany([mockOrder]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: mockOrder.user._id.toString() };
 
       // Act
@@ -407,7 +411,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
     test("Should return '200' status code when 'service.getAllByUserId' is called with valid data", async () => {
       // Arrange
       const mockOrder = generateMockSelectOrder();
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       req.params = { userId: mockOrder.user._id.toString() };
 
@@ -426,7 +430,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const otherOrders = generateMockSelectOrders(2);
       await Order.insertMany([mockOrders, otherOrders].flat());
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       req.params = { userId: mockUser._id.toString() };
 
@@ -447,7 +451,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockOrders = generateMockSelectOrders(5);
       await Order.insertMany(mockOrders);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: mockUser._id.toString() };
 
       // Act
@@ -462,7 +466,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.getAllByUserId' is called with invalid 'objectId' in params", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: "invalid-id" };
 
       // Act & Assert
@@ -488,7 +492,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockOrder2 = generateMockSelectOrder();
       await Order.insertMany([mockOrder1, mockOrder2]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: mockOrder1.user._id.toString() };
 
       // Act
@@ -512,7 +516,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockOrder = generateMockSelectOrder({ isPaid: true });
       await Order.insertMany([mockOrder]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { orderId: mockOrder._id.toString() };
 
       // Act
@@ -530,7 +534,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockOrder = generateMockSelectOrder({ isPaid: false });
       await Order.insertMany([mockOrder]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { orderId: mockOrder._id.toString() };
 
       // Act
@@ -546,7 +550,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockOrder = generateMockSelectOrder({ isPaid: false });
       await Order.insertMany([mockOrder]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { orderId: mockOrder._id.toString() };
 
       // Act
@@ -567,7 +571,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       });
       await Order.insertMany([mockOrder]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { orderId: mockOrder._id.toString() };
 
       // Act
@@ -584,7 +588,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
     test("Should throw 'NotFoundError' when 'service.updateToPaid' is called with non-existent order id", async () => {
       // Arrange
       const orderId = generateMockObjectId();
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       req.params = { orderId: orderId.toString() };
 
@@ -601,7 +605,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.updateToPaid' is called with invalid 'objectId' in params", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { orderId: "invalid-id" };
 
       // Act & Assert
@@ -625,7 +629,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockOrder = generateMockSelectOrder({ isDelivered: false });
       await Order.insertMany([mockOrder]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { orderId: mockOrder._id.toString() };
 
       // Act
@@ -643,7 +647,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockOrder = generateMockSelectOrder({ isDelivered: false });
       await Order.insertMany([mockOrder]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { orderId: mockOrder._id.toString() };
 
       // Act
@@ -659,7 +663,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       const mockOrder = generateMockSelectOrder({ isDelivered: false });
       await Order.insertMany([mockOrder]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { orderId: mockOrder._id.toString() };
 
       // Act
@@ -675,12 +679,12 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
     test("Should set 'deliveredAt' timestamp when 'service.updateToDelivered' is called with existing order", async () => {
       // Arrange
       const mockOrder = generateMockSelectOrder({
-        isDelivered: false,
         deliveredAt: undefined,
+        isDelivered: false,
       });
       await Order.insertMany([mockOrder]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { orderId: mockOrder._id.toString() };
 
       // Act
@@ -698,7 +702,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
       // Arrange
       const orderId = generateMockObjectId();
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { orderId: orderId.toString() };
 
       // Act & Assert
@@ -714,7 +718,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.updateToDelivered' is called with invalid 'objectId' in params", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { orderId: "invalid-id" };
 
       // Act & Assert

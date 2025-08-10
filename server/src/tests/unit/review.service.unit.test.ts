@@ -1,14 +1,16 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
-import { NotFoundError } from "../../errors";
-import { ReviewService } from "../../services";
-import { InsertReview } from "../../types";
+
+import type { InsertReview } from "../../types/index.js";
+
+import { NotFoundError } from "../../errors/index.js";
+import { ReviewService } from "../../services/index.js";
 import {
   generateMockObjectId,
   generateMockSelectReview,
   generateMockSelectReviews,
   mockReviewRepository,
-} from "../mocks";
+} from "../mocks/index.js";
 
 suite("Review Service 〖 Unit Tests 〗", () => {
   const mockRepo = mockReviewRepository();
@@ -193,8 +195,8 @@ suite("Review Service 〖 Unit Tests 〗", () => {
       );
 
       const updatedReview = await service.update({
-        reviewId,
         data: updateData,
+        reviewId,
       });
 
       assert.ok(updatedReview);
@@ -202,8 +204,8 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
       assert.strictEqual(mockRepo.update.mock.callCount(), 1);
       assert.deepEqual(mockRepo.update.mock.calls[0].arguments[0], {
-        reviewId,
         data: updateData,
+        reviewId,
       });
     });
 
@@ -211,7 +213,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
       mockRepo.update.mock.mockImplementationOnce(() => Promise.resolve(null));
 
       await assert.rejects(
-        async () => await service.update({ reviewId, data: updateData }),
+        async () => await service.update({ data: updateData, reviewId }),
         (error: Error) => {
           assert.ok(error instanceof NotFoundError);
           assert.strictEqual(error.message, "Review not found");
@@ -392,8 +394,8 @@ suite("Review Service 〖 Unit Tests 〗", () => {
       );
 
       const count = await service.existsByUserIdAndProductId({
-        userId,
         productId,
+        userId,
       });
 
       assert.ok(count);
@@ -406,8 +408,8 @@ suite("Review Service 〖 Unit Tests 〗", () => {
       assert.deepEqual(
         mockRepo.existsByUserIdAndProductId.mock.calls[0].arguments[0],
         {
-          userId,
           productId,
+          userId,
         },
       );
     });
@@ -420,8 +422,8 @@ suite("Review Service 〖 Unit Tests 〗", () => {
       await assert.rejects(
         async () =>
           await service.existsByUserIdAndProductId({
-            userId,
             productId,
+            userId,
           }),
         (error: Error) => {
           assert.ok(error instanceof NotFoundError);

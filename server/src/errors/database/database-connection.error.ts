@@ -1,5 +1,5 @@
-import { ErrorType } from "../../types";
-import { DatabaseBaseError } from "./database-base.error";
+import { ErrorType } from "../../types/index.js";
+import { DatabaseBaseError } from "./database-base.error.js";
 
 export class DatabaseConnectionError extends DatabaseBaseError {
   constructor(

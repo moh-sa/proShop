@@ -1,4 +1,5 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
+
 import { createMocks } from "node-mocks-http";
 
 export const createMockExpressContext = () => {
@@ -8,5 +9,5 @@ export const createMockExpressContext = () => {
     if (error) throw error;
   };
 
-  return { req, res, next };
+  return { next, req, res };
 };

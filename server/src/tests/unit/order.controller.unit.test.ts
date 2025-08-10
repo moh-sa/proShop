@@ -1,17 +1,19 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
+
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 import { ZodError } from "zod";
-import { OrderController } from "../../controllers";
-import { DatabaseError } from "../../errors";
-import { createSuccessResponseObject } from "../../utils";
+
+import { OrderController } from "../../controllers/index.js";
+import { DatabaseError } from "../../errors/index.js";
+import { createSuccessResponseObject } from "../../utils/index.js";
 import {
   generateMockInsertOrder,
   generateMockSelectOrder,
   generateMockSelectOrders,
   mockExpressCall,
   mockOrderService,
-} from "../mocks";
+} from "../mocks/index.js";
 
 suite("Order Controller 〖 Unit Tests 〗", () => {
   const mockService = mockOrderService();
@@ -29,10 +31,10 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     const userId = mockInsertOrder.user;
 
     test("Should parse 'order data' from 'req.body' and 'userId' from 'res.locals'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: mockInsertOrder },
         res: { locals: { user: { _id: userId.toString() } } },
+        testContext: t,
       });
 
       mockService.create.mock.mockImplementationOnce(() =>
@@ -50,10 +52,10 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'res.locals.user._id' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: mockInsertOrder },
         res: { locals: { user: { _id: "invalid-user-id" } } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -78,10 +80,10 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     test("Should throw 'ZodError' if 'order.X' is invalid", { todo: true });
 
     test("Should call 'service.create' once with the correct 'order data'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: mockInsertOrder },
         res: { locals: { user: { _id: userId.toString() } } },
+        testContext: t,
       });
 
       mockService.create.mock.mockImplementationOnce(() =>
@@ -102,10 +104,10 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.create' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: mockInsertOrder },
         res: { locals: { user: { _id: userId.toString() } } },
+        testContext: t,
       });
 
       mockService.create.mock.mockImplementationOnce(() =>
@@ -124,10 +126,10 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '201' after successfully creating order data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: mockInsertOrder },
         res: { locals: { user: { _id: userId.toString() } } },
+        testContext: t,
       });
 
       mockService.create.mock.mockImplementationOnce(() =>
@@ -145,10 +147,10 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing order data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: mockInsertOrder },
         res: { locals: { user: { _id: userId.toString() } } },
+        testContext: t,
       });
 
       mockService.create.mock.mockImplementationOnce(() =>
@@ -173,7 +175,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     const mockOrders = generateMockSelectOrders(5);
 
     test("Should call 'service.getAll' once without args", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -195,7 +197,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if'service.getAll' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -215,7 +217,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call'res.status' once with '200' after successfully fetching all orders", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -234,7 +236,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing all orders", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -261,9 +263,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     const userId = mockOrders[0].user._id;
 
     test("Should parse 'userId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.getAllByUserId.mock.mockImplementationOnce(() =>
@@ -281,9 +283,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'userId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: "invalid-user-id" } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -306,9 +308,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.getAllByUserId' once with the correct 'userId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.getAllByUserId.mock.mockImplementationOnce(() =>
@@ -331,9 +333,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.getAllByUserId' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.getAllByUserId.mock.mockImplementationOnce(() =>
@@ -352,9 +354,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully fetching all orders", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.getAllByUserId.mock.mockImplementationOnce(() =>
@@ -372,9 +374,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing all orders", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.getAllByUserId.mock.mockImplementationOnce(() =>
@@ -400,9 +402,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     const orderId = mockOrder._id;
 
     test("Should parse 'orderId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: orderId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -420,9 +422,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'orderId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: "invalid-order-id" } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -445,9 +447,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.getById' once with the correct 'orderId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: orderId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -467,9 +469,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.getById' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: orderId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -488,9 +490,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully fetching order data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: orderId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -508,9 +510,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing order data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: orderId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -536,9 +538,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     const orderId = mockOrder._id;
 
     test("Should parse 'orderId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: orderId.toString() } },
+        testContext: t,
       });
 
       mockService.updateToPaid.mock.mockImplementationOnce(() =>
@@ -556,9 +558,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'orderId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: "invalid-order-id" } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -581,9 +583,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.updateToPaid' once with the correct 'orderId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: orderId.toString() } },
+        testContext: t,
       });
 
       mockService.updateToPaid.mock.mockImplementationOnce(() =>
@@ -606,9 +608,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.updateToPaid' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: orderId.toString() } },
+        testContext: t,
       });
 
       mockService.updateToPaid.mock.mockImplementationOnce(() =>
@@ -627,9 +629,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully updating order data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: orderId.toString() } },
+        testContext: t,
       });
 
       mockService.updateToPaid.mock.mockImplementationOnce(() =>
@@ -647,9 +649,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing order data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: orderId.toString() } },
+        testContext: t,
       });
 
       mockService.updateToPaid.mock.mockImplementationOnce(() =>
@@ -675,9 +677,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     const orderId = mockOrder._id;
 
     test("Should parse 'orderId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: orderId.toString() } },
+        testContext: t,
       });
 
       mockService.updateToDelivered.mock.mockImplementationOnce(() =>
@@ -695,9 +697,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'orderId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: "invalid-order-id" } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -720,9 +722,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.updateToDelivered' once with the correct 'orderId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: orderId.toString() } },
+        testContext: t,
       });
 
       mockService.updateToDelivered.mock.mockImplementationOnce(() =>
@@ -745,9 +747,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.updateToDelivered' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: orderId.toString() } },
+        testContext: t,
       });
 
       mockService.updateToDelivered.mock.mockImplementationOnce(() =>
@@ -766,9 +768,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully updating order data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: orderId.toString() } },
+        testContext: t,
       });
 
       mockService.updateToDelivered.mock.mockImplementationOnce(() =>
@@ -786,9 +788,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing order data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { orderId: orderId.toString() } },
+        testContext: t,
       });
 
       mockService.updateToDelivered.mock.mockImplementationOnce(() =>

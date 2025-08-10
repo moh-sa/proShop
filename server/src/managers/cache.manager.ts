@@ -1,18 +1,8 @@
+import type { z } from "zod";
+
 import NodeCache from "node-cache";
-import { z } from "zod";
-import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../config";
-import {
-  CacheCapacityError,
-  CacheOperationError,
-  CacheValidationError,
-} from "../errors";
-import {
-  cacheItemSchema,
-  cacheItemsSchema,
-  cacheKeySchema,
-  cacheKeysSchema,
-} from "../schemas";
-import {
+
+import type {
   CacheConfig,
   CacheFailureResult,
   CacheItem,
@@ -21,22 +11,35 @@ import {
   CacheStats,
   CacheSuccessResult,
   Namespace,
-} from "../types";
-import { formatZodErrors } from "../utils";
+} from "../types/index.js";
+
+import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../config/index.js";
+import {
+  CacheCapacityError,
+  CacheOperationError,
+  CacheValidationError,
+} from "../errors/index.js";
+import {
+  cacheItemSchema,
+  cacheItemsSchema,
+  cacheKeySchema,
+  cacheKeysSchema,
+} from "../schemas/index.js";
+import { formatZodErrors } from "../utils/index.js";
 
 export interface ICacheManager {
-  set(args: CacheItem): CacheResult;
-  setMany(args: CacheItems): Array<CacheResult>;
-  get<T>(args: { key: string }): CacheResult<T>;
-  getMany<T>(args: { keys: Array<string> }): Array<CacheResult<T>>;
   delete(args: { key: string }): CacheResult;
   deleteMany(args: { keys: Array<string> }): Array<CacheResult>;
-  take<T>(args: { key: string }): CacheResult<T>;
-  flushStats(): void;
   flush(): void;
-  getStats(): CacheStats;
+  flushStats(): void;
+  get<T>(args: { key: string }): CacheResult<T>;
   getKeys(): Array<string>;
+  getMany<T>(args: { keys: Array<string> }): Array<CacheResult<T>>;
+  getStats(): CacheStats;
   isKeyCached(args: { key: string }): CacheResult;
+  set(args: CacheItem): CacheResult;
+  setMany(args: CacheItems): Array<CacheResult>;
+  take<T>(args: { key: string }): CacheResult<T>;
 }
 
 export class CacheManager implements ICacheManager {
@@ -51,14 +54,161 @@ export class CacheManager implements ICacheManager {
     });
   }
 
+  delete(args: { key: string }): CacheResult {
+    const parsedKey = this._validateSchema({
+      data: args.key,
+      schema: cacheKeySchema,
+    });
+
+    const key = this._generateCacheKey({ id: parsedKey });
+
+    try {
+      const result = this._cache.del(key) === 0 ? false : true;
+
+      return result
+        ? this._createSuccessResult(key)
+        : this._createFailureResult(key, CacheOperationError.delete(key));
+    } catch (error) {
+      return this._createFailureResult(
+        key,
+        CacheOperationError.delete(key, error),
+      );
+    }
+  }
+
+  deleteMany(args: { keys: Array<string> }): Array<CacheResult> {
+    const parsedKeys = this._validateSchema({
+      data: args.keys,
+      schema: cacheKeysSchema,
+    });
+
+    return parsedKeys.map((key) => {
+      const cacheKey = this._generateCacheKey({ id: key });
+
+      try {
+        const result = this._cache.del(cacheKey) === 0 ? false : true;
+
+        return result
+          ? this._createSuccessResult(key)
+          : this._createFailureResult(key, CacheOperationError.delete(key));
+      } catch (error) {
+        return this._createFailureResult(
+          key,
+          CacheOperationError.delete(key, error),
+        );
+      }
+    });
+  }
+
+  flush(): void {
+    try {
+      this._cache.flushAll();
+    } catch (error) {
+      console.error("Failed to flush cache");
+      throw CacheOperationError.flush(error);
+    }
+  }
+
+  flushStats(): void {
+    this._cache.flushStats();
+  }
+
+  get<T>(args: { key: string }): CacheResult<T> {
+    const parsedKey = this._validateSchema({
+      data: args.key,
+      schema: cacheKeySchema,
+    });
+    const key = this._generateCacheKey({ id: parsedKey });
+
+    try {
+      const result = this._cache.get<T>(key);
+      if (!result) {
+        console.error("Cache miss:", args.key);
+        return this._createFailureResult(key, CacheOperationError.get(key));
+      }
+
+      console.warn("Cache hit:", args.key);
+      return this._createSuccessResult(result);
+    } catch (error) {
+      console.error("Failed to get key", key);
+      return this._createFailureResult(
+        key,
+        CacheOperationError.get(key, error),
+      );
+    }
+  }
+
+  getKeys(): Array<string> {
+    return this._cache.keys();
+  }
+
+  getMany<T>(args: { keys: Array<string> }): Array<CacheResult<T>> {
+    const parsedKeys = this._validateSchema({
+      data: args.keys,
+      schema: cacheKeysSchema,
+    });
+
+    return parsedKeys.map((item) => {
+      const key = this._generateCacheKey({ id: item });
+
+      try {
+        const result = this._cache.get<T>(key);
+
+        return result
+          ? this._createSuccessResult(result)
+          : this._createFailureResult(key, CacheOperationError.get(key));
+      } catch (error) {
+        return this._createFailureResult(
+          key,
+          CacheOperationError.get(key, error),
+        );
+      }
+    });
+  }
+
+  getStats(): CacheStats {
+    const stats = this._cache.getStats();
+    return {
+      hits: stats.hits,
+      keysSize: stats.ksize,
+      misses: stats.misses,
+      numberOfKeys: stats.keys,
+      totalSize: stats.vsize + stats.ksize,
+      valuesSize: stats.vsize,
+    };
+  }
+
+  isKeyCached(args: { key: string }): CacheResult {
+    const parsedKey = this._validateSchema({
+      data: args.key,
+      schema: cacheKeySchema,
+    });
+
+    const key = this._generateCacheKey({ id: parsedKey });
+    try {
+      const result = this._cache.has(key);
+      if (!result) {
+        return this._createFailureResult(key, CacheOperationError.has(key));
+      }
+
+      return this._createSuccessResult(key);
+    } catch (error) {
+      console.error("Failed to check if key is cached", key);
+      return this._createFailureResult(
+        key,
+        CacheOperationError.has(key, error),
+      );
+    }
+  }
+
   set(args: CacheItem): CacheResult {
     const parsedArgs = this._validateSchema({
-      schema: cacheItemSchema,
       data: {
         key: args.key,
-        val: args.value,
         ttl: args.ttl ?? DEFAULT_CACHE_CONFIG.stdTTL,
+        val: args.value,
       },
+      schema: cacheItemSchema,
     });
 
     this._validateMemoryCapacity(1);
@@ -86,12 +236,12 @@ export class CacheManager implements ICacheManager {
     this._validateMemoryCapacity(args.length);
 
     const parsedArgs = this._validateSchema({
-      schema: cacheItemsSchema,
       data: args.map((arg) => ({
         key: arg.key,
-        val: arg.value,
         ttl: arg.ttl ?? DEFAULT_CACHE_CONFIG.stdTTL,
+        val: arg.value,
       })),
+      schema: cacheItemsSchema,
     });
 
     const parsedArgsWithCacheKeys = parsedArgs.map((arg) => ({
@@ -121,105 +271,10 @@ export class CacheManager implements ICacheManager {
     });
   }
 
-  get<T>(args: { key: string }): CacheResult<T> {
-    const parsedKey = this._validateSchema({
-      schema: cacheKeySchema,
-      data: args.key,
-    });
-    const key = this._generateCacheKey({ id: parsedKey });
-
-    try {
-      const result = this._cache.get<T>(key);
-      if (!result) {
-        console.log("Cache miss:", args.key);
-        return this._createFailureResult(key, CacheOperationError.get(key));
-      }
-
-      console.log("Cache hit:", args.key);
-      return this._createSuccessResult(result);
-    } catch (error) {
-      console.error("Failed to get key", key);
-      return this._createFailureResult(
-        key,
-        CacheOperationError.get(key, error),
-      );
-    }
-  }
-
-  getMany<T>(args: { keys: Array<string> }): Array<CacheResult<T>> {
-    const parsedKeys = this._validateSchema({
-      schema: cacheKeysSchema,
-      data: args.keys,
-    });
-
-    return parsedKeys.map((item) => {
-      const key = this._generateCacheKey({ id: item });
-
-      try {
-        const result = this._cache.get<T>(key);
-
-        return result
-          ? this._createSuccessResult(result)
-          : this._createFailureResult(key, CacheOperationError.get(key));
-      } catch (error) {
-        return this._createFailureResult(
-          key,
-          CacheOperationError.get(key, error),
-        );
-      }
-    });
-  }
-
-  delete(args: { key: string }): CacheResult {
-    const parsedKey = this._validateSchema({
-      schema: cacheKeySchema,
-      data: args.key,
-    });
-
-    const key = this._generateCacheKey({ id: parsedKey });
-
-    try {
-      const result = this._cache.del(key) === 0 ? false : true;
-
-      return result
-        ? this._createSuccessResult(key)
-        : this._createFailureResult(key, CacheOperationError.delete(key));
-    } catch (error) {
-      return this._createFailureResult(
-        key,
-        CacheOperationError.delete(key, error),
-      );
-    }
-  }
-
-  deleteMany(args: { keys: Array<string> }): Array<CacheResult> {
-    const parsedKeys = this._validateSchema({
-      schema: cacheKeysSchema,
-      data: args.keys,
-    });
-
-    return parsedKeys.map((key) => {
-      const cacheKey = this._generateCacheKey({ id: key });
-
-      try {
-        const result = this._cache.del(cacheKey) === 0 ? false : true;
-
-        return result
-          ? this._createSuccessResult(key)
-          : this._createFailureResult(key, CacheOperationError.delete(key));
-      } catch (error) {
-        return this._createFailureResult(
-          key,
-          CacheOperationError.delete(key, error),
-        );
-      }
-    });
-  }
-
   take<T>(args: { key: string }): CacheResult<T> {
     const parsedKey = this._validateSchema({
-      schema: cacheKeySchema,
       data: args.key,
+      schema: cacheKeySchema,
     });
 
     const key = this._generateCacheKey({ id: parsedKey });
@@ -227,7 +282,7 @@ export class CacheManager implements ICacheManager {
     try {
       const result = this._cache.take<T>(key);
       if (!result) {
-        console.log("Cache miss:", args.key);
+        console.warn("Cache miss:", args.key);
         return this._createFailureResult(key, CacheOperationError.take(key));
       }
 
@@ -241,73 +296,21 @@ export class CacheManager implements ICacheManager {
     }
   }
 
-  flushStats(): void {
-    this._cache.flushStats();
-  }
-
-  flush(): void {
-    try {
-      this._cache.flushAll();
-    } catch (error) {
-      console.error("Failed to flush cache");
-      throw CacheOperationError.flush(error);
-    }
-  }
-
-  getStats(): CacheStats {
-    const stats = this._cache.getStats();
-    return {
-      hits: stats.hits,
-      misses: stats.misses,
-      numberOfKeys: stats.keys,
-      keysSize: stats.ksize,
-      valuesSize: stats.vsize,
-      totalSize: stats.vsize + stats.ksize,
-    };
-  }
-
-  getKeys(): Array<string> {
-    return this._cache.keys();
-  }
-
-  isKeyCached(args: { key: string }): CacheResult {
-    const parsedKey = this._validateSchema({
-      schema: cacheKeySchema,
-      data: args.key,
-    });
-
-    const key = this._generateCacheKey({ id: parsedKey });
-    try {
-      const result = this._cache.has(key);
-      if (!result) {
-        return this._createFailureResult(key, CacheOperationError.has(key));
-      }
-
-      return this._createSuccessResult(key);
-    } catch (error) {
-      console.error("Failed to check if key is cached", key);
-      return this._createFailureResult(
-        key,
-        CacheOperationError.has(key, error),
-      );
-    }
-  }
-
-  private _createSuccessResult<T>(data: T): CacheSuccessResult<T> {
-    return {
-      success: true,
-      data,
-    };
-  }
-
   private _createFailureResult<T, E = Error>(
     key: T,
     error: E,
   ): CacheFailureResult<T, E> {
     return {
+      error,
       key,
       success: false,
-      error,
+    };
+  }
+
+  private _createSuccessResult<T>(data: T): CacheSuccessResult<T> {
+    return {
+      data,
+      success: true,
     };
   }
 
@@ -346,7 +349,7 @@ export class CacheManager implements ICacheManager {
 
     try {
       this._cache.del(keysToDelete);
-      console.log(`[Cache] Deleted ${keysToDelete.length} keys`, keysToDelete);
+      console.warn(`[Cache] Deleted ${keysToDelete.length} keys`, keysToDelete);
     } catch (error) {
       console.error("Failed to delete keys", keysToDelete);
       throw CacheOperationError.delete(keysToDelete, error);
@@ -354,8 +357,8 @@ export class CacheManager implements ICacheManager {
   }
 
   private _validateSchema<T extends z.ZodType>(args: {
-    schema: T;
     data: z.infer<T>;
+    schema: T;
   }): z.infer<T> {
     const parsed = args.schema.safeParse(args.data);
     if (!parsed.success) {

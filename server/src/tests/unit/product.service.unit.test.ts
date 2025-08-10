@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test, { beforeEach, describe, suite } from "node:test";
-import { DatabaseError, NotFoundError } from "../../errors";
-import { ProductService } from "../../services";
+
+import { DatabaseError, NotFoundError } from "../../errors/index.js";
+import { ProductService } from "../../services/index.js";
 import {
   generateMockInsertProductWithMulterImage,
   generateMockSelectProduct,
@@ -9,7 +10,7 @@ import {
   mockImageStorage,
   mockMulterImageFile,
   mockProductRepository,
-} from "../mocks";
+} from "../mocks/index.js";
 
 suite("Product Service 〖 Unit Tests 〗", () => {
   const mockRepo = mockProductRepository();
@@ -28,10 +29,10 @@ suite("Product Service 〖 Unit Tests 〗", () => {
     const expectedResult = {
       ...mockInsertProduct,
       _id: mockSelectProduct._id,
-      image: mockSelectProduct.image,
-      rating: mockSelectProduct.rating,
-      numReviews: mockSelectProduct.numReviews,
       createdAt: mockSelectProduct.createdAt,
+      image: mockSelectProduct.image,
+      numReviews: mockSelectProduct.numReviews,
+      rating: mockSelectProduct.rating,
       updatedAt: mockSelectProduct.updatedAt,
     };
 
@@ -115,7 +116,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
     const expectedResult = generateMockSelectProducts({ count: 4 });
 
     function createRegexQuery(keyword: string) {
-      return { name: { $regex: keyword, $options: "i" } };
+      return { name: { $options: "i", $regex: keyword } };
     }
 
     test("Should return array of products when both 'repo.count' and 'repo.getAll' are called once with no args", async () => {
@@ -127,7 +128,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
         Promise.resolve(expectedResult),
       );
 
-      const result = await service.getAll({ keyword: "", currentPage: 1 });
+      const result = await service.getAll({ currentPage: 1, keyword: "" });
 
       assert.ok(result);
       assert.strictEqual(result.products.length, expectedResult.length);
@@ -138,9 +139,9 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
       assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
       assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0], {
-        query: {},
         currentPage: 1,
         numberOfProductsPerPage: 10,
+        query: {},
       });
     });
 
@@ -153,7 +154,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
         Promise.resolve(expectedResult),
       );
 
-      const inputData = { keyword: "test", currentPage: 1 };
+      const inputData = { currentPage: 1, keyword: "test" };
       const result = await service.getAll(inputData);
 
       assert.ok(result);
@@ -168,9 +169,9 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
       assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
       assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0], {
-        query: createRegexQuery(inputData.keyword),
         currentPage: 1,
         numberOfProductsPerPage: 10,
+        query: createRegexQuery(inputData.keyword),
       });
     });
 
@@ -182,7 +183,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
         Promise.resolve(expectedResult),
       );
 
-      const result = await service.getAll({ keyword: "", currentPage: 2 });
+      const result = await service.getAll({ currentPage: 2, keyword: "" });
 
       assert.ok(result);
       assert.strictEqual(result.products.length, expectedResult.length);
@@ -193,9 +194,9 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
       assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
       assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0], {
-        query: {},
         currentPage: 2,
         numberOfProductsPerPage: 10,
+        query: {},
       });
     });
 
@@ -207,7 +208,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
       );
 
       await assert.rejects(
-        () => service.getAll({ keyword: "", currentPage: 1 }),
+        () => service.getAll({ currentPage: 1, keyword: "" }),
         (error: Error) => {
           assert.ok(error instanceof DatabaseError);
           assert.strictEqual(error.message, mockError.message);
@@ -228,7 +229,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
       );
 
       await assert.rejects(
-        () => service.getAll({ keyword: "", currentPage: 1 }),
+        () => service.getAll({ currentPage: 1, keyword: "" }),
         (error: Error) => {
           assert.ok(error instanceof DatabaseError);
           assert.strictEqual(error.message, mockError.message);
@@ -341,8 +342,8 @@ suite("Product Service 〖 Unit Tests 〗", () => {
       );
 
       const result = await service.update({
-        productId,
         data: mockUpdateData,
+        productId,
       });
 
       assert.ok(result);
@@ -350,8 +351,8 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
       assert.strictEqual(mockRepo.update.mock.callCount(), 1);
       assert.deepStrictEqual(mockRepo.update.mock.calls[0].arguments[0], {
-        productId,
         data: mockUpdateData,
+        productId,
       });
 
       // Ensure that 'repo.getById' wasn't called
@@ -374,8 +375,8 @@ suite("Product Service 〖 Unit Tests 〗", () => {
       );
 
       const result = await service.update({
-        productId,
         data: mockUpdateData,
+        productId,
       });
 
       assert.ok(result);
@@ -388,14 +389,14 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
       assert.strictEqual(mockStorage.replace.mock.callCount(), 1);
       assert.deepStrictEqual(mockStorage.replace.mock.calls[0].arguments[0], {
-        url: mockProduct.image,
         file: mockUpdateData.image,
+        url: mockProduct.image,
       });
 
       assert.strictEqual(mockRepo.update.mock.callCount(), 1);
       assert.deepStrictEqual(mockRepo.update.mock.calls[0].arguments[0], {
-        productId,
         data: { image: mockProduct.image },
+        productId,
       });
     });
 
@@ -405,7 +406,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
       mockRepo.update.mock.mockImplementationOnce(() => Promise.resolve(null));
 
       await assert.rejects(
-        () => service.update({ productId, data: mockUpdateData }),
+        () => service.update({ data: mockUpdateData, productId }),
         (error: Error) => {
           assert.ok(error instanceof NotFoundError);
           assert.strictEqual(error.message, "Product not found");
@@ -424,7 +425,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
       );
 
       await assert.rejects(
-        () => service.update({ productId, data: mockUpdateData }),
+        () => service.update({ data: mockUpdateData, productId }),
         (error: Error) => {
           assert.ok(error instanceof DatabaseError);
           assert.strictEqual(error.message, mockError.message);
@@ -442,7 +443,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
       );
 
       await assert.rejects(
-        async () => await service.update({ productId, data: mockUpdateData }),
+        async () => await service.update({ data: mockUpdateData, productId }),
         (error: Error) => {
           assert.ok(error instanceof DatabaseError);
           assert.strictEqual(error.message, mockError.message);

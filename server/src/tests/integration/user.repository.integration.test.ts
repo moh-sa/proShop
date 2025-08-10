@@ -1,17 +1,18 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
+
 import {
   DatabaseDuplicateKeyError,
   DatabaseValidationError,
-} from "../../errors/database";
-import User from "../../models/userModel";
-import { UserRepository } from "../../repositories/user.repository";
-import { generateMockObjectId } from "../mocks";
-import { generateMockUser, generateMockUsers } from "../mocks/user.mock";
+} from "../../errors/index.js";
+import User from "../../models/userModel.js";
+import { UserRepository } from "../../repositories/user.repository.js";
+import { generateMockObjectId } from "../mocks/index.js";
+import { generateMockUser, generateMockUsers } from "../mocks/user.mock.js";
 import {
   connectTestDatabase,
   disconnectTestDatabase,
-} from "../utils/database-connection.utils";
+} from "../utils/database-connection.utils.js";
 
 suite("UserRepository 〖 Integration Tests 〗", async () => {
   const repo = new UserRepository();
@@ -90,10 +91,10 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
     test("Should throw 'DatabaseValidationError' when creating user with invalid data", async () => {
       // Arrange
       const invalidUser = {
-        name: "",
         email: "invalid-email",
-        password: "pass",
         isAdmin: false,
+        name: "",
+        password: "pass",
       };
 
       // Act & Assert
@@ -226,14 +227,14 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
       const mockUser = generateMockUser();
       const user = await User.create(mockUser);
       const updateData = {
-        name: "Updated Name",
         email: "updated@example.com",
+        name: "Updated Name",
       };
 
       // Act
       const updatedUser = await repo.update({
-        userId: user._id,
         data: updateData,
+        userId: user._id,
       });
 
       // Assert
@@ -250,8 +251,8 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
       // Act
       const updatedUser = await repo.update({
-        userId: user._id,
         data: updateData,
+        userId: user._id,
       });
 
       // Assert
@@ -271,8 +272,8 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
       // Act
       const updatedUser = await repo.update({
-        userId: user._id,
         data: { name: "Updated Name" },
+        userId: user._id,
       });
 
       // Assert
@@ -287,8 +288,8 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
       // Act
       const user = await repo.update({
-        userId: nonExistentId,
         data: updateData,
+        userId: nonExistentId,
       });
 
       // Assert
@@ -304,8 +305,8 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
       await assert.rejects(
         async () =>
           await repo.update({
-            userId: user2._id,
             data: { email: user1.email },
+            userId: user2._id,
           }),
         DatabaseDuplicateKeyError,
       );

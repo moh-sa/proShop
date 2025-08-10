@@ -1,15 +1,22 @@
-import { Types } from "mongoose";
-import { EmptyCartError, NotFoundError } from "../errors";
-import { IOrderRepository, OrderRepository } from "../repositories";
-import { AllOrdersResponse, InsertOrder, SelectOrder } from "../types";
+import type { Types } from "mongoose";
+
+import type { IOrderRepository } from "../repositories/index.js";
+import type {
+  AllOrdersResponse,
+  InsertOrder,
+  SelectOrder,
+} from "../types/index.js";
+
+import { EmptyCartError, NotFoundError } from "../errors/index.js";
+import { OrderRepository } from "../repositories/index.js";
 
 export interface IOrderService {
   create(data: InsertOrder): Promise<SelectOrder>;
-  getById(data: { orderId: Types.ObjectId }): Promise<SelectOrder>;
   getAll(): Promise<AllOrdersResponse>;
   getAllByUserId(data: { userId: Types.ObjectId }): Promise<AllOrdersResponse>;
-  updateToPaid(data: { orderId: Types.ObjectId }): Promise<SelectOrder>;
+  getById(data: { orderId: Types.ObjectId }): Promise<SelectOrder>;
   updateToDelivered(data: { orderId: Types.ObjectId }): Promise<SelectOrder>;
+  updateToPaid(data: { orderId: Types.ObjectId }): Promise<SelectOrder>;
 }
 export class OrderService implements IOrderService {
   private readonly _repository: IOrderRepository;
@@ -26,17 +33,6 @@ export class OrderService implements IOrderService {
     return await this._repository.create(data);
   }
 
-  async getById({
-    orderId,
-  }: {
-    orderId: Types.ObjectId;
-  }): Promise<SelectOrder> {
-    const order = await this._repository.getById({ orderId });
-    if (!order) throw new NotFoundError("Order");
-
-    return order;
-  }
-
   async getAll(): Promise<AllOrdersResponse> {
     return await this._repository.getAll();
   }
@@ -49,15 +45,15 @@ export class OrderService implements IOrderService {
     return await this._repository.getAllByUserId({ userId });
   }
 
-  async updateToPaid({
+  async getById({
     orderId,
   }: {
     orderId: Types.ObjectId;
   }): Promise<SelectOrder> {
-    const updatedOrder = await this._repository.updateToPaid({ orderId });
-    if (!updatedOrder) throw new NotFoundError("Order");
+    const order = await this._repository.getById({ orderId });
+    if (!order) throw new NotFoundError("Order");
 
-    return updatedOrder;
+    return order;
   }
 
   async updateToDelivered({
@@ -68,6 +64,17 @@ export class OrderService implements IOrderService {
     const updatedOrder = await this._repository.updateToDelivered({
       orderId,
     });
+    if (!updatedOrder) throw new NotFoundError("Order");
+
+    return updatedOrder;
+  }
+
+  async updateToPaid({
+    orderId,
+  }: {
+    orderId: Types.ObjectId;
+  }): Promise<SelectOrder> {
+    const updatedOrder = await this._repository.updateToPaid({ orderId });
     if (!updatedOrder) throw new NotFoundError("Order");
 
     return updatedOrder;

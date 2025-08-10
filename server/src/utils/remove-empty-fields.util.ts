@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-export function removeEmptyFieldsSchema<T extends z.ZodObject<any>>(schema: T) {
+export function removeEmptyFieldsSchema<T extends z.ZodObject<z.ZodRawShape>>(
+  schema: T,
+) {
   return z.preprocess((obj) => {
     if (typeof obj !== "object" || obj === null) return {};
 

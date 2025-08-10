@@ -1,24 +1,30 @@
-import { Types } from "mongoose";
+import type { Types } from "mongoose";
+
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
+
+import type { InsertReview } from "../../types/index.js";
+
 import {
   DatabaseDuplicateKeyError,
   DatabaseValidationError,
-} from "../../errors";
-import Product from "../../models/productModel";
-import Review from "../../models/review.model";
-import { ReviewRepository } from "../../repositories";
-import { InsertReview } from "../../types";
-import { generateMockObjectId, generateMockSelectProduct } from "../mocks";
+} from "../../errors/index.js";
+import Product from "../../models/productModel.js";
+import Review from "../../models/review.model.js";
+import { ReviewRepository } from "../../repositories/index.js";
+import {
+  generateMockObjectId,
+  generateMockSelectProduct,
+} from "../mocks/index.js";
 import {
   generateMockInsertReview,
   generateMockSelectReview,
   generateMockSelectReviews,
-} from "../mocks/review.mock";
+} from "../mocks/review.mock.js";
 import {
   connectTestDatabase,
   disconnectTestDatabase,
-} from "../utils/database-connection.utils";
+} from "../utils/database-connection.utils.js";
 
 suite("Review Repository 〖 Integration Tests 〗", async () => {
   const reviewRepository = new ReviewRepository();
@@ -244,14 +250,14 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
       const mockReview = generateMockInsertReview();
       const createdReview = await reviewRepository.create(mockReview);
       const updateData = {
-        rating: 5,
         comment: "Updated comment",
+        rating: 5,
       };
 
       // Act
       const updatedReview = await reviewRepository.update({
-        reviewId: createdReview._id,
         data: updateData,
+        reviewId: createdReview._id,
       });
 
       // Assert
@@ -267,12 +273,12 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
     test("should return null when 'update' is called with non-existent review ID", async () => {
       // Arrange
       const nonExistentId = generateMockObjectId();
-      const updateData = { rating: 5, comment: "Updated comment" };
+      const updateData = { comment: "Updated comment", rating: 5 };
 
       // Act
       const updatedReview = await reviewRepository.update({
-        reviewId: nonExistentId,
         data: updateData,
+        reviewId: nonExistentId,
       });
 
       // Assert
@@ -485,8 +491,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 
       // Act
       const result = await reviewRepository.existsByUserIdAndProductId({
-        userId: mockReview.user,
         productId: mockReview.product,
+        userId: mockReview.user,
       });
 
       // Assert
@@ -501,8 +507,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 
       // Act
       const result = await reviewRepository.existsByUserIdAndProductId({
-        userId,
         productId,
+        userId,
       });
 
       // Assert
@@ -517,8 +523,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
       await assert.rejects(
         async () =>
           await reviewRepository.existsByUserIdAndProductId({
-            userId: invalidId,
             productId: generateMockObjectId(),
+            userId: invalidId,
           }),
         DatabaseValidationError,
       );
@@ -526,8 +532,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
       await assert.rejects(
         async () =>
           await reviewRepository.existsByUserIdAndProductId({
-            userId: generateMockObjectId(),
             productId: invalidId,
+            userId: generateMockObjectId(),
           }),
         DatabaseValidationError,
       );
@@ -569,8 +575,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 
       // Act
       await reviewRepository.update({
-        reviewId: mockReview._id,
         data: updateData,
+        reviewId: mockReview._id,
       });
 
       // Assert

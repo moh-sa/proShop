@@ -2,17 +2,17 @@ import { config } from "dotenv";
 import { z } from "zod";
 
 const EnvSchema = z.object({
-  NODE_ENV: z.enum(["development", "test", "production"]),
-  PORT: z.coerce.number().min(1),
-  DB_URL: z.string().min(1),
-  SENTRY_DNS: z.string().min(1).url(),
-  JWT_SECRET: z.string().min(1),
-  SALT_ROUNDS: z.coerce.number().min(1),
-  PAYPAL_CLIENT_ID: z.string().min(1),
   CLIENT_URL: z.string().url(),
-  CLOUDINARY_CLOUD_NAME: z.string().min(1),
   CLOUDINARY_API_KEY: z.string().min(1),
   CLOUDINARY_API_SECRET: z.string().min(1),
+  CLOUDINARY_CLOUD_NAME: z.string().min(1),
+  DB_URL: z.string().min(1),
+  JWT_SECRET: z.string().min(1),
+  NODE_ENV: z.enum(["development", "test", "production"]),
+  PAYPAL_CLIENT_ID: z.string().min(1),
+  PORT: z.coerce.number().min(1),
+  SALT_ROUNDS: z.coerce.number().min(1),
+  SENTRY_DNS: z.string().min(1).url(),
 });
 
 config();

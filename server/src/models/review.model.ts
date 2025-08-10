@@ -1,30 +1,34 @@
-import { model, Schema, Types } from "mongoose";
-import { ReviewSchema } from "../types";
-import Product from "./productModel";
+import type { Types } from "mongoose";
+
+import { model, Schema } from "mongoose";
+
+import type { ReviewSchema } from "../types/index.js";
+
+import Product from "./productModel.js";
 
 const reviewSchema = new Schema<ReviewSchema>(
   {
-    user: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
+    comment: {
       required: true,
-    },
-    product: {
-      type: Schema.Types.ObjectId,
-      ref: "Product",
-      required: true,
+      type: String,
     },
     name: {
-      type: String,
       required: true,
+      type: String,
+    },
+    product: {
+      ref: "Product",
+      required: true,
+      type: Schema.Types.ObjectId,
     },
     rating: {
+      required: true,
       type: Number,
-      required: true,
     },
-    comment: {
-      type: String,
+    user: {
+      ref: "User",
       required: true,
+      type: Schema.Types.ObjectId,
     },
   },
   {
@@ -33,7 +37,7 @@ const reviewSchema = new Schema<ReviewSchema>(
 );
 
 // Compound index to ensure ONE review per user per product
-reviewSchema.index({ user: 1, product: 1 }, { unique: true });
+reviewSchema.index({ product: 1, user: 1 }, { unique: true });
 
 // Update product 'rating' and 'numReviews' after review is saved or updated
 async function updateProductRating(productId: Types.ObjectId) {
@@ -42,15 +46,15 @@ async function updateProductRating(productId: Types.ObjectId) {
     {
       $group: {
         _id: "$product",
-        rating: { $avg: "$rating" },
         numReviews: { $sum: 1 },
+        rating: { $avg: "$rating" },
       },
     },
   ]);
 
   await Product.findByIdAndUpdate(productId, {
-    rating: newStats.length > 0 ? newStats[0].rating.toFixed(1) : 0,
     numReviews: newStats.length > 0 ? newStats[0].numReviews : 0,
+    rating: newStats.length > 0 ? newStats[0].rating.toFixed(1) : 0,
   });
 }
 

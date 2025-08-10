@@ -1,6 +1,6 @@
-import { selectUserSchema } from "../schemas";
-import { asyncHandler, verifyJwtToken } from "../utils";
-import { bearerTokenValidator } from "../validators";
+import { selectUserSchema } from "../schemas/index.js";
+import { asyncHandler, verifyJwtToken } from "../utils/index.js";
+import { bearerTokenValidator } from "../validators/index.js";
 
 // TODO: rename 'id' to 'userId' or '_id' across the app
 const schema = selectUserSchema.pick({ _id: true }).transform((data) => {

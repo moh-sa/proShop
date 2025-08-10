@@ -1,5 +1,5 @@
-import { ErrorType } from "../types";
-import { JwtBaseError } from "./base.error";
+import { ErrorType } from "../types/index.js";
+import { JwtBaseError } from "./base.error.js";
 
 export class InvalidJwtTokenPayloadError extends JwtBaseError {
   constructor(details?: Record<string, unknown>) {

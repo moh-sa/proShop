@@ -1,24 +1,26 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
+
 import { MulterError } from "multer";
 import { ZodError } from "zod";
-import { env } from "../config";
-import { BaseError, JwtBaseError } from "../errors";
-import { ErrorType } from "../types";
-import { sendErrorResponse } from "../utils";
+
+import { env } from "../config/index.js";
+import { BaseError, JwtBaseError } from "../errors/index.js";
+import { ErrorType } from "../types/index.js";
+import { sendErrorResponse } from "../utils/index.js";
 
 export function errorHandler(error: Error, req: Request, res: Response) {
   // Handle different types of errors
   if (error instanceof BaseError) {
     return sendErrorResponse({
-      responseContext: res,
       code: error.type,
-      statusCode: error.statusCode,
       errors: [
         {
-          path: req.path,
           message: error.message,
+          path: req.path,
         },
       ],
+      responseContext: res,
+      statusCode: error.statusCode,
     });
   }
 
@@ -26,55 +28,55 @@ export function errorHandler(error: Error, req: Request, res: Response) {
   if (error instanceof ZodError) {
     error.format();
     return sendErrorResponse({
-      responseContext: res,
       code: ErrorType.VALIDATION,
-      statusCode: 400,
       errors: error.issues.map((issue) => ({
-        path: issue.path.join("."),
         message: issue.message,
+        path: issue.path.join("."),
       })),
+      responseContext: res,
+      statusCode: 400,
     });
   }
 
   // Handle JWT errors
   if (error instanceof JwtBaseError) {
     return sendErrorResponse({
-      responseContext: res,
       code: error.type,
-      statusCode: error.statusCode,
       errors: [
         {
-          path: req.path,
           message: error.message,
+          path: req.path,
         },
       ],
+      responseContext: res,
+      statusCode: error.statusCode,
     });
   }
 
   if (error instanceof MulterError) {
     return sendErrorResponse({
-      responseContext: res,
       code: ErrorType.BAD_REQUEST, // FIXME: add a better error type
-      statusCode: 400,
       errors: [
         {
-          path: req.path,
           message: error.message || "File upload failed",
+          path: req.path,
         },
       ],
+      responseContext: res,
+      statusCode: 400,
     });
   }
 
   return sendErrorResponse({
-    responseContext: res,
     code: ErrorType.INTERNAL,
-    statusCode: 500,
     errors: [
       {
-        path: req.path,
         message: error.message || "Internal server error",
+        path: req.path,
         ...(env.NODE_ENV === "development" && { stack: error.stack }),
       },
     ],
+    responseContext: res,
+    statusCode: 500,
   });
 }

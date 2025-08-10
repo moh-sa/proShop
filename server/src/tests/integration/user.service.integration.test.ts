@@ -1,17 +1,18 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
-import { NotFoundError } from "../../errors";
-import User from "../../models/userModel";
-import { UserService } from "../../services/user.service";
+
+import { NotFoundError } from "../../errors/index.js";
+import User from "../../models/userModel.js";
+import { UserService } from "../../services/user.service.js";
 import {
   generateMockObjectId,
   generateMockUser,
   generateMockUsers,
-} from "../mocks";
+} from "../mocks/index.js";
 import {
   connectTestDatabase,
   disconnectTestDatabase,
-} from "../utils/database-connection.utils";
+} from "../utils/database-connection.utils.js";
 
 suite("User Service 〖 Integration Tests 〗", () => {
   let userService: UserService;
@@ -141,14 +142,14 @@ suite("User Service 〖 Integration Tests 〗", () => {
       // Arrange
       await User.create(mockUser);
       const updateData = {
-        name: "Updated Name",
         email: "updated@example.com",
+        name: "Updated Name",
       };
 
       // Act
       const result = await userService.updateById({
-        userId: mockUser._id,
         data: updateData,
+        userId: mockUser._id,
       });
 
       // Assert
@@ -164,8 +165,8 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
       // Act
       const result = await userService.updateById({
-        userId: mockUser._id,
         data: updateData,
+        userId: mockUser._id,
       });
 
       // Assert
@@ -180,8 +181,8 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
       // Act
       const result = await userService.updateById({
-        userId: mockUser._id,
         data: updateData,
+        userId: mockUser._id,
       });
 
       // Assert
@@ -197,8 +198,8 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
       // Act
       const result = await userService.updateById({
-        userId: mockUser._id,
         data: updateData,
+        userId: mockUser._id,
       });
 
       // Assert
@@ -210,12 +211,12 @@ suite("User Service 〖 Integration Tests 〗", () => {
     test("Should not update fields when 'repo.updateById' is called with undefined values", async () => {
       // Arrange
       await User.create(mockUser);
-      const updateData = { name: undefined, email: "new@example.com" };
+      const updateData = { email: "new@example.com", name: undefined };
 
       // Act
       const result = await userService.updateById({
-        userId: mockUser._id,
         data: updateData,
+        userId: mockUser._id,
       });
 
       // Assert
@@ -231,8 +232,8 @@ suite("User Service 〖 Integration Tests 〗", () => {
       // Act & Assert
       await assert.rejects(async () => {
         await userService.updateById({
-          userId: nonExistentId,
           data: updateData,
+          userId: nonExistentId,
         });
       }, NotFoundError);
     });

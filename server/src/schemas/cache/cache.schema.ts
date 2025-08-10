@@ -15,8 +15,8 @@ export const cacheValueSchema = z
 
 export const cacheItemSchema = z.object({
   key: cacheKeySchema,
-  val: cacheValueSchema,
   ttl: ttlSchema,
+  val: cacheValueSchema,
 });
 
 export const cacheItemsSchema = z.array(cacheItemSchema);

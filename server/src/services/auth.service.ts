@@ -1,8 +1,11 @@
-import { compare } from "bcryptjs";
-import { AuthenticationError } from "../errors";
-import { IUserRepository, UserRepository } from "../repositories";
-import { InsertUser, RequiredBy, SelectUser } from "../types";
-import { generateJwtToken, removeObjectFields } from "../utils";
+import bcrypt from "bcryptjs";
+
+import type { IUserRepository } from "../repositories/index.js";
+import type { InsertUser, RequiredBy, SelectUser } from "../types/index.js";
+
+import { AuthenticationError } from "../errors/index.js";
+import { UserRepository } from "../repositories/index.js";
+import { generateJwtToken, removeObjectFields } from "../utils/index.js";
 
 export interface IAuthService {
   signin: (
@@ -26,7 +29,10 @@ export class AuthService implements IAuthService {
       throw new AuthenticationError("Invalid email or password.");
     }
 
-    const isPasswordValid = await compare(data.password, isUserExists.password);
+    const isPasswordValid = await bcrypt.compare(
+      data.password,
+      isUserExists.password,
+    );
     if (!isPasswordValid) {
       throw new AuthenticationError("Invalid email or password.");
     }

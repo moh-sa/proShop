@@ -1,4 +1,4 @@
-import { ZodError, ZodIssue } from "zod";
+import type { ZodError, ZodIssue } from "zod";
 
 const errorTemp = (error: ZodIssue) => {
   if (error.path.length === 0) return error.message;

@@ -1,52 +1,53 @@
 import mongoose, { model, Schema } from "mongoose";
-import { ProductSchema } from "../types";
+
+import type { ProductSchema } from "../types/index.js";
 
 const productSchema = new Schema<ProductSchema>(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: "User",
-    },
-    name: {
-      type: String,
-      required: true,
-    },
-    image: {
-      type: String,
-      required: true,
-    },
     brand: {
-      type: String,
       required: true,
+      type: String,
     },
     category: {
+      required: true,
       type: String,
-      required: true,
-    },
-    description: {
-      type: String,
-      required: true,
-    },
-    rating: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
-    numReviews: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
-    price: {
-      type: Number,
-      required: true,
-      default: 0,
     },
     countInStock: {
-      type: Number,
-      required: true,
       default: 0,
+      required: true,
+      type: Number,
+    },
+    description: {
+      required: true,
+      type: String,
+    },
+    image: {
+      required: true,
+      type: String,
+    },
+    name: {
+      required: true,
+      type: String,
+    },
+    numReviews: {
+      default: 0,
+      required: true,
+      type: Number,
+    },
+    price: {
+      default: 0,
+      required: true,
+      type: Number,
+    },
+    rating: {
+      default: 0,
+      required: true,
+      type: Number,
+    },
+    user: {
+      ref: "User",
+      required: true,
+      type: mongoose.Schema.Types.ObjectId,
     },
   },
   {

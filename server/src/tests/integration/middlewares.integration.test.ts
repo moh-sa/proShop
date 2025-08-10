@@ -1,31 +1,32 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 import { ZodError } from "zod";
+
 import {
   AuthenticationError,
   AuthorizationError,
   InvalidJwtTokenError,
   InvalidJwtTokenPayloadError,
-} from "../../errors";
+} from "../../errors/index.js";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
   checkUserIdExists,
   verifyReviewOwnership,
-} from "../../middlewares";
-import Review from "../../models/review.model";
-import User from "../../models/userModel";
-import { generateJwtToken } from "../../utils";
+} from "../../middlewares/index.js";
+import Review from "../../models/review.model.js";
+import User from "../../models/userModel.js";
+import { generateJwtToken } from "../../utils/index.js";
 import {
   generateMockObjectId,
   generateMockSelectReview,
   generateMockUser,
-} from "../mocks";
+} from "../mocks/index.js";
 import {
   connectTestDatabase,
   createMockExpressContext,
   disconnectTestDatabase,
-} from "../utils";
+} from "../utils/index.js";
 
 suite("Middlewares 〖 Integration Tests 〗", () => {
   before(async () => await connectTestDatabase());
@@ -36,7 +37,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
       const mockId = generateMockObjectId();
       const jwt = generateJwtToken({ _id: mockId });
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.headers.authorization = `Bearer ${jwt}`;
 
       await checkJwtTokenValidation(req, res, next);
@@ -47,7 +48,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'req.headers.authorization' is empty", async () => {
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       await assert.rejects(
         async () => await checkJwtTokenValidation(req, res, next),
@@ -63,7 +64,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
     });
 
     test("Should throw 'InvalidJwtTokenError' if JWT is invalid", async () => {
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       req.headers.authorization = `Bearer RANDOM_STRING`;
 
@@ -78,7 +79,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
     });
 
     test("Should throw 'InvalidJwtTokenPayloadError' if userId is not a valid ObjectId", async () => {
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const jwt = generateJwtToken({ id: "RANDOM_STRING" });
       req.headers.authorization = `Bearer ${jwt}`;
 
@@ -95,11 +96,11 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
   describe("checkUserIdExists", () => {
     test("Should find user by id and set res.locals.user", async () => {
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
 
       const user = await User.create(mockUser);
-      res.locals.token = { _id: user._id, iat: 123, exp: 456 };
+      res.locals.token = { _id: user._id, exp: 456, iat: 123 };
 
       await checkUserIdExists(req, res, next);
 
@@ -108,10 +109,10 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
     });
 
     test("Should throw 'AuthenticationError' if user does not exist", async () => {
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockId = generateMockObjectId();
 
-      res.locals.token = { _id: mockId, iat: 123, exp: 456 };
+      res.locals.token = { _id: mockId, exp: 456, iat: 123 };
 
       try {
         await checkUserIdExists(req, res, next);
@@ -125,7 +126,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
   describe("checkIfUserIsAdmin", () => {
     test("Should allow admin access", async () => {
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser(true);
 
       res.locals.user = mockUser;
@@ -134,7 +135,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
     });
 
     test("Should throw 'AuthorizationError' if user is not admin", async () => {
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser(true);
 
       res.locals.user = mockUser;
@@ -151,7 +152,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
   describe("verifyReviewOwnership", () => {
     test("Should allow access if 'review.user' matches 'req.params.userId'", async () => {
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       res.locals.user = mockUser;
 
@@ -169,7 +170,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
     });
 
     test("Should throw 'AuthorizationError' if user is not the owner", async () => {
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       res.locals.user = mockUser;
 

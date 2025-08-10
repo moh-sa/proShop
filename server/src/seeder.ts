@@ -1,9 +1,9 @@
-import products from "./data/products";
-import users from "./data/users";
-import User from "./models/userModel";
-import Product from "./models/productModel";
-import Order from "./models/orderModel";
-import connectDB from "./config/db";
+import connectDB from "./config/db.js";
+import products from "./data/products.js";
+import users from "./data/users.js";
+import Order from "./models/orderModel.js";
+import Product from "./models/productModel.js";
+import User from "./models/userModel.js";
 
 connectDB();
 
@@ -18,11 +18,11 @@ const importData = async () => {
 
     await Product.insertMany(sampleProducts);
 
-    console.log("Data Imported!");
-    process.exit();
+    console.info("Data Imported!");
+    process.exit(); // eslint-disable-line n/no-process-exit
   } catch (error) {
-    console.log(error);
-    process.exit(1);
+    console.error(error);
+    process.exit(1); // eslint-disable-line n/no-process-exit
   }
 };
 
@@ -31,11 +31,11 @@ const destroyData = async () => {
     await Order.deleteMany();
     await Product.deleteMany();
     await User.deleteMany();
-    console.log("Data Destroyed!");
-    process.exit();
+    console.info("Data Destroyed!");
+    process.exit(); // eslint-disable-line n/no-process-exit
   } catch (error) {
-    console.log(error);
-    process.exit(1);
+    console.error(error);
+    process.exit(1); // eslint-disable-line n/no-process-exit
   }
 };
 

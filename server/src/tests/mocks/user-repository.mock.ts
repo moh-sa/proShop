@@ -1,17 +1,17 @@
 import { mock } from "node:test";
-import { IUserRepository } from "../../repositories";
-import { FunctionMocksWithReset } from "../types/mocked.type";
+
+import type { IUserRepository } from "../../repositories/index.js";
+import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
 export function mockUserRepository(): FunctionMocksWithReset<IUserRepository> {
   return {
     create: mock.fn(),
-    getAll: mock.fn(),
-    getById: mock.fn(),
-    getByEmail: mock.fn(),
-    update: mock.fn(),
     delete: mock.fn(),
     existsByEmail: mock.fn(),
-    reset: function () {
+    getAll: mock.fn(),
+    getByEmail: mock.fn(),
+    getById: mock.fn(),
+    reset() {
       this.create.mock.resetCalls();
       this.getAll.mock.resetCalls();
       this.getById.mock.resetCalls();
@@ -28,5 +28,6 @@ export function mockUserRepository(): FunctionMocksWithReset<IUserRepository> {
       this.delete.mock.restore();
       this.existsByEmail.mock.restore();
     },
+    update: mock.fn(),
   };
 }

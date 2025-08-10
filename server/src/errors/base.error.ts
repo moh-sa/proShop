@@ -1,4 +1,4 @@
-import { ErrorType } from "../types";
+import type { ErrorType } from "../types/index.js";
 
 export class BaseError extends Error {
   constructor(
@@ -13,13 +13,4 @@ export class BaseError extends Error {
   }
 }
 
-export class JwtBaseError extends BaseError {
-  constructor(
-    message: string,
-    errorType: ErrorType,
-    statusCode: number,
-    details?: Record<string, unknown>,
-  ) {
-    super(message, errorType, statusCode, details);
-  }
-}
+export class JwtBaseError extends BaseError {}

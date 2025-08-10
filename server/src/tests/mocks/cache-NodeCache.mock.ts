@@ -1,41 +1,41 @@
-import NodeCache from "node-cache";
+import type NodeCache from "node-cache";
+
 import { mock } from "node:test";
-import { FunctionMocksWithReset } from "../types/mocked.type";
+
+import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
 // for some weird reason, NodeCache has TWO different types for getTtl
 // and I couldn't find a way to pick the one that been used in the manager
 type GetTtl = { getTtl: (key: string) => number | undefined };
 export function mockNodeCache(): FunctionMocksWithReset<
-  Pick<
-    NodeCache,
-    | "set"
-    | "mset"
-    | "get"
-    | "mget"
-    | "del"
-    | "keys"
-    | "has"
-    | "take"
-    | "getStats"
-    | "flushStats"
-    | "flushAll"
-  > &
-    GetTtl
+  GetTtl &
+    Pick<
+      NodeCache,
+      | "del"
+      | "flushAll"
+      | "flushStats"
+      | "get"
+      | "getStats"
+      | "has"
+      | "keys"
+      | "mget"
+      | "mset"
+      | "set"
+      | "take"
+    >
 > {
   return {
-    set: mock.fn(),
-    mset: mock.fn(),
-    get: mock.fn(),
-    mget: mock.fn(),
     del: mock.fn(),
-    keys: mock.fn(),
-    has: mock.fn(),
-    getTtl: mock.fn(),
-    take: mock.fn(),
-    getStats: mock.fn(),
-    flushStats: mock.fn(),
     flushAll: mock.fn(),
-    reset: function () {
+    flushStats: mock.fn(),
+    get: mock.fn(),
+    getStats: mock.fn(),
+    getTtl: mock.fn(),
+    has: mock.fn(),
+    keys: mock.fn(),
+    mget: mock.fn(),
+    mset: mock.fn(),
+    reset() {
       this.set.mock.resetCalls();
       this.mset.mock.resetCalls();
       this.get.mock.resetCalls();
@@ -62,5 +62,7 @@ export function mockNodeCache(): FunctionMocksWithReset<
       this.flushStats.mock.restore();
       this.flushAll.mock.restore();
     },
+    set: mock.fn(),
+    take: mock.fn(),
   };
 }

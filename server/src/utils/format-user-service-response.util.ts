@@ -1,10 +1,11 @@
-import { SelectUser } from "../types";
-import { generateJwtToken } from "./jwt-generate-token.util";
-import { removeObjectFields } from "./remove-object-fields";
+import type { SelectUser } from "../types/index.js";
+
+import { generateJwtToken } from "./jwt-generate-token.util.js";
+import { removeObjectFields } from "./remove-object-fields.js";
 
 export function formatUserServiceResponse(data: {
-  user: SelectUser;
   isTokenRequired?: boolean;
+  user: SelectUser;
 }): Omit<SelectUser, "password"> {
   const res = removeObjectFields(data.user, ["password", "token"]);
 

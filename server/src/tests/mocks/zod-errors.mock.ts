@@ -1,13 +1,13 @@
-import { ZodError } from "zod";
+import type { ZodError } from "zod";
 
 type ZodErrorTypeTesting = Pick<ZodError, "errors">;
 export const mockZodError1: ZodErrorTypeTesting = {
   errors: [
     {
-      path: ["user", "name"],
-      message: "Name is required",
       code: "invalid_type",
       expected: "string",
+      message: "Name is required",
+      path: ["user", "name"],
       received: "undefined",
     },
   ],
@@ -16,10 +16,10 @@ export const mockZodError1: ZodErrorTypeTesting = {
 export const mockZodError2: ZodErrorTypeTesting = {
   errors: [
     {
-      path: ["user", "email"],
-      message: "Invalid email format",
       code: "invalid_type",
       expected: "string",
+      message: "Invalid email format",
+      path: ["user", "email"],
       received: "undefined",
     },
   ],
@@ -28,11 +28,11 @@ export const mockZodError2: ZodErrorTypeTesting = {
 export const mockZodError3: ZodErrorTypeTesting = {
   errors: [
     {
-      path: ["user", "password"],
-      message: "Password should be at least 6 characters long",
       code: "too_small",
-      minimum: 8,
       inclusive: true,
+      message: "Password should be at least 6 characters long",
+      minimum: 8,
+      path: ["user", "password"],
       type: "number",
     },
   ],

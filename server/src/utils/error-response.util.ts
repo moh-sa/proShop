@@ -1,40 +1,41 @@
-import { Response } from "express";
-import { ErrorType } from "../types";
+import type { Response } from "express";
+
+import type { ErrorType } from "../types/index.js";
 
 interface ErrorDetails {
-  path?: string;
-  message: string;
   [key: string]: unknown;
+  message: string;
+  path?: string;
 }
 
 interface ErrorResponse {
-  success: false;
-  timestamp: string;
   code: ErrorType;
   errors: Array<ErrorDetails>;
+  success: false;
+  timestamp: string;
 }
 
 export function createErrorResponseObject({
-  errors,
   code,
+  errors,
 }: Omit<ErrorResponse, "success" | "timestamp">): ErrorResponse {
   return {
-    success: false,
     code,
-    timestamp: new Date().toISOString(),
     errors,
+    success: false,
+    timestamp: new Date().toISOString(),
   };
 }
 
 export function sendErrorResponse({
+  code,
+  errors,
   responseContext,
   statusCode,
-  errors,
-  code,
-}: { responseContext: Response; statusCode: number } & Omit<
-  ErrorResponse,
-  "success" | "timestamp"
->): void {
-  const response = createErrorResponseObject({ errors, code });
+}: Omit<ErrorResponse, "success" | "timestamp"> & {
+  responseContext: Response;
+  statusCode: number;
+}): void {
+  const response = createErrorResponseObject({ code, errors });
   responseContext.status(statusCode).json(response);
 }

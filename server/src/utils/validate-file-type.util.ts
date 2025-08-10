@@ -1,4 +1,5 @@
-import { FileFilterCallback } from "multer";
+import type { FileFilterCallback } from "multer";
+
 import path from "path";
 
 export function validateFileType(

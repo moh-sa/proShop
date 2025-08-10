@@ -1,11 +1,11 @@
-import { Response } from "express";
+import type { Response } from "express";
 
 type ObjectType = Record<string, unknown>;
 
 interface SuccessResponse<D = ObjectType, M = ObjectType> {
-  success?: boolean;
   data: D;
   meta?: M;
+  success?: boolean;
 }
 
 export function createSuccessResponseObject<D, M>({
@@ -16,21 +16,21 @@ export function createSuccessResponseObject<D, M>({
   meta?: M;
 }): SuccessResponse<D, M> {
   return {
-    success: true,
     data,
     meta,
+    success: true,
   };
 }
 
 export function sendSuccessResponse<D, M>({
-  responseContext,
-  statusCode,
   data,
   meta,
-}: { responseContext: Response; statusCode: number } & SuccessResponse<
+  responseContext,
+  statusCode,
+}: SuccessResponse<
   D,
   M
->): void {
+> & { responseContext: Response; statusCode: number }): void {
   const response = createSuccessResponseObject({ data, meta });
   responseContext.status(statusCode).json(response);
 }

@@ -1,13 +1,13 @@
 import { mock } from "node:test";
-import { IImageStorageManager } from "../../managers";
-import { FunctionMocksWithReset } from "../types/mocked.type";
+
+import type { IImageStorageManager } from "../../managers/index.js";
+import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
 export function mockImageStorage(): FunctionMocksWithReset<IImageStorageManager> {
   return {
-    upload: mock.fn(),
-    replace: mock.fn(),
     delete: mock.fn(),
-    reset: function () {
+    replace: mock.fn(),
+    reset() {
       this.upload.mock.resetCalls();
       this.replace.mock.resetCalls();
       this.delete.mock.resetCalls();
@@ -16,5 +16,6 @@ export function mockImageStorage(): FunctionMocksWithReset<IImageStorageManager>
       this.replace.mock.restore();
       this.delete.mock.restore();
     },
+    upload: mock.fn(),
   };
 }

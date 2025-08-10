@@ -1,22 +1,23 @@
 import { z } from "zod";
+
 import {
   emailValidator,
   jwtTokenValidator,
   objectIdValidator,
   passwordValidator,
-} from "../../validators";
+} from "../../validators/index.js";
 
 const baseUserSchema = z.object({
-  name: z.string().trim().min(1, { message: "Name is required" }),
   email: emailValidator,
-  password: passwordValidator,
   isAdmin: z.boolean().default(false),
+  name: z.string().trim().min(1, { message: "Name is required" }),
+  password: passwordValidator,
 });
 
 export const insertUserSchema = baseUserSchema;
 export const selectUserSchema = baseUserSchema.extend({
   _id: objectIdValidator,
   createdAt: z.date(),
-  updatedAt: z.date(),
   token: jwtTokenValidator.optional(),
+  updatedAt: z.date(),
 });

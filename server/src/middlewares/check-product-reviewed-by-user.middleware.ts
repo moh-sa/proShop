@@ -1,6 +1,6 @@
-import { ReviewService } from "../services";
-import { asyncHandler } from "../utils";
-import { objectIdValidator } from "../validators";
+import { ReviewService } from "../services/index.js";
+import { asyncHandler } from "../utils/index.js";
+import { objectIdValidator } from "../validators/index.js";
 
 const reviewService = new ReviewService();
 
@@ -11,8 +11,8 @@ export const checkProductReviewedByUser = asyncHandler(
 
     // Will throw 'NotFound' error if doesn't exist
     await reviewService.existsByUserIdAndProductId({
-      userId,
       productId,
+      userId,
     });
 
     next();

@@ -1,22 +1,24 @@
 import mongoose from "mongoose";
 import assert from "node:assert/strict";
 import { beforeEach, describe, mock, suite, test } from "node:test";
+
+import type { InsertReview } from "../../types/index.js";
+
 import {
   DatabaseNetworkError,
   DatabaseQueryError,
   DatabaseTimeoutError,
   DatabaseValidationError,
   GenericDatabaseError,
-} from "../../errors";
-import Review from "../../models/review.model";
-import { ReviewRepository } from "../../repositories";
-import { InsertReview } from "../../types";
+} from "../../errors/index.js";
+import Review from "../../models/review.model.js";
+import { ReviewRepository } from "../../repositories/index.js";
 import {
   generateMockInsertReview,
   generateMockObjectId,
   generateMockSelectReview,
   generateMockSelectReviews,
-} from "../mocks";
+} from "../mocks/index.js";
 
 suite("Review Repository 〖 Unit Tests 〗", () => {
   const repo = new ReviewRepository();
@@ -507,7 +509,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
         }),
       );
 
-      const updatedReview = await repo.update({ reviewId, data: updateData });
+      const updatedReview = await repo.update({ data: updateData, reviewId });
 
       assert.ok(updatedReview);
       assert.deepStrictEqual(updatedReview, expectedResult);
@@ -528,7 +530,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
         lean: async () => null,
       }));
 
-      const updatedReview = await repo.update({ reviewId, data: updateData });
+      const updatedReview = await repo.update({ data: updateData, reviewId });
 
       assert.strictEqual(updatedReview, null);
     });
@@ -541,7 +543,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.update({ reviewId, data: updateData }),
+        async () => await repo.update({ data: updateData, reviewId }),
         DatabaseValidationError,
       );
     });
@@ -556,7 +558,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.update({ reviewId, data: updateData }),
+        async () => await repo.update({ data: updateData, reviewId }),
         DatabaseTimeoutError,
       );
     });
@@ -569,7 +571,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.update({ reviewId, data: updateData }),
+        async () => await repo.update({ data: updateData, reviewId }),
         DatabaseQueryError,
       );
     });
@@ -582,7 +584,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.update({ reviewId, data: updateData }),
+        async () => await repo.update({ data: updateData, reviewId }),
         DatabaseNetworkError,
       );
     });
@@ -595,7 +597,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.update({ reviewId, data: updateData }),
+        async () => await repo.update({ data: updateData, reviewId }),
         GenericDatabaseError,
       );
     });
@@ -1119,8 +1121,8 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
       }));
 
       const reviewExists = await repo.existsByUserIdAndProductId({
-        userId,
         productId,
+        userId,
       });
 
       assert.ok(reviewExists);
@@ -1128,8 +1130,8 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
       assert.strictEqual(existsMock.mock.callCount(), 1);
       assert.deepStrictEqual(existsMock.mock.calls[0].arguments[0], {
-        user: userId,
         product: productId,
+        user: userId,
       });
     });
 
@@ -1139,8 +1141,8 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
       }));
 
       const reviewExists = await repo.existsByUserIdAndProductId({
-        userId,
         productId,
+        userId,
       });
 
       assert.strictEqual(reviewExists, null);
@@ -1155,7 +1157,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
       await assert.rejects(
         async () =>
-          await repo.existsByUserIdAndProductId({ userId, productId }),
+          await repo.existsByUserIdAndProductId({ productId, userId }),
         DatabaseValidationError,
       );
     });
@@ -1171,7 +1173,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
       await assert.rejects(
         async () =>
-          await repo.existsByUserIdAndProductId({ userId, productId }),
+          await repo.existsByUserIdAndProductId({ productId, userId }),
         DatabaseTimeoutError,
       );
     });
@@ -1185,7 +1187,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
       await assert.rejects(
         async () =>
-          await repo.existsByUserIdAndProductId({ userId, productId }),
+          await repo.existsByUserIdAndProductId({ productId, userId }),
         DatabaseQueryError,
       );
     });
@@ -1199,7 +1201,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
       await assert.rejects(
         async () =>
-          await repo.existsByUserIdAndProductId({ userId, productId }),
+          await repo.existsByUserIdAndProductId({ productId, userId }),
         DatabaseNetworkError,
       );
     });
@@ -1213,7 +1215,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
       await assert.rejects(
         async () =>
-          await repo.existsByUserIdAndProductId({ userId, productId }),
+          await repo.existsByUserIdAndProductId({ productId, userId }),
         GenericDatabaseError,
       );
     });

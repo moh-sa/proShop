@@ -1,13 +1,16 @@
-import "./config/sentry.config";
+import "./config/sentry.config.js";
+
+import type { Request, Response } from "express";
 
 import * as Sentry from "@sentry/node";
 import cors from "cors";
-import express, { Request, Response } from "express";
+import express from "express";
 import morgan from "morgan";
-import connectDB from "./config/db";
-import { env } from "./config/env";
-import { errorHandler } from "./middlewares/error-handler.middleware";
-import routes from "./routes";
+
+import connectDB from "./config/db.js";
+import { env } from "./config/env.js";
+import { errorHandler } from "./middlewares/error-handler.middleware.js";
+import routes from "./routes/index.js";
 
 const app = express();
 
@@ -44,5 +47,5 @@ app.use(errorHandler);
 
 const PORT = env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`server running on port ${PORT}`);
+  console.info(`Server running on port ${PORT}`);
 });

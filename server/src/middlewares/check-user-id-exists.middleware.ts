@@ -1,6 +1,6 @@
-import { AuthenticationError } from "../errors";
-import { UserRepository } from "../repositories";
-import { asyncHandler } from "../utils";
+import { AuthenticationError } from "../errors/index.js";
+import { UserRepository } from "../repositories/index.js";
+import { asyncHandler } from "../utils/index.js";
 
 const userRepository = new UserRepository();
 
@@ -12,6 +12,7 @@ export const checkUserIdExists = asyncHandler(async (req, res, next) => {
   const user = await userRepository.getById({ userId });
   if (!user) throw new AuthenticationError();
 
+  // eslint-disable-next-line require-atomic-updates
   res.locals.user = user;
 
   next();

@@ -1,28 +1,30 @@
 import assert from "node:assert";
 import test, { before, describe, suite } from "node:test";
-import { NotFoundError } from "../../errors";
-import { UserService } from "../../services";
-import { InsertUser, SelectUser } from "../../types";
-import { formatUserServiceResponse } from "../../utils/format-user-service-response.util";
+
+import type { InsertUser, SelectUser } from "../../types/index.js";
+
+import { NotFoundError } from "../../errors/index.js";
+import { UserService } from "../../services/index.js";
+import { formatUserServiceResponse } from "../../utils/index.js";
 import {
   generateMockUser,
   generateMockUsers,
   mockUserRepository,
-} from "../mocks";
+} from "../mocks/index.js";
 
 function formatResponse({
-  users,
   isTokenRequired = false,
+  users,
 }: {
-  users: SelectUser | Array<SelectUser>;
   isTokenRequired?: boolean;
+  users: Array<SelectUser> | SelectUser;
 }) {
   if (Array.isArray(users)) {
     return users.map((user) =>
-      formatUserServiceResponse({ user, isTokenRequired }),
+      formatUserServiceResponse({ isTokenRequired, user }),
     );
   } else {
-    return formatUserServiceResponse({ user: users, isTokenRequired });
+    return formatUserServiceResponse({ isTokenRequired, user: users });
   }
 }
 
@@ -153,8 +155,8 @@ suite("User Service 〖 Unit Tests 〗", () => {
       );
 
       const updatedUser = await service.updateById({
-        userId,
         data: updateData,
+        userId,
       });
 
       assert.ok(updatedUser);
@@ -162,8 +164,8 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
       assert.strictEqual(mockRepo.update.mock.callCount(), 1);
       assert.deepStrictEqual(mockRepo.update.mock.calls[0].arguments[0], {
-        userId,
         data: updateData,
+        userId,
       });
     });
 
@@ -171,7 +173,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
       mockRepo.update.mock.mockImplementationOnce(() => Promise.resolve(null));
 
       await assert.rejects(
-        async () => await service.updateById({ userId, data: updateData }),
+        async () => await service.updateById({ data: updateData, userId }),
         (error: Error) => {
           assert.ok(error instanceof NotFoundError);
           assert.strictEqual(error.type, "NOT_FOUND");

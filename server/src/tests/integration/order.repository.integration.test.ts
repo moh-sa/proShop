@@ -1,21 +1,22 @@
 import { Types } from "mongoose";
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
-import { DatabaseValidationError } from "../../errors/database";
-import Order from "../../models/orderModel";
-import User from "../../models/userModel";
-import { OrderRepository } from "../../repositories/order.repository";
+
+import { DatabaseValidationError } from "../../errors/index.js";
+import Order from "../../models/orderModel.js";
+import User from "../../models/userModel.js";
+import { OrderRepository } from "../../repositories/order.repository.js";
 import {
   generateMockInsertOrder,
   generateMockInsertOrders,
   generateMockObjectId,
   generateMockSelectOrders,
   generateMockUser,
-} from "../mocks";
+} from "../mocks/index.js";
 import {
   connectTestDatabase,
   disconnectTestDatabase,
-} from "../utils/database-connection.utils";
+} from "../utils/database-connection.utils.js";
 
 suite("OrderRepository 〖 Integration Tests 〗", async () => {
   let orderRepository: OrderRepository;
@@ -71,11 +72,11 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
       // Arrange
       const mockOrder = generateMockInsertOrder();
       mockOrder.orderItems = Array.from({ length: 5 }, () => ({
-        name: "Test Product",
-        qty: 2,
         image: "test.jpg",
+        name: "Test Product",
         price: 10,
         product: new Types.ObjectId(),
+        qty: 2,
       }));
 
       // Act
@@ -122,8 +123,8 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
       mockOrder.shippingAddress = {
         address: "123 🏠 Street",
         city: "São Paulo",
-        postalCode: "12345-678",
         country: "España",
+        postalCode: "12345-678",
       };
 
       // Act
@@ -210,11 +211,11 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
       // Arrange
       const mockOrder = generateMockInsertOrder();
       mockOrder.orderItems = Array.from({ length: 3 }, (_, i) => ({
-        name: `Product ${i}`,
-        qty: i + 1,
         image: `image${i}.jpg`,
+        name: `Product ${i}`,
         price: (i + 1) * 10,
         product: new Types.ObjectId(),
+        qty: i + 1,
       }));
       const order = await Order.create(mockOrder);
 
@@ -437,7 +438,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
       await Order.insertMany([...mockOrders, ...otherOrders]);
 
       // Act
-      const orders = await orderRepository.getAllByUserId({ userId: userId });
+      const orders = await orderRepository.getAllByUserId({ userId });
 
       // Assert
       assert.strictEqual(orders.length, mockOrders.length);
@@ -478,8 +479,8 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
       const userId = generateMockObjectId();
       const mockOrders = generateMockSelectOrders(3).map((order, i) => ({
         ...order,
-        user: userId,
         createdAt: new Date(2023, 0, i + 1), // January 1-3, 2023
+        user: userId,
       }));
       await Order.insertMany(mockOrders);
 

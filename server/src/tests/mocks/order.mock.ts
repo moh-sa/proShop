@@ -1,34 +1,40 @@
 import { faker } from "@faker-js/faker";
 import { Types } from "mongoose";
-import type { InsertOrder, InsertOrderItem, SelectOrder } from "../../types";
-import { generateMockObjectId } from "./objectid.mock";
-import { generateMockSelectProduct } from "./product.mock";
-import { generateMockUser } from "./user.mock";
+
+import type {
+  InsertOrder,
+  InsertOrderItem,
+  SelectOrder,
+} from "../../types/index.js";
+
+import { generateMockObjectId } from "./objectid.mock.js";
+import { generateMockSelectProduct } from "./product.mock.js";
+import { generateMockUser } from "./user.mock.js";
 
 // Constants for mock data generation
 const MOCK_DATA_CONSTANTS = {
   ORDER_ITEMS: {
-    MIN_COUNT: 1,
     MAX_COUNT: 5,
-    MIN_QTY: 1,
     MAX_QTY: 10,
-  },
-  PRICES: {
-    MIN_SHIPPING: 0,
-    MAX_SHIPPING: 50,
-    TAX_RATE: 0.2,
+    MIN_COUNT: 1,
+    MIN_QTY: 1,
   },
   PAYMENT_METHODS: ["PayPal", "Stripe"] as const,
   PAYMENT_STATUSES: ["COMPLETED", "PENDING", "FAILED"] as const,
+  PRICES: {
+    MAX_SHIPPING: 50,
+    MIN_SHIPPING: 0,
+    TAX_RATE: 0.2,
+  },
 } as const;
 
 // Base interfaces for generating mock data
 
 type GenerateOrderItemOptions = Partial<InsertOrderItem>;
 
-type GenerateShippingAddressOptions = Partial<InsertOrder["shippingAddress"]>;
-
 type GeneratePaymentResultOptions = Partial<InsertOrder["paymentResult"]>;
+
+type GenerateShippingAddressOptions = Partial<InsertOrder["shippingAddress"]>;
 
 // Specific options for insert and select orders
 type GenerateInsertOrderOptions = InsertOrder & { orderItemsCount?: number };
@@ -41,15 +47,15 @@ function generateMockOrderItem(
   const mockProduct = generateMockSelectProduct();
 
   return {
-    product: options.product ?? mockProduct._id,
-    name: options.name ?? mockProduct.name,
     image: options.image ?? mockProduct.image,
+    name: options.name ?? mockProduct.name,
     price: options.price ?? mockProduct.price,
+    product: options.product ?? mockProduct._id,
     qty:
       options.qty ??
       faker.number.int({
-        min: MOCK_DATA_CONSTANTS.ORDER_ITEMS.MIN_QTY,
         max: MOCK_DATA_CONSTANTS.ORDER_ITEMS.MAX_QTY,
+        min: MOCK_DATA_CONSTANTS.ORDER_ITEMS.MIN_QTY,
       }),
   };
 }
@@ -63,27 +69,27 @@ function generateMockOrderItems(
   );
 }
 
+function generateMockPaymentResult(
+  options: GeneratePaymentResultOptions = {},
+): InsertOrder["paymentResult"] {
+  return {
+    email_address: options.email_address ?? faker.internet.email(),
+    id: options.id ?? faker.string.uuid(),
+    status:
+      options.status ??
+      faker.helpers.arrayElement(MOCK_DATA_CONSTANTS.PAYMENT_STATUSES),
+    update_time: options.update_time ?? faker.date.recent(),
+  };
+}
+
 function generateMockShippingAddress(
   options: GenerateShippingAddressOptions = {},
 ): InsertOrder["shippingAddress"] {
   return {
     address: options.address ?? faker.location.streetAddress(),
     city: options.city ?? faker.location.city(),
-    postalCode: options.postalCode ?? faker.location.zipCode(),
     country: options.country ?? faker.location.country(),
-  };
-}
-
-function generateMockPaymentResult(
-  options: GeneratePaymentResultOptions = {},
-): InsertOrder["paymentResult"] {
-  return {
-    id: options.id ?? faker.string.uuid(),
-    update_time: options.update_time ?? faker.date.recent(),
-    email_address: options.email_address ?? faker.internet.email(),
-    status:
-      options.status ??
-      faker.helpers.arrayElement(MOCK_DATA_CONSTANTS.PAYMENT_STATUSES),
+    postalCode: options.postalCode ?? faker.location.zipCode(),
   };
 }
 
@@ -96,8 +102,8 @@ export function generateMockInsertOrder(
     : generateMockOrderItems(
         options.orderItemsCount ??
           faker.number.int({
-            min: MOCK_DATA_CONSTANTS.ORDER_ITEMS.MIN_COUNT,
             max: MOCK_DATA_CONSTANTS.ORDER_ITEMS.MAX_COUNT,
+            min: MOCK_DATA_CONSTANTS.ORDER_ITEMS.MIN_COUNT,
           }),
       );
 
@@ -107,16 +113,16 @@ export function generateMockInsertOrder(
   const shippingPrice =
     options.shippingPrice ??
     faker.number.float({
-      min: MOCK_DATA_CONSTANTS.PRICES.MIN_SHIPPING,
-      max: MOCK_DATA_CONSTANTS.PRICES.MAX_SHIPPING,
       fractionDigits: 2,
+      max: MOCK_DATA_CONSTANTS.PRICES.MAX_SHIPPING,
+      min: MOCK_DATA_CONSTANTS.PRICES.MIN_SHIPPING,
     });
   const taxPrice =
     options.taxPrice ??
     faker.number.float({
-      min: 0,
-      max: itemsPrice * MOCK_DATA_CONSTANTS.PRICES.TAX_RATE,
       fractionDigits: 2,
+      max: itemsPrice * MOCK_DATA_CONSTANTS.PRICES.TAX_RATE,
+      min: 0,
     });
   const totalPrice =
     options.totalPrice ?? itemsPrice + shippingPrice + taxPrice;
@@ -140,20 +146,30 @@ export function generateMockInsertOrder(
     : undefined;
 
   return {
-    user: options.user ?? generateMockObjectId(),
+    deliveredAt,
+    isDelivered,
+    isPaid,
+    itemsPrice,
     orderItems,
-    shippingAddress: options.shippingAddress ?? generateMockShippingAddress(),
+    paidAt,
     paymentMethod,
     paymentResult,
-    itemsPrice,
+    shippingAddress: options.shippingAddress ?? generateMockShippingAddress(),
     shippingPrice,
     taxPrice,
     totalPrice,
-    isPaid,
-    paidAt,
-    isDelivered,
-    deliveredAt,
+    user: options.user ?? generateMockObjectId(),
   };
+}
+
+export function generateMockInsertOrders(
+  count: number,
+  options: Partial<GenerateInsertOrderOptions> = {},
+): Array<InsertOrder> {
+  return faker.helpers.uniqueArray(
+    () => generateMockInsertOrder(options),
+    count,
+  );
 }
 
 export function generateMockSelectOrder(
@@ -168,26 +184,16 @@ export function generateMockSelectOrder(
   return {
     ...baseOrder,
     _id: options._id ?? new Types.ObjectId(),
-    user: mockUser,
     createdAt: options.createdAt ?? faker.date.recent(),
     updatedAt: options.updatedAt ?? faker.date.recent(),
+    user: mockUser,
   };
-}
-
-export function generateMockInsertOrders(
-  count: number,
-  options: Partial<GenerateInsertOrderOptions> = {},
-): InsertOrder[] {
-  return faker.helpers.uniqueArray(
-    () => generateMockInsertOrder(options),
-    count,
-  );
 }
 
 export function generateMockSelectOrders(
   count: number,
   options: Partial<GenerateSelectOrderOptions> = {},
-): SelectOrder[] {
+): Array<SelectOrder> {
   return faker.helpers.uniqueArray(
     () => generateMockSelectOrder(options),
     count,

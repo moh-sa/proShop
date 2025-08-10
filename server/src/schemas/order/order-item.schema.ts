@@ -1,12 +1,13 @@
 import { z } from "zod";
-import { objectIdValidator } from "../../validators";
-import { selectProductSchema } from "../product/product.schema";
+
+import { objectIdValidator } from "../../validators/index.js";
+import { selectProductSchema } from "../product/product.schema.js";
 
 const baseOrderItemSchema = selectProductSchema
-  .pick({ name: true, image: true, price: true })
+  .pick({ image: true, name: true, price: true })
   .extend({
-    qty: z.number().int().min(1).default(1),
     product: objectIdValidator,
+    qty: z.number().int().min(1).default(1),
   });
 
 export const insertOrderItemSchema = baseOrderItemSchema;

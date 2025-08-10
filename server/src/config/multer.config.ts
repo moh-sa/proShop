@@ -1,5 +1,6 @@
 import multer from "multer";
-import { IMAGE_FIELD_NAME } from "../constants";
+
+import { IMAGE_FIELD_NAME } from "../constants/index.js";
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });

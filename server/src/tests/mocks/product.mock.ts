@@ -1,29 +1,23 @@
 import { faker } from "@faker-js/faker";
-import {
+
+import type {
   InsertProduct,
   InsertProductWithStringImage,
   SelectProduct,
-} from "../../types";
-import { mockMulterImageFile } from "./image.mock";
-import { generateMockObjectId } from "./objectid.mock";
+} from "../../types/index.js";
 
-function baseMockProduct() {
-  return {
-    name: faker.commerce.productName(),
-    description: faker.commerce.productDescription(),
-    price: faker.number.int({ min: 1, max: 100 }),
-    category: faker.commerce.department(),
-    brand: faker.commerce.product(),
-    countInStock: faker.number.int({ min: 0, max: 20 }),
-  };
-}
+import { mockMulterImageFile } from "./image.mock.js";
+import { generateMockObjectId } from "./objectid.mock.js";
 
-function generateMockInsertProduct(): Omit<InsertProduct, "image"> {
-  const mockProduct = baseMockProduct();
-  return {
-    ...mockProduct,
-    user: generateMockObjectId(),
-  };
+export function generateMockInsertProducts({
+  count,
+}: {
+  count: number;
+}): Array<InsertProduct> {
+  return faker.helpers.uniqueArray(
+    generateMockInsertProductWithMulterImage,
+    count,
+  );
 }
 
 export function generateMockInsertProductWithMulterImage(): InsertProduct {
@@ -49,24 +43,13 @@ export function generateMockSelectProduct(): SelectProduct {
   return {
     ...mockProduct,
     _id: generateMockObjectId(),
-    user: generateMockObjectId(),
-    image: faker.image.urlLoremFlickr(),
-    rating: 0,
-    numReviews: 0,
     createdAt: new Date(),
+    image: faker.image.urlLoremFlickr(),
+    numReviews: 0,
+    rating: 0,
     updatedAt: new Date(),
+    user: generateMockObjectId(),
   };
-}
-
-export function generateMockInsertProducts({
-  count,
-}: {
-  count: number;
-}): Array<InsertProduct> {
-  return faker.helpers.uniqueArray(
-    generateMockInsertProductWithMulterImage,
-    count,
-  );
 }
 
 export function generateMockSelectProducts({
@@ -75,4 +58,23 @@ export function generateMockSelectProducts({
   count: number;
 }): Array<SelectProduct> {
   return faker.helpers.uniqueArray(generateMockSelectProduct, count);
+}
+
+function baseMockProduct() {
+  return {
+    brand: faker.commerce.product(),
+    category: faker.commerce.department(),
+    countInStock: faker.number.int({ max: 20, min: 0 }),
+    description: faker.commerce.productDescription(),
+    name: faker.commerce.productName(),
+    price: faker.number.int({ max: 100, min: 1 }),
+  };
+}
+
+function generateMockInsertProduct(): Omit<InsertProduct, "image"> {
+  const mockProduct = baseMockProduct();
+  return {
+    ...mockProduct,
+    user: generateMockObjectId(),
+  };
 }

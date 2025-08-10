@@ -1,29 +1,30 @@
-import NodeCache from "node-cache";
-import { CacheBaseError } from "../errors";
-import { FailureResult, SuccessResult } from "./result.type";
+import type NodeCache from "node-cache";
 
-export type Namespace = "product" | "user" | "order" | "rate-limit";
+import type { CacheBaseError } from "../errors/index.js";
+import type { FailureResult, SuccessResult } from "./result.type.js";
 
 export type CacheConfig = NodeCache.Options;
 
-export type CacheStats = {
-  hits: number;
-  misses: number;
-  numberOfKeys: number;
-  keysSize: number;
-  valuesSize: number;
-  totalSize: number;
-};
-
-export type CacheItem = { key: string; value: {}; ttl?: number };
-export type CacheItems = Array<CacheItem>;
-
-export type CacheSuccessResult<T> = SuccessResult<T>;
 export type CacheFailureResult<T, E = CacheBaseError> = FailureResult<E> & {
   key: T;
 };
+
+export type CacheItem = { key: string; ttl?: number; value: object };
+
+export type CacheItems = Array<CacheItem>;
 export type CacheResult<
   SuccessPayload = string,
   FailurePayload = string,
   E = CacheBaseError,
-> = CacheSuccessResult<SuccessPayload> | CacheFailureResult<FailurePayload, E>;
+> = CacheFailureResult<FailurePayload, E> | CacheSuccessResult<SuccessPayload>;
+
+export type CacheStats = {
+  hits: number;
+  keysSize: number;
+  misses: number;
+  numberOfKeys: number;
+  totalSize: number;
+  valuesSize: number;
+};
+export type CacheSuccessResult<T> = SuccessResult<T>;
+export type Namespace = "order" | "product" | "rate-limit" | "user";

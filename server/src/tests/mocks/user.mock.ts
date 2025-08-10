@@ -1,25 +1,27 @@
 import { faker } from "@faker-js/faker";
-import { SelectUser } from "../../types";
-import { generateMockObjectId } from "./objectid.mock";
+
+import type { SelectUser } from "../../types/index.js";
+
+import { generateMockObjectId } from "./objectid.mock.js";
 
 export function generateMockUser(isAdmin = false): SelectUser {
   const mockId = generateMockObjectId();
 
   return {
     _id: mockId,
-    name: faker.person.fullName(),
-    email: faker.internet.exampleEmail(),
-    password: faker.internet.password(),
-    isAdmin,
     createdAt: new Date(),
-    updatedAt: new Date(),
+    email: faker.internet.exampleEmail(),
+    isAdmin,
+    name: faker.person.fullName(),
+    password: faker.internet.password(),
     token: faker.internet.jwt({
       payload: {
-        id: mockId,
-        iat: faker.date.recent(),
         exp: faker.date.soon(),
+        iat: faker.date.recent(),
+        id: mockId,
       },
     }),
+    updatedAt: new Date(),
   };
 }
 

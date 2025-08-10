@@ -1,17 +1,23 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
+
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 import { ZodError } from "zod";
-import { UserController } from "../../controllers";
-import { DatabaseError, NotFoundError } from "../../errors";
-import { InsertUser } from "../../types";
-import { createSuccessResponseObject, removeObjectFields } from "../../utils";
+
+import type { InsertUser } from "../../types/index.js";
+
+import { UserController } from "../../controllers/index.js";
+import { DatabaseError, NotFoundError } from "../../errors/index.js";
+import {
+  createSuccessResponseObject,
+  removeObjectFields,
+} from "../../utils/index.js";
 import {
   generateMockUser,
   generateMockUsers,
   mockExpressCall,
   mockUserService,
-} from "../mocks";
+} from "../mocks/index.js";
 
 suite("User Controller 〖 Unit Tests 〗", () => {
   const mockService = mockUserService();
@@ -22,13 +28,13 @@ suite("User Controller 〖 Unit Tests 〗", () => {
   });
 
   describe("getById", () => {
-    const { password, ...mockUser } = generateMockUser();
+    const { password: _, ...mockUser } = generateMockUser();
     const userId = mockUser._id;
 
     test("Should parse 'userId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -46,9 +52,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should parse 'userId' from 'res.locals'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         res: { locals: { user: { _id: userId } } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -68,9 +74,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     test("Should throw 'ZodError' if 'userId' is invalid ObjectId", async (t) => {
       const invalidUserId = "invalid-user-id";
 
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: invalidUserId } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -93,9 +99,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.getById' once with the correct 'userId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -115,9 +121,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.getById' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -136,9 +142,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully fetching user data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -156,9 +162,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing user data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -185,7 +191,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     );
 
     test("Should call 'service.getAll' once without args", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -204,7 +210,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if'service.getAll' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -224,7 +230,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call'res.status' once with '200' after successfully fetching all users", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -243,7 +249,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing all users", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -270,9 +276,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     const userId = mockUser._id;
 
     test("Should parse 'userId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.updateById.mock.mockImplementationOnce(() =>
@@ -290,9 +296,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should parse 'userId' from 'res.locals'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         res: { locals: { user: { _id: userId } } },
+        testContext: t,
       });
 
       mockService.updateById.mock.mockImplementationOnce(() =>
@@ -312,9 +318,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     test("Should throw 'ZodError' if 'userId' is invalid ObjectId", async (t) => {
       const invalidUserId = "invalid-user-id";
 
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: invalidUserId } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -339,12 +345,12 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     test("Should call 'service.updateById' once with the correct 'userId'", async (t) => {
       const updateData: Partial<InsertUser> = { name: "new-name" };
 
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: updateData,
           params: { userId: userId.toString() },
         },
+        testContext: t,
       });
 
       mockService.updateById.mock.mockImplementationOnce(() =>
@@ -361,16 +367,16 @@ suite("User Controller 〖 Unit Tests 〗", () => {
       assert.deepStrictEqual(
         mockService.updateById.mock.calls[0].arguments[0],
         {
-          userId,
           data: updateData,
+          userId,
         },
       );
     });
 
     test("Should throw 'DatabaseError' if 'service.updateById' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.updateById.mock.mockImplementationOnce(() =>
@@ -389,9 +395,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully updating user data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.updateById.mock.mockImplementationOnce(() =>
@@ -409,9 +415,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing user data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.updateById.mock.mockImplementationOnce(() =>
@@ -437,9 +443,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     const userId = mockUser._id;
 
     test("Should parse 'userId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.delete.mock.mockImplementationOnce(() =>
@@ -459,9 +465,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     test("Should throw 'ZodError' if 'userId' is invalid ObjectId", async (t) => {
       const invalidUserId = "invalid-user-id";
 
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: invalidUserId } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -484,9 +490,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.delete' once with the correct 'userId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.delete.mock.mockImplementationOnce(() =>
@@ -506,9 +512,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if'service.delete' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.delete.mock.mockImplementationOnce(() =>
@@ -527,9 +533,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'NotFoundError' if 'service.delete' returns 'null'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.delete.mock.mockImplementationOnce(() =>
@@ -549,9 +555,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '204' after successfully deleting user data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.delete.mock.mockImplementationOnce(() =>
@@ -569,9 +575,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing user data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.delete.mock.mockImplementationOnce(() =>

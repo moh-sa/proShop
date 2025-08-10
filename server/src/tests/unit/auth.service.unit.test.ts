@@ -1,10 +1,11 @@
 import bcryptjs from "bcryptjs";
 import assert from "node:assert";
 import test, { afterEach, describe, suite } from "node:test";
-import { AuthenticationError, DatabaseError } from "../../errors";
-import { AuthService } from "../../services";
-import { removeObjectFields } from "../../utils";
-import { generateMockUser, mockUserRepository } from "../mocks";
+
+import { AuthenticationError, DatabaseError } from "../../errors/index.js";
+import { AuthService } from "../../services/index.js";
+import { removeObjectFields } from "../../utils/index.js";
+import { generateMockUser, mockUserRepository } from "../mocks/index.js";
 
 suite("Auth Service 〖 Unit Tests 〗", () => {
   const mockRepo = mockUserRepository();

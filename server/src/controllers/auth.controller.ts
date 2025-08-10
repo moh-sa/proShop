@@ -1,7 +1,10 @@
-import { NextFunction, Request, Response } from "express";
-import { insertUserSchema, selectUserSchema } from "../schemas";
-import { AuthService, IAuthService } from "../services";
-import { asyncHandler, sendSuccessResponse } from "../utils";
+import type { NextFunction, Request, Response } from "express";
+
+import type { IAuthService } from "../services/index.js";
+
+import { insertUserSchema, selectUserSchema } from "../schemas/index.js";
+import { AuthService } from "../services/index.js";
+import { asyncHandler, sendSuccessResponse } from "../utils/index.js";
 
 export interface IAuthController {
   signin: (req: Request, res: Response, next: NextFunction) => Promise<void>;
@@ -9,10 +12,6 @@ export interface IAuthController {
 }
 export class AuthController implements IAuthController {
   private readonly _service: IAuthService;
-
-  constructor(service: IAuthService = new AuthService()) {
-    this._service = service;
-  }
 
   signin = asyncHandler(async (req, res) => {
     const data = res.locals.user || req.body;
@@ -24,9 +23,9 @@ export class AuthController implements IAuthController {
     const response = await this._service.signin(parsedData);
 
     return sendSuccessResponse({
+      data: response,
       responseContext: res,
       statusCode: 200,
-      data: response,
     });
   });
 
@@ -36,9 +35,13 @@ export class AuthController implements IAuthController {
     const response = await this._service.signup(data);
 
     return sendSuccessResponse({
+      data: response,
       responseContext: res,
       statusCode: 201,
-      data: response,
     });
   });
+
+  constructor(service: IAuthService = new AuthService()) {
+    this._service = service;
+  }
 }

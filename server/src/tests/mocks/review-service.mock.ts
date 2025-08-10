@@ -1,23 +1,22 @@
 import { mock } from "node:test";
-import { IReviewService } from "../../services";
-import { FunctionMocksWithReset } from "../types/mocked.type";
+
+import type { IReviewService } from "../../services/index.js";
+import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
 export function mockReviewService(): FunctionMocksWithReset<IReviewService> {
   return {
+    count: mock.fn(),
+    countByProductId: mock.fn(),
+    countByUserId: mock.fn(),
     create: mock.fn(),
+    delete: mock.fn(),
+    existsById: mock.fn(),
+    existsByUserIdAndProductId: mock.fn(),
     getAll: mock.fn(),
     getAllByProductId: mock.fn(),
     getAllByUserId: mock.fn(),
     getById: mock.fn(),
-    update: mock.fn(),
-    delete: mock.fn(),
-    count: mock.fn(),
-    countByProductId: mock.fn(),
-    countByUserId: mock.fn(),
-    existsById: mock.fn(),
-    existsByUserIdAndProductId: mock.fn(),
-
-    reset: function () {
+    reset() {
       this.create.mock.resetCalls();
       this.getAll.mock.resetCalls();
       this.getAllByProductId.mock.resetCalls();
@@ -44,5 +43,7 @@ export function mockReviewService(): FunctionMocksWithReset<IReviewService> {
       this.existsById.mock.restore();
       this.existsByUserIdAndProductId.mock.restore();
     },
+
+    update: mock.fn(),
   };
 }

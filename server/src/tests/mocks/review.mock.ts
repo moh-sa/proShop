@@ -1,32 +1,18 @@
 import { faker } from "@faker-js/faker";
-import { InsertReview, SelectReview } from "../../types";
-import { generateMockObjectId } from "./objectid.mock";
+
+import type { InsertReview, SelectReview } from "../../types/index.js";
+
+import { generateMockObjectId } from "./objectid.mock.js";
 
 export function generateMockInsertReview(
   options: Partial<InsertReview> = {},
 ): InsertReview {
   return {
-    user: generateMockObjectId(),
-    product: generateMockObjectId(),
-    name: faker.internet.username(),
-    rating: faker.number.int({ min: 1, max: 5 }),
     comment: faker.lorem.sentence(),
-    ...options,
-  };
-}
-
-export function generateMockSelectReview(
-  options: Partial<SelectReview> = {},
-): SelectReview {
-  return {
-    _id: generateMockObjectId(),
-    user: generateMockObjectId(),
-    product: generateMockObjectId(),
     name: faker.internet.username(),
-    rating: faker.number.int({ min: 1, max: 5 }),
-    comment: faker.lorem.sentence(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    product: generateMockObjectId(),
+    rating: faker.number.int({ max: 5, min: 1 }),
+    user: generateMockObjectId(),
     ...options,
   };
 }
@@ -42,6 +28,22 @@ export function generateMockInsertReviews({
     () => generateMockInsertReview(options),
     count,
   );
+}
+
+export function generateMockSelectReview(
+  options: Partial<SelectReview> = {},
+): SelectReview {
+  return {
+    _id: generateMockObjectId(),
+    comment: faker.lorem.sentence(),
+    createdAt: new Date(),
+    name: faker.internet.username(),
+    product: generateMockObjectId(),
+    rating: faker.number.int({ max: 5, min: 1 }),
+    updatedAt: new Date(),
+    user: generateMockObjectId(),
+    ...options,
+  };
 }
 
 export function generateMockSelectReviews({

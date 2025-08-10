@@ -1,4 +1,5 @@
 import mongoose, { Error as MongooseError } from "mongoose";
+
 import {
   DatabaseDuplicateKeyError,
   DatabaseNetworkError,
@@ -6,7 +7,7 @@ import {
   DatabaseTimeoutError,
   DatabaseValidationError,
   GenericDatabaseError,
-} from "../errors";
+} from "../errors/index.js";
 
 /**
  * Handles database errors and throws the appropriate error.

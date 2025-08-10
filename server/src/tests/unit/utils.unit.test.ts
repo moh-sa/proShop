@@ -3,22 +3,27 @@ import jwt from "jsonwebtoken";
 import assert from "node:assert";
 import test, { describe, suite } from "node:test";
 import { z } from "zod";
+
 import {
   InvalidJwtTokenError,
   InvalidJwtTokenPayloadError,
   JwtTokenExpiredError,
-} from "../../errors";
-import { selectUserSchema } from "../../schemas";
-import { formatZodErrors, verifyJwtToken } from "../../utils";
-import { generateMockUser, mockZodError1, mockZodErrors } from "../mocks";
+} from "../../errors/index.js";
+import { selectUserSchema } from "../../schemas/index.js";
+import { formatZodErrors, verifyJwtToken } from "../../utils/index.js";
+import {
+  generateMockUser,
+  mockZodError1,
+  mockZodErrors,
+} from "../mocks/index.js";
 
 suite("Util Functions Unit Tests", () => {
   describe("verifyJwtToken", () => {
     test("Should return 'iat' and 'exp' when 'verifyJwtToken' is called with standard 'token'", (t) => {
       const mockToken = faker.internet.jwt();
       const expectedResult = {
-        iat: 1689120000,
         exp: 1689120000,
+        iat: 1689120000,
       };
 
       t.mock.method(jwt, "verify", () => expectedResult);
@@ -35,8 +40,8 @@ suite("Util Functions Unit Tests", () => {
       const mockToken = faker.internet.jwt({ payload: mockPayload });
       const schema = z.object({ id: z.string() });
       const expectedResult = {
-        iat: 1689120000,
         exp: 1689120000,
+        iat: 1689120000,
         id: mockId,
       };
 
@@ -57,8 +62,8 @@ suite("Util Functions Unit Tests", () => {
       };
       const mockToken = faker.internet.jwt({ payload: mockPayload });
       const expectedResult = {
-        iat: 1689120000,
         exp: 1689120000,
+        iat: 1689120000,
         ...mockPayload,
       };
       const schema = selectUserSchema.pick({
@@ -83,7 +88,7 @@ suite("Util Functions Unit Tests", () => {
 
     test("Should throw 'InvalidJwtTokenPayloadError' when 'verifyJwtToken' is called with a wrong 'payload schema'", (t) => {
       const mockPayload = { id: "random-id" };
-      const verifyResult = { ...mockPayload, iat: 1689120000, exp: 1689120000 };
+      const verifyResult = { ...mockPayload, exp: 1689120000, iat: 1689120000 };
       const mockToken = faker.internet.jwt({ payload: mockPayload });
       const mockSchema = z.object({ email: z.string() });
 

@@ -1,11 +1,16 @@
 import express from "express";
-import { UserController } from "../../controllers";
-import { adminLimiter, defaultLimiter, strictLimiter } from "../../managers";
+
+import { UserController } from "../../controllers/index.js";
+import {
+  adminLimiter,
+  defaultLimiter,
+  strictLimiter,
+} from "../../managers/index.js";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
   checkUserIdExists,
-} from "../../middlewares";
+} from "../../middlewares/index.js";
 
 const controller = new UserController();
 

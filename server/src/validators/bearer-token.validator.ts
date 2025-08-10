@@ -8,9 +8,9 @@ export const bearerTokenValidator = z
   .refine(
     (val) => val.startsWith("Bearer ") && val.slice(7).trim().length > 0,
     {
-      path: ["Authorization"],
       message:
         "Invalid authorization header. It must start with 'Bearer ' followed by a token.",
+      path: ["Authorization"],
     },
   )
   .transform((val) => val.slice(7).trim()); // remove "Bearer " prefix

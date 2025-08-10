@@ -1,33 +1,35 @@
-import { Types } from "mongoose";
-import Review from "../models/review.model";
-import { InsertReview, SelectReview } from "../types";
-import { handleDatabaseError } from "../utils";
+import type { Types } from "mongoose";
+
+import type { InsertReview, SelectReview } from "../types/index.js";
+
+import Review from "../models/review.model.js";
+import { handleDatabaseError } from "../utils/index.js";
 
 export interface IReviewRepository {
+  count: () => Promise<number>;
+  countByProductId: (data: { productId: Types.ObjectId }) => Promise<number>;
+  countByUserId: (data: { userId: Types.ObjectId }) => Promise<number>;
   create: (data: InsertReview) => Promise<SelectReview>;
-  getById: (data: { reviewId: Types.ObjectId }) => Promise<SelectReview | null>;
-  getAll: () => Promise<Array<SelectReview>>;
-  getAllByUserId: (data: {
+  delete: (data: { reviewId: Types.ObjectId }) => Promise<null | SelectReview>;
+  existsById: (data: {
+    reviewId: Types.ObjectId;
+  }) => Promise<null | { _id: Types.ObjectId }>;
+  existsByUserIdAndProductId: (data: {
+    productId: Types.ObjectId;
     userId: Types.ObjectId;
-  }) => Promise<Array<SelectReview>>;
+  }) => Promise<null | { _id: Types.ObjectId }>;
+  getAll: () => Promise<Array<SelectReview>>;
   getAllByProductId: (data: {
     productId: Types.ObjectId;
   }) => Promise<Array<SelectReview>>;
-  update: (data: {
-    reviewId: Types.ObjectId;
-    data: Partial<InsertReview>;
-  }) => Promise<SelectReview | null>;
-  delete: (data: { reviewId: Types.ObjectId }) => Promise<SelectReview | null>;
-  count: () => Promise<number>;
-  countByUserId: (data: { userId: Types.ObjectId }) => Promise<number>;
-  countByProductId: (data: { productId: Types.ObjectId }) => Promise<number>;
-  existsById: (data: {
-    reviewId: Types.ObjectId;
-  }) => Promise<{ _id: Types.ObjectId } | null>;
-  existsByUserIdAndProductId: (data: {
+  getAllByUserId: (data: {
     userId: Types.ObjectId;
-    productId: Types.ObjectId;
-  }) => Promise<{ _id: Types.ObjectId } | null>;
+  }) => Promise<Array<SelectReview>>;
+  getById: (data: { reviewId: Types.ObjectId }) => Promise<null | SelectReview>;
+  update: (data: {
+    data: Partial<InsertReview>;
+    reviewId: Types.ObjectId;
+  }) => Promise<null | SelectReview>;
 }
 
 export class ReviewRepository implements IReviewRepository {
@@ -37,97 +39,9 @@ export class ReviewRepository implements IReviewRepository {
     this._db = db;
   }
 
-  async create(data: InsertReview): Promise<SelectReview> {
-    try {
-      return (await this._db.create(data)).toObject();
-    } catch (error) {
-      this._errorHandler(error);
-    }
-  }
-
-  async getById({
-    reviewId,
-  }: {
-    reviewId: Types.ObjectId;
-  }): Promise<SelectReview | null> {
-    try {
-      return await this._db.findById(reviewId).lean();
-    } catch (error) {
-      this._errorHandler(error);
-    }
-  }
-
-  async getAll(): Promise<Array<SelectReview>> {
-    try {
-      return await this._db.find({}).lean();
-    } catch (error) {
-      this._errorHandler(error);
-    }
-  }
-
-  async getAllByUserId({
-    userId,
-  }: {
-    userId: Types.ObjectId;
-  }): Promise<Array<SelectReview>> {
-    try {
-      return await this._db.find({ user: userId }).lean();
-    } catch (error) {
-      this._errorHandler(error);
-    }
-  }
-
-  async getAllByProductId({
-    productId,
-  }: {
-    productId: Types.ObjectId;
-  }): Promise<Array<SelectReview>> {
-    try {
-      return await this._db.find({ product: productId }).lean();
-    } catch (error) {
-      this._errorHandler(error);
-    }
-  }
-
-  async update({
-    reviewId,
-    data,
-  }: {
-    reviewId: Types.ObjectId;
-    data: Partial<InsertReview>;
-  }): Promise<SelectReview | null> {
-    try {
-      return await this._db
-        .findByIdAndUpdate(reviewId, data, { new: true })
-        .lean();
-    } catch (error) {
-      this._errorHandler(error);
-    }
-  }
-
-  async delete({
-    reviewId,
-  }: {
-    reviewId: Types.ObjectId;
-  }): Promise<SelectReview | null> {
-    try {
-      return await this._db.findByIdAndDelete(reviewId).lean();
-    } catch (error) {
-      this._errorHandler(error);
-    }
-  }
-
   async count(): Promise<number> {
     try {
       return await this._db.countDocuments().lean();
-    } catch (error) {
-      this._errorHandler(error);
-    }
-  }
-
-  async countByUserId({ userId }: { userId: Types.ObjectId }): Promise<number> {
-    try {
-      return await this._db.countDocuments({ user: userId }).lean();
     } catch (error) {
       this._errorHandler(error);
     }
@@ -145,11 +59,39 @@ export class ReviewRepository implements IReviewRepository {
     }
   }
 
+  async countByUserId({ userId }: { userId: Types.ObjectId }): Promise<number> {
+    try {
+      return await this._db.countDocuments({ user: userId }).lean();
+    } catch (error) {
+      this._errorHandler(error);
+    }
+  }
+
+  async create(data: InsertReview): Promise<SelectReview> {
+    try {
+      return (await this._db.create(data)).toObject();
+    } catch (error) {
+      this._errorHandler(error);
+    }
+  }
+
+  async delete({
+    reviewId,
+  }: {
+    reviewId: Types.ObjectId;
+  }): Promise<null | SelectReview> {
+    try {
+      return await this._db.findByIdAndDelete(reviewId).lean();
+    } catch (error) {
+      this._errorHandler(error);
+    }
+  }
+
   async existsById({
     reviewId,
   }: {
     reviewId: Types.ObjectId;
-  }): Promise<{ _id: Types.ObjectId } | null> {
+  }): Promise<null | { _id: Types.ObjectId }> {
     try {
       return await this._db
         .exists({
@@ -162,18 +104,78 @@ export class ReviewRepository implements IReviewRepository {
   }
 
   async existsByUserIdAndProductId({
-    userId,
     productId,
+    userId,
   }: {
-    userId: Types.ObjectId;
     productId: Types.ObjectId;
-  }): Promise<{ _id: Types.ObjectId } | null> {
+    userId: Types.ObjectId;
+  }): Promise<null | { _id: Types.ObjectId }> {
     try {
       return await this._db
         .exists({
-          user: userId,
           product: productId,
+          user: userId,
         })
+        .lean();
+    } catch (error) {
+      this._errorHandler(error);
+    }
+  }
+
+  async getAll(): Promise<Array<SelectReview>> {
+    try {
+      return await this._db.find({}).lean();
+    } catch (error) {
+      this._errorHandler(error);
+    }
+  }
+
+  async getAllByProductId({
+    productId,
+  }: {
+    productId: Types.ObjectId;
+  }): Promise<Array<SelectReview>> {
+    try {
+      return await this._db.find({ product: productId }).lean();
+    } catch (error) {
+      this._errorHandler(error);
+    }
+  }
+
+  async getAllByUserId({
+    userId,
+  }: {
+    userId: Types.ObjectId;
+  }): Promise<Array<SelectReview>> {
+    try {
+      return await this._db.find({ user: userId }).lean();
+    } catch (error) {
+      this._errorHandler(error);
+    }
+  }
+
+  async getById({
+    reviewId,
+  }: {
+    reviewId: Types.ObjectId;
+  }): Promise<null | SelectReview> {
+    try {
+      return await this._db.findById(reviewId).lean();
+    } catch (error) {
+      this._errorHandler(error);
+    }
+  }
+
+  async update({
+    data,
+    reviewId,
+  }: {
+    data: Partial<InsertReview>;
+    reviewId: Types.ObjectId;
+  }): Promise<null | SelectReview> {
+    try {
+      return await this._db
+        .findByIdAndUpdate(reviewId, data, { new: true })
         .lean();
     } catch (error) {
       this._errorHandler(error);

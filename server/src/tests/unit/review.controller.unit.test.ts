@@ -1,18 +1,21 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
+
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 import { ZodError } from "zod";
-import { ReviewController } from "../../controllers";
-import { DatabaseError } from "../../errors";
-import { InsertReview } from "../../types";
-import { createSuccessResponseObject } from "../../utils";
+
+import type { InsertReview } from "../../types/index.js";
+
+import { ReviewController } from "../../controllers/index.js";
+import { DatabaseError } from "../../errors/index.js";
+import { createSuccessResponseObject } from "../../utils/index.js";
 import {
   generateMockObjectId,
   generateMockSelectReview,
   generateMockSelectReviews,
   mockExpressCall,
   mockReviewService,
-} from "../mocks";
+} from "../mocks/index.js";
 
 suite("Review Controller 〖 Unit Tests 〗", () => {
   const mockService = mockReviewService();
@@ -26,12 +29,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     const mockReview = generateMockSelectReview();
 
     test("Should parse 'review data' from 'req.body' and 'res.locals'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: mockReview },
         res: {
           locals: { user: { _id: mockReview.user, name: mockReview.name } },
         },
+        testContext: t,
       });
 
       mockService.create.mock.mockImplementationOnce(() =>
@@ -49,12 +52,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'review.user' is invalid objectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: mockReview },
         res: {
           locals: { user: { _id: "invalid-user-id", name: mockReview.name } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -77,12 +80,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'review.product' is invalid objectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: { ...mockReview, product: "invalid-product-id" } },
         res: {
           locals: { user: { _id: mockReview.user, name: mockReview.name } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -105,12 +108,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'review.rating' is less than 0", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: { ...mockReview, rating: -1 } },
         res: {
           locals: { user: { _id: mockReview.user, name: mockReview.name } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -133,12 +136,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'review.rating' is greater than 5", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: { ...mockReview, rating: 6 } },
         res: {
           locals: { user: { _id: mockReview.user, name: mockReview.name } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -161,12 +164,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'review.rating' is not a number", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: { ...mockReview, rating: "invalid-rating" } },
         res: {
           locals: { user: { _id: mockReview.user, name: mockReview.name } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -189,12 +192,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'review.comment' is less than 1 char", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: { ...mockReview, comment: "" } },
         res: {
           locals: { user: { _id: mockReview.user, name: mockReview.name } },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -215,16 +218,15 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
     test("Should call 'service.create' once with the correct 'review data'", async (t) => {
       const insertMockReview: InsertReview = {
-        user: mockReview.user,
-        product: mockReview.product,
-        name: mockReview.name,
-        rating: mockReview.rating,
         comment: mockReview.comment,
+        name: mockReview.name,
+        product: mockReview.product,
+        rating: mockReview.rating,
+        user: mockReview.user,
       };
       const selectMockReview = mockReview;
 
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: insertMockReview },
         res: {
           locals: {
@@ -234,6 +236,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
             },
           },
         },
+        testContext: t,
       });
 
       mockService.create.mock.mockImplementationOnce(() =>
@@ -254,12 +257,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.create' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: mockReview },
         res: {
           locals: { user: { _id: mockReview.user, name: mockReview.name } },
         },
+        testContext: t,
       });
 
       mockService.create.mock.mockImplementationOnce(() =>
@@ -278,12 +281,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '201' after successfully creating review data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: mockReview },
         res: {
           locals: { user: { _id: mockReview.user, name: mockReview.name } },
         },
+        testContext: t,
       });
 
       mockService.create.mock.mockImplementationOnce(() =>
@@ -301,12 +304,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing review data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { body: mockReview },
         res: {
           locals: { user: { _id: mockReview.user, name: mockReview.name } },
         },
+        testContext: t,
       });
 
       mockService.create.mock.mockImplementationOnce(() =>
@@ -331,7 +334,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     const mockReviews = generateMockSelectReviews({ count: 5 });
 
     test("Should call 'service.getAll' once without args", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -353,7 +356,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if'service.getAll' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -373,7 +376,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call'res.status' once with '200' after successfully fetching all reviews", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -392,7 +395,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing all reviews", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -419,9 +422,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     const userId = mockReviews[0].user;
 
     test("Should parse 'userId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.getAllByUserId.mock.mockImplementationOnce(() =>
@@ -439,9 +442,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'userId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: "invalid-user-id" } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -464,9 +467,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.getAllByUserId' once with the correct 'userId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.getAllByUserId.mock.mockImplementationOnce(() =>
@@ -489,9 +492,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.getAllByUserId' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.getAllByUserId.mock.mockImplementationOnce(() =>
@@ -510,9 +513,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully fetching all reviews", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.getAllByUserId.mock.mockImplementationOnce(() =>
@@ -530,9 +533,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing all reviews", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.getAllByUserId.mock.mockImplementationOnce(() =>
@@ -558,9 +561,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     const productId = mockReviews[0].product;
 
     test("Should parse 'productId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.getAllByProductId.mock.mockImplementationOnce(() =>
@@ -578,9 +581,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'productId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: "invalid-user-id" } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -603,9 +606,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.getAllByProductId' once with the correct 'productId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.getAllByProductId.mock.mockImplementationOnce(() =>
@@ -628,9 +631,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.getAllByProductId' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.getAllByProductId.mock.mockImplementationOnce(() =>
@@ -649,9 +652,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully fetching all reviews", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.getAllByProductId.mock.mockImplementationOnce(() =>
@@ -669,9 +672,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing all reviews", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.getAllByProductId.mock.mockImplementationOnce(() =>
@@ -697,9 +700,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     const reviewId = mockReview._id;
 
     test("Should parse 'reviewId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: reviewId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -717,9 +720,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'reviewId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: "invalid-review-id" } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -742,9 +745,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.getById' once with the correct 'reviewId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: reviewId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -764,9 +767,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.getById' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: reviewId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -785,9 +788,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully fetching review data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: reviewId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -805,9 +808,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing review data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: reviewId.toString() } },
+        testContext: t,
       });
 
       mockService.getById.mock.mockImplementationOnce(() =>
@@ -833,9 +836,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     const reviewId = mockReview._id;
 
     test("Should parse 'reviewId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: reviewId.toString() } },
+        testContext: t,
       });
 
       mockService.update.mock.mockImplementationOnce(() =>
@@ -853,9 +856,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'reviewId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: "invalid-review-id" } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -880,12 +883,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     test("Should call 'service.update' once with the correct 'reviewId'", async (t) => {
       const updateData: Partial<InsertReview> = { name: "new-name" };
 
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           body: updateData,
           params: { reviewId: reviewId.toString() },
         },
+        testContext: t,
       });
 
       mockService.update.mock.mockImplementationOnce(() =>
@@ -900,15 +903,15 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
       assert.strictEqual(mockService.update.mock.callCount(), 1);
       assert.deepStrictEqual(mockService.update.mock.calls[0].arguments[0], {
-        reviewId,
         data: updateData,
+        reviewId,
       });
     });
 
     test("Should throw 'DatabaseError' if 'service.update' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: reviewId.toString() } },
+        testContext: t,
       });
 
       mockService.update.mock.mockImplementationOnce(() =>
@@ -927,9 +930,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully updating review data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: reviewId.toString() } },
+        testContext: t,
       });
 
       mockService.update.mock.mockImplementationOnce(() =>
@@ -947,9 +950,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing review data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: reviewId.toString() } },
+        testContext: t,
       });
 
       mockService.update.mock.mockImplementationOnce(() =>
@@ -975,9 +978,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     const reviewId = mockReview._id;
 
     test("Should parse 'reviewId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: reviewId.toString() } },
+        testContext: t,
       });
 
       mockService.delete.mock.mockImplementationOnce(() =>
@@ -995,9 +998,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'reviewId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: "invalid-review-id" } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -1020,9 +1023,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.delete' once with the correct 'reviewId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: reviewId.toString() } },
+        testContext: t,
       });
 
       mockService.delete.mock.mockImplementationOnce(() =>
@@ -1042,9 +1045,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.delete' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: reviewId.toString() } },
+        testContext: t,
       });
 
       mockService.delete.mock.mockImplementationOnce(() =>
@@ -1063,9 +1066,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '204' after successfully deleting review data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: reviewId.toString() } },
+        testContext: t,
       });
 
       mockService.delete.mock.mockImplementationOnce(() =>
@@ -1083,9 +1086,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing review data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: reviewId.toString() } },
+        testContext: t,
       });
 
       mockService.delete.mock.mockImplementationOnce(() =>
@@ -1110,7 +1113,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     const mockCount = 5;
 
     test("Should call 'service.count' once without args", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -1129,7 +1132,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.count' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -1149,7 +1152,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully fetching review count", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -1168,7 +1171,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing review count", async (t) => {
-      const { req, res, next } = mockExpressCall({
+      const { next, req, res } = mockExpressCall({
         testContext: t,
       });
 
@@ -1195,9 +1198,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     const userId = generateMockObjectId();
 
     test("Should parse 'userId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.countByUserId.mock.mockImplementationOnce(() =>
@@ -1215,9 +1218,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'userId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: "invalid-user-id" } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -1240,9 +1243,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.countByUserId' once with the correct 'userId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.countByUserId.mock.mockImplementationOnce(() =>
@@ -1265,9 +1268,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.countByUserId' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.countByUserId.mock.mockImplementationOnce(() =>
@@ -1286,9 +1289,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully fetching review count", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.countByUserId.mock.mockImplementationOnce(() =>
@@ -1306,9 +1309,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing review count", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { userId: userId.toString() } },
+        testContext: t,
       });
 
       mockService.countByUserId.mock.mockImplementationOnce(() =>
@@ -1334,9 +1337,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     const productId = generateMockObjectId();
 
     test("Should parse 'productId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.countByProductId.mock.mockImplementationOnce(() =>
@@ -1354,9 +1357,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'productId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: "invalid-user-id" } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -1379,9 +1382,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.countByProductId' once with the correct 'productId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.countByProductId.mock.mockImplementationOnce(() =>
@@ -1404,9 +1407,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.countByProductId' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.countByProductId.mock.mockImplementationOnce(() =>
@@ -1425,9 +1428,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully fetching review count", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.countByProductId.mock.mockImplementationOnce(() =>
@@ -1445,9 +1448,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing review count", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { productId: productId.toString() } },
+        testContext: t,
       });
 
       mockService.countByProductId.mock.mockImplementationOnce(() =>
@@ -1473,9 +1476,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     const serviceResult = { _id: mockReviewId };
 
     test("Should parse 'reviewId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: mockReviewId.toString() } },
+        testContext: t,
       });
 
       mockService.existsById.mock.mockImplementationOnce(() =>
@@ -1493,9 +1496,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'reviewId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: "invalid-review-id" } },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -1518,9 +1521,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.existsById' once with the correct 'reviewId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: mockReviewId.toString() } },
+        testContext: t,
       });
 
       mockService.existsById.mock.mockImplementationOnce(() =>
@@ -1543,9 +1546,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'DatabaseError' if 'service.existsById' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: mockReviewId.toString() } },
+        testContext: t,
       });
 
       mockService.existsById.mock.mockImplementationOnce(() =>
@@ -1564,9 +1567,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully fetching review data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: mockReviewId.toString() } },
+        testContext: t,
       });
 
       mockService.existsById.mock.mockImplementationOnce(() =>
@@ -1584,9 +1587,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing review data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: { params: { reviewId: mockReviewId.toString() } },
+        testContext: t,
       });
 
       mockService.existsById.mock.mockImplementationOnce(() =>
@@ -1613,14 +1616,14 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     const serviceResult = { _id: generateMockObjectId() };
 
     test("Should parse 'userId' and 'productId' from 'req.params'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           params: {
-            userId: mockUserId.toString(),
             productId: mockProductId.toString(),
+            userId: mockUserId.toString(),
           },
         },
+        testContext: t,
       });
 
       mockService.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>
@@ -1638,14 +1641,14 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'userId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           params: {
-            userId: "invalid-user-id",
             productId: mockProductId.toString(),
+            userId: "invalid-user-id",
           },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -1668,14 +1671,14 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should throw 'ZodError' if 'productId' is invalid ObjectId", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           params: {
-            userId: mockUserId.toString(),
             productId: "invalid-product-id",
+            userId: mockUserId.toString(),
           },
         },
+        testContext: t,
       });
 
       await assert.rejects(
@@ -1698,14 +1701,14 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'service.existsByUserIdAndProductId' once with the correct 'userId' and 'productId'", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           params: {
-            userId: mockUserId.toString(),
             productId: mockProductId.toString(),
+            userId: mockUserId.toString(),
           },
         },
+        testContext: t,
       });
 
       mockService.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>
@@ -1725,21 +1728,21 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
       assert.deepStrictEqual(
         mockService.existsByUserIdAndProductId.mock.calls[0].arguments[0],
         {
-          userId: mockUserId,
           productId: mockProductId,
+          userId: mockUserId,
         },
       );
     });
 
     test("Should throw 'DatabaseError' if 'service.existsByUserIdAndProductId' throws", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           params: {
-            userId: mockUserId.toString(),
             productId: mockProductId.toString(),
+            userId: mockUserId.toString(),
           },
         },
+        testContext: t,
       });
 
       mockService.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>
@@ -1758,14 +1761,14 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.status' once with '200' after successfully fetching review data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           params: {
-            userId: mockUserId.toString(),
             productId: mockProductId.toString(),
+            userId: mockUserId.toString(),
           },
         },
+        testContext: t,
       });
 
       mockService.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>
@@ -1783,14 +1786,14 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
     });
 
     test("Should call 'res.json' once with the success response object containing review data", async (t) => {
-      const { req, res, next } = mockExpressCall({
-        testContext: t,
+      const { next, req, res } = mockExpressCall({
         req: {
           params: {
-            userId: mockUserId.toString(),
             productId: mockProductId.toString(),
+            userId: mockUserId.toString(),
           },
         },
+        testContext: t,
       });
 
       mockService.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>

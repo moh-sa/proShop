@@ -1,21 +1,23 @@
-import { Types } from "mongoose";
-import User from "../models/userModel";
-import { InsertUser, SelectUser } from "../types";
-import { handleDatabaseError } from "../utils";
+import type { Types } from "mongoose";
+
+import type { InsertUser, SelectUser } from "../types/index.js";
+
+import User from "../models/userModel.js";
+import { handleDatabaseError } from "../utils/index.js";
 
 export interface IUserRepository {
   create(data: InsertUser): Promise<Omit<SelectUser, "token">>;
-  getById(data: { userId: Types.ObjectId }): Promise<SelectUser | null>;
-  getByEmail(data: { email: string }): Promise<SelectUser | null>;
-  update(data: {
-    userId: Types.ObjectId;
-    data: Partial<InsertUser>;
-  }): Promise<SelectUser | null>;
-  delete(data: { userId: Types.ObjectId }): Promise<SelectUser | null>;
-  getAll(): Promise<Array<SelectUser>>;
+  delete(data: { userId: Types.ObjectId }): Promise<null | SelectUser>;
   existsByEmail(data: {
     email: string;
-  }): Promise<{ _id: Types.ObjectId } | null>;
+  }): Promise<null | { _id: Types.ObjectId }>;
+  getAll(): Promise<Array<SelectUser>>;
+  getByEmail(data: { email: string }): Promise<null | SelectUser>;
+  getById(data: { userId: Types.ObjectId }): Promise<null | SelectUser>;
+  update(data: {
+    data: Partial<InsertUser>;
+    userId: Types.ObjectId;
+  }): Promise<null | SelectUser>;
 }
 
 export class UserRepository implements IUserRepository {
@@ -33,49 +35,25 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async getById({
-    userId,
-  }: {
-    userId: Types.ObjectId;
-  }): Promise<SelectUser | null> {
-    try {
-      return await this._db.findById(userId).lean();
-    } catch (error) {
-      this._errorHandler(error);
-    }
-  }
-
-  async getByEmail({ email }: { email: string }): Promise<SelectUser | null> {
-    try {
-      return await this._db.findOne({ email }).lean();
-    } catch (error) {
-      this._errorHandler(error);
-    }
-  }
-
-  async update({
-    userId,
-    data,
-  }: {
-    userId: Types.ObjectId;
-    data: Partial<InsertUser>;
-  }): Promise<SelectUser | null> {
-    try {
-      return await this._db
-        .findByIdAndUpdate(userId, data, { new: true })
-        .lean();
-    } catch (error) {
-      this._errorHandler(error);
-    }
-  }
-
   async delete({
     userId,
   }: {
     userId: Types.ObjectId;
-  }): Promise<SelectUser | null> {
+  }): Promise<null | SelectUser> {
     try {
       return await this._db.findByIdAndDelete(userId).lean();
+    } catch (error) {
+      this._errorHandler(error);
+    }
+  }
+
+  async existsByEmail({
+    email,
+  }: {
+    email: string;
+  }): Promise<null | { _id: Types.ObjectId }> {
+    try {
+      return await this._db.exists({ email }).lean();
     } catch (error) {
       this._errorHandler(error);
     }
@@ -89,13 +67,37 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async existsByEmail({
-    email,
-  }: {
-    email: string;
-  }): Promise<{ _id: Types.ObjectId } | null> {
+  async getByEmail({ email }: { email: string }): Promise<null | SelectUser> {
     try {
-      return await this._db.exists({ email }).lean();
+      return await this._db.findOne({ email }).lean();
+    } catch (error) {
+      this._errorHandler(error);
+    }
+  }
+
+  async getById({
+    userId,
+  }: {
+    userId: Types.ObjectId;
+  }): Promise<null | SelectUser> {
+    try {
+      return await this._db.findById(userId).lean();
+    } catch (error) {
+      this._errorHandler(error);
+    }
+  }
+
+  async update({
+    data,
+    userId,
+  }: {
+    data: Partial<InsertUser>;
+    userId: Types.ObjectId;
+  }): Promise<null | SelectUser> {
+    try {
+      return await this._db
+        .findByIdAndUpdate(userId, data, { new: true })
+        .lean();
     } catch (error) {
       this._errorHandler(error);
     }

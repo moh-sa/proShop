@@ -1,18 +1,19 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { ZodError } from "zod";
-import { UserController } from "../../controllers";
-import User from "../../models/userModel";
+
+import { UserController } from "../../controllers/index.js";
+import User from "../../models/userModel.js";
 import {
   generateMockObjectId,
   generateMockUser,
   generateMockUsers,
-} from "../mocks";
-import { createMockExpressContext } from "../utils";
+} from "../mocks/index.js";
 import {
   connectTestDatabase,
   disconnectTestDatabase,
-} from "../utils/database-connection.utils";
+} from "../utils/database-connection.utils.js";
+import { createMockExpressContext } from "../utils/index.js";
 
 suite("User Controller 〖 Integration Tests 〗", () => {
   const controller = new UserController();
@@ -24,7 +25,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
   describe("getAll", () => {
     test("Should return success response when 'service.getAll' is called successfully", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUsers = generateMockUsers(3);
       await User.insertMany(mockUsers);
 
@@ -41,7 +42,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should return empty array when no users exist", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.getAll(req, res, next);
@@ -56,7 +57,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should return '200' status code when 'service.getAll' is called", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUsers = generateMockUsers(3);
       await User.insertMany(mockUsers);
 
@@ -69,7 +70,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should exclude password field from all users in response", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUsers = generateMockUsers(3);
       await User.insertMany(mockUsers);
 
@@ -89,7 +90,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should include isAdmin field for all users in response", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUsers = generateMockUsers(3);
       await User.insertMany(mockUsers);
 
@@ -112,7 +113,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
   describe("getById", () => {
     test("Should return success response when 'service.getById' is called with valid 'userId' from params", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       await User.insertMany([mockUser]);
       req.params = { userId: mockUser._id.toString() };
@@ -130,26 +131,26 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should return success response when 'service.getById' is called with valid 'userId' from locals", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       await User.insertMany([mockUser]);
       res.locals = {
-        token: {
-          _id: mockUser._id,
-          iat: Math.floor(Date.now() / 1000),
-          exp: Math.floor(Date.now() / 1000) + 3600,
-        },
-        user: mockUser,
         review: {
           _id: generateMockObjectId(),
-          user: mockUser._id,
-          product: generateMockObjectId(),
-          name: mockUser.name,
-          rating: 5,
           comment: "Test comment",
           createdAt: new Date(),
+          name: mockUser.name,
+          product: generateMockObjectId(),
+          rating: 5,
           updatedAt: new Date(),
+          user: mockUser._id,
         },
+        token: {
+          _id: mockUser._id,
+          exp: Math.floor(Date.now() / 1000) + 3600,
+          iat: Math.floor(Date.now() / 1000),
+        },
+        user: mockUser,
       };
 
       // Act
@@ -165,7 +166,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'NotFoundError' when user does not exist", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const nonExistentId = generateMockObjectId();
       req.params = { userId: nonExistentId.toString() };
 
@@ -175,15 +176,15 @@ suite("User Controller 〖 Integration Tests 〗", () => {
           await controller.getById(req, res, next);
         },
         {
-          name: "NotFoundError",
           message: "User not found",
+          name: "NotFoundError",
         },
       );
     });
 
     test("Should return '200' status code when user is found", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       await User.insertMany([mockUser]);
       req.params = { userId: mockUser._id.toString() };
@@ -197,7 +198,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should exclude password field from response", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       await User.insertMany([mockUser]);
       req.params = { userId: mockUser._id.toString() };
@@ -215,7 +216,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should include isAdmin field in response", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser(true); // Fixed: passing boolean directly instead of object
       await User.insertMany([mockUser]);
       req.params = { userId: mockUser._id.toString() };
@@ -234,7 +235,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when called with invalid objectId format", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: "invalid-id" };
 
       // Act & Assert
@@ -258,7 +259,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
   describe("update", () => {
     test("Should return success response when 'service.update' is called with valid user id from params", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       await User.insertMany([mockUser]);
       req.params = { userId: mockUser._id.toString() };
@@ -277,26 +278,26 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should return success response when 'service.update' is called with valid user id from locals", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       await User.insertMany([mockUser]);
       res.locals = {
-        token: {
-          _id: mockUser._id,
-          iat: Math.floor(Date.now() / 1000),
-          exp: Math.floor(Date.now() / 1000) + 3600,
-        },
-        user: mockUser,
         review: {
           _id: generateMockObjectId(),
-          user: mockUser._id,
-          product: generateMockObjectId(),
-          name: mockUser.name,
-          rating: 5,
           comment: "Test comment",
           createdAt: new Date(),
+          name: mockUser.name,
+          product: generateMockObjectId(),
+          rating: 5,
           updatedAt: new Date(),
+          user: mockUser._id,
         },
+        token: {
+          _id: mockUser._id,
+          exp: Math.floor(Date.now() / 1000) + 3600,
+          iat: Math.floor(Date.now() / 1000),
+        },
+        user: mockUser,
       };
       req.body = { name: "Updated Name" };
 
@@ -313,7 +314,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'NotFoundError' when user does not exist", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const nonExistentId = generateMockObjectId();
       req.params = { userId: nonExistentId.toString() };
       req.body = { name: "Updated Name" };
@@ -324,15 +325,15 @@ suite("User Controller 〖 Integration Tests 〗", () => {
           await controller.update(req, res, next);
         },
         {
-          name: "NotFoundError",
           message: "User not found",
+          name: "NotFoundError",
         },
       );
     });
 
     test("Should throw 'ZodError' when update data is invalid", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       await User.insertMany([mockUser]);
       req.params = { userId: mockUser._id.toString() };
@@ -351,7 +352,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should return '200' status code when update is successful", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       await User.insertMany([mockUser]);
       req.params = { userId: mockUser._id.toString() };
@@ -366,7 +367,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should update only provided fields", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       const originalEmail = mockUser.email;
       await User.insertMany([mockUser]);
@@ -384,11 +385,11 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should remove empty fields from update data", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       await User.insertMany([mockUser]);
       req.params = { userId: mockUser._id.toString() };
-      req.body = { name: "Updated Name", email: "" };
+      req.body = { email: "", name: "Updated Name" };
 
       // Act
       await controller.update(req, res, next);
@@ -401,7 +402,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should exclude password field from response", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       await User.insertMany([mockUser]);
       req.params = { userId: mockUser._id.toString() };
@@ -420,7 +421,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should maintain existing fields when called with partial update", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       const originalData = { ...mockUser };
       await User.insertMany([mockUser]);
@@ -439,7 +440,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when called with invalid objectId format", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: "invalid-id" };
       req.body = { name: "Updated Name" };
 
@@ -462,7 +463,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when called with invalid password format", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       await User.insertMany([mockUser]);
       req.params = { userId: mockUser._id.toString() };
@@ -483,7 +484,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
   describe("delete", () => {
     test("Should return success response when 'service.delete' is called with valid 'userId'", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       await User.insertMany([mockUser]);
       req.params = { userId: mockUser._id.toString() };
@@ -500,7 +501,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should return '204' status code when 'service.delete' is called with valid 'userId'", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       await User.insertMany([mockUser]);
       req.params = { userId: mockUser._id.toString() };
@@ -514,7 +515,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'NotFoundError' when user does not exist", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const nonExistentId = generateMockObjectId();
       req.params = { userId: nonExistentId.toString() };
 
@@ -524,15 +525,15 @@ suite("User Controller 〖 Integration Tests 〗", () => {
           await controller.delete(req, res, next);
         },
         {
-          name: "NotFoundError",
           message: "User not found",
+          name: "NotFoundError",
         },
       );
     });
 
     test("Should remove user from database when delete is successful", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const mockUser = generateMockUser();
       await User.insertMany([mockUser]);
       req.params = { userId: mockUser._id.toString() };
@@ -547,7 +548,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when called with invalid objectId format", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: "invalid-id" };
 
       // Act & Assert

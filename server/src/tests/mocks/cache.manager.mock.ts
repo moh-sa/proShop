@@ -1,22 +1,20 @@
 import { mock } from "node:test";
-import { ICacheManager } from "../../managers";
-import { FunctionMocksWithReset } from "../types/mocked.type";
+
+import type { ICacheManager } from "../../managers/index.js";
+import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
 export function mockCacheManager(): FunctionMocksWithReset<ICacheManager> {
   return {
-    set: mock.fn(),
-    setMany: mock.fn(),
-    get: mock.fn(),
-    getMany: mock.fn(),
     delete: mock.fn(),
-    take: mock.fn(),
+    deleteMany: mock.fn(),
     flush: mock.fn(),
     flushStats: mock.fn(),
-    getStats: mock.fn(),
+    get: mock.fn(),
     getKeys: mock.fn(),
-    deleteMany: mock.fn(),
+    getMany: mock.fn(),
+    getStats: mock.fn(),
     isKeyCached: mock.fn(),
-    reset: function () {
+    reset() {
       this.set.mock.resetCalls();
       this.setMany.mock.resetCalls();
       this.get.mock.resetCalls();
@@ -43,5 +41,8 @@ export function mockCacheManager(): FunctionMocksWithReset<ICacheManager> {
       this.deleteMany.mock.restore();
       this.isKeyCached.mock.restore();
     },
+    set: mock.fn(),
+    setMany: mock.fn(),
+    take: mock.fn(),
   };
 }

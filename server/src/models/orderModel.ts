@@ -1,77 +1,78 @@
 import mongoose, { model, Schema } from "mongoose";
-import { OrderSchema } from "../types";
+
+import type { OrderSchema } from "../types/index.js";
 
 const orderSchema = new Schema<OrderSchema>(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: "User",
-    },
-    orderItems: [
-      {
-        name: { type: String, required: true },
-        qty: { type: Number, required: true },
-        image: { type: String, required: true },
-        price: { type: Number, required: true },
-        product: {
-          type: mongoose.Schema.Types.ObjectId,
-          required: true,
-          ref: "Product",
-        },
-      },
-    ],
-    shippingAddress: {
-      address: { type: String, required: true },
-      city: { type: String, required: true },
-      postalCode: { type: String, required: true },
-      country: { type: String, required: true },
-    },
-    paymentMethod: {
-      type: String,
-      required: true,
-    },
-    paymentResult: {
-      id: { type: String },
-      status: { type: String },
-      update_time: { type: String },
-      email_address: { type: String },
-    },
-    itemsPrice: {
-      type: Number,
-      required: true,
-      default: 0.0,
-    },
-    shippingPrice: {
-      type: Number,
-      required: true,
-      default: 0.0,
-    },
-    taxPrice: {
-      type: Number,
-      required: true,
-      default: 0.0,
-    },
-    totalPrice: {
-      type: Number,
-      required: true,
-      default: 0.0,
-    },
-    isPaid: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
-    paidAt: {
+    deliveredAt: {
       type: Date,
     },
     isDelivered: {
-      type: Boolean,
-      required: true,
       default: false,
+      required: true,
+      type: Boolean,
     },
-    deliveredAt: {
+    isPaid: {
+      default: false,
+      required: true,
+      type: Boolean,
+    },
+    itemsPrice: {
+      default: 0.0,
+      required: true,
+      type: Number,
+    },
+    orderItems: [
+      {
+        image: { required: true, type: String },
+        name: { required: true, type: String },
+        price: { required: true, type: Number },
+        product: {
+          ref: "Product",
+          required: true,
+          type: mongoose.Schema.Types.ObjectId,
+        },
+        qty: { required: true, type: Number },
+      },
+    ],
+    paidAt: {
       type: Date,
+    },
+    paymentMethod: {
+      required: true,
+      type: String,
+    },
+    paymentResult: {
+      email_address: { type: String },
+      id: { type: String },
+      status: { type: String },
+      update_time: { type: String },
+    },
+    shippingAddress: {
+      address: { required: true, type: String },
+      city: { required: true, type: String },
+      country: { required: true, type: String },
+      postalCode: { required: true, type: String },
+    },
+    shippingPrice: {
+      default: 0.0,
+      required: true,
+      type: Number,
+    },
+    taxPrice: {
+      default: 0.0,
+      required: true,
+      type: Number,
+    },
+    totalPrice: {
+      default: 0.0,
+      required: true,
+      type: Number,
+    },
+    user: {
+      ref: "User",
+      required: true,
+      type: mongoose.Schema.Types.ObjectId,
     },
   },
   {

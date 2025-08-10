@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
-import { generateSalt } from "./generate-salt.util";
+
+import { generateSalt } from "./generate-salt.util.js";
 
 export async function hashData(data: string, salt?: string) {
   const fallbackSalt = salt ?? (await generateSalt());

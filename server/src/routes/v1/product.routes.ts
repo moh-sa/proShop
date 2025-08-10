@@ -1,12 +1,13 @@
 import express from "express";
-import { uploadSingle as uploadSingleMiddleware } from "../../config/multer.config";
-import { ProductController } from "../../controllers";
-import { adminLimiter, defaultLimiter } from "../../managers";
+
+import { uploadSingle as uploadSingleMiddleware } from "../../config/multer.config.js";
+import { ProductController } from "../../controllers/index.js";
+import { adminLimiter, defaultLimiter } from "../../managers/index.js";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
   checkUserIdExists,
-} from "../../middlewares";
+} from "../../middlewares/index.js";
 
 const controller = new ProductController();
 

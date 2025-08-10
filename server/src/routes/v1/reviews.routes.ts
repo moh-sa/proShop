@@ -1,12 +1,17 @@
 import express from "express";
-import { ReviewController } from "../../controllers";
-import { adminLimiter, defaultLimiter, strictLimiter } from "../../managers";
+
+import { ReviewController } from "../../controllers/index.js";
+import {
+  adminLimiter,
+  defaultLimiter,
+  strictLimiter,
+} from "../../managers/index.js";
 import {
   checkIfUserIsAdmin,
   checkJwtTokenValidation,
   checkUserIdExists,
   verifyReviewOwnership,
-} from "../../middlewares";
+} from "../../middlewares/index.js";
 const controller = new ReviewController();
 
 const baseRouter = express.Router();

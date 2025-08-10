@@ -1,17 +1,17 @@
 import { mock } from "node:test";
-import { IProductRepository } from "../../repositories";
-import { FunctionMocksWithReset } from "../types/mocked.type";
+
+import type { IProductRepository } from "../../repositories/index.js";
+import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
 export function mockProductRepository(): FunctionMocksWithReset<IProductRepository> {
   return {
-    create: mock.fn(),
-    getAll: mock.fn(),
-    getTopRated: mock.fn(),
-    getById: mock.fn(),
-    update: mock.fn(),
-    delete: mock.fn(),
     count: mock.fn(),
-    reset: function () {
+    create: mock.fn(),
+    delete: mock.fn(),
+    getAll: mock.fn(),
+    getById: mock.fn(),
+    getTopRated: mock.fn(),
+    reset() {
       this.create.mock.resetCalls();
       this.getAll.mock.resetCalls();
       this.getTopRated.mock.resetCalls();
@@ -28,5 +28,6 @@ export function mockProductRepository(): FunctionMocksWithReset<IProductReposito
       this.delete.mock.restore();
       this.count.mock.restore();
     },
+    update: mock.fn(),
   };
 }

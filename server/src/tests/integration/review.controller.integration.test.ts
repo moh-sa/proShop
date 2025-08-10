@@ -1,21 +1,22 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { ZodError } from "zod";
-import { ReviewController } from "../../controllers";
-import { NotFoundError } from "../../errors";
-import Review from "../../models/review.model";
+
+import { ReviewController } from "../../controllers/index.js";
+import { NotFoundError } from "../../errors/index.js";
+import Review from "../../models/review.model.js";
 import {
   generateMockInsertReview,
   generateMockObjectId,
   generateMockSelectReview,
   generateMockSelectReviews,
   generateMockUser,
-} from "../mocks";
-import { createMockExpressContext } from "../utils";
+} from "../mocks/index.js";
 import {
   connectTestDatabase,
   disconnectTestDatabase,
-} from "../utils/database-connection.utils";
+} from "../utils/database-connection.utils.js";
+import { createMockExpressContext } from "../utils/index.js";
 
 suite("Review Controller 〖 Integration Tests 〗", () => {
   const controller = new ReviewController();
@@ -32,7 +33,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
         user: mockUser._id,
       });
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockReview;
       res.locals.user = mockUser;
 
@@ -53,7 +54,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
         user: mockUser._id,
       });
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockReview;
       res.locals.user = mockUser;
 
@@ -72,7 +73,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
         user: mockUser._id,
       });
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockReview;
       res.locals.user = mockUser;
 
@@ -94,11 +95,11 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
     test("Should throw 'ZodError' when 'service.create' is called without 'rating' required field", async () => {
       // Arrange
       const mockUser = generateMockUser();
-      const { rating, ...mockReview } = generateMockInsertReview({
+      const { rating: _rating, ...mockReview } = generateMockInsertReview({
         user: mockUser._id,
       });
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockReview;
       res.locals.user = mockUser;
 
@@ -122,11 +123,11 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
     test("Should throw 'ZodError' when 'service.create' is called without 'comment' required field", async () => {
       // Arrange
       const mockUser = generateMockUser();
-      const { comment, ...mockReview } = generateMockInsertReview({
+      const { comment: _comment, ...mockReview } = generateMockInsertReview({
         user: mockUser._id,
       });
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockReview;
       res.locals.user = mockUser;
 
@@ -147,11 +148,13 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
     test("Should throw 'ZodError' when 'service.create' is called without 'product' required field", async () => {
       // Arrange
       const mockUser = generateMockUser();
-      const { product, ...mockReviewData } = generateMockInsertReview({
-        user: mockUser._id,
-      });
+      const { product: _product, ...mockReviewData } = generateMockInsertReview(
+        {
+          user: mockUser._id,
+        },
+      );
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockReviewData;
       res.locals.user = mockUser;
 
@@ -176,11 +179,11 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       // Arrange
       const mockUser = generateMockUser();
       const mockReviewData = generateMockInsertReview({
-        user: mockUser._id,
         rating: 6,
+        user: mockUser._id,
       });
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockReviewData;
       res.locals.user = mockUser;
 
@@ -210,7 +213,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
         product: "invalid-product-id",
       });
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.body = mockReviewData;
       res.locals.user = mockUser;
 
@@ -238,7 +241,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReview = generateMockSelectReview();
       await Review.insertMany([mockReview]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: mockReview._id.toString() };
 
       // Act
@@ -256,7 +259,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReview = generateMockSelectReview();
       await Review.insertMany([mockReview]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: mockReview._id.toString() };
 
       // Act
@@ -272,7 +275,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReview = generateMockSelectReview();
       await Review.insertMany([mockReview]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: mockReview._id.toString() };
 
       // Act
@@ -292,7 +295,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
     test("Should throw 'NotFoundError' when 'service.getById' is called with non-existent 'reviewId'", async () => {
       // Arrange
       const reviewId = generateMockObjectId();
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: reviewId.toString() };
 
       // Act & Assert
@@ -308,7 +311,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.getById' is called with invalid 'reviewId' format", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: "invalid-id" };
 
       // Act & Assert
@@ -333,7 +336,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 3 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.getAll(req, res, next);
@@ -348,7 +351,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
     test("Should return '200' status code when 'service.getAll' is called", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.getAll(req, res, next);
@@ -363,7 +366,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 3 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.getAll(req, res, next);
@@ -378,7 +381,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
     test("Should return empty array when 'service.getAll' is called with no reviews in database", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.getAll(req, res, next);
@@ -397,7 +400,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 3 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: mockReviews[0].user.toString() };
 
       // Act
@@ -416,7 +419,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 3 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: mockReviews[0].user.toString() };
 
       // Act
@@ -437,7 +440,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const otherReviews = generateMockSelectReviews({ count: 2 });
       await Review.insertMany([mockReviews, otherReviews].flat());
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: userId.toString() };
 
       // Act
@@ -464,7 +467,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const otherReviews = generateMockSelectReviews({ count: 2 }); // Different user
       await Review.insertMany(otherReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: userId.toString() };
 
       // Act
@@ -479,7 +482,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.getAllByUserId' is called with invalid userId format", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: "invalid-id" };
 
       // Act & Assert
@@ -504,7 +507,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 3 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { productId: mockReviews[0].product.toString() };
 
       // Act
@@ -523,7 +526,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 3 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { productId: mockReviews[0].product.toString() };
 
       // Act
@@ -544,7 +547,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const otherReviews = generateMockSelectReviews({ count: 2 }); // Different product
       await Review.insertMany([mockReviews, otherReviews].flat());
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { productId: productId.toString() };
 
       // Act
@@ -571,7 +574,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const otherReviews = generateMockSelectReviews({ count: 2 }); // Different product
       await Review.insertMany(otherReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { productId: productId.toString() };
 
       // Act
@@ -586,7 +589,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.getAllByProductId' is called with invalid productId format", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { productId: "invalid-id" };
 
       // Act & Assert
@@ -611,7 +614,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReview = generateMockSelectReview();
       await Review.insertMany([mockReview]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: mockReview._id.toString() };
 
       // Act
@@ -629,7 +632,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReview = generateMockSelectReview();
       await Review.insertMany([mockReview]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: mockReview._id.toString() };
 
       // Act
@@ -645,7 +648,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReview = generateMockSelectReview();
       await Review.insertMany([mockReview]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const updateData = { comment: "UPDATED COMMENT", rating: 5 };
       req.params = { reviewId: mockReview._id.toString() };
       req.body = updateData;
@@ -665,7 +668,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReview = generateMockSelectReview();
       await Review.insertMany([mockReview]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const updateData = { comment: "UPDATED COMMENT ONLY" };
       req.params = { reviewId: mockReview._id.toString() };
       req.body = updateData;
@@ -686,7 +689,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const otherReviews = generateMockSelectReviews({ count: 2 });
       await Review.insertMany(otherReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: reviewId.toString() };
 
       // Act & Assert
@@ -702,7 +705,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.update' is called with invalid 'objectId'", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: "invalid-id" };
 
       // Act & Assert
@@ -725,7 +728,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReview = generateMockSelectReview();
       await Review.insertMany([mockReview]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: mockReview._id.toString() };
       req.body = { rating: 6 }; // Invalid rating (> 5)
 
@@ -753,7 +756,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReview = generateMockSelectReview();
       await Review.insertMany([mockReview]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: mockReview._id.toString() };
 
       // Act
@@ -770,7 +773,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReview = generateMockSelectReview();
       await Review.insertMany([mockReview]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: mockReview._id.toString() };
 
       // Act
@@ -786,7 +789,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReview = generateMockSelectReview();
       await Review.insertMany([mockReview]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: mockReview._id.toString() };
 
       // Act
@@ -804,7 +807,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const otherReviews = generateMockSelectReviews({ count: 2 });
       await Review.insertMany(otherReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: reviewId.toString() };
 
       // Act & Assert
@@ -820,7 +823,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.delete' is called with invalid 'objectId'", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: "invalid-id" };
 
       // Act & Assert
@@ -845,7 +848,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 3 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.count(req, res, next);
@@ -862,7 +865,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 3 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.count(req, res, next);
@@ -877,7 +880,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 3 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.count(req, res, next);
@@ -893,7 +896,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 5 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.count(req, res, next);
@@ -906,7 +909,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
     test("Should return zero when 'service.count' is called with no reviews in database", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
 
       // Act
       await controller.count(req, res, next);
@@ -924,7 +927,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 3 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: mockReviews[0].user.toString() };
 
       // Act
@@ -942,7 +945,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 3 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: mockReviews[0].user.toString() };
 
       // Act
@@ -958,7 +961,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 3 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: mockReviews[0].user.toString() };
 
       // Act
@@ -980,7 +983,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const otherReviews = generateMockSelectReviews({ count: 2 }); // Different user
       await Review.insertMany([mockReviews, otherReviews].flat());
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: userId.toString() };
 
       // Act
@@ -998,7 +1001,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const otherReviews = generateMockSelectReviews({ count: 2 }); // Different user
       await Review.insertMany(otherReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: userId.toString() };
 
       // Act
@@ -1012,7 +1015,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.countByUserId' is called with invalid 'objectId'", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { userId: "invalid-id" };
 
       // Act & Assert
@@ -1037,7 +1040,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 3 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { productId: mockReviews[0].product.toString() };
 
       // Act
@@ -1055,7 +1058,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 3 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { productId: mockReviews[0].product.toString() };
 
       // Act
@@ -1071,7 +1074,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 3 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { productId: mockReviews[0].product.toString() };
 
       // Act
@@ -1093,7 +1096,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const otherReviews = generateMockSelectReviews({ count: 2 }); // Different product
       await Review.insertMany([mockReviews, otherReviews].flat());
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { productId: productId.toString() };
 
       // Act
@@ -1111,7 +1114,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const otherReviews = generateMockSelectReviews({ count: 2 }); // Different product
       await Review.insertMany(otherReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { productId: productId.toString() };
 
       // Act
@@ -1125,7 +1128,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.countByProductId' is called with invalid 'objectId'", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { productId: "invalid-id" };
 
       // Act & Assert
@@ -1150,7 +1153,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReview = generateMockSelectReview();
       await Review.insertMany([mockReview]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: mockReview._id.toString() };
 
       // Act
@@ -1168,7 +1171,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReview = generateMockSelectReview();
       await Review.insertMany([mockReview]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: mockReview._id.toString() };
 
       // Act
@@ -1184,7 +1187,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReviews = generateMockSelectReviews({ count: 5 });
       await Review.insertMany(mockReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       const targetReview = mockReviews[0];
       req.params = { reviewId: targetReview._id.toString() };
 
@@ -1203,7 +1206,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
     test("Should throw 'NotFoundError' when 'service.existsById' is called with non-existent review id", async () => {
       // Arrange
       const reviewId = generateMockObjectId();
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: reviewId.toString() };
 
       // Act & Assert
@@ -1219,7 +1222,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
     test("Should throw 'ZodError' when 'service.existsById' is called with invalid 'objectId'", async () => {
       // Arrange
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = { reviewId: "invalid-id" };
 
       // Act & Assert
@@ -1244,10 +1247,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReview = generateMockSelectReview();
       await Review.insertMany([mockReview]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = {
-        userId: mockReview.user.toString(),
         productId: mockReview.product.toString(),
+        userId: mockReview.user.toString(),
       };
 
       // Act
@@ -1265,10 +1268,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const mockReview = generateMockSelectReview();
       await Review.insertMany([mockReview]);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = {
-        userId: mockReview.user.toString(),
         productId: mockReview.product.toString(),
+        userId: mockReview.user.toString(),
       };
 
       // Act
@@ -1285,10 +1288,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const otherReview = generateMockSelectReviews({ count: 2 });
       await Review.insertMany([mockReview, otherReview].flat());
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = {
-        userId: mockReview.user.toString(),
         productId: mockReview.product.toString(),
+        userId: mockReview.user.toString(),
       };
 
       // Act
@@ -1309,10 +1312,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
       const otherReviews = generateMockSelectReviews({ count: 2 });
       await Review.insertMany(otherReviews);
 
-      const { req, res, next } = createMockExpressContext();
+      const { next, req, res } = createMockExpressContext();
       req.params = {
-        userId: mockId.toString(),
         productId: mockId.toString(),
+        userId: mockId.toString(),
       };
 
       // Act & Assert
@@ -1329,8 +1332,8 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
     test("Should throw 'ZodError' when 'service.existsByUserIdAndProductId' is called with invalid 'userId'", async () => {
       // Arrange
       const productId = generateMockObjectId();
-      const { req, res, next } = createMockExpressContext();
-      req.params = { userId: "invalid-id", productId: productId.toString() };
+      const { next, req, res } = createMockExpressContext();
+      req.params = { productId: productId.toString(), userId: "invalid-id" };
 
       // Act & Assert
       await assert.rejects(
@@ -1350,8 +1353,8 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
     test("Should throw 'ZodError' when 'service.existsByUserIdAndProductId' is called with invalid productId format", async () => {
       // Arrange
       const userId = generateMockObjectId();
-      const { req, res, next } = createMockExpressContext();
-      req.params = { userId: userId.toString(), productId: "invalid-id" };
+      const { next, req, res } = createMockExpressContext();
+      req.params = { productId: "invalid-id", userId: userId.toString() };
 
       // Act & Assert
       await assert.rejects(

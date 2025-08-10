@@ -1,17 +1,18 @@
-import { CacheOperationError } from "../../errors";
-import { ICacheManager } from "../../managers";
-import { FunctionMocksWithReset } from "../types/mocked.type";
+import type { ICacheManager } from "../../managers/index.js";
+import type { FunctionMocksWithReset } from "../types/mocked.type.js";
+
+import { CacheOperationError } from "../../errors/index.js";
 
 export function mockCacheMiss({
-  instance,
   cacheKey,
+  instance,
 }: {
-  instance: FunctionMocksWithReset<ICacheManager>;
   cacheKey: string;
+  instance: FunctionMocksWithReset<ICacheManager>;
 }): void {
   instance.get.mock.mockImplementationOnce(() => ({
-    success: false,
-    key: cacheKey,
     error: CacheOperationError.get(cacheKey),
+    key: cacheKey,
+    success: false,
   }));
 }

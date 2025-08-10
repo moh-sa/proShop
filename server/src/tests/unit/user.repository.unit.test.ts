@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 import assert from "node:assert/strict";
 import { beforeEach, describe, mock, suite, test } from "node:test";
+
+import type { InsertUser } from "../../types/index.js";
+
 import {
   DatabaseDuplicateKeyError,
   DatabaseNetworkError,
@@ -8,22 +11,21 @@ import {
   DatabaseTimeoutError,
   DatabaseValidationError,
   GenericDatabaseError,
-} from "../../errors";
-import User from "../../models/userModel";
-import { UserRepository } from "../../repositories";
-import { InsertUser } from "../../types";
+} from "../../errors/index.js";
+import User from "../../models/userModel.js";
+import { UserRepository } from "../../repositories/index.js";
 import {
   generateMockObjectId,
   generateMockUser,
   generateMockUsers,
-} from "../mocks";
+} from "../mocks/index.js";
 
 suite("User Repository〖 Unit Tests 〗", () => {
   const repo = new UserRepository();
   beforeEach(() => mock.reset());
 
   describe("create", () => {
-    const { token, ...mockUser } = generateMockUser();
+    const { token: _, ...mockUser } = generateMockUser();
 
     test("Should return 'user object' when 'db.create' is called once with 'user data'", async (t) => {
       const createMock = t.mock.method(User, "create", async () => ({
@@ -420,7 +422,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
         }),
       );
 
-      const updatedUser = await repo.update({ userId, data: updateData });
+      const updatedUser = await repo.update({ data: updateData, userId });
 
       assert.ok(updatedUser);
       assert.deepStrictEqual(updatedUser, expectedResult);
@@ -441,7 +443,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
         lean: async () => null,
       }));
 
-      const updatedUser = await repo.update({ userId, data: updateData });
+      const updatedUser = await repo.update({ data: updateData, userId });
 
       assert.strictEqual(updatedUser, null);
     });
@@ -454,7 +456,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.update({ userId, data: updateData }),
+        async () => await repo.update({ data: updateData, userId }),
         DatabaseValidationError,
       );
     });
@@ -468,7 +470,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.update({ userId, data: updateData }),
+        async () => await repo.update({ data: updateData, userId }),
         DatabaseDuplicateKeyError,
       );
     });
@@ -483,7 +485,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.update({ userId, data: updateData }),
+        async () => await repo.update({ data: updateData, userId }),
         DatabaseTimeoutError,
       );
     });
@@ -496,7 +498,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.update({ userId, data: updateData }),
+        async () => await repo.update({ data: updateData, userId }),
         DatabaseQueryError,
       );
     });
@@ -509,7 +511,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.update({ userId, data: updateData }),
+        async () => await repo.update({ data: updateData, userId }),
         DatabaseNetworkError,
       );
     });
@@ -522,7 +524,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
       });
 
       await assert.rejects(
-        async () => await repo.update({ userId, data: updateData }),
+        async () => await repo.update({ data: updateData, userId }),
         GenericDatabaseError,
       );
     });

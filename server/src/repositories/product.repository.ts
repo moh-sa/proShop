@@ -1,34 +1,36 @@
-import { Types } from "mongoose";
-import { CacheManager } from "../managers";
-import Product from "../models/productModel";
-import {
+import type { Types } from "mongoose";
+
+import type {
   AllProducts,
   InsertProductWithStringImage,
   SelectProduct,
   TopRatedProduct,
-} from "../types";
-import { handleDatabaseError } from "../utils";
+} from "../types/index.js";
+
+import { CacheManager } from "../managers/index.js";
+import Product from "../models/productModel.js";
+import { handleDatabaseError } from "../utils/index.js";
 
 export interface IProductRepository {
-  create(data: InsertProductWithStringImage): Promise<SelectProduct>;
-  getById(data: { productId: Types.ObjectId }): Promise<SelectProduct | null>;
-  update(data: {
-    productId: Types.ObjectId;
-    data: Partial<InsertProductWithStringImage>;
-  }): Promise<SelectProduct | null>;
-  delete(data: { productId: Types.ObjectId }): Promise<SelectProduct | null>;
-  getTopRated(data: { limit: number }): Promise<Array<TopRatedProduct>>;
-  getAll(data: {
-    query: Record<string, unknown>;
-    numberOfProductsPerPage: number;
-    currentPage: number;
-  }): Promise<Array<AllProducts>>;
   count(query: Record<string, unknown>): Promise<number>;
+  create(data: InsertProductWithStringImage): Promise<SelectProduct>;
+  delete(data: { productId: Types.ObjectId }): Promise<null | SelectProduct>;
+  getAll(data: {
+    currentPage: number;
+    numberOfProductsPerPage: number;
+    query: Record<string, unknown>;
+  }): Promise<Array<AllProducts>>;
+  getById(data: { productId: Types.ObjectId }): Promise<null | SelectProduct>;
+  getTopRated(data: { limit: number }): Promise<Array<TopRatedProduct>>;
+  update(data: {
+    data: Partial<InsertProductWithStringImage>;
+    productId: Types.ObjectId;
+  }): Promise<null | SelectProduct>;
 }
 
 export class ProductRepository implements IProductRepository {
-  private readonly _db: typeof Product;
   private _cache: CacheManager;
+  private readonly _db: typeof Product;
 
   constructor(
     db: typeof Product = Product,
@@ -36,6 +38,14 @@ export class ProductRepository implements IProductRepository {
   ) {
     this._db = db;
     this._cache = cache;
+  }
+
+  async count(query: Record<string, unknown>): Promise<number> {
+    try {
+      return await this._db.countDocuments({ ...query }).lean();
+    } catch (error) {
+      this._errorHandler(error);
+    }
   }
 
   async create(data: InsertProductWithStringImage): Promise<SelectProduct> {
@@ -55,11 +65,50 @@ export class ProductRepository implements IProductRepository {
     }
   }
 
+  async delete({
+    productId,
+  }: {
+    productId: Types.ObjectId;
+  }): Promise<null | SelectProduct> {
+    try {
+      const deletedProduct = await this._db.findByIdAndDelete(productId).lean();
+      if (deletedProduct) {
+        this._invalidateProductCache({ id: productId.toString() });
+      }
+
+      return deletedProduct;
+    } catch (error) {
+      this._errorHandler(error);
+    }
+  }
+
+  async getAll(data: {
+    currentPage: number;
+    numberOfProductsPerPage: number;
+    query: Record<string, unknown>;
+  }): Promise<Array<AllProducts>> {
+    const cachedProducts = this._cache.get<Array<AllProducts>>({
+      key: `all-${data.currentPage}`,
+    });
+    if (cachedProducts.success) return cachedProducts.data;
+
+    try {
+      return await this._db
+        .find({ ...data.query })
+        .select("id name brand category price rating numReviews image")
+        .limit(data.numberOfProductsPerPage)
+        .skip(data.numberOfProductsPerPage * (data.currentPage - 1))
+        .lean();
+    } catch (error) {
+      this._errorHandler(error);
+    }
+  }
+
   async getById({
     productId,
   }: {
     productId: Types.ObjectId;
-  }): Promise<SelectProduct | null> {
+  }): Promise<null | SelectProduct> {
     const cacheId = productId.toString();
     const cachedProduct = this._cache.get<SelectProduct>({
       key: cacheId,
@@ -76,47 +125,6 @@ export class ProductRepository implements IProductRepository {
       }
 
       return product;
-    } catch (error) {
-      this._errorHandler(error);
-    }
-  }
-
-  async update({
-    productId,
-    data,
-  }: {
-    productId: Types.ObjectId;
-    data: Partial<InsertProductWithStringImage>;
-  }): Promise<SelectProduct | null> {
-    try {
-      const product = await this._db
-        .findByIdAndUpdate(productId, data, {
-          new: true,
-        })
-        .lean();
-
-      if (product) {
-        this._invalidateProductCache({ id: productId.toString() });
-      }
-
-      return product;
-    } catch (error) {
-      this._errorHandler(error);
-    }
-  }
-
-  async delete({
-    productId,
-  }: {
-    productId: Types.ObjectId;
-  }): Promise<SelectProduct | null> {
-    try {
-      const deletedProduct = await this._db.findByIdAndDelete(productId).lean();
-      if (deletedProduct) {
-        this._invalidateProductCache({ id: productId.toString() });
-      }
-
-      return deletedProduct;
     } catch (error) {
       this._errorHandler(error);
     }
@@ -154,31 +162,25 @@ export class ProductRepository implements IProductRepository {
     }
   }
 
-  async getAll(data: {
-    query: Record<string, unknown>;
-    numberOfProductsPerPage: number;
-    currentPage: number;
-  }): Promise<Array<AllProducts>> {
-    const cachedProducts = this._cache.get<Array<AllProducts>>({
-      key: `all-${data.currentPage}`,
-    });
-    if (cachedProducts.success) return cachedProducts.data;
-
+  async update({
+    data,
+    productId,
+  }: {
+    data: Partial<InsertProductWithStringImage>;
+    productId: Types.ObjectId;
+  }): Promise<null | SelectProduct> {
     try {
-      return await this._db
-        .find({ ...data.query })
-        .select("id name brand category price rating numReviews image")
-        .limit(data.numberOfProductsPerPage)
-        .skip(data.numberOfProductsPerPage * (data.currentPage - 1))
+      const product = await this._db
+        .findByIdAndUpdate(productId, data, {
+          new: true,
+        })
         .lean();
-    } catch (error) {
-      this._errorHandler(error);
-    }
-  }
 
-  async count(query: Record<string, unknown>): Promise<number> {
-    try {
-      return await this._db.countDocuments({ ...query }).lean();
+      if (product) {
+        this._invalidateProductCache({ id: productId.toString() });
+      }
+
+      return product;
     } catch (error) {
       this._errorHandler(error);
     }

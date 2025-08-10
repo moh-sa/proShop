@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
-import { env } from "../config/env";
-import { jwtSignOptions } from "../config/jwt.config";
+
+import { env } from "../config/env.js";
+import { jwtSignOptions } from "../config/jwt.config.js";
 
 export const generateJwtToken = (
   payload: Record<string, unknown> = {},

@@ -1,2 +1,2 @@
-export * from "./product.constants";
-export * from "./storage.constants";
+export * from "./product.constants.js";
+export * from "./storage.constants.js";

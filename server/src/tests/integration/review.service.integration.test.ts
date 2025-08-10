@@ -1,22 +1,27 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
-import { DatabaseDuplicateKeyError, NotFoundError } from "../../errors";
-import Product from "../../models/productModel";
-import Review from "../../models/review.model";
-import User from "../../models/userModel";
-import { ReviewService } from "../../services/review.service";
-import { InsertReview } from "../../types";
+
+import type { InsertReview } from "../../types/index.js";
+
+import {
+  DatabaseDuplicateKeyError,
+  NotFoundError,
+} from "../../errors/index.js";
+import Product from "../../models/productModel.js";
+import Review from "../../models/review.model.js";
+import User from "../../models/userModel.js";
+import { ReviewService } from "../../services/review.service.js";
 import {
   generateMockInsertProductWithStringImage,
   generateMockInsertReview,
   generateMockInsertReviews,
   generateMockObjectId,
   generateMockSelectProduct,
-} from "../mocks";
+} from "../mocks/index.js";
 import {
   connectTestDatabase,
   disconnectTestDatabase,
-} from "../utils/database-connection.utils";
+} from "../utils/database-connection.utils.js";
 
 suite("Review Service 〖 Integration Tests 〗", () => {
   const reviewService = new ReviewService();
@@ -261,14 +266,14 @@ suite("Review Service 〖 Integration Tests 〗", () => {
       const mockReview = generateMockInsertReview();
       const createdReview = await Review.create(mockReview);
       const updateData: Partial<InsertReview> = {
-        name: "Updated Name",
         comment: "Updated Comment",
+        name: "Updated Name",
       };
 
       // Act
       const result = await reviewService.update({
-        reviewId: createdReview._id,
         data: updateData,
+        reviewId: createdReview._id,
       });
 
       // Assert
@@ -301,8 +306,8 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
       // Act
       await reviewService.update({
-        reviewId: createdReview._id,
         data: updateData,
+        reviewId: createdReview._id,
       });
 
       // Assert
@@ -320,8 +325,8 @@ suite("Review Service 〖 Integration Tests 〗", () => {
       // Act & Assert
       await assert.rejects(async () => {
         await reviewService.update({
-          reviewId: nonExistentId,
           data: updateData,
+          reviewId: nonExistentId,
         });
       }, NotFoundError);
     });
@@ -502,8 +507,8 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
       // Act
       const result = await reviewService.existsByUserIdAndProductId({
-        userId: mockReviews[0].user,
         productId: mockReviews[0].product,
+        userId: mockReviews[0].user,
       });
 
       // Assert
@@ -522,8 +527,8 @@ suite("Review Service 〖 Integration Tests 〗", () => {
       // Act & Assert
       await assert.rejects(async () => {
         await reviewService.existsByUserIdAndProductId({
-          userId,
           productId,
+          userId,
         });
       }, NotFoundError);
     });

@@ -1,22 +1,24 @@
 import { Types } from "mongoose";
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
-import { DatabaseValidationError } from "../../errors/database";
-import { CacheManager } from "../../managers";
-import Product from "../../models/productModel";
-import { ProductRepository } from "../../repositories";
-import { SelectProduct, TopRatedProduct } from "../../types";
-import { removeObjectFields } from "../../utils";
-import { generateMockObjectId } from "../mocks";
+
+import type { SelectProduct, TopRatedProduct } from "../../types/index.js";
+
+import { DatabaseValidationError } from "../../errors/index.js";
+import { CacheManager } from "../../managers/index.js";
+import Product from "../../models/productModel.js";
+import { ProductRepository } from "../../repositories/index.js";
+import { removeObjectFields } from "../../utils/index.js";
+import { generateMockObjectId } from "../mocks/index.js";
 import {
   generateMockInsertProductWithStringImage,
   generateMockSelectProduct,
   generateMockSelectProducts,
-} from "../mocks/product.mock";
+} from "../mocks/product.mock.js";
 import {
   connectTestDatabase,
   disconnectTestDatabase,
-} from "../utils/database-connection.utils";
+} from "../utils/database-connection.utils.js";
 
 suite("Product Repository 〖 Integration Tests 〗", async () => {
   let productRepository: ProductRepository;
@@ -108,9 +110,9 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 
       // Act
       const products = await productRepository.getAll({
-        query: {},
-        numberOfProductsPerPage: 10,
         currentPage: 1,
+        numberOfProductsPerPage: 10,
+        query: {},
       });
 
       // Assert
@@ -136,9 +138,9 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 
       // Act
       const products = await productRepository.getAll({
-        query: {},
-        numberOfProductsPerPage: productsPerPage,
         currentPage: 1,
+        numberOfProductsPerPage: productsPerPage,
+        query: {},
       });
 
       // Assert
@@ -154,18 +156,18 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 
       // Act
       const products = await productRepository.getAll({
-        query: {},
-        numberOfProductsPerPage: productsPerPage,
         currentPage: page,
+        numberOfProductsPerPage: productsPerPage,
+        query: {},
       });
 
       // Assert
       assert.equal(products.length, productsPerPage);
       // Verify we got different products than first page
       const firstPageProducts = await productRepository.getAll({
-        query: {},
-        numberOfProductsPerPage: productsPerPage,
         currentPage: 1,
+        numberOfProductsPerPage: productsPerPage,
+        query: {},
       });
       assert.notDeepStrictEqual(products[0]._id, firstPageProducts[0]._id);
     });
@@ -178,9 +180,9 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 
       // Act
       const products = await productRepository.getAll({
-        query: { brand: targetBrand },
-        numberOfProductsPerPage: 10,
         currentPage: 1,
+        numberOfProductsPerPage: 10,
+        query: { brand: targetBrand },
       });
 
       // Assert
@@ -197,9 +199,9 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 
       // Act
       const products = await productRepository.getAll({
-        query: { brand: "Non-existent Brand" },
-        numberOfProductsPerPage: 10,
         currentPage: 1,
+        numberOfProductsPerPage: 10,
+        query: { brand: "Non-existent Brand" },
       });
 
       // Assert
@@ -280,9 +282,10 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 
       // Assert
       assert.equal(products.length, 3);
+
       for (let i = 1; i < products.length; i++) {
-        const prevProduct = await Product.findById(products[i - 1]._id).lean();
-        const currentProduct = await Product.findById(products[i]._id).lean();
+        const prevProduct = await Product.findById(products[i - 1]._id).lean(); // eslint-disable-line no-await-in-loop
+        const currentProduct = await Product.findById(products[i]._id).lean(); // eslint-disable-line no-await-in-loop
         assert.ok(
           prevProduct!.rating >= currentProduct!.rating,
           "Products should be sorted by rating in descending order",
@@ -387,8 +390,8 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 
       // Act
       const updatedProduct = await productRepository.update({
-        productId: mockProduct._id,
         data: updateData,
+        productId: mockProduct._id,
       });
 
       // Assert
@@ -410,8 +413,8 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 
       // Act
       await productRepository.update({
-        productId: mockProduct._id,
         data: updateData,
+        productId: mockProduct._id,
       });
 
       // Assert
@@ -428,8 +431,8 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 
       // Act
       const updatedProduct = await productRepository.update({
-        productId: nonExistentId,
         data: updateData,
+        productId: nonExistentId,
       });
 
       // Assert
@@ -446,8 +449,8 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
       await assert.rejects(
         async () =>
           await productRepository.update({
-            productId: mockProduct._id,
             data: invalidData,
+            productId: mockProduct._id,
           }),
         DatabaseValidationError,
       );
@@ -462,8 +465,8 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
       await assert.rejects(
         async () =>
           await productRepository.update({
-            productId: invalidId,
             data: updateData,
+            productId: invalidId,
           }),
         (error: Error) => {
           assert.ok(error instanceof DatabaseValidationError);
