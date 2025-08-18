@@ -54,4 +54,7 @@ const SessionSchema = new Schema<SessionSchema>(
 	},
 );
 
+// Indexes
+SessionSchema.index({ tokenId: 1, userId: 1 }, { unique: true });
+
 export const Session = model<SessionSchema>("Session", SessionSchema);
