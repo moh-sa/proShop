@@ -27,6 +27,7 @@ export interface ISessionRepository {
 		tokenId: string;
 		userId: Types.ObjectId;
 	}): Promise<SelectSession>;
+	revokeAllByUserId(args: { userId: Types.ObjectId }): Promise<number>;
 	revokeByTokenIdAndUserId(args: {
 		tokenId: string;
 		userId: Types.ObjectId;
@@ -135,6 +136,18 @@ export class SessionRepository implements ISessionRepository {
 		try {
 			return await this._db
 				.findOne({ tokenId: args.tokenId, userId: args.userId })
+				.lean();
+		} catch (error) {
+			return this._errorHandler(error);
+		}
+	}
+
+	public async revokeAllByUserId(args: {
+		userId: Types.ObjectId;
+	}): Promise<number> {
+		try {
+			return await this._db
+				.updateMany({ userId: args.userId }, { revokedAt: new Date() })
 				.lean();
 		} catch (error) {
 			return this._errorHandler(error);
