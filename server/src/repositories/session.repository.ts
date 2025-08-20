@@ -12,6 +12,10 @@ export interface ISessionRepository {
 		tokenId: string;
 		userId: Types.ObjectId;
 	}): Promise<SelectSession>;
+	existsByTokenIdAndUserId(args: {
+		tokenId: string;
+		userId: Types.ObjectId;
+	}): Promise<Types.ObjectId>;
 	getAll(): Promise<Array<SelectSession>>;
 	getAllActiveByUserId(args: {
 		userId: Types.ObjectId;
@@ -71,6 +75,19 @@ export class SessionRepository implements ISessionRepository {
 		try {
 			return await this._db
 				.findOneAndDelete({ tokenId: args.tokenId, userId: args.userId })
+				.lean();
+		} catch (error) {
+			return this._errorHandler(error);
+		}
+	}
+
+	public async existsByTokenIdAndUserId(args: {
+		tokenId: string;
+		userId: Types.ObjectId;
+	}): Promise<Types.ObjectId> {
+		try {
+			return await this._db
+				.exists({ tokenId: args.tokenId, userId: args.userId })
 				.lean();
 		} catch (error) {
 			return this._errorHandler(error);
