@@ -6,6 +6,7 @@ import { Session } from "../models/session.model.js";
 import { handleDatabaseError } from "../utils/index.js";
 
 export interface ISessionRepository {
+	countActiveByUserId(args: { userId: Types.ObjectId }): Promise<number>;
 	create(args: InsertSession): Promise<SelectSession>;
 	deleteAllByUserId(args: { userId: Types.ObjectId }): Promise<number>;
 	deleteByTokenIdAndUserId(args: {
@@ -48,6 +49,20 @@ export class SessionRepository implements ISessionRepository {
 
 	constructor(db?: typeof Session) {
 		this._db = db ?? Session;
+	}
+
+	public async countActiveByUserId(args: {
+		userId: Types.ObjectId;
+	}): Promise<number> {
+		try {
+			return await this._db.countDocuments({
+				expiresAt: { $gt: new Date() },
+				revokedAt: null,
+				userId: args.userId,
+			});
+		} catch (error) {
+			return this._errorHandler(error);
+		}
 	}
 
 	public async create(args: InsertSession): Promise<SelectSession> {
