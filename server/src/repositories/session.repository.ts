@@ -14,6 +14,7 @@ export interface ISessionRepository {
 	getAllByUserId(args: {
 		userId: Types.ObjectId;
 	}): Promise<Array<SelectSession>>;
+	getAllRevoked(): Promise<Array<SelectSession>>;
 	getAllRevokedByUserId(args: {
 		userId: Types.ObjectId;
 	}): Promise<Array<SelectSession>>;
@@ -67,6 +68,14 @@ export class SessionRepository implements ISessionRepository {
 	}): Promise<Array<SelectSession>> {
 		try {
 			return await this._db.find({ userId: args.userId }).lean();
+		} catch (error) {
+			return this._errorHandler(error);
+		}
+	}
+
+	public async getAllRevoked(): Promise<Array<SelectSession>> {
+		try {
+			return await this._db.find({ revokedAt: { $ne: null } }).lean();
 		} catch (error) {
 			return this._errorHandler(error);
 		}
