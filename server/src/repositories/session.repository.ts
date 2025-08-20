@@ -1,3 +1,5 @@
+import type { Types } from "mongoose";
+
 import type { InsertSession, SelectSession } from "../types/index.js";
 
 import { Session } from "../models/session.model.js";
@@ -5,6 +7,10 @@ import { handleDatabaseError } from "../utils/index.js";
 
 export interface ISessionRepository {
 	create(args: InsertSession): Promise<SelectSession>;
+	getByTokenIdAndUserId(args: {
+		tokenId: string;
+		userId: Types.ObjectId;
+	}): Promise<SelectSession>;
 }
 
 export class SessionRepository implements ISessionRepository {
@@ -17,6 +23,19 @@ export class SessionRepository implements ISessionRepository {
 	public async create(args: InsertSession): Promise<SelectSession> {
 		try {
 			return (await this._db.create(args)).toObject();
+		} catch (error) {
+			return this._errorHandler(error);
+		}
+	}
+
+	public async getByTokenIdAndUserId(args: {
+		tokenId: string;
+		userId: Types.ObjectId;
+	}): Promise<SelectSession> {
+		try {
+			return await this._db
+				.findOne({ tokenId: args.tokenId, userId: args.userId })
+				.lean();
 		} catch (error) {
 			return this._errorHandler(error);
 		}
