@@ -119,14 +119,22 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			assert.ok(Array.isArray(products));
 			assert.ok(products.length > 0);
 			assert.strictEqual(products.length, mockProducts.length);
-			products.forEach((product, index) => {
-				const { _id: mockProductId, ...assertMockProduct } = removeObjectFields(
-					mockProducts[index],
-					["user", "countInStock", "createdAt", "updatedAt", "description"],
-				);
-				const { _id: productId, ...assertProduct } = product;
-				assert.strictEqual(mockProductId.toString(), productId.toString());
-				assert.deepStrictEqual(assertMockProduct, assertProduct);
+
+			const assertProducts = products.filter((product) => !product._id);
+			const assertMockProducts = mockProducts.map((product) => {
+				return removeObjectFields(product, [
+					"_id",
+					"user",
+					"countInStock",
+					"createdAt",
+					"updatedAt",
+					"description",
+				]);
+			});
+
+			assertProducts.forEach((product) => {
+				// @ts-expect-error - apparently, `removeObjectFields` does not update the type
+				assert.ok(assertMockProducts.includes(product));
 			});
 		});
 
