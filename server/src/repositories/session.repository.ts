@@ -22,6 +22,11 @@ export interface ISessionRepository {
 		tokenId: string;
 		userId: Types.ObjectId;
 	}): Promise<SelectSession>;
+	updateByTokenIdAndUserId(args: {
+		data: Partial<InsertSession>;
+		tokenId: string;
+		userId: Types.ObjectId;
+	}): Promise<SelectSession>;
 }
 
 export class SessionRepository implements ISessionRepository {
@@ -98,6 +103,24 @@ export class SessionRepository implements ISessionRepository {
 		try {
 			return await this._db
 				.findOne({ tokenId: args.tokenId, userId: args.userId })
+				.lean();
+		} catch (error) {
+			return this._errorHandler(error);
+		}
+	}
+
+	public async updateByTokenIdAndUserId(args: {
+		data: Partial<InsertSession>;
+		tokenId: string;
+		userId: Types.ObjectId;
+	}): Promise<SelectSession> {
+		try {
+			return await this._db
+				.findOneAndUpdate(
+					{ tokenId: args.tokenId, userId: args.userId },
+					args.data,
+					{ new: true },
+				)
 				.lean();
 		} catch (error) {
 			return this._errorHandler(error);
