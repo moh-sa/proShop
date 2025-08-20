@@ -7,6 +7,7 @@ import { handleDatabaseError } from "../utils/index.js";
 
 export interface ISessionRepository {
 	create(args: InsertSession): Promise<SelectSession>;
+	deleteAllByUserId(args: { userId: Types.ObjectId }): Promise<number>;
 	deleteByTokenIdAndUserId(args: {
 		tokenId: string;
 		userId: Types.ObjectId;
@@ -43,6 +44,16 @@ export class SessionRepository implements ISessionRepository {
 	public async create(args: InsertSession): Promise<SelectSession> {
 		try {
 			return (await this._db.create(args)).toObject();
+		} catch (error) {
+			return this._errorHandler(error);
+		}
+	}
+
+	public async deleteAllByUserId(args: {
+		userId: Types.ObjectId;
+	}): Promise<number> {
+		try {
+			return await this._db.deleteMany({ userId: args.userId }).lean();
 		} catch (error) {
 			return this._errorHandler(error);
 		}
