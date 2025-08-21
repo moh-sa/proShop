@@ -6,8 +6,6 @@
 	"main": "server.js",
 	"scripts": {
 		"build": "tsc",
-		"data:destroy": "node seeder -d",
-		"data:import": "node seeder",
 		"dev": "ts-node src/server.ts",
 		"format:check": "prettier --check .",
 		"format:fix": "prettier --write .",
