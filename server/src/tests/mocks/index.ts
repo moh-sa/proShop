@@ -12,6 +12,7 @@ export * from "./objectid.mock.js";
 export * from "./order-repository.mock.js";
 export * from "./order-service.mock.js";
 export * from "./order.mock.js";
+export * from "./password-service.mock.js";
 export * from "./product-repository.mock.js";
 export * from "./product-service.mock.js";
 export * from "./product.mock.js";
