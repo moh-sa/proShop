@@ -1,12 +1,17 @@
 import * as argon from "argon2";
 import { z } from "zod";
 
-import { PasswordHashError, PasswordValidationError } from "../errors/index.js";
+import {
+	PasswordHashError,
+	PasswordValidationError,
+	PasswordVerifyError,
+} from "../errors/index.js";
 import { formatZodErrors } from "../utils/index.js";
 import { passwordValidator } from "../validators/index.js";
 
 export interface IPasswordService {
 	hash(args: { password: string }): Promise<string>;
+	verify(args: { hashedPassword: string; password: string }): Promise<boolean>;
 }
 
 export class PasswordService implements IPasswordService {
@@ -23,6 +28,19 @@ export class PasswordService implements IPasswordService {
 			return await this._provider.hash(args.password);
 		} catch (error) {
 			throw new PasswordHashError({ cause: error });
+		}
+	}
+
+	public async verify(args: {
+		hashedPassword: string;
+		password: string;
+	}): Promise<boolean> {
+		this._validate(args);
+
+		try {
+			return await this._provider.verify(args.hashedPassword, args.password);
+		} catch (error) {
+			throw new PasswordVerifyError({ cause: error });
 		}
 	}
 
