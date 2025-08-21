@@ -1,15 +1,19 @@
-import bcryptjs from "bcryptjs";
 import assert from "node:assert";
 import test, { afterEach, describe, suite } from "node:test";
 
 import { AuthenticationError, DatabaseError } from "../../errors/index.js";
 import { AuthService } from "../../services/index.js";
 import { removeObjectFields } from "../../utils/index.js";
-import { generateMockUser, mockUserRepository } from "../mocks/index.js";
+import {
+	generateMockUser,
+	mockPasswordService,
+	mockUserRepository,
+} from "../mocks/index.js";
 
 suite("Auth Service 〖 Unit Tests 〗", () => {
 	const mockRepo = mockUserRepository();
-	const service = new AuthService(mockRepo);
+	const mockPswService = mockPasswordService();
+	const service = new AuthService(mockRepo, mockPswService as any);
 
 	afterEach(() => mockRepo.reset());
 
@@ -93,12 +97,12 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 	describe("Signin", () => {
 		const mockUser = generateMockUser();
 
-		test("Should return user object including  token and no password. Call 'repo.getByEmail' and 'compare' once with correct data", async (t) => {
+		test("Should return user object including  token and no password. Call 'repo.getByEmail' and 'compare' once with correct data", async () => {
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
 				Promise.resolve(mockUser),
 			);
 
-			const mockCompare = t.mock.method(bcryptjs, "compare", () =>
+			mockPswService.verify.mock.mockImplementationOnce(() =>
 				Promise.resolve(true),
 			);
 
@@ -122,13 +126,13 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 				email: mockUser.email,
 			});
 
-			assert.strictEqual(mockCompare.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockCompare.mock.calls[0].arguments[0],
+			assert.strictEqual(mockPswService.verify.mock.callCount(), 1);
+			assert.strictEqual(
+				mockPswService.verify.mock.calls[0].arguments[0].password,
 				mockUser.password,
 			);
 			assert.strictEqual(
-				mockCompare.mock.calls[0].arguments[1],
+				mockPswService.verify.mock.calls[0].arguments[0].hashedPassword,
 				mockUser.password,
 			);
 		});
@@ -144,12 +148,14 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'AuthenticationError' if 'bcrypt.compare' returns 'false'", async (t) => {
+		test("Should throw 'AuthenticationError' if 'passwordService.verify' returns 'false'", async () => {
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
 				Promise.resolve(mockUser),
 			);
 
-			t.mock.method(bcryptjs, "compare", () => false);
+			mockPswService.verify.mock.mockImplementationOnce(() =>
+				Promise.resolve(false),
+			);
 
 			await assert.rejects(
 				async () => await service.signin(mockUser),
