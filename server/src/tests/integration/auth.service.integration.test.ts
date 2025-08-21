@@ -23,21 +23,13 @@ suite("Auth Service 〖 Integration Tests 〗", () => {
 
 	describe("signup", () => {
 		test("Should create a new user when 'signup' is called with valid data", async () => {
-			// Arrange
-			const newUser = {
-				email: "new@example.com",
-				isAdmin: false,
-				name: "New User",
-				password: "newpass123",
-			};
-
 			// Act
-			const result = await authService.signup(newUser);
+			const result = await authService.signup(mockUser);
 
 			// Assert
-			assert.strictEqual(result.name, newUser.name);
-			assert.strictEqual(result.email, newUser.email);
-			assert.strictEqual(result.isAdmin, newUser.isAdmin);
+			assert.strictEqual(result.name, mockUser.name);
+			assert.strictEqual(result.email, mockUser.email);
+			assert.strictEqual(result.isAdmin, mockUser.isAdmin);
 			assert.ok(result.token, "Should return a JWT token");
 			assert.ok(!("password" in result), "Should not return password");
 		});
