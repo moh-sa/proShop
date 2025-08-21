@@ -2,10 +2,12 @@ import bcrypt from "bcryptjs";
 
 import type { IUserRepository } from "../repositories/index.js";
 import type { InsertUser, RequiredBy, SelectUser } from "../types/index.js";
+import type { IPasswordService } from "./password.service.js";
 
 import { AuthenticationError } from "../errors/index.js";
 import { UserRepository } from "../repositories/index.js";
 import { generateJwtToken, removeObjectFields } from "../utils/index.js";
+import { PasswordService } from "./password.service.js";
 
 export interface IAuthService {
 	signin: (
@@ -14,10 +16,15 @@ export interface IAuthService {
 	signup: (data: InsertUser) => Promise<Omit<SelectUser, "password">>;
 }
 export class AuthService implements IAuthService {
+	private readonly _passwordService: IPasswordService;
 	private readonly _repository: IUserRepository;
 
-	constructor(repository: IUserRepository = new UserRepository()) {
+	constructor(
+		repository: IUserRepository = new UserRepository(),
+		passwordService: IPasswordService = new PasswordService(),
+	) {
 		this._repository = repository;
+		this._passwordService = passwordService;
 	}
 
 	async signin(data: RequiredBy<SelectUser, "email" | "password">) {
