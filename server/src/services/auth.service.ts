@@ -1,5 +1,3 @@
-import bcrypt from "bcryptjs";
-
 import type { IUserRepository } from "../repositories/index.js";
 import type { InsertUser, RequiredBy, SelectUser } from "../types/index.js";
 import type { IPasswordService } from "./password.service.js";
@@ -36,10 +34,10 @@ export class AuthService implements IAuthService {
 			throw new AuthenticationError("Invalid email or password.");
 		}
 
-		const isPasswordValid = await bcrypt.compare(
-			data.password,
-			isUserExists.password,
-		);
+		const isPasswordValid = await this._passwordService.verify({
+			hashedPassword: isUserExists.password,
+			password: data.password,
+		});
 		if (!isPasswordValid) {
 			throw new AuthenticationError("Invalid email or password.");
 		}
