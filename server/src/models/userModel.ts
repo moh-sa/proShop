@@ -1,9 +1,8 @@
-import bcrypt from "bcryptjs";
 import { model, Schema } from "mongoose";
 
 import type { UserSchema } from "../types/index.js";
 
-import { hashData } from "../utils/index.js";
+import { PasswordService } from "../services/index.js";
 
 const userSchema = new Schema<UserSchema>(
 	{
@@ -32,7 +31,11 @@ const userSchema = new Schema<UserSchema>(
 );
 
 userSchema.methods.matchPassword = async function (enteredPassword: string) {
-	return await bcrypt.compare(enteredPassword, this.password);
+	const pswService = new PasswordService();
+	return await pswService.verify({
+		hashedPassword: this.password,
+		password: enteredPassword,
+	});
 };
 
 userSchema.pre("save", async function (next) {
@@ -40,8 +43,9 @@ userSchema.pre("save", async function (next) {
 		return next();
 	}
 
+	const pswService = new PasswordService();
 	try {
-		this.password = await hashData(this.password);
+		this.password = await pswService.hash({ password: this.password });
 		next();
 	} catch (error) {
 		return next(error as Error);
