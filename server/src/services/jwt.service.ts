@@ -21,6 +21,12 @@ export class JwtService implements IJwtService {
 		this._provider = provider;
 	}
 
+	private _getExpirationTimeByTokenType(tokenType: TokenType): number {
+		return tokenType === TokenType.ACCESS
+			? this._config.accessTokenExpiresIn
+			: this._config.refreshTokenExpiresIn;
+	}
+
 	private _getSecretByTokenType(tokenType: TokenType): string {
 		return tokenType === TokenType.ACCESS
 			? this._config.accessTokenSecret
