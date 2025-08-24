@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 
+import type { TokenDecoded } from "../types/index.js";
+
 import { DEFAULT_JWT_CONFIG } from "../config/index.js";
 import {
 	type JwtBaseError,
@@ -83,6 +85,25 @@ export class JwtService implements IJwtService {
 		}
 		return {
 			data: expectedType,
+			success: true,
+		};
+	}
+
+	private _validateTokenType(
+		expectedType: TokenType,
+		decodedToken: TokenDecoded,
+	): JwtResult<void> {
+		if (decodedToken.type !== expectedType) {
+			return {
+				error: new JwtInvalidPayloadError({
+					decodedTokenType: decodedToken.type,
+					expectedType,
+				}),
+				success: false,
+			};
+		}
+		return {
+			data: undefined,
 			success: true,
 		};
 	}
