@@ -9,11 +9,13 @@ import type {
 
 import { DEFAULT_JWT_CONFIG } from "../config/index.js";
 import {
-	type JwtBaseError,
+	JwtBaseError,
+	JwtExpirationError,
 	JwtGenerationError,
 	JwtInvalidPayloadError,
 	JwtInvalidTokenError,
 } from "../errors/index.js";
+import { JwtVerificationError } from "../errors/jwt/jwt-verification.error.js";
 import { type JwtConfig, type Result, TokenType } from "../types/index.js";
 import { jwtTokenValidator } from "../validators/jwt-token.validator.js";
 
@@ -187,5 +189,45 @@ export class JwtService implements IJwtService {
 			data: userId,
 			success: true,
 		};
+	}
+
+	private _verifyToken(token: string, secret: string): JwtResult<TokenDecoded> {
+		try {
+			const decoded = this._provider.verify(token, secret);
+
+			if (typeof decoded === "string") {
+				return {
+					error: new JwtInvalidTokenError({
+						expectedTokenType: "object",
+						receivedTokenType: "string",
+					}),
+					success: false,
+				};
+			}
+
+			return {
+				data: decoded as TokenDecoded,
+				success: true,
+			};
+		} catch (error) {
+			if (error instanceof jwt.TokenExpiredError) {
+				return {
+					error: new JwtExpirationError({ cause: error }),
+					success: false,
+				};
+			}
+
+			if (error instanceof jwt.JsonWebTokenError) {
+				return {
+					error: new JwtVerificationError({ cause: error }),
+					success: false,
+				};
+			}
+
+			return {
+				error: new JwtBaseError(`Unknown error: ${String(error)}`),
+				success: false,
+			};
+		}
 	}
 }
