@@ -10,6 +10,7 @@ import {
 	JwtInvalidTokenError,
 } from "../errors/index.js";
 import { type JwtConfig, type Result, TokenType } from "../types/index.js";
+import { jwtTokenValidator } from "../validators/jwt-token.validator.js";
 
 export interface IJwtService {}
 
@@ -85,6 +86,21 @@ export class JwtService implements IJwtService {
 		}
 		return {
 			data: expectedType,
+			success: true,
+		};
+	}
+
+	private _validateToken(token: string): JwtResult<string> {
+		const result = jwtTokenValidator.safeParse(token);
+
+		if (!result.success) {
+			return {
+				error: new JwtInvalidTokenError({ cause: result.error }),
+				success: false,
+			};
+		}
+		return {
+			data: token,
 			success: true,
 		};
 	}
