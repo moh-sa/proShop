@@ -1,11 +1,16 @@
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 
-import type { TokenDecoded } from "../types/index.js";
+import type {
+	TokenDecoded,
+	TokenPayload,
+	TokenResult,
+} from "../types/index.js";
 
 import { DEFAULT_JWT_CONFIG } from "../config/index.js";
 import {
 	type JwtBaseError,
+	JwtGenerationError,
 	JwtInvalidPayloadError,
 	JwtInvalidTokenError,
 } from "../errors/index.js";
@@ -54,6 +59,47 @@ export class JwtService implements IJwtService {
 			data: new Date(decoded.exp * 1000),
 			success: true,
 		};
+	}
+
+	private _generateToken(args: {
+		payload: TokenPayload;
+	}): JwtResult<TokenResult> {
+		const userIdResult = this._validateUserId(args.payload.userId);
+		if (!userIdResult.success) {
+			return userIdResult;
+		}
+
+		const tokenTypeResult = this._validateExpectedType(args.payload.type);
+		if (!tokenTypeResult.success) {
+			return tokenTypeResult;
+		}
+
+		const secret = this._getSecretByTokenType(args.payload.type);
+		const expiresIn = this._getExpirationTimeByTokenType(args.payload.type);
+
+		try {
+			const token = this._provider.sign(args.payload, secret, {
+				expiresIn,
+			});
+
+			const expiresAt = this._extractExpirationDateFromToken(token);
+			if (!expiresAt.success) {
+				return expiresAt;
+			}
+
+			return {
+				data: {
+					expiresAt: expiresAt.data,
+					token,
+				},
+				success: true,
+			};
+		} catch (error) {
+			return {
+				error: new JwtGenerationError({ cause: error }),
+				success: false,
+			};
+		}
 	}
 
 	private _getExpirationTimeByTokenType(tokenType: TokenType): number {
