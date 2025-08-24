@@ -21,6 +21,12 @@ export class JwtService implements IJwtService {
 		this._provider = provider;
 	}
 
+	private _getSecretByTokenType(tokenType: TokenType): string {
+		return tokenType === TokenType.ACCESS
+			? this._config.accessTokenSecret
+			: this._config.refreshTokenSecret;
+	}
+
 	private _validateExpectedType(expectedType: TokenType): JwtResult<TokenType> {
 		const result = z
 			.nativeEnum(TokenType, {
