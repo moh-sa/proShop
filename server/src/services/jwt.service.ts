@@ -1,10 +1,13 @@
 import jwt from "jsonwebtoken";
 
-import type { JwtConfig } from "../types/index.js";
+import type { JwtBaseError } from "../errors/index.js";
+import type { JwtConfig, Result } from "../types/index.js";
 
 import { DEFAULT_JWT_CONFIG } from "../config/index.js";
 
 export interface IJwtService {}
+
+type JwtResult<T> = Result<T, JwtBaseError>;
 
 export class JwtService implements IJwtService {
 	private readonly _config: JwtConfig;
