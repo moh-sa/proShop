@@ -22,6 +22,7 @@ type StandardJwtPayload = z.infer<typeof standardJwtPayloadSchema>;
 
 // 'function overloading' is used to ensure the correct return type
 // based on the provided payload schema
+/** @deprecated // TODO: remove */
 export function verifyJwtToken(token: string): StandardJwtPayload;
 export function verifyJwtToken<S extends ZodSchema>(
 	token: string,
@@ -43,6 +44,7 @@ export function verifyJwtToken<S extends ZodSchema>(
 	return validatedPayload;
 }
 
+/** @deprecated // TODO: remove */
 function decodeJwtToken(token: string): jwt.JwtPayload | undefined {
 	try {
 		const decodedToken = jwt.verify(token, env.JWT_SECRET);
@@ -56,6 +58,7 @@ function decodeJwtToken(token: string): jwt.JwtPayload | undefined {
 	}
 }
 
+/** @deprecated // TODO: remove */
 function mapJwtLibraryError(error: unknown) {
 	if (error instanceof jwt.TokenExpiredError) {
 		throw new JwtTokenExpiredError();
@@ -68,6 +71,7 @@ function mapJwtLibraryError(error: unknown) {
 	throw new JwtVerificationError();
 }
 
+/** @deprecated // TODO: remove */
 function validateCustomPayload<S extends ZodSchema>(
 	payload: unknown,
 	customSchema: S,
@@ -82,6 +86,7 @@ function validateCustomPayload<S extends ZodSchema>(
 	return payloadParsed.data;
 }
 
+/** @deprecated // TODO: remove */
 function validatePayload<S extends ZodSchema>(
 	payload: unknown,
 	customSchema?: S,
@@ -93,6 +98,7 @@ function validatePayload<S extends ZodSchema>(
 	return validateCustomPayload(payload, customSchema);
 }
 
+/** @deprecated // TODO: remove */
 function validateStandardPayload(payload: unknown): StandardJwtPayload {
 	const payloadParsed = standardJwtPayloadSchema.safeParse(payload);
 	if (!payloadParsed.success) {
@@ -102,6 +108,7 @@ function validateStandardPayload(payload: unknown): StandardJwtPayload {
 	return payloadParsed.data;
 }
 
+/** @deprecated // TODO: remove */
 function validateTokenFormat(token: string): string {
 	const tokenParsed = jwtTokenValidator.safeParse(token);
 	if (!tokenParsed.success) {

@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { env } from "../config/env.js";
 import { jwtSignOptions } from "../config/jwt.config.js";
 
+/** @deprecated // TODO: remove */
 export const generateJwtToken = (
 	payload: Record<string, unknown> = {},
 	options: jwt.SignOptions = jwtSignOptions,
