@@ -2,7 +2,11 @@ import jwt from "jsonwebtoken";
 import { z } from "zod";
 
 import { DEFAULT_JWT_CONFIG } from "../config/index.js";
-import { type JwtBaseError, JwtInvalidPayloadError } from "../errors/index.js";
+import {
+	type JwtBaseError,
+	JwtInvalidPayloadError,
+	JwtInvalidTokenError,
+} from "../errors/index.js";
 import { type JwtConfig, type Result, TokenType } from "../types/index.js";
 
 export interface IJwtService {}
@@ -19,6 +23,34 @@ export class JwtService implements IJwtService {
 	) {
 		this._config = config;
 		this._provider = provider;
+	}
+
+	private _extractExpirationDateFromToken(token: string): JwtResult<Date> {
+		const decoded = this._provider.decode(token);
+
+		if (!decoded || typeof decoded !== "object") {
+			return {
+				error: new JwtInvalidTokenError({
+					decodedTokenType: "string",
+					expectedType: "object",
+				}),
+				success: false,
+			};
+		}
+
+		if (!decoded.exp || typeof decoded.exp !== "number") {
+			return {
+				error: new JwtInvalidTokenError({
+					expected: "exp",
+				}),
+				success: false,
+			};
+		}
+
+		return {
+			data: new Date(decoded.exp * 1000),
+			success: true,
+		};
 	}
 
 	private _getExpirationTimeByTokenType(tokenType: TokenType): number {
