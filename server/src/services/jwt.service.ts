@@ -24,6 +24,7 @@ export interface IJwtService {
 	generateAccessToken(args: { userId: string }): JwtResult<TokenResult>;
 	generateRefreshToken(args: { userId: string }): JwtResult<TokenResult>;
 	generateTokenPair(args: { userId: string }): JwtResult<TokenPair>;
+	refreshAccessToken(args: { refreshToken: string }): JwtResult<TokenResult>;
 	verify(args: {
 		expectedType: TokenType;
 		token: string;
@@ -82,6 +83,22 @@ export class JwtService implements IJwtService {
 			},
 			success: true,
 		};
+	}
+
+	public refreshAccessToken(args: {
+		refreshToken: string;
+	}): JwtResult<TokenResult> {
+		const refreshTokenResult = this.verify({
+			expectedType: TokenType.REFRESH,
+			token: args.refreshToken,
+		});
+		if (!refreshTokenResult.success) {
+			return refreshTokenResult;
+		}
+
+		return this.generateAccessToken({
+			userId: refreshTokenResult.data.userId,
+		});
 	}
 
 	public verify(args: {
