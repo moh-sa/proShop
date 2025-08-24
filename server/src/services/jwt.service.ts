@@ -19,7 +19,9 @@ import { JwtVerificationError } from "../errors/jwt/jwt-verification.error.js";
 import { type JwtConfig, type Result, TokenType } from "../types/index.js";
 import { jwtTokenValidator } from "../validators/jwt-token.validator.js";
 
-export interface IJwtService {}
+export interface IJwtService {
+	generateAccessToken(args: { userId: string }): JwtResult<TokenResult>;
+}
 
 type JwtResult<T> = Result<T, JwtBaseError>;
 
@@ -33,6 +35,15 @@ export class JwtService implements IJwtService {
 	) {
 		this._config = config;
 		this._provider = provider;
+	}
+
+	public generateAccessToken(args: { userId: string }): JwtResult<TokenResult> {
+		return this._generateToken({
+			payload: {
+				type: TokenType.ACCESS,
+				userId: args.userId,
+			},
+		});
 	}
 
 	private _extractExpirationDateFromToken(token: string): JwtResult<Date> {
