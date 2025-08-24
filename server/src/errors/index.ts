@@ -11,6 +11,7 @@ export * from "./jwt-expired-token.error.js";
 export * from "./jwt-invalid-payload.error.js";
 export * from "./jwt-invalid-token.error.js";
 export * from "./jwt-verification.error.js";
+export * from "./jwt/index.js";
 export * from "./not-found.error.js";
 export * from "./password/index.js";
 export * from "./rate-limit.error.js";
