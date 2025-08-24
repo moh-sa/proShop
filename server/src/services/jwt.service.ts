@@ -21,6 +21,7 @@ import { jwtTokenValidator } from "../validators/jwt-token.validator.js";
 
 export interface IJwtService {
 	generateAccessToken(args: { userId: string }): JwtResult<TokenResult>;
+	generateRefreshToken(args: { userId: string }): JwtResult<TokenResult>;
 }
 
 type JwtResult<T> = Result<T, JwtBaseError>;
@@ -41,6 +42,17 @@ export class JwtService implements IJwtService {
 		return this._generateToken({
 			payload: {
 				type: TokenType.ACCESS,
+				userId: args.userId,
+			},
+		});
+	}
+
+	public generateRefreshToken(args: {
+		userId: string;
+	}): JwtResult<TokenResult> {
+		return this._generateToken({
+			payload: {
+				type: TokenType.REFRESH,
 				userId: args.userId,
 			},
 		});
