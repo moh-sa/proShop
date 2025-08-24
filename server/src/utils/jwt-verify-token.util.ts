@@ -5,9 +5,9 @@ import { z } from "zod";
 
 import { env } from "../config/index.js";
 import {
-	InvalidJwtTokenError,
-	InvalidJwtTokenPayloadError,
-	JwtTokenExpiredError,
+	JwtExpirationError,
+	JwtInvalidPayloadError,
+	JwtInvalidTokenError,
 	JwtVerificationError,
 } from "../errors/index.js";
 import { jwtTokenValidator } from "../validators/index.js";
@@ -61,11 +61,11 @@ function decodeJwtToken(token: string): jwt.JwtPayload | undefined {
 /** @deprecated // TODO: remove */
 function mapJwtLibraryError(error: unknown) {
 	if (error instanceof jwt.TokenExpiredError) {
-		throw new JwtTokenExpiredError();
+		throw new JwtExpirationError();
 	}
 
 	if (error instanceof jwt.JsonWebTokenError) {
-		throw new InvalidJwtTokenError();
+		throw new JwtInvalidTokenError();
 	}
 
 	throw new JwtVerificationError();
@@ -80,7 +80,7 @@ function validateCustomPayload<S extends ZodSchema>(
 		.and(customSchema)
 		.safeParse(payload);
 	if (!payloadParsed.success) {
-		throw new InvalidJwtTokenPayloadError(payloadParsed.error.format());
+		throw new JwtInvalidPayloadError(payloadParsed.error.format());
 	}
 
 	return payloadParsed.data;
@@ -102,7 +102,7 @@ function validatePayload<S extends ZodSchema>(
 function validateStandardPayload(payload: unknown): StandardJwtPayload {
 	const payloadParsed = standardJwtPayloadSchema.safeParse(payload);
 	if (!payloadParsed.success) {
-		throw new InvalidJwtTokenPayloadError(payloadParsed.error.format());
+		throw new JwtInvalidPayloadError(payloadParsed.error.format());
 	}
 
 	return payloadParsed.data;
@@ -112,7 +112,7 @@ function validateStandardPayload(payload: unknown): StandardJwtPayload {
 function validateTokenFormat(token: string): string {
 	const tokenParsed = jwtTokenValidator.safeParse(token);
 	if (!tokenParsed.success) {
-		throw new InvalidJwtTokenError(tokenParsed.error.format());
+		throw new JwtInvalidTokenError(tokenParsed.error.format());
 	}
 
 	return tokenParsed.data;

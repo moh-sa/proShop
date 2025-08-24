@@ -5,8 +5,8 @@ import { ZodError } from "zod";
 import {
 	AuthenticationError,
 	AuthorizationError,
-	InvalidJwtTokenError,
-	InvalidJwtTokenPayloadError,
+	JwtInvalidPayloadError,
+	JwtInvalidTokenError,
 } from "../../errors/index.js";
 import {
 	checkIfUserIsAdmin,
@@ -63,7 +63,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'InvalidJwtTokenError' if JWT is invalid", async () => {
+		test("Should throw 'JwtInvalidTokenError' if JWT is invalid", async () => {
 			const { next, req, res } = createMockExpressContext();
 
 			req.headers.authorization = `Bearer RANDOM_STRING`;
@@ -71,14 +71,14 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			await assert.rejects(
 				async () => await checkJwtTokenValidation(req, res, next),
 				(error) => {
-					assert.ok(error instanceof InvalidJwtTokenError);
+					assert.ok(error instanceof JwtInvalidTokenError);
 					assert.strictEqual(error.message, "Invalid JWT token format");
 					return true;
 				},
 			);
 		});
 
-		test("Should throw 'InvalidJwtTokenPayloadError' if userId is not a valid ObjectId", async () => {
+		test("Should throw 'JwtInvalidPayloadError' if userId is not a valid ObjectId", async () => {
 			const { next, req, res } = createMockExpressContext();
 			const jwt = generateJwtToken({ id: "RANDOM_STRING" });
 			req.headers.authorization = `Bearer ${jwt}`;
@@ -86,7 +86,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			await assert.rejects(
 				async () => await checkJwtTokenValidation(req, res, next),
 				(error) => {
-					assert.ok(error instanceof InvalidJwtTokenPayloadError);
+					assert.ok(error instanceof JwtInvalidPayloadError);
 					assert.strictEqual(error.message, "Invalid JWT token payload");
 					return true;
 				},

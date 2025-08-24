@@ -5,9 +5,9 @@ import test, { describe, suite } from "node:test";
 import { z } from "zod";
 
 import {
-	InvalidJwtTokenError,
-	InvalidJwtTokenPayloadError,
-	JwtTokenExpiredError,
+	JwtExpirationError,
+	JwtInvalidPayloadError,
+	JwtInvalidTokenError,
 } from "../../errors/index.js";
 import { selectUserSchema } from "../../schemas/index.js";
 import { formatZodErrors, verifyJwtToken } from "../../utils/index.js";
@@ -80,13 +80,13 @@ suite("Util Functions Unit Tests", () => {
 			assert.deepStrictEqual(token2, expectedResult);
 		});
 
-		test("Should throw 'InvalidJwtTokenError' when 'verifyJwtToken' is called with invalid 'token'", () => {
+		test("Should throw 'JwtInvalidTokenError' when 'verifyJwtToken' is called with invalid 'token'", () => {
 			const mockToken = "invalid-token";
 
-			assert.throws(() => verifyJwtToken(mockToken), InvalidJwtTokenError);
+			assert.throws(() => verifyJwtToken(mockToken), JwtInvalidTokenError);
 		});
 
-		test("Should throw 'InvalidJwtTokenPayloadError' when 'verifyJwtToken' is called with a wrong 'payload schema'", (t) => {
+		test("Should throw 'JwtInvalidPayloadError' when 'verifyJwtToken' is called with a wrong 'payload schema'", (t) => {
 			const mockPayload = { id: "random-id" };
 			const verifyResult = { ...mockPayload, exp: 1689120000, iat: 1689120000 };
 			const mockToken = faker.internet.jwt({ payload: mockPayload });
@@ -96,11 +96,11 @@ suite("Util Functions Unit Tests", () => {
 
 			assert.throws(
 				() => verifyJwtToken(mockToken, mockSchema),
-				InvalidJwtTokenPayloadError,
+				JwtInvalidPayloadError,
 			);
 		});
 
-		test("Should throw 'JwtTokenExpiredError' when 'verifyJwtToken' is called with 'expired' token", (t) => {
+		test("Should throw 'JwtExpirationError' when 'verifyJwtToken' is called with 'expired' token", (t) => {
 			const mockPayload = { exp: new Date().getTime() - 1000 };
 			const mockToken = faker.internet.jwt({
 				payload: mockPayload,
@@ -110,7 +110,7 @@ suite("Util Functions Unit Tests", () => {
 				throw new jwt.TokenExpiredError("JWT expired", new Date());
 			});
 
-			assert.throws(() => verifyJwtToken(mockToken), JwtTokenExpiredError);
+			assert.throws(() => verifyJwtToken(mockToken), JwtExpirationError);
 		});
 	});
 
