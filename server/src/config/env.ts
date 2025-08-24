@@ -7,6 +7,9 @@ const EnvSchema = z.object({
 	CLOUDINARY_API_SECRET: z.string().min(1),
 	CLOUDINARY_CLOUD_NAME: z.string().min(1),
 	DB_URL: z.string().min(1),
+	JWT_ACCESS_TOKEN_SECRET: z.string().trim().min(1).uuid(),
+	JWT_REFRESH_TOKEN_SECRET: z.string().trim().min(1).uuid(),
+	/** @deprecated */
 	JWT_SECRET: z.string().min(1),
 	NODE_ENV: z.enum(["development", "test", "production"]),
 	PAYPAL_CLIENT_ID: z.string().min(1),
