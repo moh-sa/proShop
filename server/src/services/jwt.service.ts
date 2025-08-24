@@ -24,6 +24,10 @@ export interface IJwtService {
 	generateAccessToken(args: { userId: string }): JwtResult<TokenResult>;
 	generateRefreshToken(args: { userId: string }): JwtResult<TokenResult>;
 	generateTokenPair(args: { userId: string }): JwtResult<TokenPair>;
+	verify(args: {
+		expectedType: TokenType;
+		token: string;
+	}): JwtResult<TokenDecoded>;
 }
 
 type JwtResult<T> = Result<T, JwtBaseError>;
@@ -76,6 +80,41 @@ export class JwtService implements IJwtService {
 				accessToken: accessTokenResult.data,
 				refreshToken: refreshTokenResult.data,
 			},
+			success: true,
+		};
+	}
+
+	public verify(args: {
+		expectedType: TokenType;
+		token: string;
+	}): JwtResult<TokenDecoded> {
+		const tokenResult = this._validateToken(args.token);
+		if (!tokenResult.success) {
+			return tokenResult;
+		}
+
+		const expectedTypeResult = this._validateExpectedType(args.expectedType);
+		if (!expectedTypeResult.success) {
+			return expectedTypeResult;
+		}
+
+		const secret = this._getSecretByTokenType(args.expectedType);
+
+		const decoded = this._verifyToken(args.token, secret);
+		if (!decoded.success) {
+			return decoded;
+		}
+
+		const expectedTokenTypeResult = this._validateTokenType(
+			args.expectedType,
+			decoded.data,
+		);
+		if (!expectedTokenTypeResult.success) {
+			return expectedTokenTypeResult;
+		}
+
+		return {
+			data: decoded.data,
 			success: true,
 		};
 	}
