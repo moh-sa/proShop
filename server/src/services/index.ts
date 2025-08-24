@@ -1,4 +1,5 @@
 export * from "./auth.service.js";
+export * from "./jwt.service.js";
 export * from "./order.service.js";
 export * from "./password.service.js";
 export * from "./product.service.js";
