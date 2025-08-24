@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import type {
 	TokenDecoded,
+	TokenPair,
 	TokenPayload,
 	TokenResult,
 } from "../types/index.js";
@@ -22,6 +23,7 @@ import { jwtTokenValidator } from "../validators/jwt-token.validator.js";
 export interface IJwtService {
 	generateAccessToken(args: { userId: string }): JwtResult<TokenResult>;
 	generateRefreshToken(args: { userId: string }): JwtResult<TokenResult>;
+	generateTokenPair(args: { userId: string }): JwtResult<TokenPair>;
 }
 
 type JwtResult<T> = Result<T, JwtBaseError>;
@@ -56,6 +58,26 @@ export class JwtService implements IJwtService {
 				userId: args.userId,
 			},
 		});
+	}
+
+	public generateTokenPair(args: { userId: string }): JwtResult<TokenPair> {
+		const accessTokenResult = this.generateAccessToken(args);
+		if (!accessTokenResult.success) {
+			return accessTokenResult;
+		}
+
+		const refreshTokenResult = this.generateRefreshToken(args);
+		if (!refreshTokenResult.success) {
+			return refreshTokenResult;
+		}
+
+		return {
+			data: {
+				accessToken: accessTokenResult.data,
+				refreshToken: refreshTokenResult.data,
+			},
+			success: true,
+		};
 	}
 
 	private _extractExpirationDateFromToken(token: string): JwtResult<Date> {
