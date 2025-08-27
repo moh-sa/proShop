@@ -16,6 +16,7 @@
 		"start": "node dist/server.js",
 		"test": "tsx --test --test-reporter spec src/tests/**/*.test.ts",
 		"test:debug": "tsx --test --test-reporter spec --inspect src/tests/**/*.test.ts",
+		"test:integration": "tsx --test --test-reporter spec src/tests/integration/**/*.integration.test.ts",
 		"test:unit": "tsx --test --test-reporter spec src/tests/unit/**/*.unit.test.ts",
 		"type-check": "tsc --noEmit"
 	},
