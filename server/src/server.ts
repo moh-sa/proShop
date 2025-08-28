@@ -1,5 +1,3 @@
-import "./config/sentry.config.js";
-
 import type { Request, Response } from "express";
 
 import * as Sentry from "@sentry/node";
