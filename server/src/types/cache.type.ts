@@ -9,7 +9,7 @@ export type CacheFailureResult<T, E = CacheBaseError> = FailureResult<E> & {
 	key: T;
 };
 
-export type CacheItem = { key: string; ttl?: number; value: object };
+export type CacheItem = { key: string; ttl?: number; value: unknown };
 
 export type CacheItems = Array<CacheItem>;
 export type CacheResult<
