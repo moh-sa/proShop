@@ -24,7 +24,10 @@ export interface IJwtService {
 	generateAccessToken(args: { userId: string }): JwtResult<TokenResult>;
 	generateRefreshToken(args: { userId: string }): JwtResult<TokenResult>;
 	generateTokenPair(args: { userId: string }): JwtResult<TokenPair>;
-	refreshAccessToken(args: { refreshToken: string }): JwtResult<TokenResult>;
+	refreshAccessToken(args: { refreshToken: string }): JwtResult<{
+		access: TokenResult;
+		decodedRefreshToken: TokenDecoded;
+	}>;
 	verify(args: {
 		expectedType: TokenType;
 		token: string;
@@ -85,9 +88,10 @@ export class JwtService implements IJwtService {
 		};
 	}
 
-	public refreshAccessToken(args: {
-		refreshToken: string;
-	}): JwtResult<TokenResult> {
+	public refreshAccessToken(args: { refreshToken: string }): JwtResult<{
+		access: TokenResult;
+		decodedRefreshToken: TokenDecoded;
+	}> {
 		const refreshTokenResult = this.verify({
 			expectedType: TokenType.REFRESH,
 			token: args.refreshToken,
@@ -96,9 +100,20 @@ export class JwtService implements IJwtService {
 			return refreshTokenResult;
 		}
 
-		return this.generateAccessToken({
+		const accessTokenResult = this.generateAccessToken({
 			userId: refreshTokenResult.data.userId,
 		});
+		if (!accessTokenResult.success) {
+			return accessTokenResult;
+		}
+
+		return {
+			data: {
+				access: accessTokenResult.data,
+				decodedRefreshToken: refreshTokenResult.data,
+			},
+			success: true,
+		};
 	}
 
 	public verify(args: {
