@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 import { MulterError } from "multer";
 import { ZodError } from "zod";
@@ -8,7 +8,12 @@ import { BaseError, JwtBaseError } from "../errors/index.js";
 import { ErrorType } from "../types/index.js";
 import { sendErrorResponse } from "../utils/index.js";
 
-export function errorHandler(error: Error, req: Request, res: Response) {
+export function errorHandler(
+	error: Error,
+	req: Request,
+	res: Response,
+	_next: NextFunction,
+) {
 	// Handle different types of errors
 	if (error instanceof BaseError) {
 		return sendErrorResponse({
