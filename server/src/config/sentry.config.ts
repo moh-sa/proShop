@@ -5,7 +5,10 @@ import { env } from "./env.js";
 
 Sentry.init({
 	dsn: env.SENTRY_DNS,
-	integrations: [nodeProfilingIntegration()],
+	integrations: (integrations) => [
+		nodeProfilingIntegration(),
+		...integrations.filter((integration) => integration.name !== "Mongoose"),
+	],
 	profilesSampleRate: 1.0,
 	tracesSampleRate: 1.0,
 });
