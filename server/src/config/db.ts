@@ -4,6 +4,7 @@ import { env } from "./env.js";
 
 const connectDB = async () => {
 	try {
+		mongoose.set("strictQuery", true);
 		const conn = await mongoose.connect(env.DB_URL);
 		console.info(`MongoDB connected: ${conn.connection.host}`);
 	} catch (error) {
