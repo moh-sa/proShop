@@ -78,8 +78,8 @@ export class JwtService implements IJwtService {
 
 		return {
 			data: {
-				accessToken: accessTokenResult.data,
-				refreshToken: refreshTokenResult.data,
+				access: accessTokenResult.data,
+				refresh: refreshTokenResult.data,
 			},
 			success: true,
 		};

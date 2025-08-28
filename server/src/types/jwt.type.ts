@@ -24,8 +24,8 @@ export interface TokenDecoded {
 }
 
 export interface TokenPair {
-	readonly accessToken: TokenResult;
-	readonly refreshToken: TokenResult;
+	readonly access: TokenResult;
+	readonly refresh: TokenResult;
 }
 
 export interface TokenPayload {
