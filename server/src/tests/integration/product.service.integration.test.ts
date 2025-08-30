@@ -4,7 +4,7 @@ import test, { after, before, beforeEach, describe, suite } from "node:test";
 
 import { DatabaseValidationError, NotFoundError } from "../../errors/index.js";
 import { CacheManager } from "../../managers/index.js";
-import Product from "../../models/productModel.js";
+import Product from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { ProductService } from "../../services/index.js";
 import { mockImageStorage, mockMulterImageFile } from "../mocks/index.js";

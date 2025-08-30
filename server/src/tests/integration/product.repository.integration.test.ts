@@ -6,7 +6,7 @@ import type { SelectProduct, TopRatedProduct } from "../../types/index.js";
 
 import { DatabaseValidationError } from "../../errors/index.js";
 import { CacheManager } from "../../managers/index.js";
-import Product from "../../models/productModel.js";
+import Product from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { removeObjectFields } from "../../utils/index.js";
 import { generateMockObjectId } from "../mocks/index.js";

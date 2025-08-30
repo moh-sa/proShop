@@ -9,7 +9,7 @@ import {
 	DatabaseDuplicateKeyError,
 	DatabaseValidationError,
 } from "../../errors/index.js";
-import Product from "../../models/productModel.js";
+import Product from "../../models/product.model.js";
 import Review from "../../models/review.model.js";
 import { ReviewRepository } from "../../repositories/index.js";
 import {

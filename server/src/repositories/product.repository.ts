@@ -8,7 +8,7 @@ import type {
 } from "../types/index.js";
 
 import { CacheManager } from "../managers/index.js";
-import Product from "../models/productModel.js";
+import Product from "../models/product.model.js";
 import { handleDatabaseError } from "../utils/index.js";
 
 export interface IProductRepository {

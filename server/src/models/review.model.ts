@@ -4,7 +4,7 @@ import { model, Schema } from "mongoose";
 
 import type { ReviewSchema } from "../types/index.js";
 
-import Product from "./productModel.js";
+import Product from "./product.model.js";
 
 const reviewSchema = new Schema<ReviewSchema>(
 	{

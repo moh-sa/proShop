@@ -2,7 +2,7 @@
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 // import request from "supertest";
 import { ProductController } from "../../controllers/index.js";
-import Product from "../../models/productModel.js";
+import Product from "../../models/product.model.js";
 // import { app } from "../../server";
 // import {
 //   generateMockInsertProductWithMulterImage,

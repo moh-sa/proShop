@@ -12,7 +12,7 @@ import {
 	DatabaseValidationError,
 	GenericDatabaseError,
 } from "../../errors/index.js";
-import Product from "../../models/productModel.js";
+import Product from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import {
 	generateMockInsertProductWithStringImage,
