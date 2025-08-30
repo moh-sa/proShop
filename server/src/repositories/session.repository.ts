@@ -1,46 +1,40 @@
-import type { Types } from "mongoose";
-
 import type { InsertSession, SelectSession } from "../types/index.js";
 
 import { Session } from "../models/session.model.js";
 import { handleDatabaseError } from "../utils/index.js";
 
 export interface ISessionRepository {
-	countActiveByUserId(args: { userId: Types.ObjectId }): Promise<number>;
+	countActiveByUserId(args: { userId: string }): Promise<number>;
 	create(args: InsertSession): Promise<SelectSession>;
-	deleteAllByUserId(args: { userId: Types.ObjectId }): Promise<number>;
+	deleteAllByUserId(args: { userId: string }): Promise<number>;
 	deleteByTokenIdAndUserId(args: {
 		tokenId: string;
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<null | SelectSession>;
 	existsByTokenIdAndUserId(args: {
 		tokenId: string;
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<null | string>;
 	getAll(): Promise<Array<SelectSession>>;
-	getAllActiveByUserId(args: {
-		userId: Types.ObjectId;
-	}): Promise<Array<SelectSession>>;
-	getAllByUserId(args: {
-		userId: Types.ObjectId;
-	}): Promise<Array<SelectSession>>;
+	getAllActiveByUserId(args: { userId: string }): Promise<Array<SelectSession>>;
+	getAllByUserId(args: { userId: string }): Promise<Array<SelectSession>>;
 	getAllRevoked(): Promise<Array<SelectSession>>;
 	getAllRevokedByUserId(args: {
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<Array<SelectSession>>;
 	getByTokenIdAndUserId(args: {
 		tokenId: string;
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<null | SelectSession>;
-	revokeAllByUserId(args: { userId: Types.ObjectId }): Promise<number>;
+	revokeAllByUserId(args: { userId: string }): Promise<number>;
 	revokeByTokenIdAndUserId(args: {
 		tokenId: string;
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<null | SelectSession>;
 	updateByTokenIdAndUserId(args: {
 		data: Partial<InsertSession>;
 		tokenId: string;
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<null | SelectSession>;
 }
 
@@ -51,9 +45,7 @@ export class SessionRepository implements ISessionRepository {
 		this._db = db ?? Session;
 	}
 
-	public async countActiveByUserId(args: {
-		userId: Types.ObjectId;
-	}): Promise<number> {
+	public async countActiveByUserId(args: { userId: string }): Promise<number> {
 		try {
 			return await this._db.countDocuments({
 				expiresAt: { $gt: new Date() },
@@ -73,9 +65,7 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async deleteAllByUserId(args: {
-		userId: Types.ObjectId;
-	}): Promise<number> {
+	public async deleteAllByUserId(args: { userId: string }): Promise<number> {
 		try {
 			return (await this._db.deleteMany({ userId: args.userId }).lean())
 				.deletedCount;
@@ -86,7 +76,7 @@ export class SessionRepository implements ISessionRepository {
 
 	public async deleteByTokenIdAndUserId(args: {
 		tokenId: string;
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<null | SelectSession> {
 		try {
 			return await this._db
@@ -99,7 +89,7 @@ export class SessionRepository implements ISessionRepository {
 
 	public async existsByTokenIdAndUserId(args: {
 		tokenId: string;
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<null | string> {
 		try {
 			return await this._db
@@ -119,7 +109,7 @@ export class SessionRepository implements ISessionRepository {
 	}
 
 	public async getAllActiveByUserId(args: {
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<Array<SelectSession>> {
 		try {
 			return await this._db
@@ -135,7 +125,7 @@ export class SessionRepository implements ISessionRepository {
 	}
 
 	public async getAllByUserId(args: {
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<Array<SelectSession>> {
 		try {
 			return await this._db.find({ userId: args.userId }).lean();
@@ -153,7 +143,7 @@ export class SessionRepository implements ISessionRepository {
 	}
 
 	public async getAllRevokedByUserId(args: {
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<Array<SelectSession>> {
 		try {
 			return await this._db
@@ -166,7 +156,7 @@ export class SessionRepository implements ISessionRepository {
 
 	public async getByTokenIdAndUserId(args: {
 		tokenId: string;
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<null | SelectSession> {
 		try {
 			return await this._db
@@ -177,9 +167,7 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async revokeAllByUserId(args: {
-		userId: Types.ObjectId;
-	}): Promise<number> {
+	public async revokeAllByUserId(args: { userId: string }): Promise<number> {
 		try {
 			return (
 				await this._db
@@ -193,7 +181,7 @@ export class SessionRepository implements ISessionRepository {
 
 	public async revokeByTokenIdAndUserId(args: {
 		tokenId: string;
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<null | SelectSession> {
 		try {
 			return await this._db
@@ -210,7 +198,7 @@ export class SessionRepository implements ISessionRepository {
 	public async updateByTokenIdAndUserId(args: {
 		data: Partial<InsertSession>;
 		tokenId: string;
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<null | SelectSession> {
 		try {
 			return await this._db
