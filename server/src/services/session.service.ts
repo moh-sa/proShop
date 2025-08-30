@@ -20,6 +20,10 @@ import { SessionRepository } from "../repositories/index.js";
 export interface ISessionService {
 	create(args: InsertSession): Promise<SessionResult<SelectSession>>;
 
+	getActiveByUserId(args: {
+		userId: string;
+	}): Promise<SessionResult<Array<SelectSession>>>;
+
 	getByTokenIdAndUserId(args: {
 		tokenId: string;
 		userId: string;
@@ -61,6 +65,23 @@ export class SessionService implements ISessionService {
 				};
 			}
 
+			return this._handleError(error);
+		}
+	}
+
+	public async getActiveByUserId(args: {
+		userId: string;
+	}): Promise<SessionResult<Array<SelectSession>>> {
+		try {
+			const sessions = await this._repository.getAllActiveByUserId({
+				userId: args.userId,
+			});
+
+			return {
+				data: sessions,
+				success: true,
+			};
+		} catch (error) {
 			return this._handleError(error);
 		}
 	}
