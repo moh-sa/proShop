@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { MIN_NAME_LENGTH } from "../../constants/index.js";
+import { MAX_NAME_LENGTH, MIN_NAME_LENGTH } from "../../constants/index.js";
 import {
 	emailValidator,
 	jwtTokenValidator,
@@ -11,7 +11,12 @@ import {
 const baseUserSchema = z.object({
 	email: emailValidator,
 	isAdmin: z.boolean().default(false),
-	name: z.string().trim().min(MIN_NAME_LENGTH, { message: "Name is required" }),
+	name: z
+		.string()
+		.trim()
+		.min(MIN_NAME_LENGTH, { message: "Name is required" })
+		.max(MAX_NAME_LENGTH, { message: "Name is required" }),
+
 	password: passwordValidator,
 });
 
