@@ -1,20 +1,17 @@
-import type { ISessionRepository } from "../repositories/index.js";
-import type { IJwtService } from "./jwt.service.js";
+import type { SessionBaseError } from "../errors/index.js";
+import type { ISessionRepository } from "../repositories/session.repository.js";
+import type { Result } from "../types/index.js";
 
 import { SessionRepository } from "../repositories/index.js";
-import { JwtService } from "./jwt.service.js";
 
 export interface ISessionService {}
 
+type SessionResult<T> = Result<T, SessionBaseError>;
+
 export class SessionService implements ISessionService {
-	private readonly _jwtService: IJwtService;
 	private readonly _repository: ISessionRepository;
 
-	constructor(
-		repository: ISessionRepository = new SessionRepository(),
-		jwtService: IJwtService = new JwtService(),
-	) {
+	constructor(repository: ISessionRepository = new SessionRepository()) {
 		this._repository = repository;
-		this._jwtService = jwtService;
 	}
 }
