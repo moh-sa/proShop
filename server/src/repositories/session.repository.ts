@@ -155,7 +155,9 @@ export class SessionRepository implements ISessionRepository {
 		userId: Types.ObjectId;
 	}): Promise<Array<SelectSession>> {
 		try {
-			return await this._db.find({ userId: args.userId }).lean();
+			return await this._db
+				.find({ revokedAt: { $ne: null }, userId: args.userId })
+				.lean();
 		} catch (error) {
 			return this._errorHandler(error);
 		}
