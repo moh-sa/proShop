@@ -32,7 +32,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.ok(createdUser._id);
 			assert.equal(createdUser.name, mockUser.name);
-			assert.equal(createdUser.email, mockUser.email);
+			assert.equal(createdUser.email, mockUser.email.toLowerCase());
 			assert.equal(createdUser.isAdmin, mockUser.isAdmin);
 			assert.ok(createdUser.createdAt);
 			assert.ok(createdUser.updatedAt);
@@ -151,7 +151,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.ok(foundUser);
 			assert.equal(foundUser.name, mockUser.name);
-			assert.equal(foundUser.email, mockUser.email);
+			assert.equal(foundUser.email, mockUser.email.toLowerCase());
 		});
 
 		test("Should return null for non-existent ID when 'db.findById' is called", async () => {
@@ -191,7 +191,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.ok(foundUser);
 			assert.equal(foundUser?.name, mockUser.name);
-			assert.equal(foundUser?.email, mockUser.email);
+			assert.equal(foundUser?.email, mockUser.email.toLowerCase());
 		});
 
 		test("Should return null for non-existent email when 'db.findOne' is called", async () => {
@@ -258,7 +258,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.ok(updatedUser);
 			assert.equal(updatedUser.name, updateData.name);
-			assert.equal(updatedUser.email, mockUser.email); // Email should remain unchanged
+			assert.equal(updatedUser.email, mockUser.email.toLowerCase()); // Email should remain unchanged
 		});
 
 		test("Should update timestamps when 'db.update' is called", async (t) => {
@@ -325,7 +325,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.ok(deletedUser);
-			assert.equal(deletedUser.email, mockUser.email);
+			assert.equal(deletedUser.email, mockUser.email.toLowerCase());
 			assert.equal(foundUser, null);
 		});
 

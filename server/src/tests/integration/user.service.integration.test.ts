@@ -36,7 +36,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(result.name, mockUser.name);
-			assert.strictEqual(result.email, mockUser.email);
+			assert.strictEqual(result.email, mockUser.email.toLowerCase());
 			assert.strictEqual(result.isAdmin, mockUser.isAdmin);
 		});
 
@@ -73,7 +73,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(result.name, mockUser.name);
-			assert.strictEqual(result.email, mockUser.email);
+			assert.strictEqual(result.email, mockUser.email.toLowerCase());
 			assert.strictEqual(result.isAdmin, mockUser.isAdmin);
 		});
 
@@ -112,11 +112,11 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			assert(Array.isArray(results));
 			assert(results.length > 0);
 			const foundUser = results.find(
-				(user) => user.email === mockUsers[0].email,
+				(user) => user.email === mockUsers[0].email.toLowerCase(),
 			);
 			assert(foundUser);
 			assert.strictEqual(foundUser.name, mockUsers[0].name);
-			assert.strictEqual(foundUser.email, mockUsers[0].email);
+			assert.strictEqual(foundUser.email, mockUsers[0].email.toLowerCase());
 		});
 
 		test("Should not return 'password' and 'token' when 'repo.getAll' is called", async () => {
@@ -188,7 +188,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			// Assert
 			assert.strictEqual(result.isAdmin, true);
 			assert.strictEqual(result.name, mockUser.name);
-			assert.strictEqual(result.email, mockUser.email);
+			assert.strictEqual(result.email, mockUser.email.toLowerCase());
 		});
 
 		test("Should not update fields when 'repo.updateById' is called with empty object", async () => {
@@ -204,7 +204,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(result.name, mockUser.name);
-			assert.strictEqual(result.email, mockUser.email);
+			assert.strictEqual(result.email, mockUser.email.toLowerCase());
 			assert.strictEqual(result.isAdmin, mockUser.isAdmin);
 		});
 
@@ -249,7 +249,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(result.name, mockUser.name);
-			assert.strictEqual(result.email, mockUser.email);
+			assert.strictEqual(result.email, mockUser.email.toLowerCase());
 
 			// Verify user is actually deleted
 			await assert.rejects(async () => {

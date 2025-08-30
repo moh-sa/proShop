@@ -7,7 +7,9 @@ import { PasswordService } from "../services/index.js";
 const userSchema = new Schema<UserSchema>(
 	{
 		email: {
+			lowercase: true,
 			required: true,
+			trim: true,
 			type: String,
 			unique: true,
 		},

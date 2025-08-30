@@ -380,7 +380,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.equal(response.data.name, "Updated Name");
-			assert.equal(response.data.email, originalEmail);
+			assert.equal(response.data.email, originalEmail.toLowerCase());
 		});
 
 		test("Should remove empty fields from update data", async () => {
@@ -397,7 +397,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.equal(response.data.name, "Updated Name");
-			assert.equal(response.data.email, mockUser.email);
+			assert.equal(response.data.email, mockUser.email.toLowerCase());
 		});
 
 		test("Should exclude password field from response", async () => {
@@ -434,7 +434,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.equal(response.data.name, "Updated Name");
-			assert.equal(response.data.email, originalData.email);
+			assert.equal(response.data.email, originalData.email.toLowerCase());
 			assert.equal(response.data.isAdmin, originalData.isAdmin);
 		});
 

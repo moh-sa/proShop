@@ -28,7 +28,7 @@ suite("Auth Service 〖 Integration Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(result.name, mockUser.name);
-			assert.strictEqual(result.email, mockUser.email);
+			assert.strictEqual(result.email, mockUser.email.toLowerCase());
 			assert.strictEqual(result.isAdmin, mockUser.isAdmin);
 			assert.ok(result.token, "Should return a JWT token");
 			assert.ok(!("password" in result), "Should not return password");
@@ -78,7 +78,7 @@ suite("Auth Service 〖 Integration Tests 〗", () => {
 			const result = await authService.signin(credentials);
 
 			// Assert
-			assert.strictEqual(result.email, credentials.email);
+			assert.strictEqual(result.email, credentials.email.toLowerCase());
 			assert.ok(result.token, "Should return a JWT token");
 			assert.ok(!("password" in result), "Should not return password");
 		});
