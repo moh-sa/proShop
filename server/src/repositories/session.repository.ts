@@ -77,7 +77,8 @@ export class SessionRepository implements ISessionRepository {
 		userId: Types.ObjectId;
 	}): Promise<number> {
 		try {
-			return await this._db.deleteMany({ userId: args.userId }).lean();
+			return (await this._db.deleteMany({ userId: args.userId }).lean())
+				.deletedCount;
 		} catch (error) {
 			return this._errorHandler(error);
 		}
