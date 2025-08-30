@@ -29,6 +29,11 @@ export interface ISessionService {
 		userId: string;
 	}): Promise<SessionResult<SelectSession>>;
 
+	revokeByTokenIdAndUserId(args: {
+		tokenId: string;
+		userId: string;
+	}): Promise<SessionResult<SelectSession>>;
+
 	/**
 	 * Validates a session by checking if it exists, is not revoked, and is not expired.
 	 */
@@ -105,6 +110,30 @@ export class SessionService implements ISessionService {
 
 			return {
 				data: session,
+				success: true,
+			};
+		} catch (error) {
+			return this._handleError(error);
+		}
+	}
+
+	public async revokeByTokenIdAndUserId(args: {
+		tokenId: string;
+		userId: string;
+	}): Promise<SessionResult<SelectSession>> {
+		try {
+			const revokedSession =
+				await this._repository.revokeByTokenIdAndUserId(args);
+
+			if (!revokedSession) {
+				return {
+					error: new SessionNotFoundError(),
+					success: false,
+				};
+			}
+
+			return {
+				data: revokedSession,
 				success: true,
 			};
 		} catch (error) {
