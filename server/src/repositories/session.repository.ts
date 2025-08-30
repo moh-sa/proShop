@@ -12,11 +12,11 @@ export interface ISessionRepository {
 	deleteByTokenIdAndUserId(args: {
 		tokenId: string;
 		userId: Types.ObjectId;
-	}): Promise<SelectSession>;
+	}): Promise<null | SelectSession>;
 	existsByTokenIdAndUserId(args: {
 		tokenId: string;
 		userId: Types.ObjectId;
-	}): Promise<Types.ObjectId>;
+	}): Promise<null | string>;
 	getAll(): Promise<Array<SelectSession>>;
 	getAllActiveByUserId(args: {
 		userId: Types.ObjectId;
@@ -31,17 +31,17 @@ export interface ISessionRepository {
 	getByTokenIdAndUserId(args: {
 		tokenId: string;
 		userId: Types.ObjectId;
-	}): Promise<SelectSession>;
+	}): Promise<null | SelectSession>;
 	revokeAllByUserId(args: { userId: Types.ObjectId }): Promise<number>;
 	revokeByTokenIdAndUserId(args: {
 		tokenId: string;
 		userId: Types.ObjectId;
-	}): Promise<SelectSession>;
+	}): Promise<null | SelectSession>;
 	updateByTokenIdAndUserId(args: {
 		data: Partial<InsertSession>;
 		tokenId: string;
 		userId: Types.ObjectId;
-	}): Promise<SelectSession>;
+	}): Promise<null | SelectSession>;
 }
 
 export class SessionRepository implements ISessionRepository {
@@ -87,7 +87,7 @@ export class SessionRepository implements ISessionRepository {
 	public async deleteByTokenIdAndUserId(args: {
 		tokenId: string;
 		userId: Types.ObjectId;
-	}): Promise<SelectSession> {
+	}): Promise<null | SelectSession> {
 		try {
 			return await this._db
 				.findOneAndDelete({ tokenId: args.tokenId, userId: args.userId })
@@ -100,7 +100,7 @@ export class SessionRepository implements ISessionRepository {
 	public async existsByTokenIdAndUserId(args: {
 		tokenId: string;
 		userId: Types.ObjectId;
-	}): Promise<Types.ObjectId> {
+	}): Promise<null | string> {
 		try {
 			return await this._db
 				.exists({ tokenId: args.tokenId, userId: args.userId })
@@ -167,7 +167,7 @@ export class SessionRepository implements ISessionRepository {
 	public async getByTokenIdAndUserId(args: {
 		tokenId: string;
 		userId: Types.ObjectId;
-	}): Promise<SelectSession> {
+	}): Promise<null | SelectSession> {
 		try {
 			return await this._db
 				.findOne({ tokenId: args.tokenId, userId: args.userId })
@@ -194,7 +194,7 @@ export class SessionRepository implements ISessionRepository {
 	public async revokeByTokenIdAndUserId(args: {
 		tokenId: string;
 		userId: Types.ObjectId;
-	}): Promise<SelectSession> {
+	}): Promise<null | SelectSession> {
 		try {
 			return await this._db
 				.findOneAndUpdate(
@@ -211,7 +211,7 @@ export class SessionRepository implements ISessionRepository {
 		data: Partial<InsertSession>;
 		tokenId: string;
 		userId: Types.ObjectId;
-	}): Promise<SelectSession> {
+	}): Promise<null | SelectSession> {
 		try {
 			return await this._db
 				.findOneAndUpdate(
