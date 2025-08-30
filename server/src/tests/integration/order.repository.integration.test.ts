@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 
 import { DatabaseValidationError } from "../../errors/index.js";
-import Order from "../../models/orderModel.js";
+import Order from "../../models/order.model.js";
 import User from "../../models/user.model.js";
 import { OrderRepository } from "../../repositories/order.repository.js";
 import {

@@ -4,7 +4,7 @@ import { ZodError } from "zod";
 
 import { OrderController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
-import Order from "../../models/orderModel.js";
+import Order from "../../models/order.model.js";
 import Product from "../../models/productModel.js";
 import User from "../../models/user.model.js";
 import {

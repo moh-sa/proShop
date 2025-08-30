@@ -6,7 +6,7 @@ import type {
 	SelectOrder,
 } from "../types/index.js";
 
-import Order from "../models/orderModel.js";
+import Order from "../models/order.model.js";
 import { handleDatabaseError } from "../utils/index.js";
 
 export interface IOrderRepository {

@@ -9,7 +9,7 @@ import {
 	DatabaseValidationError,
 	GenericDatabaseError,
 } from "../../errors/index.js";
-import Order from "../../models/orderModel.js";
+import Order from "../../models/order.model.js";
 import { OrderRepository } from "../../repositories/index.js";
 import {
 	generateMockInsertOrder,

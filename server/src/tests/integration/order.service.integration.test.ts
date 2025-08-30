@@ -7,7 +7,7 @@ import {
 	EmptyCartError,
 	NotFoundError,
 } from "../../errors/index.js";
-import Order from "../../models/orderModel.js";
+import Order from "../../models/order.model.js";
 import User from "../../models/user.model.js";
 import { OrderService } from "../../services/index.js";
 import { generateMockObjectId } from "../mocks/objectid.mock.js";
