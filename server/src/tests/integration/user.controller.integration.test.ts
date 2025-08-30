@@ -3,7 +3,7 @@ import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { ZodError } from "zod";
 
 import { UserController } from "../../controllers/index.js";
-import User from "../../models/userModel.js";
+import User from "../../models/user.model.js";
 import {
 	generateMockObjectId,
 	generateMockUser,

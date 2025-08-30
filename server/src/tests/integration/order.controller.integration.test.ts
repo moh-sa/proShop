@@ -6,7 +6,7 @@ import { OrderController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
 import Order from "../../models/orderModel.js";
 import Product from "../../models/productModel.js";
-import User from "../../models/userModel.js";
+import User from "../../models/user.model.js";
 import {
 	generateMockInsertOrder,
 	generateMockObjectId,

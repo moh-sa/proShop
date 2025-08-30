@@ -4,7 +4,7 @@ import { ZodError } from "zod";
 
 import { AuthController } from "../../controllers/index.js";
 import { AuthenticationError } from "../../errors/index.js";
-import User from "../../models/userModel.js";
+import User from "../../models/user.model.js";
 import { AuthService } from "../../services/index.js";
 import { generateMockUser } from "../mocks/index.js";
 import {

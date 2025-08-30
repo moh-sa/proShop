@@ -15,7 +15,7 @@ import {
 	verifyReviewOwnership,
 } from "../../middlewares/index.js";
 import Review from "../../models/review.model.js";
-import User from "../../models/userModel.js";
+import User from "../../models/user.model.js";
 import { generateJwtToken } from "../../utils/index.js";
 import {
 	generateMockObjectId,

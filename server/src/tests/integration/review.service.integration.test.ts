@@ -9,7 +9,7 @@ import {
 } from "../../errors/index.js";
 import Product from "../../models/productModel.js";
 import Review from "../../models/review.model.js";
-import User from "../../models/userModel.js";
+import User from "../../models/user.model.js";
 import { ReviewService } from "../../services/review.service.js";
 import {
 	generateMockInsertProductWithStringImage,

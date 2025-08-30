@@ -2,7 +2,7 @@ import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 
 import { NotFoundError } from "../../errors/index.js";
-import User from "../../models/userModel.js";
+import User from "../../models/user.model.js";
 import { UserService } from "../../services/user.service.js";
 import {
 	generateMockObjectId,

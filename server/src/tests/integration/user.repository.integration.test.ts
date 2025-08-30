@@ -5,7 +5,7 @@ import {
 	DatabaseDuplicateKeyError,
 	DatabaseValidationError,
 } from "../../errors/index.js";
-import User from "../../models/userModel.js";
+import User from "../../models/user.model.js";
 import { UserRepository } from "../../repositories/user.repository.js";
 import { generateMockObjectId } from "../mocks/index.js";
 import { generateMockUser, generateMockUsers } from "../mocks/user.mock.js";

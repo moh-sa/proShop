@@ -2,7 +2,7 @@ import type { Types } from "mongoose";
 
 import type { InsertUser, SelectUser } from "../types/index.js";
 
-import User from "../models/userModel.js";
+import User from "../models/user.model.js";
 import { handleDatabaseError } from "../utils/index.js";
 
 export interface IUserRepository {

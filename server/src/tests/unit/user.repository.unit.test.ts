@@ -12,7 +12,7 @@ import {
 	DatabaseValidationError,
 	GenericDatabaseError,
 } from "../../errors/index.js";
-import User from "../../models/userModel.js";
+import User from "../../models/user.model.js";
 import { UserRepository } from "../../repositories/index.js";
 import {
 	generateMockObjectId,

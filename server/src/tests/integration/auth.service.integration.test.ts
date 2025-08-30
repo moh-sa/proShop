@@ -2,7 +2,7 @@ import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 
 import { AuthenticationError } from "../../errors/index.js";
-import User from "../../models/userModel.js";
+import User from "../../models/user.model.js";
 import { AuthService } from "../../services/index.js";
 import { generateMockUser } from "../mocks/index.js";
 import {

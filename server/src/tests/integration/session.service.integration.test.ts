@@ -1,7 +1,7 @@
 import { after, before, beforeEach, describe, suite } from "node:test";
 
 import { Session } from "../../models/session.model.js";
-import User from "../../models/userModel.js";
+import User from "../../models/user.model.js";
 import { SessionService } from "../../services/session.service.js";
 import { mockSessionRepository } from "../mocks/session-repository.mock.js";
 import {
