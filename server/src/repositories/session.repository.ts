@@ -178,9 +178,11 @@ export class SessionRepository implements ISessionRepository {
 		userId: Types.ObjectId;
 	}): Promise<number> {
 		try {
-			return await this._db
-				.updateMany({ userId: args.userId }, { revokedAt: new Date() })
-				.lean();
+			return (
+				await this._db
+					.updateMany({ userId: args.userId }, { revokedAt: new Date() })
+					.lean()
+			).modifiedCount;
 		} catch (error) {
 			return this._errorHandler(error);
 		}
