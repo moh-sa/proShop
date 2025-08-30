@@ -1,7 +1,7 @@
-import type { SessionBaseError } from "../errors/index.js";
 import type { ISessionRepository } from "../repositories/session.repository.js";
-import type { Result } from "../types/index.js";
+import type { FailureResult, Result } from "../types/index.js";
 
+import { BaseError, SessionBaseError } from "../errors/index.js";
 import { SessionRepository } from "../repositories/index.js";
 
 export interface ISessionService {}
@@ -13,5 +13,25 @@ export class SessionService implements ISessionService {
 
 	constructor(repository: ISessionRepository = new SessionRepository()) {
 		this._repository = repository;
+	}
+
+	private _handleError(error: unknown): FailureResult<SessionBaseError> {
+		if (error instanceof BaseError) {
+			return { error, success: false };
+		}
+
+		if (error instanceof Error) {
+			return {
+				error: new SessionBaseError(`Session operation failed: ${error}`),
+				success: false,
+			};
+		}
+
+		return {
+			error: new SessionBaseError(
+				`Unexpected error occurred: ${String(error)}`,
+			),
+			success: false,
+		};
 	}
 }
