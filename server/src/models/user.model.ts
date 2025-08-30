@@ -2,6 +2,10 @@ import { model, Schema } from "mongoose";
 
 import type { UserSchema } from "../types/index.js";
 
+import {
+	MAX_NAME_LENGTH,
+	MIN_NAME_LENGTH,
+} from "../constants/user-name.constants.js";
 import { PasswordService } from "../services/index.js";
 
 const userSchema = new Schema<UserSchema>(
@@ -19,7 +23,16 @@ const userSchema = new Schema<UserSchema>(
 			type: Boolean,
 		},
 		name: {
+			maxlength: [
+				MAX_NAME_LENGTH,
+				`Name cannot exceed ${MAX_NAME_LENGTH} characters`,
+			],
+			minlength: [
+				MIN_NAME_LENGTH,
+				`Name must be at least ${MIN_NAME_LENGTH} characters long`,
+			],
 			required: true,
+			trim: true,
 			type: String,
 		},
 		password: {
