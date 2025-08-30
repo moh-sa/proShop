@@ -29,6 +29,8 @@ export interface ISessionService {
 		userId: string;
 	}): Promise<SessionResult<SelectSession>>;
 
+	revokeAllByUserId(args: { userId: string }): Promise<SessionResult<number>>;
+
 	revokeByTokenIdAndUserId(args: {
 		tokenId: string;
 		userId: string;
@@ -112,6 +114,17 @@ export class SessionService implements ISessionService {
 				data: session,
 				success: true,
 			};
+		} catch (error) {
+			return this._handleError(error);
+		}
+	}
+
+	public async revokeAllByUserId(args: {
+		userId: string;
+	}): Promise<SessionResult<number>> {
+		try {
+			const revokedCount = await this._repository.revokeAllByUserId(args);
+			return { data: revokedCount, success: true };
 		} catch (error) {
 			return this._handleError(error);
 		}
