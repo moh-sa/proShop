@@ -5,7 +5,7 @@ import type { InsertSession, SelectSession } from "../../types/index.js";
 import { generateMockObjectId } from "./objectid.mock.js";
 
 export function generateMockInsertSession(
-	options: Partial<InsertSession>,
+	options?: Partial<InsertSession>,
 ): InsertSession {
 	return {
 		expiresAt: faker.date.future(),
@@ -18,7 +18,7 @@ export function generateMockInsertSession(
 
 export function generateMockInsertSessions({
 	count,
-	options = {},
+	options,
 }: {
 	count: number;
 	options?: Partial<InsertSession>;
@@ -30,7 +30,7 @@ export function generateMockInsertSessions({
 }
 
 export function generateMockSelectSession(
-	options: Partial<SelectSession>,
+	options?: Partial<SelectSession>,
 ): SelectSession {
 	return {
 		createdAt: faker.date.recent(),
