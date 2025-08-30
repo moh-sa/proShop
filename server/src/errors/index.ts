@@ -11,4 +11,5 @@ export * from "./jwt/index.js";
 export * from "./not-found.error.js";
 export * from "./password/index.js";
 export * from "./rate-limit.error.js";
+export * from "./session/index.js";
 export * from "./validation.error.js";
