@@ -20,6 +20,11 @@ import { SessionRepository } from "../repositories/index.js";
 export interface ISessionService {
 	create(args: InsertSession): Promise<SessionResult<SelectSession>>;
 
+	getByTokenIdAndUserId(args: {
+		tokenId: string;
+		userId: string;
+	}): Promise<SessionResult<SelectSession>>;
+
 	/**
 	 * Validates a session by checking if it exists, is not revoked, and is not expired.
 	 */
@@ -56,6 +61,32 @@ export class SessionService implements ISessionService {
 				};
 			}
 
+			return this._handleError(error);
+		}
+	}
+
+	public async getByTokenIdAndUserId(args: {
+		tokenId: string;
+		userId: string;
+	}): Promise<SessionResult<SelectSession>> {
+		try {
+			const session = await this._repository.getByTokenIdAndUserId({
+				tokenId: args.tokenId,
+				userId: args.userId,
+			});
+
+			if (!session) {
+				return {
+					error: new SessionNotFoundError(),
+					success: false,
+				};
+			}
+
+			return {
+				data: session,
+				success: true,
+			};
+		} catch (error) {
 			return this._handleError(error);
 		}
 	}
