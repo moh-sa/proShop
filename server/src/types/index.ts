@@ -1,4 +1,5 @@
 export * from "./cache.type.js";
+export * from "./cookie.type.js";
 export * from "./deep-partial-type.js";
 export * from "./error.type.js";
 export * from "./image.type.js";
