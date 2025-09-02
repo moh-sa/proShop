@@ -2,6 +2,7 @@ import type { Response } from "express";
 
 import type {
 	CookieConfig,
+	CookieItem,
 	CookieItemOptions,
 	Result,
 } from "../types/index.js";
@@ -9,6 +10,7 @@ import type {
 import { DEFAULT_COOKIE_CONFIG } from "../config/index.js";
 import {
 	type CookieBaseError,
+	CookieSerializationError,
 	CookieValidationError,
 } from "../errors/index.js";
 
@@ -28,6 +30,22 @@ export class CookieService implements ICookieService {
 			...this._config,
 			...options,
 		};
+	}
+
+	private _stringifyValue(value: CookieItem["value"]): CookieResult<string> {
+		try {
+			const stringified = JSON.stringify(value);
+
+			return {
+				data: stringified,
+				success: true,
+			};
+		} catch (error) {
+			return {
+				error: CookieSerializationError.stringifyFailed(value, error),
+				success: false,
+			};
+		}
 	}
 
 	private _validateResponse(res: Response): CookieResult<undefined> {
