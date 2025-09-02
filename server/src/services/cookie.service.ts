@@ -15,7 +15,13 @@ import {
 	CookieValidationError,
 } from "../errors/index.js";
 
-export interface ICookieService {}
+export interface ICookieService {
+	set(args: {
+		item: CookieItem;
+		options?: CookieItemOptions;
+		response: Response;
+	}): CookieResult<undefined>;
+}
 
 type CookieResult<T> = Result<T, CookieBaseError>;
 
@@ -24,6 +30,39 @@ export class CookieService implements ICookieService {
 
 	constructor(config?: CookieConfig) {
 		this._config = config ?? DEFAULT_COOKIE_CONFIG;
+	}
+
+	public set(args: {
+		item: CookieItem;
+		options?: CookieItemOptions;
+		response: Response;
+	}): CookieResult<undefined> {
+		const nameResult = this._validateStringExists(
+			"Cookie name",
+			args.item.name,
+		);
+		if (!nameResult.success) {
+			return nameResult;
+		}
+
+		const resResult = this._validateResponse(args.response);
+		if (!resResult.success) {
+			return resResult;
+		}
+
+		const options = this._mergeOptions(args.options);
+
+		const valueResult = this._stringifyValue(args.item.value);
+		if (!valueResult.success) {
+			return valueResult;
+		}
+
+		return this._setCookie({
+			name: args.item.name,
+			options,
+			response: args.response,
+			value: valueResult.data,
+		});
 	}
 
 	private _mergeOptions(options?: CookieItemOptions) {
