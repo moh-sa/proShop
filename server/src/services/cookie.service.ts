@@ -1,3 +1,5 @@
+import type { Response } from "express";
+
 import type { CookieConfig, Result } from "../types/index.js";
 
 import { DEFAULT_COOKIE_CONFIG } from "../config/index.js";
@@ -15,6 +17,20 @@ export class CookieService implements ICookieService {
 
 	constructor(config?: CookieConfig) {
 		this._config = config ?? DEFAULT_COOKIE_CONFIG;
+	}
+
+	private _validateResponse(res: Response): CookieResult<undefined> {
+		if (!res || typeof res !== "object" || !res.cookie || !res.clearCookie) {
+			return {
+				error: CookieValidationError.invalidResponse(),
+				success: false,
+			};
+		}
+
+		return {
+			data: undefined,
+			success: true,
+		};
 	}
 
 	private _validateStringExists(
