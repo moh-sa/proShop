@@ -10,6 +10,7 @@ import type {
 import { DEFAULT_COOKIE_CONFIG } from "../config/index.js";
 import {
 	type CookieBaseError,
+	CookieOperationError,
 	CookieSerializationError,
 	CookieValidationError,
 } from "../errors/index.js";
@@ -30,6 +31,27 @@ export class CookieService implements ICookieService {
 			...this._config,
 			...options,
 		};
+	}
+
+	private _setCookie(args: {
+		name: string;
+		options: CookieItemOptions;
+		response: Response;
+		value: string;
+	}): CookieResult<undefined> {
+		try {
+			args.response.cookie(args.name, args.value, args.options);
+
+			return {
+				data: undefined,
+				success: true,
+			};
+		} catch (error) {
+			return {
+				error: CookieOperationError.setFailed(args.name, error),
+				success: false,
+			};
+		}
 	}
 
 	private _stringifyValue(value: CookieItem["value"]): CookieResult<string> {
