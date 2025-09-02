@@ -147,6 +147,20 @@ export class CookieService implements ICookieService {
 		}
 	}
 
+	private _validateRequest(req: Request): CookieResult<undefined> {
+		if (!req || typeof req !== "object" || !req.cookies || !req.signedCookies) {
+			return {
+				error: CookieValidationError.invalidRequest(),
+				success: false,
+			};
+		}
+
+		return {
+			data: undefined,
+			success: true,
+		};
+	}
+
 	private _validateResponse(res: Response): CookieResult<undefined> {
 		if (!res || typeof res !== "object" || !res.cookie || !res.clearCookie) {
 			return {
