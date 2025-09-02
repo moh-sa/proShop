@@ -95,6 +95,21 @@ export class CookieService implements ICookieService {
 		};
 	}
 
+	private _parseValue<T>(stringifiedValue: string): CookieResult<T> {
+		try {
+			const parsed = JSON.parse(stringifiedValue);
+			return {
+				data: parsed,
+				success: true,
+			};
+		} catch (error) {
+			return {
+				error: CookieSerializationError.parseFailed(stringifiedValue, error),
+				success: false,
+			};
+		}
+	}
+
 	private _setCookie(args: {
 		name: string;
 		options: CookieItemOptions;
