@@ -5,6 +5,7 @@ export * from "./jwt.service.js";
 export * from "./order.service.js";
 export * from "./password.service.js";
 export * from "./product.service.js";
+export * from "./rate-limit.service.js";
 export * from "./review.service.js";
 export * from "./session.service.js";
 export * from "./user.service.js";

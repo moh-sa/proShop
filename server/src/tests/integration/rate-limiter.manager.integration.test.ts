@@ -1,15 +1,15 @@
 import { beforeEach, suite } from "node:test";
 
-import { RateLimiterManager } from "../../managers/rate-limit.manager.js";
+import { RateLimiterService } from "../../services/index.js";
 
 suite(
-	"Rate Limiter Manager 〖 Integration Tests 〗",
+	"Rate Limiter Service 〖 Integration Tests 〗",
 	{ todo: "IMPLEMENT" },
 	() => {
-		const manager = new RateLimiterManager();
+		const service = new RateLimiterService();
 
 		beforeEach(async () => {
-			manager.clearCache();
+			service.clearCache();
 		});
 
 		// I AM TIRED BOSS :')

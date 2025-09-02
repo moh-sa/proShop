@@ -4,14 +4,14 @@ import type { RateLimitConfig } from "../types/index.js";
 
 import { RATE_LIMIT_CONFIG } from "../config/index.js";
 import { RateLimitError } from "../errors/index.js";
-import { CacheService } from "../services/index.js";
+import { CacheService } from "./index.js";
 
 interface RateLimitData {
 	count: number;
 	firstRequestTime: number;
 }
 
-export class RateLimiterManager {
+export class RateLimiterService {
 	private _cache: CacheService;
 
 	constructor(cache: CacheService = new CacheService("rate-limit")) {
@@ -146,7 +146,7 @@ export class RateLimiterManager {
 	}
 }
 
-const rateLimiter = new RateLimiterManager();
+const rateLimiter = new RateLimiterService();
 export const defaultLimiter = rateLimiter.getLimiter();
 export const strictLimiter = rateLimiter.getLimiter("STRICT");
 export const adminLimiter = rateLimiter.getLimiter("ADMIN");

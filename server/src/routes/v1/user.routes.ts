@@ -2,15 +2,15 @@ import express from "express";
 
 import { UserController } from "../../controllers/index.js";
 import {
-	adminLimiter,
-	defaultLimiter,
-	strictLimiter,
-} from "../../managers/index.js";
-import {
 	checkIfUserIsAdmin,
 	checkJwtTokenValidation,
 	checkUserIdExists,
 } from "../../middlewares/index.js";
+import {
+	adminLimiter,
+	defaultLimiter,
+	strictLimiter,
+} from "../../services/index.js";
 
 const controller = new UserController();
 

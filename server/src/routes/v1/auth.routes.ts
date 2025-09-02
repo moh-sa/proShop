@@ -1,7 +1,7 @@
 import express from "express";
 
 import { AuthController } from "../../controllers/index.js";
-import { authLimiter } from "../../managers/index.js";
+import { authLimiter } from "../../services/index.js";
 const router = express.Router();
 
 const controller = new AuthController();
