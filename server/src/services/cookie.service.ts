@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import type { z } from "zod";
 
+import type { CookieBaseError } from "../errors/index.js";
 import type {
 	CookieConfig,
 	CookieItem,
@@ -10,7 +11,6 @@ import type {
 
 import { DEFAULT_COOKIE_CONFIG } from "../config/index.js";
 import {
-	type CookieBaseError,
 	CookieNotFoundError,
 	CookieOperationError,
 	CookieSerializationError,
