@@ -1,4 +1,4 @@
-import type { Response } from "express";
+import type { Request, Response } from "express";
 
 import type {
 	CookieConfig,
@@ -10,6 +10,7 @@ import type {
 import { DEFAULT_COOKIE_CONFIG } from "../config/index.js";
 import {
 	type CookieBaseError,
+	CookieNotFoundError,
 	CookieOperationError,
 	CookieSerializationError,
 	CookieValidationError,
@@ -63,6 +64,28 @@ export class CookieService implements ICookieService {
 			response: args.response,
 			value: valueResult.data,
 		});
+	}
+
+	private _getCookie(req: Request, name: string): CookieResult<string> {
+		try {
+			const cookie = req.signedCookies[name] ?? null;
+			if (!cookie) {
+				return {
+					error: CookieNotFoundError.byName(name),
+					success: false,
+				};
+			}
+
+			return {
+				data: cookie,
+				success: true,
+			};
+		} catch (error) {
+			return {
+				error: CookieOperationError.getFailed(name, error),
+				success: false,
+			};
+		}
 	}
 
 	private _mergeOptions(options?: CookieItemOptions) {
