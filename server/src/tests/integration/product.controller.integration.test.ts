@@ -16,9 +16,8 @@ import { ZodError } from "zod";
 import type { InsertProduct } from "../../types/index.js";
 
 import { NotFoundError } from "../../errors/index.js";
-import { CacheManager } from "../../managers/index.js";
 import { ProductRepository } from "../../repositories/index.js";
-import { ProductService } from "../../services/index.js";
+import { CacheService, ProductService } from "../../services/index.js";
 import {
 	generateMockInsertProductWithMulterImage,
 	generateMockObjectId,
@@ -34,7 +33,7 @@ import {
 import { createMockExpressContext } from "../utils/index.js";
 
 suite("Product Controller 〖 Integration Tests 〗", () => {
-	const cache = new CacheManager("product");
+	const cache = new CacheService("product");
 	const repo = new ProductRepository(Product, cache);
 	const storage = mockImageStorage();
 	const service = new ProductService(repo, storage);

@@ -4,7 +4,7 @@ import type { RateLimitConfig } from "../types/index.js";
 
 import { RATE_LIMIT_CONFIG } from "../config/index.js";
 import { RateLimitError } from "../errors/index.js";
-import { CacheManager } from "./cache.manager.js";
+import { CacheService } from "../services/index.js";
 
 interface RateLimitData {
 	count: number;
@@ -12,9 +12,9 @@ interface RateLimitData {
 }
 
 export class RateLimiterManager {
-	private _cache: CacheManager;
+	private _cache: CacheService;
 
-	constructor(cache: CacheManager = new CacheManager("rate-limit")) {
+	constructor(cache: CacheService = new CacheService("rate-limit")) {
 		this._cache = cache;
 	}
 

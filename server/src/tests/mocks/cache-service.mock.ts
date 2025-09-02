@@ -1,9 +1,9 @@
 import { mock } from "node:test";
 
-import type { ICacheManager } from "../../managers/index.js";
+import type { ICacheService } from "../../services/index.js";
 import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
-export function mockCacheManager(): FunctionMocksWithReset<ICacheManager> {
+export function mockCacheService(): FunctionMocksWithReset<ICacheService> {
 	return {
 		delete: mock.fn(),
 		deleteMany: mock.fn(),

@@ -3,10 +3,9 @@ import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 
 import { DatabaseValidationError, NotFoundError } from "../../errors/index.js";
-import { CacheManager } from "../../managers/index.js";
 import Product from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
-import { ProductService } from "../../services/index.js";
+import { CacheService, ProductService } from "../../services/index.js";
 import { mockImageStorage, mockMulterImageFile } from "../mocks/index.js";
 import {
 	generateMockInsertProductWithMulterImage,
@@ -18,13 +17,13 @@ import { connectTestDatabase, disconnectTestDatabase } from "../utils/index.js";
 suite("Product Service 〖 Integration Tests 〗", async () => {
 	let productService: ProductService;
 	let productRepository: ProductRepository;
-	let cacheManager: CacheManager;
+	let cacheService: CacheService;
 	let imageStorageMock: ReturnType<typeof mockImageStorage>; // Don't have storage for testing
 
 	before(async () => {
 		await connectTestDatabase();
-		cacheManager = new CacheManager("product");
-		productRepository = new ProductRepository(Product, cacheManager);
+		cacheService = new CacheService("product");
+		productRepository = new ProductRepository(Product, cacheService);
 		imageStorageMock = mockImageStorage();
 		productService = new ProductService(productRepository, imageStorageMock);
 	});
@@ -36,7 +35,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 	beforeEach(async () => {
 		await Product.deleteMany({});
-		cacheManager.flush();
+		cacheService.flush();
 		imageStorageMock.reset();
 	});
 

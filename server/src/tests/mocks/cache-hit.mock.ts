@@ -1,4 +1,4 @@
-import type { ICacheManager } from "../../managers/index.js";
+import type { ICacheService } from "../../services/index.js";
 import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
 export function mockCacheHit<T>({
@@ -7,7 +7,7 @@ export function mockCacheHit<T>({
 	returnValue,
 }: {
 	cacheKey: string;
-	instance: FunctionMocksWithReset<ICacheManager>;
+	instance: FunctionMocksWithReset<ICacheService>;
 	returnValue: T;
 }): void {
 	instance.get.mock.mockImplementationOnce(() => ({

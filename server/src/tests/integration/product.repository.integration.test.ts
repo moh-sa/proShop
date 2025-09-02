@@ -5,9 +5,9 @@ import test, { after, before, beforeEach, describe, suite } from "node:test";
 import type { SelectProduct, TopRatedProduct } from "../../types/index.js";
 
 import { DatabaseValidationError } from "../../errors/index.js";
-import { CacheManager } from "../../managers/index.js";
 import Product from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
+import { CacheService } from "../../services/index.js";
 import { removeObjectFields } from "../../utils/index.js";
 import { generateMockObjectId } from "../mocks/index.js";
 import {
@@ -22,12 +22,12 @@ import {
 
 suite("Product Repository 〖 Integration Tests 〗", async () => {
 	let productRepository: ProductRepository;
-	let cacheManager: CacheManager;
+	let cacheService: CacheService;
 
 	before(async () => {
 		await connectTestDatabase();
-		cacheManager = new CacheManager("product");
-		productRepository = new ProductRepository(Product, cacheManager);
+		cacheService = new CacheService("product");
+		productRepository = new ProductRepository(Product, cacheService);
 	});
 
 	after(async () => {
@@ -37,7 +37,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 
 	beforeEach(async () => {
 		await Product.deleteMany({});
-		cacheManager.flush();
+		cacheService.flush();
 	});
 
 	describe("create", () => {
@@ -67,7 +67,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 
 			// Act
 			const createdProduct = await productRepository.create(mockProduct);
-			const cachedProduct = cacheManager.get<SelectProduct>({
+			const cachedProduct = cacheService.get<SelectProduct>({
 				key: createdProduct._id.toString(),
 			});
 
@@ -247,7 +247,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			await Product.insertMany(mockProducts);
 
 			// Act & Assert
-			const noProductsCached = cacheManager.get({ key: "top-rated" });
+			const noProductsCached = cacheService.get({ key: "top-rated" });
 			assert.strictEqual(noProductsCached.success, false);
 
 			const products = await productRepository.getTopRated({ limit: 3 });
@@ -255,7 +255,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			assert.ok(Array.isArray(products));
 			assert.equal(products.length, mockProducts.length);
 
-			const cachedProducts = cacheManager.get<Array<TopRatedProduct>>({
+			const cachedProducts = cacheService.get<Array<TopRatedProduct>>({
 				key: "top-rated",
 			});
 			assert.ok(cachedProducts.success);
@@ -342,7 +342,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			await Product.create(mockProduct);
 
 			// Act & Assert
-			const noProductCached = cacheManager.get({
+			const noProductCached = cacheService.get({
 				key: mockProduct._id.toString(),
 			});
 			assert.strictEqual(noProductCached.success, false);
@@ -351,7 +351,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 				productId: mockProduct._id,
 			});
 
-			const cachedProduct = cacheManager.get<SelectProduct>({
+			const cachedProduct = cacheService.get<SelectProduct>({
 				key: mockProduct._id.toString(),
 			});
 			assert.ok(cachedProduct.success);
@@ -426,7 +426,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			const cachedProduct = cacheManager.get<SelectProduct>({
+			const cachedProduct = cacheService.get<SelectProduct>({
 				key: cacheKey,
 			});
 			assert.strictEqual(cachedProduct.success, false);
@@ -520,7 +520,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			await productRepository.delete({ productId: mockProduct._id });
 
 			// Assert
-			const cachedProduct = cacheManager.get<SelectProduct>({
+			const cachedProduct = cacheService.get<SelectProduct>({
 				key: cacheKey,
 			});
 			assert.strictEqual(cachedProduct.success, false);

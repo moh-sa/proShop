@@ -27,7 +27,7 @@ import {
 } from "../schemas/index.js";
 import { formatZodErrors } from "../utils/index.js";
 
-export interface ICacheManager {
+export interface ICacheService {
 	delete(args: { key: string }): CacheResult;
 	deleteMany(args: { keys: Array<string> }): Array<CacheResult>;
 	flush(): void;
@@ -42,7 +42,7 @@ export interface ICacheManager {
 	take<T>(args: { key: string }): CacheResult<T>;
 }
 
-export class CacheManager implements ICacheManager {
+export class CacheService implements ICacheService {
 	private _cache: NodeCache;
 	private readonly _namespace: Namespace;
 

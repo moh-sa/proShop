@@ -1,4 +1,4 @@
-import type { ICacheManager } from "../../managers/index.js";
+import type { ICacheService } from "../../services/index.js";
 import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
 export function mockSetCache({
@@ -6,7 +6,7 @@ export function mockSetCache({
 	instance,
 }: {
 	cacheKey: string;
-	instance: FunctionMocksWithReset<ICacheManager>;
+	instance: FunctionMocksWithReset<ICacheService>;
 }): void {
 	instance.set.mock.mockImplementationOnce(() => ({
 		data: cacheKey,

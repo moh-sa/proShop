@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import assert from "node:assert";
 import test, { beforeEach, describe, mock, suite } from "node:test";
 
-import type { CacheManager } from "../../managers/index.js";
+import type { CacheService } from "../../services/index.js";
 import type { InsertProductWithStringImage } from "../../types/index.js";
 
 import {
@@ -20,16 +20,16 @@ import {
 	generateMockSelectProducts,
 	mockCacheHit,
 	mockCacheInvalidation,
-	mockCacheManager,
 	mockCacheMiss,
+	mockCacheService,
 	mockSetCache,
 } from "../mocks/index.js";
 
 suite("Product Repository 〖 Unit Tests 〗", () => {
-	const mockCache = mockCacheManager();
+	const mockCache = mockCacheService();
 	const repo = new ProductRepository(
 		Product,
-		mockCache as unknown as CacheManager,
+		mockCache as unknown as CacheService,
 	);
 
 	beforeEach(() => mockCache.reset());

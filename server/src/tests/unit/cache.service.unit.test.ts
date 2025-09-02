@@ -11,43 +11,43 @@ import {
 	CacheOperationError,
 	CacheValidationError,
 } from "../../errors/index.js";
-import { CacheManager } from "../../managers/index.js";
 import { cacheItemSchema } from "../../schemas/index.js";
+import { CacheService } from "../../services/index.js";
 import { mockNodeCache } from "../mocks/index.js";
 
 suite("Cache Manager 〖 Unit Tests 〗", () => {
 	const namespace: Namespace = "product";
 	const mockCache = mockNodeCache();
-	let cacheManager: CacheManager;
+	let cacheService: CacheService;
 
 	beforeEach(() => {
-		cacheManager = new CacheManager(namespace);
-		cacheManager["_cache"] = mockCache as unknown as NodeCache;
+		cacheService = new CacheService(namespace);
+		cacheService["_cache"] = mockCache as unknown as NodeCache;
 		mockCache.reset();
 	});
 
 	describe("Constructor", () => {
-		test("Should create a new CacheManager instance with default config", () => {
-			const cacheManager = new CacheManager(namespace);
+		test("Should create a new CacheService instance with default config", () => {
+			const cacheService = new CacheService(namespace);
 
-			assert.ok(cacheManager);
-			assert.ok(cacheManager instanceof CacheManager);
-			assert.strictEqual(cacheManager["_namespace"], namespace);
+			assert.ok(cacheService);
+			assert.ok(cacheService instanceof CacheService);
+			assert.strictEqual(cacheService["_namespace"], namespace);
 			assert.strictEqual(
-				cacheManager["_cache"].options.stdTTL,
+				cacheService["_cache"].options.stdTTL,
 				DEFAULT_CACHE_CONFIG.stdTTL,
 			);
 		});
 
-		test("Should create a new CacheManager instance with custom config", () => {
+		test("Should create a new CacheService instance with custom config", () => {
 			const cacheConfig: Partial<CacheConfig> = { stdTTL: 1000 };
-			const cacheManager = new CacheManager(namespace, cacheConfig);
+			const cacheService = new CacheService(namespace, cacheConfig);
 
-			assert.ok(cacheManager);
-			assert.ok(cacheManager instanceof CacheManager);
-			assert.strictEqual(cacheManager["_namespace"], namespace);
+			assert.ok(cacheService);
+			assert.ok(cacheService instanceof CacheService);
+			assert.strictEqual(cacheService["_namespace"], namespace);
 			assert.strictEqual(
-				cacheManager["_cache"].options.stdTTL,
+				cacheService["_cache"].options.stdTTL,
 				cacheConfig.stdTTL,
 			);
 		});
@@ -59,12 +59,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const value = "test-data";
 
-			cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheManager["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
+			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
+			cacheService["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
 			mockCache.set.mock.mockImplementationOnce(() => true);
 
 			// Act
-			const result = cacheManager.set({ key, value });
+			const result = cacheService.set({ key, value });
 
 			// Assert
 			assert.ok(result.success);
@@ -76,12 +76,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const value = "test-data";
 
-			cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheManager["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
+			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
+			cacheService["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
 			mockCache.set.mock.mockImplementationOnce(() => false);
 
 			// Act
-			const result = cacheManager.set({ key, value });
+			const result = cacheService.set({ key, value });
 
 			// Assert
 			assert.ok(!result.success);
@@ -94,12 +94,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const value = "test-data";
 
-			cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheManager["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
+			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
+			cacheService["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
 			mockCache.set.mock.mockImplementationOnce(() => true);
 
 			// Act
-			const result = cacheManager.set({ key, value });
+			const result = cacheService.set({ key, value });
 
 			// Assert
 			assert.ok(result.success);
@@ -111,12 +111,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const value = "test-data";
 
-			cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheManager["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
+			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
+			cacheService["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
 			mockCache.set.mock.mockImplementationOnce(() => false);
 
 			// Act
-			const result = cacheManager.set({ key, value });
+			const result = cacheService.set({ key, value });
 
 			// Assert
 			assert.ok(!result.success);
@@ -128,12 +128,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const value = "test-data";
 
-			cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheManager["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
+			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
+			cacheService["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
 			mockCache.set.mock.mockImplementationOnce(() => false);
 
 			// Act
-			const result = cacheManager.set({ key, value });
+			const result = cacheService.set({ key, value });
 
 			// Assert
 			assert.ok(!result.success);
@@ -145,14 +145,14 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const value = "test-data";
 
-			cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheManager["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
+			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
+			cacheService["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
 			mockCache.set.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});
 
 			// Act
-			const result = cacheManager.set({ key, value });
+			const result = cacheService.set({ key, value });
 
 			// Assert
 			assert.ok(!result.success);
@@ -166,13 +166,13 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const val = "test-value";
 
-			cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheManager["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
+			cacheService["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.set.mock.mockImplementation(() => true);
 
 			// Act
-			const result = cacheManager.setMany([{ key, value: val }]);
+			const result = cacheService.setMany([{ key, value: val }]);
 
 			// Arrest
 			assert.ok(Array.isArray(result));
@@ -186,13 +186,13 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const val = "test-value";
 
-			cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheManager["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
+			cacheService["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.set.mock.mockImplementation(() => false);
 
 			// Act
-			const result = cacheManager.setMany([{ key, value: val }]);
+			const result = cacheService.setMany([{ key, value: val }]);
 
 			// Arrest
 			assert.ok(Array.isArray(result));
@@ -207,13 +207,13 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const val = "test-value";
 
-			cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheManager["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
+			cacheService["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.set.mock.mockImplementation(() => true);
 
 			// Act
-			const result = cacheManager.setMany([{ key, value: val }]);
+			const result = cacheService.setMany([{ key, value: val }]);
 
 			// Arrest
 			assert.ok(Array.isArray(result));
@@ -227,13 +227,13 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const val = "test-value";
 
-			cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheManager["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
+			cacheService["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.set.mock.mockImplementation(() => false);
 
 			// Act
-			const result = cacheManager.setMany([{ key, value: val }]);
+			const result = cacheService.setMany([{ key, value: val }]);
 
 			// Arrest
 			assert.ok(Array.isArray(result));
@@ -247,13 +247,13 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const val = "test-value";
 
-			cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheManager["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
+			cacheService["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.set.mock.mockImplementationOnce(() => false);
 
 			// Act
-			const result = cacheManager.setMany([{ key, value: val }]);
+			const result = cacheService.setMany([{ key, value: val }]);
 
 			// Arrest
 			assert.ok(Array.isArray(result));
@@ -267,15 +267,15 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const val = "test-value";
 
-			cacheManager["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheManager["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
+			cacheService["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.set.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});
 
 			// Act
-			const result = cacheManager.setMany([{ key, value: val }]);
+			const result = cacheService.setMany([{ key, value: val }]);
 
 			// Arrest
 			assert.ok(Array.isArray(result));
@@ -291,12 +291,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const value = "test-data";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementationOnce(() => value);
 
 			// Act
-			const result = cacheManager.get({ key });
+			const result = cacheService.get({ key });
 
 			// Assert
 			assert.ok(result.success);
@@ -307,12 +307,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementationOnce(() => undefined);
 
 			// Act
-			const result = cacheManager.get({ key });
+			const result = cacheService.get({ key });
 
 			// Assert
 			assert.ok(!result.success);
@@ -325,12 +325,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const value = "test-data";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementationOnce(() => value);
 
 			// Act
-			const result = cacheManager.get({ key });
+			const result = cacheService.get({ key });
 
 			// Assert
 			assert.ok(result.success);
@@ -341,12 +341,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementationOnce(() => undefined);
 
 			// Act
-			const result = cacheManager.get({ key });
+			const result = cacheService.get({ key });
 
 			// Assert
 			assert.ok(!result.success);
@@ -357,12 +357,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementationOnce(() => undefined);
 
 			// Act
-			const result = cacheManager.get({ key });
+			const result = cacheService.get({ key });
 
 			// Assert
 			assert.ok(!result.success);
@@ -373,14 +373,14 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});
 
 			// Act
-			const result = cacheManager.get({ key });
+			const result = cacheService.get({ key });
 
 			// Assert
 			assert.ok(!result.success);
@@ -394,12 +394,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const value = "test-value";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementation(() => value);
 
 			// Act
-			const result = cacheManager.getMany({ keys: [key] });
+			const result = cacheService.getMany({ keys: [key] });
 
 			// Arrest
 			assert.ok(Array.isArray(result));
@@ -412,12 +412,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementation(() => undefined);
 
 			// Act
-			const result = cacheManager.getMany({ keys: [key] });
+			const result = cacheService.getMany({ keys: [key] });
 
 			// Arrest
 			assert.ok(Array.isArray(result));
@@ -432,12 +432,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const value = "test-value";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementation(() => value);
 
 			// Act
-			const result = cacheManager.getMany({ keys: [key] });
+			const result = cacheService.getMany({ keys: [key] });
 
 			// Arrest
 			assert.ok(Array.isArray(result));
@@ -450,12 +450,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementation(() => undefined);
 
 			// Act
-			const result = cacheManager.getMany({ keys: [key] });
+			const result = cacheService.getMany({ keys: [key] });
 
 			// Arrest
 			assert.ok(Array.isArray(result));
@@ -468,12 +468,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementationOnce(() => undefined);
 
 			// Act
-			const result = cacheManager.getMany({ keys: [key] });
+			const result = cacheService.getMany({ keys: [key] });
 
 			// Arrest
 			assert.ok(Array.isArray(result));
@@ -486,14 +486,14 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});
 
 			// Act
-			const result = cacheManager.getMany({ keys: [key] });
+			const result = cacheService.getMany({ keys: [key] });
 
 			// Arrest
 			assert.ok(Array.isArray(result));
@@ -508,12 +508,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementationOnce(() => 1);
 
 			// Act
-			const result = cacheManager.delete({ key });
+			const result = cacheService.delete({ key });
 
 			// Assert
 			assert.ok(result.success);
@@ -524,12 +524,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementationOnce(() => 0);
 
 			// Act
-			const result = cacheManager.delete({ key });
+			const result = cacheService.delete({ key });
 
 			// Assert
 			assert.ok(!result.success);
@@ -541,12 +541,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementationOnce(() => 1);
 
 			// Act
-			const result = cacheManager.delete({ key });
+			const result = cacheService.delete({ key });
 
 			// Assert
 			assert.ok(result.success);
@@ -557,12 +557,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementationOnce(() => 0);
 
 			// Act
-			const result = cacheManager.delete({ key });
+			const result = cacheService.delete({ key });
 
 			// Assert
 			assert.ok(!result.success);
@@ -573,12 +573,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementationOnce(() => 0);
 
 			// Act
-			const result = cacheManager.delete({ key });
+			const result = cacheService.delete({ key });
 
 			// Assert
 			assert.ok(!result.success);
@@ -589,14 +589,14 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});
 
 			// Act
-			const result = cacheManager.delete({ key });
+			const result = cacheService.delete({ key });
 
 			// Assert
 			assert.ok(!result.success);
@@ -609,12 +609,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementation(() => 1);
 
 			// Act
-			const result = cacheManager.deleteMany({ keys: [key] });
+			const result = cacheService.deleteMany({ keys: [key] });
 
 			// Assert
 			assert.ok(Array.isArray(result));
@@ -627,12 +627,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementation(() => 0);
 
 			// Act
-			const result = cacheManager.deleteMany({ keys: [key] });
+			const result = cacheService.deleteMany({ keys: [key] });
 
 			// Assert
 			assert.ok(Array.isArray(result));
@@ -646,12 +646,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementation(() => 1);
 
 			// Act
-			const result = cacheManager.deleteMany({ keys: [key] });
+			const result = cacheService.deleteMany({ keys: [key] });
 
 			// Assert
 			assert.ok(result[0].success);
@@ -662,12 +662,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementation(() => 0);
 
 			// Act
-			const result = cacheManager.deleteMany({ keys: [key] });
+			const result = cacheService.deleteMany({ keys: [key] });
 
 			// Assert
 			assert.ok(!result[0].success);
@@ -678,12 +678,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementationOnce(() => 0);
 
 			// Act
-			const result = cacheManager.deleteMany({ keys: [key] });
+			const result = cacheService.deleteMany({ keys: [key] });
 
 			// Assert
 			assert.ok(!result[0].success);
@@ -694,14 +694,14 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});
 
 			// Act
-			const result = cacheManager.deleteMany({ keys: [key] });
+			const result = cacheService.deleteMany({ keys: [key] });
 
 			// Assert
 			assert.ok(!result[0].success);
@@ -715,12 +715,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const value = "test-value";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.take.mock.mockImplementationOnce(() => value);
 
 			// Act
-			const result = cacheManager.take({ key });
+			const result = cacheService.take({ key });
 
 			// Assert
 			assert.ok(result.success);
@@ -731,12 +731,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.take.mock.mockImplementationOnce(() => undefined);
 
 			// Act
-			const result = cacheManager.take({ key });
+			const result = cacheService.take({ key });
 
 			// Assert
 			assert.ok(!result.success);
@@ -749,12 +749,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 			const value = "test-value";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.take.mock.mockImplementationOnce(() => value);
 
 			// Act
-			const result = cacheManager.take({ key });
+			const result = cacheService.take({ key });
 
 			// Assert
 			assert.ok(result.success);
@@ -765,12 +765,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.take.mock.mockImplementationOnce(() => undefined);
 
 			// Act
-			const result = cacheManager.take({ key });
+			const result = cacheService.take({ key });
 
 			// Assert
 			assert.ok(!result.success);
@@ -781,12 +781,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.take.mock.mockImplementationOnce(() => undefined);
 
 			// Act
-			const result = cacheManager.take({ key });
+			const result = cacheService.take({ key });
 
 			// Assert
 			assert.ok(!result.success);
@@ -797,14 +797,14 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.take.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});
 
 			// Act
-			const result = cacheManager.take({ key });
+			const result = cacheService.take({ key });
 
 			// Assert
 			assert.ok(!result.success);
@@ -819,7 +819,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			});
 
 			assert.throws(() => {
-				cacheManager.flush();
+				cacheService.flush();
 			}, CacheOperationError);
 		});
 	});
@@ -838,7 +838,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			mockCache.getStats.mock.mockImplementationOnce(() => stats);
 
 			// Act
-			const result = cacheManager.getStats();
+			const result = cacheService.getStats();
 
 			// Assert
 			assert.ok(result.hits);
@@ -861,7 +861,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			mockCache.getStats.mock.mockImplementationOnce(() => stats);
 
 			// Act
-			const result = cacheManager.getStats();
+			const result = cacheService.getStats();
 
 			// Assert
 			assert.strictEqual(result.totalSize, stats.ksize + stats.vsize);
@@ -873,12 +873,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.has.mock.mockImplementationOnce(() => true);
 
 			// Act
-			const result = cacheManager.isKeyCached({ key });
+			const result = cacheService.isKeyCached({ key });
 
 			// Assert
 			assert.ok(result.success);
@@ -889,12 +889,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.has.mock.mockImplementationOnce(() => false);
 
 			// Act
-			const result = cacheManager.isKeyCached({ key });
+			const result = cacheService.isKeyCached({ key });
 
 			// Assert
 			assert.ok(!result.success);
@@ -906,12 +906,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.has.mock.mockImplementationOnce(() => true);
 
 			// Act
-			const result = cacheManager.isKeyCached({ key });
+			const result = cacheService.isKeyCached({ key });
 
 			// Assert
 			assert.ok(result.success);
@@ -922,12 +922,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.has.mock.mockImplementationOnce(() => false);
 
 			// Act
-			const result = cacheManager.isKeyCached({ key });
+			const result = cacheService.isKeyCached({ key });
 
 			// Assert
 			assert.ok(!result.success);
@@ -938,12 +938,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.has.mock.mockImplementationOnce(() => false);
 
 			// Act
-			const result = cacheManager.isKeyCached({ key });
+			const result = cacheService.isKeyCached({ key });
 
 			// Assert
 			assert.ok(!result.success);
@@ -954,14 +954,14 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheManager["_validateSchema"] = t.mock.fn(() => key);
-			cacheManager["_generateCacheKey"] = t.mock.fn(() => key);
+			cacheService["_validateSchema"] = t.mock.fn(() => key);
+			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.has.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});
 
 			// Act
-			const result = cacheManager.isKeyCached({ key });
+			const result = cacheService.isKeyCached({ key });
 
 			// Assert
 			assert.ok(!result.success);
@@ -975,7 +975,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const key = "test-key";
 
 			// Act
-			const result = cacheManager["_generateCacheKey"]({ id: key });
+			const result = cacheService["_generateCacheKey"]({ id: key });
 
 			// Assert
 			const expectedKey = `${namespace}:${key}`;
@@ -993,7 +993,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			};
 
 			// Act
-			const result = cacheManager["_validateSchema"]({
+			const result = cacheService["_validateSchema"]({
 				data,
 				schema: cacheItemSchema,
 			});
@@ -1018,7 +1018,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			assert.throws(() => {
-				cacheManager["_validateSchema"]({
+				cacheService["_validateSchema"]({
 					schema: cacheItemSchema,
 					// @ts-expect-error - test case
 					data,
@@ -1036,7 +1036,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			assert.throws(() => {
-				cacheManager["_validateSchema"]({
+				cacheService["_validateSchema"]({
 					schema: cacheItemSchema,
 					// @ts-expect-error - test case
 					data,
@@ -1054,7 +1054,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			assert.throws(() => {
-				cacheManager["_validateSchema"]({
+				cacheService["_validateSchema"]({
 					schema: cacheItemSchema,
 					// @ts-expect-error - test case
 					data,
@@ -1070,7 +1070,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			mockCache.keys.mock.mockImplementationOnce(() => []);
 
 			// Act
-			cacheManager["_validateMemoryCapacity"](batchSize);
+			cacheService["_validateMemoryCapacity"](batchSize);
 
 			// Assert
 			assert.strictEqual(mockCache.keys.mock.callCount(), 0);
@@ -1082,7 +1082,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			assert.throws(() => {
-				cacheManager["_validateMemoryCapacity"](batchSize);
+				cacheService["_validateMemoryCapacity"](batchSize);
 			}, CacheCapacityError);
 		});
 
@@ -1092,7 +1092,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			mockCache.keys.mock.mockImplementationOnce(() => []);
 
 			// Act
-			cacheManager["_validateMemoryCapacity"](batchSize);
+			cacheService["_validateMemoryCapacity"](batchSize);
 
 			// Assert
 			assert.strictEqual(mockCache.keys.mock.callCount(), 1);
@@ -1108,7 +1108,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			mockCache.keys.mock.mockImplementationOnce(() => currentKeys);
 
 			// Act
-			cacheManager["_validateMemoryCapacity"](batchSize);
+			cacheService["_validateMemoryCapacity"](batchSize);
 
 			// Assert
 			assert.strictEqual(mockCache.keys.mock.callCount(), 1);
@@ -1129,7 +1129,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			mockCache.del.mock.mockImplementationOnce(() => 1);
 
 			// Act
-			cacheManager["_validateMemoryCapacity"](batchSize);
+			cacheService["_validateMemoryCapacity"](batchSize);
 
 			// Assert
 			assert.strictEqual(mockCache.keys.mock.callCount(), 1);
@@ -1154,7 +1154,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			mockCache.del.mock.mockImplementationOnce(() => 1);
 
 			// Act
-			cacheManager["_validateMemoryCapacity"](batchSize);
+			cacheService["_validateMemoryCapacity"](batchSize);
 
 			// Assert
 			assert.strictEqual(mockCache.del.mock.callCount(), 1);
@@ -1182,7 +1182,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			cacheManager["_validateMemoryCapacity"](batchSize);
+			cacheService["_validateMemoryCapacity"](batchSize);
 
 			// Assert
 			assert.strictEqual(mockCache.del.mock.callCount(), 1);
@@ -1205,7 +1205,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			assert.doesNotThrow(() =>
-				cacheManager["_validateMemoryCapacity"](batchSize),
+				cacheService["_validateMemoryCapacity"](batchSize),
 			);
 		});
 
@@ -1223,7 +1223,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			assert.throws(() => {
-				cacheManager["_validateMemoryCapacity"](batchSize);
+				cacheService["_validateMemoryCapacity"](batchSize);
 			}, CacheOperationError);
 		});
 	});

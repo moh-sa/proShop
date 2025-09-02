@@ -7,8 +7,8 @@ import type {
 	TopRatedProduct,
 } from "../types/index.js";
 
-import { CacheManager } from "../managers/index.js";
 import Product from "../models/product.model.js";
+import { CacheService } from "../services/index.js";
 import { handleDatabaseError } from "../utils/index.js";
 
 export interface IProductRepository {
@@ -29,12 +29,12 @@ export interface IProductRepository {
 }
 
 export class ProductRepository implements IProductRepository {
-	private _cache: CacheManager;
+	private _cache: CacheService;
 	private readonly _db: typeof Product;
 
 	constructor(
 		db: typeof Product = Product,
-		cache: CacheManager = new CacheManager("product"),
+		cache: CacheService = new CacheService("product"),
 	) {
 		this._db = db;
 		this._cache = cache;
