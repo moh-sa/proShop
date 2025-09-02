@@ -1,7 +1,10 @@
-import type { CookieBaseError } from "../errors/index.js";
 import type { CookieConfig, Result } from "../types/index.js";
 
 import { DEFAULT_COOKIE_CONFIG } from "../config/index.js";
+import {
+	type CookieBaseError,
+	CookieValidationError,
+} from "../errors/index.js";
 
 export interface ICookieService {}
 
@@ -12,5 +15,42 @@ export class CookieService implements ICookieService {
 
 	constructor(config?: CookieConfig) {
 		this._config = config ?? DEFAULT_COOKIE_CONFIG;
+	}
+
+	private _validateStringExists(
+		field: string,
+		val: unknown,
+	): CookieResult<undefined> {
+		if (!val) {
+			return {
+				error: field.toLowerCase().includes("name")
+					? CookieValidationError.emptyName()
+					: CookieValidationError.emptyValue(),
+				success: false,
+			};
+		}
+
+		if (typeof val !== "string") {
+			return {
+				error: field.toLowerCase().includes("name")
+					? CookieValidationError.invalidName(String(val))
+					: CookieValidationError.invalidValue(val),
+				success: false,
+			};
+		}
+
+		if (!val.trim()) {
+			return {
+				error: field.toLowerCase().includes("name")
+					? CookieValidationError.emptyName()
+					: CookieValidationError.emptyValue(),
+				success: false,
+			};
+		}
+
+		return {
+			data: undefined,
+			success: true,
+		};
 	}
 }
