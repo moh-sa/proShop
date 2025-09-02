@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 
 import * as Sentry from "@sentry/node";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import morgan from "morgan";
@@ -11,6 +12,8 @@ import { errorHandler } from "./middlewares/error-handler.middleware.js";
 import routes from "./routes/index.js";
 
 const app = express();
+
+app.use(cookieParser(env.COOKIE_SECRET, { decode: decodeURIComponent }));
 
 if (env.NODE_ENV === "development") {
 	app.use(morgan("dev"));
