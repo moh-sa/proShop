@@ -6,6 +6,7 @@ export * from "./cache-miss.mock.js";
 export * from "./cache-NodeCache.mock.js";
 export * from "./cache-set.mock.js";
 export * from "./cache.manager.mock.js";
+export * from "./cookie-service.mock.js";
 export * from "./express-http-call.mock.js";
 export * from "./image-storage.mock.js";
 export * from "./image.mock.js";
