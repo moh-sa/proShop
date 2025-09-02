@@ -119,6 +119,26 @@ export class CookieService implements ICookieService {
 		});
 	}
 
+	private _deleteCookie(args: {
+		name: string;
+		options: CookieItemOptions;
+		response: Response;
+	}): CookieResult<undefined> {
+		try {
+			args.response.clearCookie(args.name, args.options);
+
+			return {
+				data: undefined,
+				success: true,
+			};
+		} catch (error) {
+			return {
+				error: CookieOperationError.deleteFailed(args.name, error),
+				success: false,
+			};
+		}
+	}
+
 	private _getCookie(req: Request, name: string): CookieResult<string> {
 		try {
 			const cookie = req.signedCookies[name] ?? null;
