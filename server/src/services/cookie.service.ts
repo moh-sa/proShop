@@ -1,6 +1,10 @@
 import type { Response } from "express";
 
-import type { CookieConfig, Result } from "../types/index.js";
+import type {
+	CookieConfig,
+	CookieItemOptions,
+	Result,
+} from "../types/index.js";
 
 import { DEFAULT_COOKIE_CONFIG } from "../config/index.js";
 import {
@@ -17,6 +21,13 @@ export class CookieService implements ICookieService {
 
 	constructor(config?: CookieConfig) {
 		this._config = config ?? DEFAULT_COOKIE_CONFIG;
+	}
+
+	private _mergeOptions(options?: CookieItemOptions) {
+		return {
+			...this._config,
+			...options,
+		};
 	}
 
 	private _validateResponse(res: Response): CookieResult<undefined> {
