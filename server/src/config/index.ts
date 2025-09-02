@@ -1,4 +1,5 @@
 export * from "./cache.config.js";
+export * from "./cookie.config.js";
 export * from "./db.js";
 export * from "./env.js";
 export * from "./jwt.config.js";
