@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import type { z } from "zod";
 
 import type {
 	CookieConfig,
@@ -17,6 +18,12 @@ import {
 } from "../errors/index.js";
 
 export interface ICookieService {
+	get<T>(args: {
+		name: string;
+		request: Request;
+		schema?: z.ZodSchema<T>;
+	}): CookieResult<T>;
+
 	set(args: {
 		item: CookieItem;
 		options?: CookieItemOptions;
@@ -31,6 +38,52 @@ export class CookieService implements ICookieService {
 
 	constructor(config?: CookieConfig) {
 		this._config = config ?? DEFAULT_COOKIE_CONFIG;
+	}
+
+	public get<T>(args: {
+		name: string;
+		request: Request;
+		schema?: z.ZodSchema<T>;
+	}): CookieResult<T> {
+		const nameResult = this._validateStringExists("Cookie Name", args.name);
+		if (!nameResult.success) {
+			return nameResult;
+		}
+
+		const reqResult = this._validateRequest(args.request);
+		if (!reqResult.success) {
+			return reqResult;
+		}
+
+		const cookieResult = this._getCookie(args.request, args.name);
+		if (!cookieResult.success) {
+			return cookieResult;
+		}
+
+		const parsedCookieResult = this._parseValue<T>(cookieResult.data);
+		if (!parsedCookieResult.success) {
+			return parsedCookieResult;
+		}
+
+		if (args.schema) {
+			const validationResult = args.schema.safeParse(parsedCookieResult.data);
+			if (!validationResult.success) {
+				return {
+					error: CookieValidationError.schemaValidationFailed(
+						args.name,
+						validationResult.error,
+					),
+					success: false,
+				};
+			}
+
+			return {
+				data: validationResult.data,
+				success: true,
+			};
+		}
+
+		return parsedCookieResult;
 	}
 
 	public set(args: {
