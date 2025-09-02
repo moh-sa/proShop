@@ -18,6 +18,8 @@ import {
 } from "../errors/index.js";
 
 export interface ICookieService {
+	delete(args: { name: string; response: Response }): CookieResult<undefined>;
+
 	get<T>(args: {
 		name: string;
 		request: Request;
@@ -38,6 +40,31 @@ export class CookieService implements ICookieService {
 
 	constructor(config?: CookieConfig) {
 		this._config = config ?? DEFAULT_COOKIE_CONFIG;
+	}
+
+	public delete(args: {
+		name: string;
+		response: Response;
+	}): CookieResult<undefined> {
+		const nameResult = this._validateStringExists("Cookie Name", args.name);
+		if (!nameResult.success) {
+			return nameResult;
+		}
+
+		const resResult = this._validateResponse(args.response);
+		if (!resResult.success) {
+			return resResult;
+		}
+
+		const options: CookieItemOptions = this._mergeOptions({
+			expires: new Date(0),
+		});
+
+		return this._deleteCookie({
+			name: args.name,
+			options,
+			response: args.response,
+		});
 	}
 
 	public get<T>(args: {
