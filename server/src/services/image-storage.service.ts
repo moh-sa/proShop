@@ -4,13 +4,13 @@ import type { InsertImage, SelectImage } from "../types/index.js";
 
 import cloudinary from "../config/cloudinary.config.js";
 
-export interface IImageStorageManager {
+export interface IImageStorageService {
 	delete(data: { url: string }): Promise<void>;
 	replace(data: { file: InsertImage; url: string }): Promise<SelectImage>;
 	upload(data: { file: InsertImage }): Promise<string>;
 }
 
-export class ImageStorageManager implements IImageStorageManager {
+export class ImageStorageService implements IImageStorageService {
 	private readonly provider = cloudinary;
 
 	async delete({ url }: { url: string }): Promise<void> {

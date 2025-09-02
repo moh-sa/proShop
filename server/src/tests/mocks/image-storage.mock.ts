@@ -1,9 +1,9 @@
 import { mock } from "node:test";
 
-import type { IImageStorageManager } from "../../managers/index.js";
+import type { IImageStorageService } from "../../services/index.js";
 import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
-export function mockImageStorage(): FunctionMocksWithReset<IImageStorageManager> {
+export function mockImageStorage(): FunctionMocksWithReset<IImageStorageService> {
 	return {
 		delete: mock.fn(),
 		replace: mock.fn(),

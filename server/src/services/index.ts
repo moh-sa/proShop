@@ -1,6 +1,7 @@
 export * from "./auth.service.js";
 export * from "./cache.service.js";
 export * from "./cookie.service.js";
+export * from "./image-storage.service.js";
 export * from "./jwt.service.js";
 export * from "./order.service.js";
 export * from "./password.service.js";

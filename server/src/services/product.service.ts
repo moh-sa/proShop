@@ -1,7 +1,7 @@
 import type { Types } from "mongoose";
 
-import type { IImageStorageManager } from "../managers/index.js";
 import type { IProductRepository } from "../repositories/index.js";
+import type { IImageStorageService } from "../services/index.js";
 import type {
 	AllProducts,
 	InsertProduct,
@@ -11,8 +11,8 @@ import type {
 
 import { MAX_TOP_RATED_PRODUCTS } from "../constants/index.js";
 import { NotFoundError } from "../errors/index.js";
-import { ImageStorageManager } from "../managers/index.js";
 import { ProductRepository } from "../repositories/index.js";
+import { ImageStorageService } from "../services/index.js";
 
 export interface IProductService {
 	create(data: InsertProduct): Promise<SelectProduct>;
@@ -32,11 +32,11 @@ export interface IProductService {
 
 export class ProductService implements IProductService {
 	private readonly _repository: IProductRepository;
-	private readonly _storage: IImageStorageManager;
+	private readonly _storage: IImageStorageService;
 
 	constructor(
 		repository: IProductRepository = new ProductRepository(),
-		storage: IImageStorageManager = new ImageStorageManager(),
+		storage: IImageStorageService = new ImageStorageService(),
 	) {
 		this._repository = repository;
 		this._storage = storage;
