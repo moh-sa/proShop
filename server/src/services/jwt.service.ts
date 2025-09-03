@@ -194,9 +194,14 @@ export class JwtService implements IJwtService {
 
 		const secret = this._getSecretByTokenType(args.payload.type);
 		const expiresIn = this._getExpirationTimeByTokenType(args.payload.type);
+		const tokenId = this._generateTokenId();
+		const payload = {
+			...args.payload,
+			tokenId,
+		};
 
 		try {
-			const token = this._provider.sign(args.payload, secret, {
+			const token = this._provider.sign(payload, secret, {
 				expiresIn,
 			});
 
@@ -209,6 +214,7 @@ export class JwtService implements IJwtService {
 				data: {
 					expiresAt: expiresAt.data,
 					token,
+					tokenId,
 				},
 				success: true,
 			};
@@ -329,6 +335,7 @@ export class JwtService implements IJwtService {
 				!("type" in decoded) ||
 				!("userId" in decoded) ||
 				!("exp" in decoded) ||
+				!("tokenId" in decoded) ||
 				!("iat" in decoded)
 			) {
 				return {
