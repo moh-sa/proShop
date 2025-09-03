@@ -19,6 +19,7 @@ export interface JwtConfig {
 export interface TokenDecoded {
 	exp: number;
 	iat: number;
+	tokenId: string;
 	type: TokenType;
 	readonly userId: string;
 }
@@ -33,4 +34,4 @@ export interface TokenPayload {
 	readonly userId: string;
 }
 
-export type TokenResult = { expiresAt: Date; token: string };
+export type TokenResult = { expiresAt: Date; token: string; tokenId: string };
