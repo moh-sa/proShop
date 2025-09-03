@@ -321,6 +321,21 @@ export class JwtService implements IJwtService {
 				};
 			}
 
+			if (
+				!("type" in decoded) ||
+				!("userId" in decoded) ||
+				!("exp" in decoded) ||
+				!("iat" in decoded)
+			) {
+				return {
+					error: new JwtInvalidTokenError({
+						expected: ["type", "userId", "jti", "exp", "iat"],
+						received: Object.keys(decoded),
+					}),
+					success: false,
+				};
+			}
+
 			return {
 				data: decoded as TokenDecoded,
 				success: true,
