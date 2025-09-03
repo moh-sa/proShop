@@ -220,6 +220,10 @@ export class JwtService implements IJwtService {
 		}
 	}
 
+	private _generateTokenId(): string {
+		return crypto.randomUUID();
+	}
+
 	private _getExpirationTimeByTokenType(tokenType: TokenType): number {
 		return tokenType === TokenType.ACCESS
 			? this._config.accessTokenExpiresIn
