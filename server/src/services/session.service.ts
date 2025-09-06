@@ -22,6 +22,11 @@ export interface ISessionService {
 
 	deleteAllByUserId(args: { userId: string }): Promise<SessionResult<number>>;
 
+	deleteByTokenIdAndUserId(args: {
+		tokenId: string;
+		userId: string;
+	}): Promise<SessionResult<SelectSession>>;
+
 	getActiveByUserId(args: {
 		userId: string;
 	}): Promise<SessionResult<Array<SelectSession>>>;
@@ -86,6 +91,28 @@ export class SessionService implements ISessionService {
 
 			return {
 				data: deletedCount,
+				success: true,
+			};
+		} catch (error) {
+			return this._handleError(error);
+		}
+	}
+
+	public async deleteByTokenIdAndUserId(args: {
+		tokenId: string;
+		userId: string;
+	}): Promise<SessionResult<SelectSession>> {
+		try {
+			const session = await this._repository.deleteByTokenIdAndUserId(args);
+			if (!session) {
+				return {
+					error: new SessionNotFoundError(),
+					success: false,
+				};
+			}
+
+			return {
+				data: session,
 				success: true,
 			};
 		} catch (error) {
