@@ -6,7 +6,7 @@ import User from "../models/user.model.js";
 import { handleDatabaseError } from "../utils/index.js";
 
 export interface IUserRepository {
-	create(data: InsertUser): Promise<Omit<SelectUser, "token">>;
+	create(data: InsertUser): Promise<SelectUser>;
 	delete(data: { userId: Types.ObjectId }): Promise<null | SelectUser>;
 	existsByEmail(data: {
 		email: string;
@@ -27,7 +27,7 @@ export class UserRepository implements IUserRepository {
 		this._db = db;
 	}
 
-	async create(data: InsertUser): Promise<Omit<SelectUser, "token">> {
+	async create(data: InsertUser): Promise<SelectUser> {
 		try {
 			return (await this._db.create(data)).toObject();
 		} catch (error) {

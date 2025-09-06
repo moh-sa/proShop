@@ -14,13 +14,6 @@ export function generateMockUser(isAdmin = false): SelectUser {
 		isAdmin,
 		name: faker.person.fullName(),
 		password: faker.internet.password(),
-		token: faker.internet.jwt({
-			payload: {
-				exp: faker.date.soon(),
-				iat: faker.date.recent(),
-				id: mockId,
-			},
-		}),
 		updatedAt: new Date(),
 	};
 }

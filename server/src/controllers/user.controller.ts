@@ -92,9 +92,7 @@ export class UserController implements IUserController {
 	}
 
 	private _sanitizeResponse(user: SelectUser) {
-		const result = selectUserSchema
-			.omit({ password: true, token: true })
-			.safeParse(user);
+		const result = selectUserSchema.omit({ password: true }).safeParse(user);
 		if (!result.success) {
 			throw new InternalError("Invalid user data", { cause: result.error });
 		}
