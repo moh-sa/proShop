@@ -40,18 +40,6 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.isAdmin, mockUser.isAdmin);
 		});
 
-		test("Should not return 'password' and 'token' when 'repo.getById' is called", async () => {
-			// Arrange
-			await User.create(mockUser);
-
-			// Act
-			const result = await userService.getById({ userId: mockUser._id });
-
-			// Assert
-			assert.ok(!("password" in result));
-			assert.ok(!("token" in result));
-		});
-
 		test("Should throw 'NotFoundError' when 'repo.getById' is called with a non-existent ID", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId();
@@ -75,18 +63,6 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.name, mockUser.name);
 			assert.strictEqual(result.email, mockUser.email.toLowerCase());
 			assert.strictEqual(result.isAdmin, mockUser.isAdmin);
-		});
-
-		test("Should not return 'password' and 'token' when 'repo.getByEmail' is called", async () => {
-			// Arrange
-			await User.create(mockUser);
-
-			// Act
-			const result = await userService.getByEmail({ email: mockUser.email });
-
-			// Assert
-			assert.ok(!("password" in result));
-			assert.ok(!("token" in result));
 		});
 
 		test("Should throw 'NotFoundError' when 'repo.getByEmail' is called with a non-existent email", async () => {
@@ -118,23 +94,6 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			assert.strictEqual(foundUser.name, mockUsers[0].name);
 			assert.strictEqual(foundUser.email, mockUsers[0].email.toLowerCase());
 		});
-
-		test("Should not return 'password' and 'token' when 'repo.getAll' is called", async () => {
-			// Arrange
-			await User.insertMany(mockUsers);
-
-			// Act
-			const results = await userService.getAll();
-
-			// Assert
-			assert(Array.isArray(results));
-			assert(results.length > 0);
-
-			results.forEach((user) => {
-				assert.ok(!("password" in user));
-				assert.ok(!("token" in user));
-			});
-		});
 	});
 
 	describe("updateById", () => {
@@ -156,22 +115,6 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.name, updateData.name);
 			assert.strictEqual(result.email, updateData.email);
 			assert.strictEqual(result.isAdmin, mockUser.isAdmin);
-		});
-
-		test("Should not return 'password' and 'token' when 'repo.updateById' is called", async () => {
-			// Arrange
-			await User.create(mockUser);
-			const updateData = { name: "Updated Name" };
-
-			// Act
-			const result = await userService.updateById({
-				data: updateData,
-				userId: mockUser._id,
-			});
-
-			// Assert
-			assert.ok(!("password" in result));
-			assert.ok(!("token" in result));
 		});
 
 		test("Should update admin status when 'repo.updateById' is called with isAdmin field", async () => {

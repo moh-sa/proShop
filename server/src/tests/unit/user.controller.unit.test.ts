@@ -8,10 +8,7 @@ import type { InsertUser } from "../../types/index.js";
 
 import { UserController } from "../../controllers/index.js";
 import { DatabaseError, NotFoundError } from "../../errors/index.js";
-import {
-	createSuccessResponseObject,
-	removeObjectFields,
-} from "../../utils/index.js";
+import { createSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockUser,
 	generateMockUsers,
@@ -28,7 +25,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 	});
 
 	describe("getById", () => {
-		const { password: _, ...mockUser } = generateMockUser();
+		const { token: _, ...mockUser } = generateMockUser();
 		const userId = mockUser._id;
 
 		test("Should parse 'userId' from 'req.params'", async (t) => {
@@ -186,9 +183,10 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 	});
 
 	describe("getAll", () => {
-		const mockUsers = generateMockUsers(5).map((user) =>
-			removeObjectFields(user, ["password"]),
-		);
+		const mockUsers = generateMockUsers(5).map((user) => {
+			const { token: __, ...expectedUser } = user;
+			return expectedUser;
+		});
 
 		test("Should call 'service.getAll' once without args", async (t) => {
 			const { next, req, res } = mockExpressCall({
@@ -272,7 +270,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 	});
 
 	describe("update", () => {
-		const mockUser = generateMockUser();
+		const { token: _, ...mockUser } = generateMockUser();
 		const userId = mockUser._id;
 
 		test("Should parse 'userId' from 'req.params'", async (t) => {

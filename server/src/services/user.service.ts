@@ -5,20 +5,17 @@ import type { InsertUser, SelectUser } from "../types/index.js";
 
 import { NotFoundError } from "../errors/index.js";
 import { UserRepository } from "../repositories/index.js";
-import { formatUserServiceResponse } from "../utils/format-user-service-response.util.js";
 
 export interface IUserService {
-	delete: (data: { userId: Types.ObjectId }) => Promise<UserWithoutPassword>;
-	getAll: () => Promise<Array<UserWithoutPassword>>;
-	getByEmail: (data: { email: string }) => Promise<UserWithoutPassword>;
-	getById: (data: { userId: Types.ObjectId }) => Promise<UserWithoutPassword>;
+	delete: (data: { userId: Types.ObjectId }) => Promise<SelectUser>;
+	getAll: () => Promise<Array<SelectUser>>;
+	getByEmail: (data: { email: string }) => Promise<SelectUser>;
+	getById: (data: { userId: Types.ObjectId }) => Promise<SelectUser>;
 	updateById: (data: {
 		data: Partial<InsertUser>;
 		userId: Types.ObjectId;
-	}) => Promise<UserWithoutPassword>;
+	}) => Promise<SelectUser>;
 }
-
-type UserWithoutPassword = Omit<SelectUser, "password">;
 
 export class UserService implements IUserService {
 	private readonly _repository: IUserRepository;
@@ -27,41 +24,37 @@ export class UserService implements IUserService {
 		this._repository = repository;
 	}
 
-	async delete({
-		userId,
-	}: {
-		userId: Types.ObjectId;
-	}): Promise<UserWithoutPassword> {
+	async delete({ userId }: { userId: Types.ObjectId }): Promise<SelectUser> {
 		const user = await this._repository.delete({ userId });
 		if (!user) {
 			throw new NotFoundError("User");
 		}
 
-		return this._formatResponse({ user });
+		return user;
 	}
 
-	async getAll(): Promise<Array<UserWithoutPassword>> {
+	async getAll(): Promise<Array<SelectUser>> {
 		const users = await this._repository.getAll();
 
-		return users.map((user) => this._formatResponse({ user }));
+		return users;
 	}
 
-	async getByEmail({ email }: { email: string }): Promise<UserWithoutPassword> {
+	async getByEmail({ email }: { email: string }): Promise<SelectUser> {
 		const user = await this._repository.getByEmail({ email });
 		if (!user) {
 			throw new NotFoundError("User");
 		}
 
-		return this._formatResponse({ user });
+		return user;
 	}
 
-	async getById({ userId }: { userId: Types.ObjectId }) {
+	async getById({ userId }: { userId: Types.ObjectId }): Promise<SelectUser> {
 		const user = await this._repository.getById({ userId });
 		if (!user) {
 			throw new NotFoundError("User");
 		}
 
-		return this._formatResponse({ user });
+		return user;
 	}
 
 	async updateById({
@@ -70,7 +63,7 @@ export class UserService implements IUserService {
 	}: {
 		data: Partial<InsertUser>;
 		userId: Types.ObjectId;
-	}): Promise<UserWithoutPassword> {
+	}): Promise<SelectUser> {
 		const updatedUser = await this._repository.update({
 			data,
 			userId,
@@ -79,16 +72,6 @@ export class UserService implements IUserService {
 			throw new NotFoundError("User");
 		}
 
-		return this._formatResponse({ user: updatedUser });
-	}
-
-	private _formatResponse({
-		isTokenRequired = false,
-		user,
-	}: {
-		isTokenRequired?: boolean;
-		user: SelectUser;
-	}) {
-		return formatUserServiceResponse({ isTokenRequired, user });
+		return updatedUser;
 	}
 }

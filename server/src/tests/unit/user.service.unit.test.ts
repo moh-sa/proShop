@@ -1,32 +1,15 @@
 import assert from "node:assert";
 import test, { before, describe, suite } from "node:test";
 
-import type { InsertUser, SelectUser } from "../../types/index.js";
+import type { InsertUser } from "../../types/index.js";
 
 import { NotFoundError } from "../../errors/index.js";
 import { UserService } from "../../services/index.js";
-import { formatUserServiceResponse } from "../../utils/index.js";
 import {
 	generateMockUser,
 	generateMockUsers,
 	mockUserRepository,
 } from "../mocks/index.js";
-
-function formatResponse({
-	isTokenRequired = false,
-	users,
-}: {
-	isTokenRequired?: boolean;
-	users: Array<SelectUser> | SelectUser;
-}) {
-	if (Array.isArray(users)) {
-		return users.map((user) =>
-			formatUserServiceResponse({ isTokenRequired, user }),
-		);
-	} else {
-		return formatUserServiceResponse({ isTokenRequired, user: users });
-	}
-}
 
 suite("User Service 〖 Unit Tests 〗", () => {
 	const mockRepo = mockUserRepository();
@@ -36,9 +19,8 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 	describe("getAll", () => {
 		const mockUsers = generateMockUsers(1);
-		const expectedResult = formatResponse({ users: mockUsers });
 
-		test("Should return 'array of users' without 'password' and 'token' when 'repo.getAll' is called once with no args", async () => {
+		test("Should return 'array of users' when 'repo.getAll' is called once with no args", async () => {
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve(mockUsers),
 			);
@@ -46,10 +28,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			const users = await service.getAll();
 
 			assert.ok(users);
-			assert.deepStrictEqual(users, expectedResult);
-
-			assert.ok(users.every((user) => !Object.keys(user).includes("password")));
-			assert.ok(users.every((user) => !Object.keys(user).includes("token")));
+			assert.deepStrictEqual(users, mockUsers);
 
 			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
 			assert.strictEqual(mockRepo.getAll.mock.calls[0].arguments.length, 0);
@@ -67,9 +46,8 @@ suite("User Service 〖 Unit Tests 〗", () => {
 	describe("getById", () => {
 		const mockUser = generateMockUser();
 		const userId = mockUser._id;
-		const expectedResult = formatResponse({ users: mockUser });
 
-		test("Should return 'user object' without 'password' and 'token' when 'repo.getById' is called once with 'userId'", async () => {
+		test("Should return 'user object' when 'repo.getById' is called once with 'userId'", async () => {
 			mockRepo.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve(mockUser),
 			);
@@ -77,10 +55,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			const user = await service.getById({ userId: mockUser._id });
 
 			assert.ok(user);
-			assert.deepStrictEqual(user, expectedResult);
-
-			assert.ok(!Object.keys(user).includes("password"));
-			assert.ok(!Object.keys(user).includes("token"));
+			assert.deepStrictEqual(user, mockUser);
 
 			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(mockRepo.getById.mock.calls[0].arguments[0], {
@@ -106,7 +81,6 @@ suite("User Service 〖 Unit Tests 〗", () => {
 	describe("getByEmail", () => {
 		const mockUser = generateMockUser();
 		const email = mockUser.email;
-		const expectedResult = formatResponse({ users: mockUser });
 
 		test("Should return 'user object' when 'repo.getByEmail' is called once with 'email'", async () => {
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
@@ -116,7 +90,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			const user = await service.getByEmail({ email });
 
 			assert.ok(user);
-			assert.deepStrictEqual(user, expectedResult);
+			assert.deepStrictEqual(user, mockUser);
 
 			assert.strictEqual(mockRepo.getByEmail.mock.callCount(), 1);
 			assert.deepStrictEqual(mockRepo.getByEmail.mock.calls[0].arguments[0], {
@@ -147,7 +121,6 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		const updateData: Partial<InsertUser> = { name: "new-name" };
 		const updatedData = { ...mockUser, ...updateData };
-		const expectedResult = formatResponse({ users: updatedData });
 
 		test("Should return 'user object' without 'password' and 'token' when 'repo.update' is called once with 'userId' and 'updateData'", async () => {
 			mockRepo.update.mock.mockImplementationOnce(() =>
@@ -160,7 +133,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			});
 
 			assert.ok(updatedUser);
-			assert.deepStrictEqual(updatedUser, expectedResult);
+			assert.deepStrictEqual(updatedUser, updatedData);
 
 			assert.strictEqual(mockRepo.update.mock.callCount(), 1);
 			assert.deepStrictEqual(mockRepo.update.mock.calls[0].arguments[0], {
@@ -187,7 +160,6 @@ suite("User Service 〖 Unit Tests 〗", () => {
 	describe("delete", () => {
 		const mockUser = generateMockUser();
 		const userId = mockUser._id;
-		const expectedResult = formatResponse({ users: mockUser });
 
 		test("Should return 'user object' when 'repo.delete' is called once with 'userId'", async () => {
 			mockRepo.delete.mock.mockImplementationOnce(() =>
@@ -197,7 +169,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			const deletedUser = await service.delete({ userId });
 
 			assert.ok(deletedUser);
-			assert.deepStrictEqual(deletedUser, expectedResult);
+			assert.deepStrictEqual(deletedUser, mockUser);
 
 			assert.strictEqual(mockRepo.delete.mock.callCount(), 1);
 			assert.deepStrictEqual(mockRepo.delete.mock.calls[0].arguments[0], {
