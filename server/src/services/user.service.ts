@@ -9,6 +9,9 @@ import { UserRepository } from "../repositories/index.js";
 export interface IUserService {
 	create: (data: InsertUser) => Promise<SelectUser>;
 	delete: (data: { userId: Types.ObjectId }) => Promise<SelectUser>;
+	existsByEmail: (data: {
+		email: string;
+	}) => Promise<null | { _id: Types.ObjectId }>;
 	getAll: () => Promise<Array<SelectUser>>;
 	getByEmail: (data: { email: string }) => Promise<SelectUser>;
 	getById: (data: { userId: Types.ObjectId }) => Promise<SelectUser>;
@@ -36,6 +39,14 @@ export class UserService implements IUserService {
 		}
 
 		return user;
+	}
+
+	public async existsByEmail({
+		email,
+	}: {
+		email: string;
+	}): Promise<null | { _id: Types.ObjectId }> {
+		return await this._repository.existsByEmail({ email });
 	}
 
 	async getAll(): Promise<Array<SelectUser>> {
