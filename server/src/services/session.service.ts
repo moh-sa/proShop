@@ -20,6 +20,8 @@ import { SessionRepository } from "../repositories/index.js";
 export interface ISessionService {
 	create(args: InsertSession): Promise<SessionResult<SelectSession>>;
 
+	deleteAllByUserId(args: { userId: string }): Promise<SessionResult<number>>;
+
 	getActiveByUserId(args: {
 		userId: string;
 	}): Promise<SessionResult<Array<SelectSession>>>;
@@ -72,6 +74,21 @@ export class SessionService implements ISessionService {
 				};
 			}
 
+			return this._handleError(error);
+		}
+	}
+
+	public async deleteAllByUserId(args: {
+		userId: string;
+	}): Promise<SessionResult<number>> {
+		try {
+			const deletedCount = await this._repository.deleteAllByUserId(args);
+
+			return {
+				data: deletedCount,
+				success: true,
+			};
+		} catch (error) {
 			return this._handleError(error);
 		}
 	}
