@@ -6,9 +6,12 @@ import {
 	DatabaseValidationError,
 } from "../../errors/index.js";
 import User from "../../models/user.model.js";
-import { UserRepository } from "../../repositories/user.repository.js";
-import { generateMockObjectId } from "../mocks/index.js";
-import { generateMockUser, generateMockUsers } from "../mocks/user.mock.js";
+import { UserRepository } from "../../repositories/index.js";
+import {
+	generateMockInsertUser,
+	generateMockInsertUsers,
+	generateMockObjectId,
+} from "../mocks/index.js";
 import {
 	connectTestDatabase,
 	disconnectTestDatabase,
@@ -24,7 +27,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 	describe("create", () => {
 		test("Should create a new user when 'db.create' is called", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockInsertUser();
 
 			// Act
 			const createdUser = await repo.create(mockUser);
@@ -40,8 +43,8 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should create admin and non-admin users when 'db.create' is called", async () => {
 			// Arrange
-			const adminUser = generateMockUser(true);
-			const regularUser = generateMockUser(false);
+			const adminUser = generateMockInsertUser({ isAdmin: true });
+			const regularUser = generateMockInsertUser({ isAdmin: false });
 
 			// Act
 			const createdAdmin = await repo.create(adminUser);
@@ -54,7 +57,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should set timestamps as Date objects when 'db.create' is called", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockInsertUser();
 
 			// Act
 			const createdUser = await repo.create(mockUser);
@@ -66,8 +69,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should accept Unicode characters in name when 'db.create' is called", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
-			mockUser.name = "Mohamméd 🎉";
+			const mockUser = generateMockInsertUser({ name: "Mohamméd 🎉" });
 
 			// Act
 			const createdUser = await repo.create(mockUser);
@@ -78,7 +80,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should throw 'DatabaseDuplicateKeyError' when creating user with existing email", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockInsertUser();
 			await repo.create(mockUser);
 
 			// Act & Assert
@@ -106,8 +108,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should throw 'DatabaseValidationError' when 'db.create' is called with empty name", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
-			mockUser.name = "";
+			const mockUser = generateMockInsertUser({ name: "" });
 
 			// Act & Assert
 			await assert.rejects(
@@ -120,7 +121,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 	describe("getAll", () => {
 		test("Should return all users when 'db.find' is called", async () => {
 			// Arrange
-			const mockUsers = generateMockUsers(3);
+			const mockUsers = generateMockInsertUsers({ count: 3 });
 			await User.insertMany(mockUsers);
 
 			// Act
@@ -142,7 +143,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 	describe("getById", () => {
 		test("Should return user by ID when 'db.findById' is called", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockInsertUser();
 			const user = await User.create(mockUser);
 
 			// Act
@@ -180,7 +181,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 	describe("getByEmail", () => {
 		test("Should return user by email when 'db.findOne' is called", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockInsertUser();
 			await User.create(mockUser);
 
 			// Act
@@ -206,8 +207,9 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should handle special characters in email when 'db.findOne' is called", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
-			mockUser.email = "test+label@example.com";
+			const mockUser = generateMockInsertUser({
+				email: "test+label@example.com",
+			});
 			await User.create(mockUser);
 
 			// Act
@@ -224,7 +226,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 	describe("update", () => {
 		test("Should update user data when 'db.update' is called", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockInsertUser();
 			const user = await User.create(mockUser);
 			const updateData = {
 				email: "updated@example.com",
@@ -245,7 +247,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should handle partial updates when 'db.update' is called", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockInsertUser();
 			const user = await User.create(mockUser);
 			const updateData = { name: "Updated Name" };
 
@@ -264,7 +266,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 		test("Should update timestamps when 'db.update' is called", async (t) => {
 			// Arrange
 			t.mock.timers.enable({ apis: ["Date"], now: new Date() });
-			const mockUser = generateMockUser();
+			const mockUser = generateMockInsertUser();
 			const user = await User.create(mockUser);
 			const originalUpdatedAt = user.updatedAt;
 
@@ -298,8 +300,9 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should throw 'DatabaseDuplicateKeyError' when 'db.update' is called with existing email", async () => {
 			// Arrange
-			const user1 = await repo.create(generateMockUser());
-			const user2 = await repo.create(generateMockUser());
+			const mockUsers = generateMockInsertUsers({ count: 2 });
+			const user1 = await repo.create(mockUsers[0]);
+			const user2 = await repo.create(mockUsers[1]);
 
 			// Act & Assert
 			await assert.rejects(
@@ -316,7 +319,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 	describe("delete", () => {
 		test("Should delete user when 'db.delete' is called", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockInsertUser();
 			const user = await User.create(mockUser);
 
 			// Act
@@ -355,7 +358,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 	describe("existsByEmail", () => {
 		test("Should check if user exists by email when 'db.findOne' is called", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockInsertUser();
 			await User.create(mockUser);
 
 			// Act
@@ -373,8 +376,9 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should handle special characters in email when 'db.findOne' is called", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
-			mockUser.email = "test+label@example.com";
+			const mockUser = generateMockInsertUser({
+				email: "test+label@example.com",
+			});
 			await User.create(mockUser);
 
 			// Act

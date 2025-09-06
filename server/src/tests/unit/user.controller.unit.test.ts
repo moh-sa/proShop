@@ -10,8 +10,8 @@ import { UserController } from "../../controllers/index.js";
 import { DatabaseError, NotFoundError } from "../../errors/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
 import {
-	generateMockUser,
-	generateMockUsers,
+	generateMockSelectUser,
+	generateMockSelectUsers,
 	mockExpressCall,
 	mockUserService,
 } from "../mocks/index.js";
@@ -25,8 +25,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 	});
 
 	describe("getById", () => {
-		const { token: _, ...mockUser } = generateMockUser();
-		const { password: __, ...expectedUser } = mockUser;
+		const mockUser = generateMockSelectUser();
 		const userId = mockUser._id;
 
 		test("Should parse 'userId' from 'req.params'", async (t) => {
@@ -160,6 +159,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.json' once with the success response object containing user data", async (t) => {
+			const { password: _, ...expectedUser } = mockUser;
+
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
@@ -184,12 +185,9 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 	});
 
 	describe("getAll", () => {
-		const mockUsers = generateMockUsers(5).map((user) => {
-			const { token: __, ...expectedUser } = user;
-			return expectedUser;
-		});
+		const mockUsers = generateMockSelectUsers({ count: 5 });
 		const expectedUsers = mockUsers.map((user) => {
-			const { password: __, ...expectedUser } = user;
+			const { password: _, ...expectedUser } = user;
 			return expectedUser;
 		});
 
@@ -275,8 +273,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 	});
 
 	describe("update", () => {
-		const { token: _, ...mockUser } = generateMockUser();
-		const { password: __, ...expectedUser } = mockUser;
+		const mockUser = generateMockSelectUser();
 		const userId = mockUser._id;
 
 		test("Should parse 'userId' from 'req.params'", async (t) => {
@@ -419,6 +416,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.json' once with the success response object containing user data", async (t) => {
+			const { password: _, ...expectedUser } = mockUser;
+
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
@@ -443,7 +442,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 	});
 
 	describe("delete", () => {
-		const mockUser = generateMockUser();
+		const mockUser = generateMockSelectUser();
 		const userId = mockUser._id;
 
 		test("Should parse 'userId' from 'req.params'", async (t) => {

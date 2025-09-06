@@ -15,9 +15,10 @@ import {
 import User from "../../models/user.model.js";
 import { UserRepository } from "../../repositories/index.js";
 import {
+	generateMockInsertUser,
+	generateMockInsertUsers,
 	generateMockObjectId,
-	generateMockUser,
-	generateMockUsers,
+	generateMockSelectUser,
 } from "../mocks/index.js";
 
 suite("User Repository〖 Unit Tests 〗", () => {
@@ -25,7 +26,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 	beforeEach(() => mock.reset());
 
 	describe("create", () => {
-		const { token: _, ...mockUser } = generateMockUser();
+		const mockUser = generateMockInsertUser();
 
 		test("Should return 'user object' when 'db.create' is called once with 'user data'", async (t) => {
 			const createMock = t.mock.method(User, "create", async () => ({
@@ -124,7 +125,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 	});
 
 	describe("getAll", () => {
-		const mockUsers = generateMockUsers(5);
+		const mockUsers = generateMockInsertUsers({ count: 5 });
 
 		test("Should return 'array of users' when 'db.find' is called once with 'empty object'", async (t) => {
 			const findMock = t.mock.method(User, "find", () => ({
@@ -216,7 +217,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 	});
 
 	describe("getById", () => {
-		const mockUser = generateMockUser();
+		const mockUser = generateMockSelectUser();
 		const userId = mockUser._id;
 
 		test("Should return 'user object' when 'db.findById' is called once with 'userId'", async (t) => {
@@ -312,7 +313,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 	});
 
 	describe("getByEmail", () => {
-		const mockUser = generateMockUser();
+		const mockUser = generateMockSelectUser();
 		const email = mockUser.email;
 
 		test("Should return 'user object' when 'db.findOne' is called once with 'email'", async (t) => {
@@ -408,7 +409,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 	});
 
 	describe("update", () => {
-		const mockUser = generateMockUser();
+		const mockUser = generateMockSelectUser();
 		const userId = mockUser._id;
 		const updateData: Partial<InsertUser> = { name: "Updated Name" };
 		const expectedResult = { ...mockUser, ...updateData };
@@ -531,7 +532,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 	});
 
 	describe("delete", () => {
-		const mockUser = generateMockUser();
+		const mockUser = generateMockSelectUser();
 		const userId = mockUser._id;
 
 		test("Should return 'user object' when 'db.findByIdAndDelete' is called once with 'userId'", async (t) => {

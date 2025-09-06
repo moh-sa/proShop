@@ -23,7 +23,7 @@ import {
 	generateMockObjectId,
 	generateMockSelectProduct,
 	generateMockSelectProducts,
-	generateMockUser,
+	generateMockSelectUser,
 	mockImageStorage,
 } from "../mocks/index.js";
 import {
@@ -50,7 +50,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 	describe("create", () => {
 		test("Should return success response when 'service.create' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const { image, ...mockProduct } =
 				generateMockInsertProductWithMulterImage();
 
@@ -74,7 +74,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '201' status code when 'service.create' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const { image, ...mockProduct } =
 				generateMockInsertProductWithMulterImage();
 
@@ -95,7 +95,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should create product when 'service.create' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const { image, ...mockProduct } =
 				generateMockInsertProductWithMulterImage();
 
@@ -126,7 +126,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'ZodError' when 'service.create' is called without required fields", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const { name: _name, ...mockProduct } =
 				generateMockInsertProductWithMulterImage();
 			const { next, req, res } = createMockExpressContext();

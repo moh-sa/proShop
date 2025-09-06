@@ -9,7 +9,7 @@ import type {
 
 import { generateMockObjectId } from "./objectid.mock.js";
 import { generateMockSelectProduct } from "./product.mock.js";
-import { generateMockUser } from "./user.mock.js";
+import { generateMockSelectUser } from "./user.mock.js";
 
 // Constants for mock data generation
 const MOCK_DATA_CONSTANTS = {
@@ -175,7 +175,7 @@ export function generateMockInsertOrders(
 export function generateMockSelectOrder(
 	options: Partial<GenerateSelectOrderOptions> = {},
 ): SelectOrder {
-	const mockUser = options.user ?? generateMockUser();
+	const mockUser = options.user ?? generateMockSelectUser();
 	const baseOrder = generateMockInsertOrder({
 		...options,
 		user: mockUser._id,

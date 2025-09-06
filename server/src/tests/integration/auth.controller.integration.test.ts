@@ -6,7 +6,10 @@ import { AuthController } from "../../controllers/index.js";
 import { AuthenticationError } from "../../errors/index.js";
 import User from "../../models/user.model.js";
 import { AuthService } from "../../services/index.js";
-import { generateMockUser } from "../mocks/index.js";
+import {
+	generateMockInsertUser,
+	generateMockSelectUser,
+} from "../mocks/index.js";
 import {
 	connectTestDatabase,
 	disconnectTestDatabase,
@@ -27,7 +30,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 	describe("signup", () => {
 		test("Should return success response when 'service.signup' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockInsertUser();
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockUser;
 
@@ -43,7 +46,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '201' status code when 'service.signup' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockInsertUser();
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockUser;
 
@@ -57,10 +60,9 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 
 		test("Should create user when 'service.signup' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockInsertUser();
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockUser;
-			mockUser.email = mockUser.email.toLowerCase();
 
 			// Act
 			await controller.signup(req, res, next);
@@ -78,7 +80,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'ZodError' when 'service.signup' is called without required fields", async () => {
 			// Arrange
-			const { name: _name, ...mockUser } = generateMockUser();
+			const { name: _name, ...mockUser } = generateMockInsertUser();
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockUser;
 
@@ -99,7 +101,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'ZodError' when 'service.signup' is called with invalid email format", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockInsertUser();
 			mockUser.email = "invalid-email";
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockUser;
@@ -120,8 +122,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'ZodError' when 'service.signup' is called with invalid password format (too short)", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
-			mockUser.password = "123"; // Too short
+			const mockUser = generateMockInsertUser({ password: "123" });
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockUser;
 
@@ -141,7 +142,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'AuthenticationError' when 'service.signup' is called with existing email", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockInsertUser();
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockUser;
 
@@ -170,8 +171,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 	describe("signin", () => {
 		test("Should return success response when 'service.signin' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
-			mockUser.email = mockUser.email.toLowerCase();
+			const mockUser = generateMockInsertUser();
 			await User.create(mockUser);
 
 			const { next, req, res } = createMockExpressContext();
@@ -192,8 +192,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when 'service.signin' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
-			mockUser.email = mockUser.email.toLowerCase();
+			const mockUser = generateMockInsertUser();
 			await User.create(mockUser);
 
 			const { next, req, res } = createMockExpressContext();
@@ -211,8 +210,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return user data with JWT token when 'service.signin' is called with valid credentials", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
-			mockUser.email = mockUser.email.toLowerCase();
+			const mockUser = generateMockInsertUser();
 			await User.create(mockUser);
 
 			const { next, req, res } = createMockExpressContext();
@@ -237,8 +235,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 
 		test("Should NOT return user password when 'service.signin' is called with valid credentials", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
-			mockUser.email = mockUser.email.toLowerCase();
+			const mockUser = generateMockInsertUser();
 			await User.create(mockUser);
 
 			const { next, req, res } = createMockExpressContext();
@@ -258,8 +255,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 
 		test("Should use 'res.locals.user' data when available instead of 'req.body'", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
-			mockUser.email = mockUser.email.toLowerCase();
+			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
 
 			const { next, req, res } = createMockExpressContext();
@@ -321,8 +317,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'ZodError' when 'service.signin' is called with valid email but incorrect password format", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
-			mockUser.email = mockUser.email.toLowerCase();
+			const mockUser = generateMockInsertUser();
 			await User.create(mockUser);
 
 			const { next, req, res } = createMockExpressContext();
@@ -365,8 +360,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'AuthenticationError' when 'service.signin' is called with incorrect password", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
-			mockUser.email = mockUser.email.toLowerCase();
+			const mockUser = generateMockInsertUser();
 			await User.create(mockUser);
 
 			const { next, req, res } = createMockExpressContext();

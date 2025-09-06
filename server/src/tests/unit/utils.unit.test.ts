@@ -12,7 +12,7 @@ import {
 import { selectUserSchema } from "../../schemas/index.js";
 import { formatZodErrors, verifyJwtToken } from "../../utils/index.js";
 import {
-	generateMockUser,
+	generateMockSelectUser,
 	mockZodError1,
 	mockZodErrors,
 } from "../mocks/index.js";
@@ -54,7 +54,7 @@ suite("Util Functions Unit Tests", () => {
 		});
 
 		test("Should return 'user object', 'iat' and 'exp' when 'verifyJwtToken' is called with custom 'token' and 'payload schema'", (t) => {
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const mockPayload = {
 				_id: mockUser._id,
 				email: mockUser.email.toLowerCase(),

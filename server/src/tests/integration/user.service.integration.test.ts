@@ -6,8 +6,8 @@ import User from "../../models/user.model.js";
 import { UserService } from "../../services/user.service.js";
 import {
 	generateMockObjectId,
-	generateMockUser,
-	generateMockUsers,
+	generateMockSelectUser,
+	generateMockSelectUsers,
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
@@ -16,8 +16,8 @@ import {
 
 suite("User Service 〖 Integration Tests 〗", () => {
 	let userService: UserService;
-	const mockUser = generateMockUser();
-	const mockUsers = generateMockUsers(3);
+	const mockUser = generateMockSelectUser();
+	const mockUsers = generateMockSelectUsers({ count: 3 });
 
 	before(async () => connectTestDatabase());
 	after(async () => disconnectTestDatabase());

@@ -3,9 +3,9 @@ import test, { afterEach, describe, suite } from "node:test";
 
 import { AuthenticationError, DatabaseError } from "../../errors/index.js";
 import { AuthService } from "../../services/index.js";
-import { removeObjectFields } from "../../utils/index.js";
 import {
-	generateMockUser,
+	generateMockInsertUser,
+	generateMockSelectUser,
 	mockPasswordService,
 	mockUserRepository,
 } from "../mocks/index.js";
@@ -18,7 +18,8 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 	afterEach(() => mockRepo.reset());
 
 	describe("Signup", () => {
-		const mockUser = generateMockUser();
+		const mockInsertUser = generateMockInsertUser();
+		const mockSelectUser = generateMockSelectUser({ ...mockInsertUser });
 
 		test("Should return user object including token and no password. Call 'repo.existsByEmail' and 'repo.create' once with correct data", async () => {
 			mockRepo.existsByEmail.mock.mockImplementationOnce(() =>
@@ -26,46 +27,37 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 			);
 
 			mockRepo.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve(mockSelectUser),
 			);
 
-			const user = await service.signup(mockUser);
+			const user = await service.signup(mockInsertUser);
 
 			assert.ok(user);
 			assert.ok(!Object.keys(user).includes("password"));
 			assert.ok(Object.keys(user).includes("token"));
 
-			// FIXME: 'mock.module' is still experimental
-			// so in the meantime, the result will be hardcoded
-			const userWithoutToken = removeObjectFields(user, ["token"]);
-			const expectedResult = removeObjectFields(mockUser, [
-				"password",
-				"token",
-			]);
-			assert.deepStrictEqual(userWithoutToken, expectedResult);
-
 			assert.strictEqual(mockRepo.existsByEmail.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockRepo.existsByEmail.mock.calls[0].arguments[0],
 				{
-					email: mockUser.email,
+					email: mockInsertUser.email,
 				},
 			);
 
 			assert.strictEqual(mockRepo.create.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockRepo.create.mock.calls[0].arguments[0],
-				mockUser,
+				mockInsertUser,
 			);
 		});
 
 		test("Should throw 'AuthenticationError' if 'repo.existsByEmail' returns a value", async () => {
 			mockRepo.existsByEmail.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve(mockSelectUser),
 			);
 
 			await assert.rejects(async () => {
-				await service.signup(mockUser);
+				await service.signup(mockInsertUser);
 			}, AuthenticationError);
 		});
 
@@ -75,7 +67,7 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 			);
 
 			await assert.rejects(async () => {
-				await service.signup(mockUser);
+				await service.signup(mockInsertUser);
 			}, DatabaseError);
 		});
 
@@ -89,51 +81,46 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 			);
 
 			await assert.rejects(async () => {
-				await service.signup(mockUser);
+				await service.signup(mockInsertUser);
 			}, DatabaseError);
 		});
 	});
 
 	describe("Signin", () => {
-		const mockUser = generateMockUser();
+		const mockInsertUser = generateMockInsertUser();
+		const mockSelectUser = generateMockSelectUser({ ...mockInsertUser });
 
 		test("Should return user object including  token and no password. Call 'repo.getByEmail' and 'compare' once with correct data", async () => {
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve(mockSelectUser),
 			);
 
 			mockPswService.verify.mock.mockImplementationOnce(() =>
 				Promise.resolve(true),
 			);
 
-			const user = await service.signin(mockUser);
+			const user = await service.signin(mockInsertUser);
 
 			assert.ok(user);
 			assert.ok(!Object.keys(user).includes("password"));
 			assert.ok(Object.keys(user).includes("token"));
 
-			// FIXME: 'mock.module' is still experimental
-			// so in the meantime, the result will be hardcoded
-			const userWithoutToken = removeObjectFields(user, ["token"]);
-			const expectedResult = removeObjectFields(mockUser, [
-				"password",
-				"token",
-			]);
-			assert.deepStrictEqual(userWithoutToken, expectedResult);
+			const { password: _, ...expectedResult } = mockSelectUser;
+			assert.deepStrictEqual(user, expectedResult);
 
 			assert.strictEqual(mockRepo.getByEmail.mock.callCount(), 1);
 			assert.deepStrictEqual(mockRepo.getByEmail.mock.calls[0].arguments[0], {
-				email: mockUser.email,
+				email: mockInsertUser.email,
 			});
 
 			assert.strictEqual(mockPswService.verify.mock.callCount(), 1);
 			assert.strictEqual(
 				mockPswService.verify.mock.calls[0].arguments[0].password,
-				mockUser.password,
+				mockInsertUser.password,
 			);
 			assert.strictEqual(
 				mockPswService.verify.mock.calls[0].arguments[0].hashedPassword,
-				mockUser.password,
+				mockInsertUser.password,
 			);
 		});
 
@@ -143,14 +130,14 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 			);
 
 			await assert.rejects(
-				async () => await service.signin(mockUser),
+				async () => await service.signin(mockInsertUser),
 				AuthenticationError,
 			);
 		});
 
 		test("Should throw 'AuthenticationError' if 'passwordService.verify' returns 'false'", async () => {
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve(mockSelectUser),
 			);
 
 			mockPswService.verify.mock.mockImplementationOnce(() =>
@@ -158,7 +145,7 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 			);
 
 			await assert.rejects(
-				async () => await service.signin(mockUser),
+				async () => await service.signin(mockInsertUser),
 				AuthenticationError,
 			);
 		});
@@ -169,7 +156,7 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 			);
 
 			await assert.rejects(
-				async () => await service.signin(mockUser),
+				async () => await service.signin(mockInsertUser),
 				DatabaseError,
 			);
 		});

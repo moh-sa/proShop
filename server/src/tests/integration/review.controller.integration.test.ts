@@ -10,7 +10,7 @@ import {
 	generateMockObjectId,
 	generateMockSelectReview,
 	generateMockSelectReviews,
-	generateMockUser,
+	generateMockSelectUser,
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
@@ -28,7 +28,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 	describe("create", () => {
 		test("Should return success response when 'service.create' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const mockReview = generateMockInsertReview({
 				user: mockUser._id,
 			});
@@ -49,7 +49,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '201' status code when 'service.create' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const mockReview = generateMockInsertReview({
 				user: mockUser._id,
 			});
@@ -68,7 +68,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should create review when 'service.create' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const mockReview = generateMockInsertReview({
 				user: mockUser._id,
 			});
@@ -94,7 +94,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'ZodError' when 'service.create' is called without 'rating' required field", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const { rating: _rating, ...mockReview } = generateMockInsertReview({
 				user: mockUser._id,
 			});
@@ -122,7 +122,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'ZodError' when 'service.create' is called without 'comment' required field", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const { comment: _comment, ...mockReview } = generateMockInsertReview({
 				user: mockUser._id,
 			});
@@ -147,7 +147,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'ZodError' when 'service.create' is called without 'product' required field", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const { product: _product, ...mockReviewData } = generateMockInsertReview(
 				{
 					user: mockUser._id,
@@ -177,7 +177,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'ZodError' when 'service.create' is called with out of range 'rating'", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const mockReviewData = generateMockInsertReview({
 				rating: 6,
 				user: mockUser._id,
@@ -206,7 +206,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'ZodError' when 'service.create' is called with invalid 'product' format", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const mockReviewData = generateMockInsertReview({
 				user: mockUser._id,
 				// @ts-expect-error - testing invalid product format

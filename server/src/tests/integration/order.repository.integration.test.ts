@@ -11,7 +11,7 @@ import {
 	generateMockInsertOrders,
 	generateMockObjectId,
 	generateMockSelectOrders,
-	generateMockUser,
+	generateMockSelectUser,
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
@@ -149,7 +149,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 	describe("getById", () => {
 		test("Should return order by ID when 'db.findById' is called with valid ID", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const mockOrder = generateMockInsertOrder({ user: mockUser._id });
 			const order = await Order.create(mockOrder);
 			await User.create(mockUser);
@@ -181,7 +181,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should populate user details when 'db.findById' is called", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const mockOrder = generateMockInsertOrder({ user: mockUser._id });
 			await User.create(mockUser);
 			const order = await Order.create(mockOrder);

@@ -5,9 +5,9 @@ import { ZodError } from "zod";
 import { UserController } from "../../controllers/index.js";
 import User from "../../models/user.model.js";
 import {
+	generateMockInsertUsers,
 	generateMockObjectId,
-	generateMockUser,
-	generateMockUsers,
+	generateMockSelectUser,
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
@@ -26,7 +26,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when 'service.getAll' is called successfully", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUsers = generateMockUsers(3);
+			const mockUsers = generateMockInsertUsers({ count: 3 });
 			await User.insertMany(mockUsers);
 
 			// Act
@@ -58,7 +58,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should return '200' status code when 'service.getAll' is called", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUsers = generateMockUsers(3);
+			const mockUsers = generateMockInsertUsers({ count: 3 });
 			await User.insertMany(mockUsers);
 
 			// Act
@@ -71,7 +71,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should exclude password field from all users in response", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUsers = generateMockUsers(3);
+			const mockUsers = generateMockInsertUsers({ count: 3 });
 			await User.insertMany(mockUsers);
 
 			// Act
@@ -91,7 +91,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should include isAdmin field for all users in response", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUsers = generateMockUsers(3);
+			const mockUsers = generateMockInsertUsers({ count: 3 });
 			await User.insertMany(mockUsers);
 
 			// Act
@@ -114,7 +114,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when 'service.getById' is called with valid 'userId' from params", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 
@@ -132,7 +132,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when 'service.getById' is called with valid 'userId' from locals", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 			res.locals = {
 				review: {
@@ -185,7 +185,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should return '200' status code when user is found", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 
@@ -199,7 +199,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should exclude password field from response", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 
@@ -217,7 +217,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should include isAdmin field in response", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser(true); // Fixed: passing boolean directly instead of object
+			const mockUser = generateMockSelectUser({ isAdmin: true });
 			await User.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 
@@ -260,7 +260,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when 'service.update' is called with valid user id from params", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 			req.body = { name: "Updated Name" };
@@ -279,7 +279,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when 'service.update' is called with valid user id from locals", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 			res.locals = {
 				review: {
@@ -334,7 +334,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should throw 'ZodError' when update data is invalid", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 			req.body = { email: "invalid-email" };
@@ -353,7 +353,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should return '200' status code when update is successful", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 			req.body = { name: "Updated Name" };
@@ -368,7 +368,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should update only provided fields", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const originalEmail = mockUser.email;
 			await User.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
@@ -386,7 +386,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should remove empty fields from update data", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 			req.body = { email: "", name: "Updated Name" };
@@ -403,7 +403,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should exclude password field from response", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 			req.body = { name: "Updated Name" };
@@ -422,7 +422,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should maintain existing fields when called with partial update", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const originalData = { ...mockUser };
 			await User.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
@@ -464,7 +464,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should throw 'ZodError' when called with invalid password format", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 			req.body = { password: "123" }; // Too short password
@@ -485,7 +485,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when 'service.delete' is called with valid 'userId'", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 
@@ -502,7 +502,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should return '204' status code when 'service.delete' is called with valid 'userId'", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 
@@ -534,7 +534,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should remove user from database when delete is successful", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 

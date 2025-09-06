@@ -12,7 +12,7 @@ import {
 	generateMockObjectId,
 	generateMockSelectOrder,
 	generateMockSelectOrders,
-	generateMockUser,
+	generateMockSelectUser,
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
@@ -35,7 +35,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 	describe("create", () => {
 		test("Should return success response when 'service.create' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const mockOrderData = generateMockInsertOrder();
 
 			const { next, req, res } = createMockExpressContext();
@@ -54,7 +54,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '201' status code when 'service.create' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const mockOrderData = generateMockInsertOrder();
 
 			const { next, req, res } = createMockExpressContext();
@@ -71,7 +71,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should create order when 'service.create' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const mockOrderData = generateMockInsertOrder();
 
 			const { next, req, res } = createMockExpressContext();
@@ -100,7 +100,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should include user ID in created order when 'service.create' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const mockOrderData = generateMockInsertOrder();
 
 			const { next, req, res } = createMockExpressContext();
@@ -119,7 +119,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should set 'PaymentMethod' to 'PayPal' if not provided when 'service.create' is called", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const { paymentMethod: _paymentMethod, ...mockOrderData } =
 				generateMockInsertOrder();
 
@@ -139,7 +139,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'ZodError' when 'service.create' is called without orderItems", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const { orderItems: _orderItems, ...mockOrderData } =
 				generateMockInsertOrder();
 
@@ -163,7 +163,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'ZodError' when 'service.create' is called without shippingAddress", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const { shippingAddress: _shippingAddress, ...mockOrderData } =
 				generateMockInsertOrder();
 
@@ -187,7 +187,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'ZodError' when 'service.create' is called with empty orderItems array", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const mockOrderData = generateMockInsertOrder({ orderItems: [] });
 
 			const { next, req, res } = createMockExpressContext();
@@ -269,7 +269,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return order with correct user reference when 'service.getById' is called with existing order", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 
 			const mockOrder = generateMockSelectOrder({ user: mockUser });
@@ -425,7 +425,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return array of orders for specific user when 'service.getAllByUserId' is called with existing orders", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const mockOrders = generateMockSelectOrders(3, { user: mockUser });
 			const otherOrders = generateMockSelectOrders(2);
 			await Order.insertMany([mockOrders, otherOrders].flat());
@@ -447,7 +447,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return 'empty array' when 'service.getAllByUserId' is called with user who has no orders", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			const mockOrders = generateMockSelectOrders(5);
 			await Order.insertMany(mockOrders);
 
@@ -485,7 +485,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should not return orders from other users when 'service.getAllByUserId' is called", async () => {
 			// Arrange
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 
 			const mockOrder1 = generateMockSelectOrder({ user: mockUser });

@@ -6,8 +6,9 @@ import type { InsertUser } from "../../types/index.js";
 import { NotFoundError } from "../../errors/index.js";
 import { UserService } from "../../services/index.js";
 import {
-	generateMockUser,
-	generateMockUsers,
+	generateMockInsertUser,
+	generateMockSelectUser,
+	generateMockSelectUsers,
 	mockUserRepository,
 } from "../mocks/index.js";
 
@@ -18,28 +19,29 @@ suite("User Service 〖 Unit Tests 〗", () => {
 	before(() => mockRepo.reset());
 
 	describe("create", () => {
-		const mockUser = generateMockUser();
+		const mockInsertUser = generateMockInsertUser();
+		const mockSelectUser = generateMockSelectUser({ ...mockInsertUser });
 
 		test("Should return 'user object' when 'repo.create' is called once with 'user data'", async () => {
 			mockRepo.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve(mockSelectUser),
 			);
 
-			const user = await service.create(mockUser);
+			const user = await service.create(mockInsertUser);
 
 			assert.ok(user);
-			assert.deepStrictEqual(user, mockUser);
+			assert.deepStrictEqual(user, mockSelectUser);
 
 			assert.strictEqual(mockRepo.create.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockRepo.create.mock.calls[0].arguments[0],
-				mockUser,
+				mockInsertUser,
 			);
 		});
 	});
 
 	describe("getAll", () => {
-		const mockUsers = generateMockUsers(1);
+		const mockUsers = generateMockSelectUsers({ count: 1 });
 
 		test("Should return 'array of users' when 'repo.getAll' is called once with no args", async () => {
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
@@ -65,7 +67,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 	});
 
 	describe("getById", () => {
-		const mockUser = generateMockUser();
+		const mockUser = generateMockSelectUser();
 		const userId = mockUser._id;
 
 		test("Should return 'user object' when 'repo.getById' is called once with 'userId'", async () => {
@@ -100,7 +102,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 	});
 
 	describe("getByEmail", () => {
-		const mockUser = generateMockUser();
+		const mockUser = generateMockSelectUser();
 		const email = mockUser.email;
 
 		test("Should return 'user object' when 'repo.getByEmail' is called once with 'email'", async () => {
@@ -137,7 +139,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 	});
 
 	describe("update", () => {
-		const mockUser = generateMockUser();
+		const mockUser = generateMockSelectUser();
 		const userId = mockUser._id;
 
 		const updateData: Partial<InsertUser> = { name: "new-name" };
@@ -179,7 +181,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 	});
 
 	describe("delete", () => {
-		const mockUser = generateMockUser();
+		const mockUser = generateMockSelectUser();
 		const userId = mockUser._id;
 
 		test("Should return 'user object' when 'repo.delete' is called once with 'userId'", async () => {

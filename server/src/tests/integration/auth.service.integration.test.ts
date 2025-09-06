@@ -4,7 +4,7 @@ import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { AuthenticationError } from "../../errors/index.js";
 import User from "../../models/user.model.js";
 import { AuthService } from "../../services/index.js";
-import { generateMockUser } from "../mocks/index.js";
+import { generateMockInsertUser } from "../mocks/index.js";
 import {
 	connectTestDatabase,
 	disconnectTestDatabase,
@@ -12,7 +12,7 @@ import {
 
 suite("Auth Service 〖 Integration Tests 〗", () => {
 	let authService: AuthService;
-	const mockUser = generateMockUser();
+	const mockUser = generateMockInsertUser();
 
 	before(async () => connectTestDatabase());
 	after(async () => disconnectTestDatabase());

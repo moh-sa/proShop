@@ -18,9 +18,10 @@ import Review from "../../models/review.model.js";
 import User from "../../models/user.model.js";
 import { generateJwtToken } from "../../utils/index.js";
 import {
+	generateMockInsertUser,
 	generateMockObjectId,
 	generateMockSelectReview,
-	generateMockUser,
+	generateMockSelectUser,
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
@@ -97,7 +98,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 	describe("checkUserIdExists", () => {
 		test("Should find user by id and set res.locals.user", async () => {
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockInsertUser();
 
 			const user = await User.create(mockUser);
 			res.locals.token = { _id: user._id, exp: 456, iat: 123 };
@@ -127,7 +128,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 	describe("checkIfUserIsAdmin", () => {
 		test("Should allow admin access", async () => {
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser(true);
+			const mockUser = generateMockSelectUser({ isAdmin: true });
 
 			res.locals.user = mockUser;
 
@@ -136,7 +137,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'AuthorizationError' if user is not admin", async () => {
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser(true);
+			const mockUser = generateMockSelectUser({ isAdmin: false });
 
 			res.locals.user = mockUser;
 
@@ -153,7 +154,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 	describe("verifyReviewOwnership", () => {
 		test("Should allow access if 'review.user' matches 'req.params.userId'", async () => {
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser();
 			res.locals.user = mockUser;
 
 			const mockReview = generateMockSelectReview();
@@ -171,7 +172,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'AuthorizationError' if user is not the owner", async () => {
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockUser();
+			const mockUser = generateMockSelectUser({ isAdmin: false });
 			res.locals.user = mockUser;
 
 			const mockReview = generateMockSelectReview();
