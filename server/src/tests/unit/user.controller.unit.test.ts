@@ -26,6 +26,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 
 	describe("getById", () => {
 		const { token: _, ...mockUser } = generateMockUser();
+		const { password: __, ...expectedUser } = mockUser;
 		const userId = mockUser._id;
 
 		test("Should parse 'userId' from 'req.params'", async (t) => {
@@ -177,7 +178,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockUser }),
+				createSuccessResponseObject({ data: expectedUser }),
 			);
 		});
 	});
@@ -185,6 +186,10 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 	describe("getAll", () => {
 		const mockUsers = generateMockUsers(5).map((user) => {
 			const { token: __, ...expectedUser } = user;
+			return expectedUser;
+		});
+		const expectedUsers = mockUsers.map((user) => {
+			const { password: __, ...expectedUser } = user;
 			return expectedUser;
 		});
 
@@ -264,13 +269,14 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockUsers }),
+				createSuccessResponseObject({ data: expectedUsers }),
 			);
 		});
 	});
 
 	describe("update", () => {
 		const { token: _, ...mockUser } = generateMockUser();
+		const { password: __, ...expectedUser } = mockUser;
 		const userId = mockUser._id;
 
 		test("Should parse 'userId' from 'req.params'", async (t) => {
@@ -431,7 +437,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockUser }),
+				createSuccessResponseObject({ data: expectedUser }),
 			);
 		});
 	});
