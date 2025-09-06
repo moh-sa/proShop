@@ -7,6 +7,7 @@ import { NotFoundError } from "../errors/index.js";
 import { UserRepository } from "../repositories/index.js";
 
 export interface IUserService {
+	create: (data: InsertUser) => Promise<SelectUser>;
 	delete: (data: { userId: Types.ObjectId }) => Promise<SelectUser>;
 	getAll: () => Promise<Array<SelectUser>>;
 	getByEmail: (data: { email: string }) => Promise<SelectUser>;
@@ -22,6 +23,10 @@ export class UserService implements IUserService {
 
 	constructor(repository: IUserRepository = new UserRepository()) {
 		this._repository = repository;
+	}
+
+	async create(data: InsertUser): Promise<SelectUser> {
+		return await this._repository.create(data);
 	}
 
 	async delete({ userId }: { userId: Types.ObjectId }): Promise<SelectUser> {
