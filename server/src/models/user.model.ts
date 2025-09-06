@@ -56,14 +56,6 @@ const userSchema = new Schema<UserSchema>(
 	},
 );
 
-userSchema.methods.matchPassword = async function (enteredPassword: string) {
-	const pswService = new PasswordService();
-	return await pswService.verify({
-		hashedPassword: this.password,
-		password: enteredPassword,
-	});
-};
-
 userSchema.pre("save", async function (next) {
 	if (!this.isModified("password")) {
 		return next();
