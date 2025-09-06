@@ -10,7 +10,7 @@ export function generateMockUser(isAdmin = false): SelectUser {
 	return {
 		_id: mockId,
 		createdAt: new Date(),
-		email: faker.internet.exampleEmail(),
+		email: faker.internet.exampleEmail().toLowerCase(),
 		isAdmin,
 		name: faker.person.fullName(),
 		password: faker.internet.password(),
