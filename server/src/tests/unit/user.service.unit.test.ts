@@ -17,6 +17,27 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 	before(() => mockRepo.reset());
 
+	describe("create", () => {
+		const mockUser = generateMockUser();
+
+		test("Should return 'user object' when 'repo.create' is called once with 'user data'", async () => {
+			mockRepo.create.mock.mockImplementationOnce(() =>
+				Promise.resolve(mockUser),
+			);
+
+			const user = await service.create(mockUser);
+
+			assert.ok(user);
+			assert.deepStrictEqual(user, mockUser);
+
+			assert.strictEqual(mockRepo.create.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRepo.create.mock.calls[0].arguments[0],
+				mockUser,
+			);
+		});
+	});
+
 	describe("getAll", () => {
 		const mockUsers = generateMockUsers(1);
 
