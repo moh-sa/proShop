@@ -4,7 +4,7 @@ import type {
 	ISessionService,
 	IUserService,
 } from "../services/index.js";
-import type { Result } from "../types/index.js";
+import type { Result, SelectUser, TokenPair } from "../types/index.js";
 
 import {
 	JwtService,
@@ -37,5 +37,38 @@ export class AuthManager implements IAuthManager {
 		this._password = password;
 		this._session = session;
 		this._user = user;
+	}
+
+	private async _createAuthSession(user: SelectUser): Promise<
+		AuthResult<{
+			sessionId: string;
+			tokens: TokenPair;
+			user: SelectUser;
+		}>
+	> {
+		const tokensResult = this._jwt.generateTokenPair({
+			userId: user._id.toString(),
+		});
+		if (!tokensResult.success) {
+			return tokensResult;
+		}
+
+		const sessionResult = await this._session.create({
+			expiresAt: tokensResult.data.refresh.expiresAt,
+			tokenId: tokensResult.data.refresh.tokenId,
+			userId: user._id,
+		});
+		if (!sessionResult.success) {
+			return sessionResult;
+		}
+
+		return {
+			data: {
+				sessionId: sessionResult.data.id.toString(),
+				tokens: tokensResult.data,
+				user,
+			},
+			success: true,
+		};
 	}
 }
