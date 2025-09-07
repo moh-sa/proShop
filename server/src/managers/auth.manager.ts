@@ -11,7 +11,11 @@ import type {
 	TokenPair,
 } from "../types/index.js";
 
-import { ConflictError, ValidationError } from "../errors/index.js";
+import {
+	ConflictError,
+	InvalidCredentialsError,
+	ValidationError,
+} from "../errors/index.js";
 import {
 	JwtService,
 	PasswordService,
@@ -26,6 +30,14 @@ type Return<T extends keyof IAuthManager> = ReturnType<IAuthManager[T]>;
 
 // interfaces
 interface IAuthManager {
+	signIn(args: Pick<InsertUser, "email" | "password">): Promise<
+		AuthResult<{
+			sessionId: string;
+			tokens: TokenPair;
+			user: SelectUser;
+		}>
+	>;
+
 	signUp(args: InsertUser): Promise<
 		AuthResult<{
 			sessionId: string;
@@ -51,6 +63,38 @@ export class AuthManager implements IAuthManager {
 		this._password = password;
 		this._session = session;
 		this._user = user;
+	}
+
+	public async signIn(args: Params<"signIn">): Return<"signIn"> {
+		if (!args?.email || !args?.password) {
+			return {
+				error: new ValidationError("Email and password are required"),
+				success: false,
+			};
+		}
+
+		const user = await this._user.getByEmail_UNSAFE({ email: args.email });
+		if (!user) {
+			return {
+				error: new InvalidCredentialsError("Invalid email or password"),
+				success: false,
+			};
+		}
+
+		const isPasswordValid = await this._password.verify({
+			hashedPassword: user.password,
+			password: args.password,
+		});
+		if (!isPasswordValid.success) {
+			return {
+				error: new InvalidCredentialsError("Invalid email or password", {
+					cause: isPasswordValid.error,
+				}),
+				success: false,
+			};
+		}
+
+		return this._createAuthSession(user);
 	}
 
 	public async signUp(args: Params<"signUp">): Return<"signUp"> {
