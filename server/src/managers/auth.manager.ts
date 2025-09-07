@@ -4,6 +4,7 @@ import type {
 	ISessionService,
 	IUserService,
 } from "../services/index.js";
+import type { SelectSession } from "../types/index.js";
 
 import {
 	ConflictError,
@@ -31,6 +32,10 @@ type Return<T extends keyof IAuthManager> = ReturnType<IAuthManager[T]>;
 
 // interfaces
 interface IAuthManager {
+	getUserSessions(args: {
+		userId: string;
+	}): Promise<AuthResult<Array<SelectSession>>>;
+
 	signIn(args: Pick<InsertUser, "email" | "password">): Promise<
 		AuthResult<{
 			sessionId: string;
@@ -68,6 +73,29 @@ export class AuthManager implements IAuthManager {
 		this._password = password;
 		this._session = session;
 		this._user = user;
+	}
+
+	public async getUserSessions(
+		args: Params<"getUserSessions">,
+	): Return<"getUserSessions"> {
+		if (!args?.userId) {
+			return {
+				error: new ValidationError("User ID is required"),
+				success: false,
+			};
+		}
+
+		const result = await this._session.getActiveByUserId({
+			userId: args.userId,
+		});
+		if (!result.success) {
+			return result;
+		}
+
+		return {
+			data: result.data,
+			success: true,
+		};
 	}
 
 	public async signIn(args: Params<"signIn">): Return<"signIn"> {
