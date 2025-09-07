@@ -1,7 +1,12 @@
 import type { Types } from "mongoose";
 
 import type { IUserRepository } from "../repositories/index.js";
-import type { InsertUser, SafeSelectUser, SelectUser } from "../types/index.js";
+import type {
+	InsertUser,
+	SafeSelectUser,
+	SelectUser,
+	UnSafeSelectUser,
+} from "../types/index.js";
 
 import { InternalError, NotFoundError } from "../errors/index.js";
 import { UserRepository } from "../repositories/index.js";
@@ -20,6 +25,16 @@ export interface IUserService {
 		data: Partial<InsertUser>;
 		userId: Types.ObjectId;
 	}) => Promise<SelectUser>;
+
+	// UNSAFE METHODS - returns full user object
+	/****ONLY FOR INTERNAL USE***/
+	create_UNSAFE: (data: InsertUser) => Promise<UnSafeSelectUser>;
+	/****ONLY FOR INTERNAL USE***/
+	getByEmail_UNSAFE: (data: { email: string }) => Promise<UnSafeSelectUser>;
+	/****ONLY FOR INTERNAL USE***/
+	getById_UNSAFE: (data: {
+		userId: Types.ObjectId;
+	}) => Promise<UnSafeSelectUser>;
 }
 
 export class UserService implements IUserService {
@@ -28,7 +43,6 @@ export class UserService implements IUserService {
 	constructor(repository: IUserRepository = new UserRepository()) {
 		this._repository = repository;
 	}
-
 	async create(data: InsertUser): Promise<SelectUser> {
 		return await this._repository.create(data);
 	}
@@ -90,6 +104,36 @@ export class UserService implements IUserService {
 		}
 
 		return updatedUser;
+	}
+
+	// UNSAFE METHODS - returns full user object
+	/****ONLY FOR INTERNAL USE***/
+	public async create_UNSAFE(data: InsertUser): Promise<UnSafeSelectUser> {
+		const user = await this._repository.create(data);
+
+		return user;
+	}
+	/****ONLY FOR INTERNAL USE***/
+	public async getByEmail_UNSAFE(args: {
+		email: string;
+	}): Promise<UnSafeSelectUser> {
+		const user = await this._repository.getByEmail({ email: args.email });
+		if (!user) {
+			throw new NotFoundError("User");
+		}
+
+		return user;
+	}
+	/****ONLY FOR INTERNAL USE***/
+	public async getById_UNSAFE(args: {
+		userId: Types.ObjectId;
+	}): Promise<UnSafeSelectUser> {
+		const user = await this._repository.getById({ userId: args.userId });
+		if (!user) {
+			throw new NotFoundError("User");
+		}
+
+		return user;
 	}
 
 	private _sanitizeUser(user: SelectUser): SafeSelectUser {
