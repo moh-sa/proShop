@@ -1,5 +1,5 @@
-import { ErrorType } from "../types/index.js";
-import { BaseError } from "./base.error.js";
+import { ErrorType } from "../../types/index.js";
+import { BaseError } from "../base.error.js";
 
 export class AuthenticationError extends BaseError {
 	constructor(message: string = "Authentication required") {
