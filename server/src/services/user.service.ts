@@ -1,10 +1,11 @@
 import type { Types } from "mongoose";
 
 import type { IUserRepository } from "../repositories/index.js";
-import type { InsertUser, SelectUser } from "../types/index.js";
+import type { InsertUser, SafeSelectUser, SelectUser } from "../types/index.js";
 
-import { NotFoundError } from "../errors/index.js";
+import { InternalError, NotFoundError } from "../errors/index.js";
 import { UserRepository } from "../repositories/index.js";
+import { selectUserSchema } from "../schemas/index.js";
 
 export interface IUserService {
 	create: (data: InsertUser) => Promise<SelectUser>;
@@ -89,5 +90,14 @@ export class UserService implements IUserService {
 		}
 
 		return updatedUser;
+	}
+
+	private _sanitizeUser(user: SelectUser): SafeSelectUser {
+		const result = selectUserSchema.omit({ password: true }).safeParse(user);
+		if (!result.success) {
+			throw new InternalError("Invalid user data", { cause: result.error });
+		}
+
+		return result.data;
 	}
 }
