@@ -4,8 +4,14 @@ import type {
 	ISessionService,
 	IUserService,
 } from "../services/index.js";
-import type { Result, SelectUser, TokenPair } from "../types/index.js";
+import type {
+	InsertUser,
+	Result,
+	SelectUser,
+	TokenPair,
+} from "../types/index.js";
 
+import { ConflictError, ValidationError } from "../errors/index.js";
 import {
 	JwtService,
 	PasswordService,
@@ -19,7 +25,15 @@ type Params<T extends keyof IAuthManager> = Parameters<IAuthManager[T]>[0];
 type Return<T extends keyof IAuthManager> = ReturnType<IAuthManager[T]>;
 
 // interfaces
-interface IAuthManager {}
+interface IAuthManager {
+	signUp(args: InsertUser): Promise<
+		AuthResult<{
+			sessionId: string;
+			tokens: TokenPair;
+			user: SelectUser;
+		}>
+	>;
+}
 
 export class AuthManager implements IAuthManager {
 	private readonly _jwt: IJwtService;
@@ -37,6 +51,37 @@ export class AuthManager implements IAuthManager {
 		this._password = password;
 		this._session = session;
 		this._user = user;
+	}
+
+	public async signUp(args: Params<"signUp">): Return<"signUp"> {
+		if (!args?.email || !args?.password) {
+			return {
+				error: new ValidationError("Email and password are required"),
+				success: false,
+			};
+		}
+
+		const isUserExists = await this._user.existsByEmail({ email: args.email });
+		if (isUserExists) {
+			return {
+				error: new ConflictError("An account with this email already exists"),
+				success: false,
+			};
+		}
+
+		const hashedPasswordResult = await this._password.hash({
+			password: args.password,
+		});
+		if (!hashedPasswordResult.success) {
+			return hashedPasswordResult;
+		}
+
+		const createdUser = await this._user.create_UNSAFE({
+			...args,
+			password: hashedPasswordResult.data,
+		});
+
+		return this._createAuthSession(createdUser);
 	}
 
 	private async _createAuthSession(user: SelectUser): Promise<
