@@ -65,7 +65,16 @@ export class AuthService implements IAuthService {
 			);
 		}
 
-		const createdUser = await this._repository.create(data);
+		const hashedPasswordResult = await this._passwordService.hash({
+			password: data.password,
+		});
+		if (!hashedPasswordResult.success) {
+			throw hashedPasswordResult.error;
+		}
+		const createdUser = await this._repository.create({
+			...data,
+			password: hashedPasswordResult.data,
+		});
 		const token = generateJwtToken({ id: createdUser._id });
 		const userWithToken = Object.assign(createdUser, { token });
 		const userWithoutPassword = removeObjectFields(userWithToken, ["password"]);
