@@ -37,10 +37,6 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 				mockReview,
 			);
 		});
-
-		test("Should throw 'DatabaseError' when 'repo.create' throws", {
-			todo: true,
-		});
 	});
 
 	describe("getAll", () => {
@@ -66,10 +62,6 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			const reviews = await service.getAll();
 
 			assert.strictEqual(reviews.length, 0);
-		});
-
-		test("Should throw 'DatabaseError' when 'repo.getAll' throws", {
-			todo: true,
 		});
 	});
 
@@ -103,10 +95,6 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(reviews.length, 0);
 		});
-
-		test("Should throw 'DatabaseError' if 'repo.getAllByUserId' throws", {
-			todo: true,
-		});
 	});
 
 	describe("getAllByProductId", () => {
@@ -137,10 +125,6 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			const reviews = await service.getAllByProductId({ productId });
 
 			assert.strictEqual(reviews.length, 0);
-		});
-
-		test("Should throw 'DatabaseError' if 'repo.getAllByProductId' throws", {
-			todo: true,
 		});
 	});
 
@@ -176,10 +160,6 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 					return true;
 				},
 			);
-		});
-
-		test("Should throw 'DatabaseError' if 'repo.getById' throws", {
-			todo: true,
 		});
 	});
 
@@ -222,10 +202,6 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 				},
 			);
 		});
-
-		test("Should throw 'DatabaseError' if 'repo.update' throws", {
-			todo: true,
-		});
 	});
 
 	describe("delete", () => {
@@ -263,10 +239,6 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 				},
 			);
 		});
-
-		test("Should throw 'DatabaseError' if 'repo.delete' throws", {
-			todo: true,
-		});
 	});
 
 	describe("countByUserId", () => {
@@ -299,10 +271,6 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(count, 0);
 		});
-
-		test("Should throw 'DatabaseError' if 'repo.countByUserId' throws", {
-			todo: true,
-		});
 	});
 
 	describe("countByProductId", () => {
@@ -334,10 +302,6 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			const count = await service.countByProductId({ productId });
 
 			assert.strictEqual(count, 0);
-		});
-
-		test("Should throw 'DatabaseError' if 'repo.countByProductId' throws", {
-			todo: true,
 		});
 	});
 
@@ -375,10 +339,6 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 					return true;
 				},
 			);
-		});
-
-		test("Should throw 'DatabaseError' if 'repo.existsById' throws", {
-			todo: true,
 		});
 	});
 
@@ -433,12 +393,5 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 				},
 			);
 		});
-
-		test(
-			"Should throw 'DatabaseError' if 'repo.existsByUserIdAndProductId' throws",
-			{
-				todo: true,
-			},
-		);
 	});
 });

@@ -5,7 +5,6 @@ import test, { beforeEach, describe, suite } from "node:test";
 import { ZodError } from "zod";
 
 import { AuthController } from "../../controllers/index.js";
-import { DatabaseError } from "../../errors/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockInsertUser,
@@ -120,27 +119,6 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(
 				mockService.signup.mock.calls[0].arguments[0],
 				expectedParsedData,
-			);
-		});
-
-		test("Should throw 'DatabaseError' if 'service.signup' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { body: mockInsertUser },
-				testContext: t,
-			});
-
-			mockService.signup.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.signup(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
 			);
 		});
 
@@ -304,27 +282,6 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(
 				mockService.signin.mock.calls[0].arguments[0],
 				expectedParsedData,
-			);
-		});
-
-		test("Should throw 'DatabaseError' if 'service.signin' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { body: mockInsertUser },
-				testContext: t,
-			});
-
-			mockService.signin.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.signin(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
 			);
 		});
 

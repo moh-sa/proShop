@@ -1,15 +1,10 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import {
-	DatabaseError,
-	EmptyCartError,
-	NotFoundError,
-} from "../../errors/index.js";
+import { EmptyCartError, NotFoundError } from "../../errors/index.js";
 import { OrderService } from "../../services/index.js";
 import {
 	generateMockInsertOrder,
-	generateMockObjectId,
 	generateMockSelectOrder,
 	generateMockSelectOrders,
 	mockOrderRepository,
@@ -52,17 +47,6 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 				EmptyCartError,
 			);
 		});
-
-		test("Should throw 'DatabaseError' if 'repo.create' throws", async () => {
-			mockRepo.create.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () => await service.create(mockInsertOrder),
-				DatabaseError,
-			);
-		});
 	});
 
 	describe("getAll", () => {
@@ -89,22 +73,6 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 			assert.ok(orders);
 			assert.strictEqual(orders.length, 0);
-		});
-
-		test("Should throw 'DatabaseError' if 'repo.getAll' throws", async () => {
-			mockRepo.getAll.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () => await service.getAll(),
-				(error: Error) => {
-					assert.ok(error instanceof DatabaseError);
-					assert.strictEqual(error.message, "Database operation failed");
-					assert.strictEqual(error.statusCode, 500);
-					return true;
-				},
-			);
 		});
 	});
 
@@ -139,17 +107,6 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			assert.ok(orders);
 			assert.strictEqual(orders.length, 0);
 		});
-
-		test("Should throw 'DatabaseError' if 'repo.getAllByUserId' throws", async () => {
-			mockRepo.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () => await service.getAllByUserId({ userId }),
-				DatabaseError,
-			);
-		});
 	});
 
 	describe("getById", () => {
@@ -178,17 +135,6 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			await assert.rejects(
 				async () => await service.getById({ orderId }),
 				NotFoundError,
-			);
-		});
-
-		test("Should throw 'DatabaseError' if 'repo.getById' throws", async () => {
-			mockRepo.getById.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () => await service.getById({ orderId }),
-				DatabaseError,
 			);
 		});
 	});
@@ -225,17 +171,6 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 				NotFoundError,
 			);
 		});
-
-		test("Should throw 'DatabaseError' if 'repo.updateToPaid' throws", async () => {
-			mockRepo.updateToPaid.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () => await service.updateToPaid({ orderId }),
-				DatabaseError,
-			);
-		});
 	});
 
 	describe("updateToDelivered", () => {
@@ -267,19 +202,6 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			await assert.rejects(
 				async () => await service.updateToDelivered({ orderId }),
 				NotFoundError,
-			);
-		});
-
-		test("Should throw 'DatabaseError' if 'repo.updateToDelivered' throws", async () => {
-			const orderId = generateMockObjectId();
-
-			mockRepo.updateToDelivered.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () => await service.updateToDelivered({ orderId }),
-				DatabaseError,
 			);
 		});
 	});

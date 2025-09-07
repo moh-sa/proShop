@@ -7,7 +7,7 @@ import { ZodError } from "zod";
 import type { InsertUser } from "../../types/index.js";
 
 import { UserController } from "../../controllers/index.js";
-import { DatabaseError, NotFoundError } from "../../errors/index.js";
+import { NotFoundError } from "../../errors/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockSelectUser,
@@ -117,27 +117,6 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			});
 		});
 
-		test("Should throw 'DatabaseError' if 'service.getById' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
-				testContext: t,
-			});
-
-			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.getById(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
-		});
-
 		test("Should call 'res.status' once with '200' after successfully fetching user data", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
@@ -208,26 +187,6 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
 			assert.strictEqual(mockService.getAll.mock.calls[0].arguments.length, 0);
-		});
-
-		test("Should throw 'DatabaseError' if'service.getAll' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				testContext: t,
-			});
-
-			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.getAll(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
 		});
 
 		test("Should call'res.status' once with '200' after successfully fetching all users", async (t) => {
@@ -374,27 +333,6 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'DatabaseError' if 'service.updateById' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
-				testContext: t,
-			});
-
-			mockService.updateById.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.update(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
-		});
-
 		test("Should call 'res.status' once with '200' after successfully updating user data", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
@@ -512,27 +450,6 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(mockService.delete.mock.calls[0].arguments[0], {
 				userId,
 			});
-		});
-
-		test("Should throw 'DatabaseError' if'service.delete' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
-				testContext: t,
-			});
-
-			mockService.delete.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.delete(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
 		});
 
 		test("Should throw 'NotFoundError' if 'service.delete' returns 'null'", async (t) => {

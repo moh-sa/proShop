@@ -7,7 +7,6 @@ import { ZodError } from "zod";
 import type { InsertReview } from "../../types/index.js";
 
 import { ReviewController } from "../../controllers/index.js";
-import { DatabaseError } from "../../errors/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockObjectId,
@@ -256,30 +255,6 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'DatabaseError' if 'service.create' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { body: mockReview },
-				res: {
-					locals: { user: { _id: mockReview.user, name: mockReview.name } },
-				},
-				testContext: t,
-			});
-
-			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.create(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
-		});
-
 		test("Should call 'res.status' once with '201' after successfully creating review data", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockReview },
@@ -353,26 +328,6 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
 			assert.strictEqual(mockService.getAll.mock.calls[0].arguments.length, 0);
-		});
-
-		test("Should throw 'DatabaseError' if'service.getAll' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				testContext: t,
-			});
-
-			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.getAll(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
 		});
 
 		test("Should call'res.status' once with '200' after successfully fetching all reviews", async (t) => {
@@ -488,27 +443,6 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 				{
 					userId,
 				},
-			);
-		});
-
-		test("Should throw 'DatabaseError' if 'service.getAllByUserId' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
-				testContext: t,
-			});
-
-			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.getAllByUserId(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
 			);
 		});
 
@@ -630,27 +564,6 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'DatabaseError' if 'service.getAllByProductId' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: productId.toString() } },
-				testContext: t,
-			});
-
-			mockService.getAllByProductId.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.getAllByProductId(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
-		});
-
 		test("Should call 'res.status' once with '200' after successfully fetching all reviews", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { params: { productId: productId.toString() } },
@@ -764,27 +677,6 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(mockService.getById.mock.calls[0].arguments[0], {
 				reviewId,
 			});
-		});
-
-		test("Should throw 'DatabaseError' if 'service.getById' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { reviewId: reviewId.toString() } },
-				testContext: t,
-			});
-
-			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.getById(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching review data", async (t) => {
@@ -908,27 +800,6 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 		});
 
-		test("Should throw 'DatabaseError' if 'service.update' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { reviewId: reviewId.toString() } },
-				testContext: t,
-			});
-
-			mockService.update.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.update(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
-		});
-
 		test("Should call 'res.status' once with '200' after successfully updating review data", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId: reviewId.toString() } },
@@ -1044,27 +915,6 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 		});
 
-		test("Should throw 'DatabaseError' if 'service.delete' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { reviewId: reviewId.toString() } },
-				testContext: t,
-			});
-
-			mockService.delete.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.delete(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
-		});
-
 		test("Should call 'res.status' once with '204' after successfully deleting review data", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId: reviewId.toString() } },
@@ -1129,26 +979,6 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockService.count.mock.callCount(), 1);
 			assert.strictEqual(mockService.count.mock.calls[0].arguments.length, 0);
-		});
-
-		test("Should throw 'DatabaseError' if 'service.count' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				testContext: t,
-			});
-
-			mockService.count.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.count(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching review count", async (t) => {
@@ -1264,27 +1094,6 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 				{
 					userId,
 				},
-			);
-		});
-
-		test("Should throw 'DatabaseError' if 'service.countByUserId' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
-				testContext: t,
-			});
-
-			mockService.countByUserId.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.countByUserId(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
 			);
 		});
 
@@ -1406,27 +1215,6 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'DatabaseError' if 'service.countByProductId' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: productId.toString() } },
-				testContext: t,
-			});
-
-			mockService.countByProductId.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.countByProductId(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
-		});
-
 		test("Should call 'res.status' once with '200' after successfully fetching review count", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { params: { productId: productId.toString() } },
@@ -1542,27 +1330,6 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 				{
 					reviewId: mockReviewId,
 				},
-			);
-		});
-
-		test("Should throw 'DatabaseError' if 'service.existsById' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { reviewId: mockReviewId.toString() } },
-				testContext: t,
-			});
-
-			mockService.existsById.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.existsById(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
 			);
 		});
 
@@ -1731,32 +1498,6 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 					productId: mockProductId,
 					userId: mockUserId,
 				},
-			);
-		});
-
-		test("Should throw 'DatabaseError' if 'service.existsByUserIdAndProductId' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					params: {
-						productId: mockProductId.toString(),
-						userId: mockUserId.toString(),
-					},
-				},
-				testContext: t,
-			});
-
-			mockService.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.existsByUserIdAndProductId(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
 			);
 		});
 

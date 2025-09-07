@@ -3,7 +3,6 @@ import test, { afterEach, describe, suite } from "node:test";
 
 import {
 	AuthenticationError,
-	DatabaseError,
 	PasswordVerifyError,
 } from "../../errors/index.js";
 import { AuthService } from "../../services/index.js";
@@ -63,30 +62,6 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 			await assert.rejects(async () => {
 				await service.signup(mockInsertUser);
 			}, AuthenticationError);
-		});
-
-		test("Should throw 'DatabaseError' if 'repo.existsByEmail' throws", async () => {
-			mockRepo.existsByEmail.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(async () => {
-				await service.signup(mockInsertUser);
-			}, DatabaseError);
-		});
-
-		test("Should throw 'DatabaseError' if 'repo.create' throws", async () => {
-			mockRepo.existsByEmail.mock.mockImplementationOnce(() =>
-				Promise.resolve(null),
-			);
-
-			mockRepo.create.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(async () => {
-				await service.signup(mockInsertUser);
-			}, DatabaseError);
 		});
 	});
 
@@ -157,17 +132,6 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 			await assert.rejects(
 				async () => await service.signin(mockInsertUser),
 				AuthenticationError,
-			);
-		});
-
-		test("Should throw 'DatabaseError' if 'repo.getByEmail' throws", async () => {
-			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () => await service.signin(mockInsertUser),
-				DatabaseError,
 			);
 		});
 	});

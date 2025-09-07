@@ -5,7 +5,6 @@ import test, { beforeEach, describe, suite } from "node:test";
 import { ZodError } from "zod";
 
 import { OrderController } from "../../controllers/index.js";
-import { DatabaseError } from "../../errors/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockInsertOrder,
@@ -103,28 +102,6 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'DatabaseError' if 'service.create' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { body: mockInsertOrder },
-				res: { locals: { user: { _id: userId.toString() } } },
-				testContext: t,
-			});
-
-			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.create(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
-		});
-
 		test("Should call 'res.status' once with '201' after successfully creating order data", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
@@ -194,26 +171,6 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
 			assert.strictEqual(mockService.getAll.mock.calls[0].arguments.length, 0);
-		});
-
-		test("Should throw 'DatabaseError' if'service.getAll' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				testContext: t,
-			});
-
-			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.getAll(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
 		});
 
 		test("Should call'res.status' once with '200' after successfully fetching all orders", async (t) => {
@@ -332,27 +289,6 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'DatabaseError' if 'service.getAllByUserId' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
-				testContext: t,
-			});
-
-			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.getAllByUserId(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
-		});
-
 		test("Should call 'res.status' once with '200' after successfully fetching all orders", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
@@ -466,27 +402,6 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(mockService.getById.mock.calls[0].arguments[0], {
 				orderId,
 			});
-		});
-
-		test("Should throw 'DatabaseError' if 'service.getById' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: orderId.toString() } },
-				testContext: t,
-			});
-
-			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.getById(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching order data", async (t) => {
@@ -607,27 +522,6 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'DatabaseError' if 'service.updateToPaid' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: orderId.toString() } },
-				testContext: t,
-			});
-
-			mockService.updateToPaid.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.updateToPaid(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
-			);
-		});
-
 		test("Should call 'res.status' once with '200' after successfully updating order data", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId: orderId.toString() } },
@@ -743,27 +637,6 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				{
 					orderId,
 				},
-			);
-		});
-
-		test("Should throw 'DatabaseError' if 'service.updateToDelivered' throws", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: orderId.toString() } },
-				testContext: t,
-			});
-
-			mockService.updateToDelivered.mock.mockImplementationOnce(() =>
-				Promise.reject(new DatabaseError()),
-			);
-
-			await assert.rejects(
-				async () =>
-					await controller.updateToDelivered(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				DatabaseError,
 			);
 		});
 

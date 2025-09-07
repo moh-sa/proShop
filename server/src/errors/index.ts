@@ -2,7 +2,6 @@ export * from "./base.error.js";
 export * from "./cache/index.js";
 export * from "./common/index.js";
 export * from "./cookie/index.js";
-export * from "./database.error.js";
 export * from "./database/index.js";
 export * from "./empty-cart.error.js";
 export * from "./jwt/index.js";

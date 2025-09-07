@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import { DatabaseError, NotFoundError } from "../../errors/index.js";
+import { NotFoundError } from "../../errors/index.js";
 import { ProductService } from "../../services/index.js";
 import {
 	generateMockInsertProductWithMulterImage,
@@ -95,412 +95,281 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'DatabaseError' if 'repo.create' rejects", async () => {
-			const mockError = new DatabaseError();
+		describe("getAll", () => {
+			const mockCount = 4;
+			const expectedResult = generateMockSelectProducts({ count: 4 });
 
-			mockStorage.upload.mock.mockImplementationOnce(() => Promise.resolve(""));
+			function createRegexQuery(keyword: string) {
+				return { name: { $options: "i", $regex: keyword } };
+			}
 
-			mockRepo.create.mock.mockImplementationOnce(() =>
-				Promise.reject(mockError),
-			);
+			test("Should return array of products when both 'repo.count' and 'repo.getAll' are called once with no args", async () => {
+				mockRepo.count.mock.mockImplementationOnce(() =>
+					Promise.resolve(mockCount),
+				);
 
-			await assert.rejects(
-				() => service.create(mockInsertProduct),
-				DatabaseError,
-			);
-		});
-	});
+				mockRepo.getAll.mock.mockImplementationOnce(() =>
+					Promise.resolve(expectedResult),
+				);
 
-	describe("getAll", () => {
-		const mockCount = 4;
-		const expectedResult = generateMockSelectProducts({ count: 4 });
+				const result = await service.getAll({ currentPage: 1, keyword: "" });
 
-		function createRegexQuery(keyword: string) {
-			return { name: { $options: "i", $regex: keyword } };
-		}
+				assert.ok(result);
+				assert.strictEqual(result.products.length, expectedResult.length);
+				assert.deepStrictEqual(result.products, expectedResult);
 
-		test("Should return array of products when both 'repo.count' and 'repo.getAll' are called once with no args", async () => {
-			mockRepo.count.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
-			);
+				assert.strictEqual(mockRepo.count.mock.callCount(), 1);
+				assert.deepStrictEqual(mockRepo.count.mock.calls[0].arguments[0], {});
 
-			mockRepo.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
-			);
+				assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
+				assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0], {
+					currentPage: 1,
+					numberOfProductsPerPage: 10,
+					query: {},
+				});
+			});
 
-			const result = await service.getAll({ currentPage: 1, keyword: "" });
+			test("Should return array of products when both 'repo.count' and 'repo.getAll' are called once with 'keyword''", async () => {
+				mockRepo.count.mock.mockImplementationOnce(() =>
+					Promise.resolve(mockCount),
+				);
 
-			assert.ok(result);
-			assert.strictEqual(result.products.length, expectedResult.length);
-			assert.deepStrictEqual(result.products, expectedResult);
+				mockRepo.getAll.mock.mockImplementationOnce(() =>
+					Promise.resolve(expectedResult),
+				);
 
-			assert.strictEqual(mockRepo.count.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.count.mock.calls[0].arguments[0], {});
+				const inputData = { currentPage: 1, keyword: "test" };
+				const result = await service.getAll(inputData);
 
-			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0], {
-				currentPage: 1,
-				numberOfProductsPerPage: 10,
-				query: {},
+				assert.ok(result);
+				assert.strictEqual(result.products.length, expectedResult.length);
+				assert.deepStrictEqual(result.products, expectedResult);
+
+				assert.strictEqual(mockRepo.count.mock.callCount(), 1);
+				assert.deepStrictEqual(
+					mockRepo.count.mock.calls[0].arguments[0],
+					createRegexQuery(inputData.keyword),
+				);
+
+				assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
+				assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0], {
+					currentPage: 1,
+					numberOfProductsPerPage: 10,
+					query: createRegexQuery(inputData.keyword),
+				});
+			});
+
+			test("Should return array of products when both 'repo.count' and 'repo.getAll' are called once with 'currentPage'", async () => {
+				mockRepo.count.mock.mockImplementationOnce(() =>
+					Promise.resolve(mockCount),
+				);
+				mockRepo.getAll.mock.mockImplementationOnce(() =>
+					Promise.resolve(expectedResult),
+				);
+
+				const result = await service.getAll({ currentPage: 2, keyword: "" });
+
+				assert.ok(result);
+				assert.strictEqual(result.products.length, expectedResult.length);
+				assert.deepStrictEqual(result.products, expectedResult);
+
+				assert.strictEqual(mockRepo.count.mock.callCount(), 1);
+				assert.deepStrictEqual(mockRepo.count.mock.calls[0].arguments[0], {});
+
+				assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
+				assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0], {
+					currentPage: 2,
+					numberOfProductsPerPage: 10,
+					query: {},
+				});
 			});
 		});
 
-		test("Should return array of products when both 'repo.count' and 'repo.getAll' are called once with 'keyword''", async () => {
-			mockRepo.count.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
-			);
+		describe("getTopRated", () => {
+			const expectedResult = generateMockSelectProducts({ count: 3 });
 
-			mockRepo.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
-			);
+			test("Should return array of products when 'repo.getTopRated' is called once with no args", async () => {
+				mockRepo.getTopRated.mock.mockImplementationOnce(() =>
+					Promise.resolve(expectedResult),
+				);
 
-			const inputData = { currentPage: 1, keyword: "test" };
-			const result = await service.getAll(inputData);
+				const result = await service.getTopRated();
 
-			assert.ok(result);
-			assert.strictEqual(result.products.length, expectedResult.length);
-			assert.deepStrictEqual(result.products, expectedResult);
+				assert.ok(result);
+				assert.strictEqual(result.length, expectedResult.length);
+				assert.deepStrictEqual(result, expectedResult);
 
-			assert.strictEqual(mockRepo.count.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockRepo.count.mock.calls[0].arguments[0],
-				createRegexQuery(inputData.keyword),
-			);
-
-			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0], {
-				currentPage: 1,
-				numberOfProductsPerPage: 10,
-				query: createRegexQuery(inputData.keyword),
+				assert.strictEqual(mockRepo.getTopRated.mock.callCount(), 1);
+				assert.deepStrictEqual(
+					mockRepo.getTopRated.mock.calls[0].arguments[0],
+					{
+						limit: 3,
+					},
+				);
 			});
 		});
 
-		test("Should return array of products when both 'repo.count' and 'repo.getAll' are called once with 'currentPage'", async () => {
-			mockRepo.count.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
-			);
-			mockRepo.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
-			);
+		describe("getById", () => {
+			const expectedResult = generateMockSelectProduct();
+			const productId = expectedResult._id;
 
-			const result = await service.getAll({ currentPage: 2, keyword: "" });
+			test("Should return product object when 'repo.getById' is called once with 'productId'", async () => {
+				mockRepo.getById.mock.mockImplementationOnce(() =>
+					Promise.resolve(expectedResult),
+				);
 
-			assert.ok(result);
-			assert.strictEqual(result.products.length, expectedResult.length);
-			assert.deepStrictEqual(result.products, expectedResult);
+				const result = await service.getById({ productId });
 
-			assert.strictEqual(mockRepo.count.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.count.mock.calls[0].arguments[0], {});
+				assert.ok(result);
+				assert.deepStrictEqual(result, expectedResult);
 
-			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0], {
-				currentPage: 2,
-				numberOfProductsPerPage: 10,
-				query: {},
+				assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
+				assert.deepStrictEqual(mockRepo.getById.mock.calls[0].arguments[0], {
+					productId,
+				});
+			});
+
+			test("Should throw 'NotFoundError' if 'repo.getById' returns 'null'", async () => {
+				mockRepo.getById.mock.mockImplementationOnce(() =>
+					Promise.resolve(null),
+				);
+
+				await assert.rejects(
+					() => service.getById({ productId }),
+					(error: Error) => {
+						assert.ok(error instanceof NotFoundError);
+						assert.strictEqual(error.message, "Product not found");
+						assert.strictEqual(error.statusCode, 404);
+						return true;
+					},
+				);
 			});
 		});
 
-		test("Should throw 'DatabaseError' if 'repo.count' rejects", async () => {
-			const mockError = new DatabaseError("Count failed");
+		describe("update", () => {
+			const mockProduct = generateMockSelectProduct();
+			const productId = mockProduct._id;
 
-			mockRepo.count.mock.mockImplementationOnce(() =>
-				Promise.reject(mockError),
-			);
+			test("Should return product object when 'repo.update' is called once with 'productId' and 'data'", async () => {
+				const mockUpdateData = { name: "UPDATED NAME" };
+				const expectedResult = { ...mockProduct, ...mockUpdateData };
 
-			await assert.rejects(
-				() => service.getAll({ currentPage: 1, keyword: "" }),
-				(error: Error) => {
-					assert.ok(error instanceof DatabaseError);
-					assert.strictEqual(error.message, mockError.message);
-					return true;
-				},
-			);
-		});
+				mockRepo.update.mock.mockImplementationOnce(() =>
+					Promise.resolve(expectedResult),
+				);
 
-		test("Should throw 'DatabaseError' if 'repo.getAll' rejects", async () => {
-			const mockError = new DatabaseError("Retrieve failed");
+				const result = await service.update({
+					data: mockUpdateData,
+					productId,
+				});
 
-			mockRepo.count.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
-			);
+				assert.ok(result);
+				assert.deepStrictEqual(result, expectedResult);
 
-			mockRepo.getAll.mock.mockImplementationOnce(() =>
-				Promise.reject(mockError),
-			);
+				assert.strictEqual(mockRepo.update.mock.callCount(), 1);
+				assert.deepStrictEqual(mockRepo.update.mock.calls[0].arguments[0], {
+					data: mockUpdateData,
+					productId,
+				});
 
-			await assert.rejects(
-				() => service.getAll({ currentPage: 1, keyword: "" }),
-				(error: Error) => {
-					assert.ok(error instanceof DatabaseError);
-					assert.strictEqual(error.message, mockError.message);
-					return true;
-				},
-			);
-		});
-	});
+				// Ensure that 'repo.getById' wasn't called
+				assert.strictEqual(mockRepo.getById.mock.callCount(), 0);
+			});
 
-	describe("getTopRated", () => {
-		const expectedResult = generateMockSelectProducts({ count: 3 });
+			test("Should return product object when 'repo.getById' is called once with 'productId', and 'storage.replace' is called once with 'url' and 'file'", async () => {
+				const mockUpdateData = { image: mockMulterImageFile() };
 
-		test("Should return array of products when 'repo.getTopRated' is called once with no args", async () => {
-			mockRepo.getTopRated.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
-			);
+				mockRepo.getById.mock.mockImplementationOnce(() =>
+					Promise.resolve(mockProduct),
+				);
 
-			const result = await service.getTopRated();
+				mockStorage.replace.mock.mockImplementationOnce(() =>
+					Promise.resolve(mockProduct.image),
+				);
 
-			assert.ok(result);
-			assert.strictEqual(result.length, expectedResult.length);
-			assert.deepStrictEqual(result, expectedResult);
+				mockRepo.update.mock.mockImplementationOnce(() =>
+					Promise.resolve(mockProduct),
+				);
 
-			assert.strictEqual(mockRepo.getTopRated.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.getTopRated.mock.calls[0].arguments[0], {
-				limit: 3,
+				const result = await service.update({
+					data: mockUpdateData,
+					productId,
+				});
+
+				assert.ok(result);
+				assert.deepStrictEqual(result, mockProduct);
+
+				assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
+				assert.deepStrictEqual(mockRepo.getById.mock.calls[0].arguments[0], {
+					productId,
+				});
+
+				assert.strictEqual(mockStorage.replace.mock.callCount(), 1);
+				assert.deepStrictEqual(mockStorage.replace.mock.calls[0].arguments[0], {
+					file: mockUpdateData.image,
+					url: mockProduct.image,
+				});
+
+				assert.strictEqual(mockRepo.update.mock.callCount(), 1);
+				assert.deepStrictEqual(mockRepo.update.mock.calls[0].arguments[0], {
+					data: { image: mockProduct.image },
+					productId,
+				});
+			});
+
+			test("Should throw 'NotFoundError' if 'repo.update' returns 'null'", async () => {
+				const mockUpdateData = { name: "UPDATED NAME" };
+
+				mockRepo.update.mock.mockImplementationOnce(() =>
+					Promise.resolve(null),
+				);
+
+				await assert.rejects(
+					() => service.update({ data: mockUpdateData, productId }),
+					(error: Error) => {
+						assert.ok(error instanceof NotFoundError);
+						assert.strictEqual(error.message, "Product not found");
+						assert.strictEqual(error.statusCode, 404);
+						return true;
+					},
+				);
 			});
 		});
 
-		test("Should throw 'DatabaseError' if 'repo.getTopRated' rejects", async () => {
-			const mockError = new DatabaseError("Retrieve failed");
+		describe("delete", () => {
+			const expectedResult = generateMockSelectProduct();
+			const productId = expectedResult._id;
 
-			mockRepo.getTopRated.mock.mockImplementationOnce(() =>
-				Promise.reject(mockError),
-			);
+			test("Should return 'undefined' when 'repo.delete' is called once with 'productId'", async () => {
+				mockRepo.delete.mock.mockImplementationOnce(() =>
+					Promise.resolve(expectedResult),
+				);
 
-			await assert.rejects(
-				() => service.getTopRated(),
-				(error: Error) => {
-					assert.ok(error instanceof DatabaseError);
-					assert.strictEqual(error.message, mockError.message);
-					return true;
-				},
-			);
-		});
-	});
+				const result = await service.delete({ productId });
 
-	describe("getById", () => {
-		const expectedResult = generateMockSelectProduct();
-		const productId = expectedResult._id;
+				assert.strictEqual(result, undefined);
 
-		test("Should return product object when 'repo.getById' is called once with 'productId'", async () => {
-			mockRepo.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
-			);
-
-			const result = await service.getById({ productId });
-
-			assert.ok(result);
-			assert.deepStrictEqual(result, expectedResult);
-
-			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.getById.mock.calls[0].arguments[0], {
-				productId,
-			});
-		});
-
-		test("Should throw 'NotFoundError' if 'repo.getById' returns 'null'", async () => {
-			mockRepo.getById.mock.mockImplementationOnce(() => Promise.resolve(null));
-
-			await assert.rejects(
-				() => service.getById({ productId }),
-				(error: Error) => {
-					assert.ok(error instanceof NotFoundError);
-					assert.strictEqual(error.message, "Product not found");
-					assert.strictEqual(error.statusCode, 404);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'DatabaseError' if 'repo.getById' rejects", async () => {
-			const mockError = new DatabaseError("Retrieve failed");
-
-			mockRepo.getById.mock.mockImplementationOnce(() =>
-				Promise.reject(mockError),
-			);
-
-			await assert.rejects(
-				() => service.getById({ productId }),
-				(error: Error) => {
-					assert.ok(error instanceof DatabaseError);
-					assert.strictEqual(error.message, mockError.message);
-					return true;
-				},
-			);
-		});
-	});
-
-	describe("update", () => {
-		const mockProduct = generateMockSelectProduct();
-		const productId = mockProduct._id;
-
-		test("Should return product object when 'repo.update' is called once with 'productId' and 'data'", async () => {
-			const mockUpdateData = { name: "UPDATED NAME" };
-			const expectedResult = { ...mockProduct, ...mockUpdateData };
-
-			mockRepo.update.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
-			);
-
-			const result = await service.update({
-				data: mockUpdateData,
-				productId,
+				assert.strictEqual(mockRepo.delete.mock.callCount(), 1);
+				assert.deepStrictEqual(mockRepo.delete.mock.calls[0].arguments[0], {
+					productId,
+				});
 			});
 
-			assert.ok(result);
-			assert.deepStrictEqual(result, expectedResult);
+			test("Should throw 'NotFoundError' if 'repo.delete' returns 'null'", async () => {
+				mockRepo.delete.mock.mockImplementationOnce(() =>
+					Promise.resolve(null),
+				);
 
-			assert.strictEqual(mockRepo.update.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.update.mock.calls[0].arguments[0], {
-				data: mockUpdateData,
-				productId,
+				await assert.rejects(
+					async () => await service.delete({ productId }),
+					(error: Error) => {
+						assert.ok(error instanceof NotFoundError);
+						assert.strictEqual(error.message, "Product not found");
+						assert.strictEqual(error.statusCode, 404);
+						return true;
+					},
+				);
 			});
-
-			// Ensure that 'repo.getById' wasn't called
-			assert.strictEqual(mockRepo.getById.mock.callCount(), 0);
-		});
-
-		test("Should return product object when 'repo.getById' is called once with 'productId', and 'storage.replace' is called once with 'url' and 'file'", async () => {
-			const mockUpdateData = { image: mockMulterImageFile() };
-
-			mockRepo.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockProduct),
-			);
-
-			mockStorage.replace.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockProduct.image),
-			);
-
-			mockRepo.update.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockProduct),
-			);
-
-			const result = await service.update({
-				data: mockUpdateData,
-				productId,
-			});
-
-			assert.ok(result);
-			assert.deepStrictEqual(result, mockProduct);
-
-			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.getById.mock.calls[0].arguments[0], {
-				productId,
-			});
-
-			assert.strictEqual(mockStorage.replace.mock.callCount(), 1);
-			assert.deepStrictEqual(mockStorage.replace.mock.calls[0].arguments[0], {
-				file: mockUpdateData.image,
-				url: mockProduct.image,
-			});
-
-			assert.strictEqual(mockRepo.update.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.update.mock.calls[0].arguments[0], {
-				data: { image: mockProduct.image },
-				productId,
-			});
-		});
-
-		test("Should throw 'NotFoundError' if 'repo.update' returns 'null'", async () => {
-			const mockUpdateData = { name: "UPDATED NAME" };
-
-			mockRepo.update.mock.mockImplementationOnce(() => Promise.resolve(null));
-
-			await assert.rejects(
-				() => service.update({ data: mockUpdateData, productId }),
-				(error: Error) => {
-					assert.ok(error instanceof NotFoundError);
-					assert.strictEqual(error.message, "Product not found");
-					assert.strictEqual(error.statusCode, 404);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'DatabaseError' if 'repo.update' rejects", async () => {
-			const mockUpdateData = { name: "UPDATED NAME" };
-			const mockError = new DatabaseError("Update failed");
-
-			mockRepo.update.mock.mockImplementationOnce(() =>
-				Promise.reject(mockError),
-			);
-
-			await assert.rejects(
-				() => service.update({ data: mockUpdateData, productId }),
-				(error: Error) => {
-					assert.ok(error instanceof DatabaseError);
-					assert.strictEqual(error.message, mockError.message);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'DatabaseError' if 'repo.getById' rejects", async () => {
-			const mockUpdateData = { image: mockMulterImageFile() };
-			const mockError = new DatabaseError("Retrieve failed");
-
-			mockRepo.getById.mock.mockImplementationOnce(() =>
-				Promise.reject(mockError),
-			);
-
-			await assert.rejects(
-				async () => await service.update({ data: mockUpdateData, productId }),
-				(error: Error) => {
-					assert.ok(error instanceof DatabaseError);
-					assert.strictEqual(error.message, mockError.message);
-					return true;
-				},
-			);
-		});
-	});
-
-	describe("delete", () => {
-		const expectedResult = generateMockSelectProduct();
-		const productId = expectedResult._id;
-
-		test("Should return 'undefined' when 'repo.delete' is called once with 'productId'", async () => {
-			mockRepo.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
-			);
-
-			const result = await service.delete({ productId });
-
-			assert.strictEqual(result, undefined);
-
-			assert.strictEqual(mockRepo.delete.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.delete.mock.calls[0].arguments[0], {
-				productId,
-			});
-		});
-
-		test("Should throw 'NotFoundError' if 'repo.delete' returns 'null'", async () => {
-			mockRepo.delete.mock.mockImplementationOnce(() => Promise.resolve(null));
-
-			await assert.rejects(
-				async () => await service.delete({ productId }),
-				(error: Error) => {
-					assert.ok(error instanceof NotFoundError);
-					assert.strictEqual(error.message, "Product not found");
-					assert.strictEqual(error.statusCode, 404);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'DatabaseError' if 'repo.delete' rejects", async () => {
-			const mockError = new DatabaseError("Delete failed");
-
-			mockRepo.delete.mock.mockImplementationOnce(() =>
-				Promise.reject(mockError),
-			);
-
-			await assert.rejects(
-				async () => await service.delete({ productId }),
-				(error: Error) => {
-					assert.ok(error instanceof DatabaseError);
-					assert.strictEqual(error.message, mockError.message);
-					return true;
-				},
-			);
 		});
 	});
 });
