@@ -172,7 +172,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when 'service.signin' is called with valid data", async () => {
 			// Arrange
 			const mockUser = generateMockInsertUser();
-			await User.create(mockUser);
+			await service.signup(mockUser);
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = {
@@ -193,7 +193,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 		test("Should return '200' status code when 'service.signin' is called with valid data", async () => {
 			// Arrange
 			const mockUser = generateMockInsertUser();
-			await User.create(mockUser);
+			await service.signup(mockUser);
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = {
@@ -211,7 +211,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 		test("Should return user data with JWT token when 'service.signin' is called with valid credentials", async () => {
 			// Arrange
 			const mockUser = generateMockInsertUser();
-			await User.create(mockUser);
+			await service.signup(mockUser);
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = {
@@ -236,7 +236,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 		test("Should NOT return user password when 'service.signin' is called with valid credentials", async () => {
 			// Arrange
 			const mockUser = generateMockInsertUser();
-			await User.create(mockUser);
+			await service.signup(mockUser);
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = {
@@ -256,7 +256,7 @@ suite("Auth Controller 〖 Integration Tests 〗", () => {
 		test("Should use 'res.locals.user' data when available instead of 'req.body'", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await service.signup(mockUser);
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = {

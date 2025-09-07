@@ -67,7 +67,7 @@ suite("Auth Service 〖 Integration Tests 〗", () => {
 	describe("signin", () => {
 		test("Should authenticate user when 'signin' is called with valid credentials", async () => {
 			// Arrange
-			await User.create(mockUser);
+			await authService.signup(mockUser);
 
 			const credentials = {
 				email: mockUser.email,
