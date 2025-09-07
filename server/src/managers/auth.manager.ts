@@ -4,12 +4,6 @@ import type {
 	ISessionService,
 	IUserService,
 } from "../services/index.js";
-import type {
-	InsertUser,
-	Result,
-	SelectUser,
-	TokenPair,
-} from "../types/index.js";
 
 import {
 	ConflictError,
@@ -22,6 +16,13 @@ import {
 	SessionService,
 	UserService,
 } from "../services/index.js";
+import {
+	type InsertUser,
+	type Result,
+	type SelectUser,
+	type TokenPair,
+	TokenType,
+} from "../types/index.js";
 
 // helpers types
 type AuthResult<T> = Result<T>;
@@ -37,6 +38,8 @@ interface IAuthManager {
 			user: SelectUser;
 		}>
 	>;
+
+	signOut(args: { refreshToken: string }): Promise<AuthResult<undefined>>;
 
 	signUp(args: InsertUser): Promise<
 		AuthResult<{
@@ -95,6 +98,36 @@ export class AuthManager implements IAuthManager {
 		}
 
 		return this._createAuthSession(user);
+	}
+
+	public async signOut(args: Params<"signOut">): Return<"signOut"> {
+		if (!args?.refreshToken) {
+			return {
+				error: new ValidationError("Refresh token is required"),
+				success: false,
+			};
+		}
+
+		const tokenResult = this._jwt.verify({
+			expectedType: TokenType.REFRESH,
+			token: args.refreshToken as string,
+		});
+		if (!tokenResult.success) {
+			return tokenResult;
+		}
+
+		const deletedSessionResult = await this._session.deleteByTokenIdAndUserId({
+			tokenId: tokenResult.data.tokenId,
+			userId: tokenResult.data.userId,
+		});
+		if (!deletedSessionResult.success) {
+			return deletedSessionResult;
+		}
+
+		return {
+			data: undefined,
+			success: true,
+		};
 	}
 
 	public async signUp(args: Params<"signUp">): Return<"signUp"> {
