@@ -41,6 +41,8 @@ interface IAuthManager {
 
 	signOut(args: { refreshToken: string }): Promise<AuthResult<undefined>>;
 
+	signOutAll(args: { userId: string }): Promise<AuthResult<number>>;
+
 	signUp(args: InsertUser): Promise<
 		AuthResult<{
 			sessionId: string;
@@ -126,6 +128,27 @@ export class AuthManager implements IAuthManager {
 
 		return {
 			data: undefined,
+			success: true,
+		};
+	}
+
+	public async signOutAll(args: Params<"signOutAll">): Return<"signOutAll"> {
+		if (!args?.userId) {
+			return {
+				error: new ValidationError("User ID is required"),
+				success: false,
+			};
+		}
+
+		const result = await this._session.deleteAllByUserId({
+			userId: args.userId,
+		});
+		if (!result.success) {
+			return result;
+		}
+
+		return {
+			data: result.data,
 			success: true,
 		};
 	}
