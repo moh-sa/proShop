@@ -34,7 +34,7 @@ type Params<T extends keyof IAuthManager> = Parameters<IAuthManager[T]>[0];
 type Return<T extends keyof IAuthManager> = ReturnType<IAuthManager[T]>;
 
 // interfaces
-interface IAuthManager {
+export interface IAuthManager {
 	getUserSessions(args: {
 		userId: string;
 	}): Promise<AuthResult<Array<SelectSession>>>;
