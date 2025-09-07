@@ -46,6 +46,11 @@ interface IAuthManager {
 		}>
 	>;
 
+	revokeSession(args: {
+		tokenId: string;
+		userId: string;
+	}): Promise<AuthResult<undefined>>;
+
 	signIn(args: Pick<InsertUser, "email" | "password">): Promise<
 		AuthResult<{
 			sessionId: string;
@@ -156,6 +161,30 @@ export class AuthManager implements IAuthManager {
 				accessToken: accessTokenResult.data.token,
 				user: userResult,
 			},
+			success: true,
+		};
+	}
+
+	public async revokeSession(
+		args: Params<"revokeSession">,
+	): Return<"revokeSession"> {
+		if (!args?.tokenId || !args?.userId) {
+			return {
+				error: new ValidationError("Token ID and user ID are required"),
+				success: false,
+			};
+		}
+
+		const result = await this._session.revokeByTokenIdAndUserId({
+			tokenId: args.tokenId,
+			userId: args.userId,
+		});
+		if (!result.success) {
+			return result;
+		}
+
+		return {
+			data: undefined,
 			success: true,
 		};
 	}
