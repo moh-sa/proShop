@@ -138,8 +138,6 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.json' once with the success response object containing user data", async (t) => {
-			const { password: _, ...expectedUser } = mockUser;
-
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
@@ -158,17 +156,13 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: expectedUser }),
+				createSuccessResponseObject({ data: mockUser }),
 			);
 		});
 	});
 
 	describe("getAll", () => {
 		const mockUsers = generateMockSelectUsers({ count: 5 });
-		const expectedUsers = mockUsers.map((user) => {
-			const { password: _, ...expectedUser } = user;
-			return expectedUser;
-		});
 
 		test("Should call 'service.getAll' once without args", async (t) => {
 			const { next, req, res } = mockExpressCall({
@@ -226,7 +220,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: expectedUsers }),
+				createSuccessResponseObject({ data: mockUsers }),
 			);
 		});
 	});
@@ -354,8 +348,6 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.json' once with the success response object containing user data", async (t) => {
-			const { password: _, ...expectedUser } = mockUser;
-
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
@@ -374,7 +366,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: expectedUser }),
+				createSuccessResponseObject({ data: mockUser }),
 			);
 		});
 	});
