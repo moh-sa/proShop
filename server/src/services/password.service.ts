@@ -20,7 +20,11 @@ export interface IPasswordService {
 	}): Promise<PswResult<undefined>>;
 }
 
+type Params<T extends keyof IPasswordService> = Parameters<
+	IPasswordService[T]
+>[0];
 type PswResult<T> = Result<T, PasswordBaseError>;
+type Return<T extends keyof IPasswordService> = ReturnType<IPasswordService[T]>;
 
 export class PasswordService implements IPasswordService {
 	private readonly _provider: typeof argon;
@@ -29,7 +33,7 @@ export class PasswordService implements IPasswordService {
 		this._provider = provider;
 	}
 
-	public async hash(args: { password: string }): Promise<PswResult<string>> {
+	public async hash(args: Params<"hash">): Return<"hash"> {
 		const validationResult = this._validate(args);
 		if (!validationResult.success) {
 			return validationResult;
@@ -49,10 +53,7 @@ export class PasswordService implements IPasswordService {
 		}
 	}
 
-	public async verify(args: {
-		hashedPassword: string;
-		password: string;
-	}): Promise<PswResult<undefined>> {
+	public async verify(args: Params<"verify">): Return<"verify"> {
 		const validationResult = this._validate(args);
 		if (!validationResult.success) {
 			return validationResult;
