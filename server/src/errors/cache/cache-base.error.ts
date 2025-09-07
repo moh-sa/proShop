@@ -1,7 +1,7 @@
 import { ErrorType } from "../../types/index.js";
 import { BaseError } from "../base.error.js";
 
-export abstract class CacheBaseError extends BaseError {
+export class CacheBaseError extends BaseError {
 	constructor(
 		message: string,
 		type: ErrorType = ErrorType.INTERNAL,
