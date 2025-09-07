@@ -1,21 +1,12 @@
-// import assert from "node:assert";
-import { after, before, beforeEach, describe, suite, test } from "node:test";
-// import request from "supertest";
-import { ProductController } from "../../controllers/index.js";
-import Product from "../../models/product.model.js";
-// import { app } from "../../server";
-// import {
-//   generateMockInsertProductWithMulterImage,
-//   generateMockInsertProductWithStringImage,
-//   generateMockObjectId,
-//   generateMockSelectProducts,
-// } from "../mocks";
 import assert from "node:assert";
+import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { ZodError } from "zod";
 
 import type { InsertProduct } from "../../types/index.js";
 
+import { ProductController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
+import Product from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { CacheService, ProductService } from "../../services/index.js";
 import {
