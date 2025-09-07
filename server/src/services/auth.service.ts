@@ -43,7 +43,7 @@ export class AuthService implements IAuthService {
 			hashedPassword: isUserExists.password,
 			password: data.password,
 		});
-		if (!isPasswordValid) {
+		if (!isPasswordValid.success) {
 			throw new AuthenticationError("Invalid email or password.");
 		}
 

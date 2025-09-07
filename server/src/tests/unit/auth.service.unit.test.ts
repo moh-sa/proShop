@@ -1,7 +1,11 @@
 import assert from "node:assert";
 import test, { afterEach, describe, suite } from "node:test";
 
-import { AuthenticationError, DatabaseError } from "../../errors/index.js";
+import {
+	AuthenticationError,
+	DatabaseError,
+	PasswordVerifyError,
+} from "../../errors/index.js";
 import { AuthService } from "../../services/index.js";
 import {
 	generateMockInsertUser,
@@ -96,7 +100,10 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 			);
 
 			mockPswService.verify.mock.mockImplementationOnce(() =>
-				Promise.resolve(true),
+				Promise.resolve({
+					data: undefined,
+					success: true,
+				}),
 			);
 
 			const user = await service.signin(mockInsertUser);
@@ -141,7 +148,10 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 			);
 
 			mockPswService.verify.mock.mockImplementationOnce(() =>
-				Promise.resolve(false),
+				Promise.resolve({
+					error: new PasswordVerifyError({}),
+					success: false,
+				}),
 			);
 
 			await assert.rejects(

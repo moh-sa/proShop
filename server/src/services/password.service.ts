@@ -1,6 +1,9 @@
 import * as argon from "argon2";
 import { z } from "zod";
 
+import type { PasswordBaseError } from "../errors/index.js";
+import type { Result } from "../types/index.js";
+
 import {
 	PasswordHashError,
 	PasswordValidationError,
@@ -10,9 +13,14 @@ import { formatZodErrors } from "../utils/index.js";
 import { passwordValidator } from "../validators/index.js";
 
 export interface IPasswordService {
-	hash(args: { password: string }): Promise<string>;
-	verify(args: { hashedPassword: string; password: string }): Promise<boolean>;
+	hash(args: { password: string }): Promise<PswResult<string>>;
+	verify(args: {
+		hashedPassword: string;
+		password: string;
+	}): Promise<PswResult<undefined>>;
 }
+
+type PswResult<T> = Result<T, PasswordBaseError>;
 
 export class PasswordService implements IPasswordService {
 	private readonly _provider: typeof argon;
@@ -21,30 +29,65 @@ export class PasswordService implements IPasswordService {
 		this._provider = provider;
 	}
 
-	public async hash(args: { password: string }): Promise<string> {
-		this._validate(args);
+	public async hash(args: { password: string }): Promise<PswResult<string>> {
+		const validationResult = this._validate(args);
+		if (!validationResult.success) {
+			return validationResult;
+		}
 
 		try {
-			return await this._provider.hash(args.password);
+			const hashResult = await this._provider.hash(args.password);
+			return {
+				data: hashResult,
+				success: true,
+			};
 		} catch (error) {
-			throw new PasswordHashError({ cause: error });
+			return {
+				error: new PasswordHashError({ cause: error }),
+				success: false,
+			};
 		}
 	}
 
 	public async verify(args: {
 		hashedPassword: string;
 		password: string;
-	}): Promise<boolean> {
-		this._validate(args);
+	}): Promise<PswResult<undefined>> {
+		const validationResult = this._validate(args);
+		if (!validationResult.success) {
+			return validationResult;
+		}
 
 		try {
-			return await this._provider.verify(args.hashedPassword, args.password);
+			const verificationResult = await this._provider.verify(
+				args.hashedPassword,
+				args.password,
+			);
+			if (!verificationResult) {
+				return {
+					error: new PasswordVerifyError({
+						cause: new Error("Invalid password"),
+					}),
+					success: false,
+				};
+			}
+
+			return {
+				data: undefined,
+				success: true,
+			};
 		} catch (error) {
-			throw new PasswordVerifyError({ cause: error });
+			return {
+				error: new PasswordVerifyError({ cause: error }),
+				success: false,
+			};
 		}
 	}
 
-	private _validate(args: { hashedPassword?: string; password: string }): void {
+	private _validate(args: {
+		hashedPassword?: string;
+		password: string;
+	}): PswResult<undefined> {
 		const result = z
 			.object({
 				hashedPassword: z
@@ -58,9 +101,15 @@ export class PasswordService implements IPasswordService {
 
 		if (!result.success) {
 			const message = formatZodErrors(result.error);
-			throw new PasswordValidationError(message, { cause: result.error });
+			return {
+				error: new PasswordValidationError(message, { cause: result.error }),
+				success: false,
+			};
 		}
 
-		return;
+		return {
+			data: undefined,
+			success: true,
+		};
 	}
 }
