@@ -33,6 +33,13 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockSelectUser),
 			);
 
+			mockPswService.hash.mock.mockImplementationOnce(async () =>
+				Promise.resolve({
+					data: mockInsertUser.password,
+					success: true,
+				}),
+			);
+
 			const user = await service.signup(mockInsertUser);
 
 			assert.ok(user);
