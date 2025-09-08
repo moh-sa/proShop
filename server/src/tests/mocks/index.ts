@@ -1,4 +1,5 @@
 export * from "./argon2.mock.js";
+export * from "./auth-manager.mock.js";
 export * from "./auth-service.mock.js";
 export * from "./cache-hit.mock.js";
 export * from "./cache-invalidation.mock.js";
@@ -24,6 +25,7 @@ export * from "./review-repository.mock.js";
 export * from "./review-service.mock.js";
 export * from "./review.mock.js";
 export * from "./session-repository.mock.js";
+export * from "./session-service.mock.js";
 export * from "./session.mock.js";
 export * from "./user-repository.mock.js";
 export * from "./user-service.mock.js";
