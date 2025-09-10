@@ -5,7 +5,11 @@ import { objectIdValidator } from "../validators/index.js";
 
 const reviewService = new ReviewService();
 
-export const verifyReviewOwnership = asyncHandler(async (req, res, next) => {
+export const verifyReviewOwnership = asyncHandler<
+	unknown,
+	unknown,
+	{ reviewId: string }
+>(async (req, res, next) => {
 	const rawReviewId = req.params.reviewId;
 	const reviewId = objectIdValidator.parse(rawReviewId);
 
