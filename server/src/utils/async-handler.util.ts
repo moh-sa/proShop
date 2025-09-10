@@ -1,5 +1,3 @@
-import type { NextFunction, Request, Response } from "express";
-
 import type { AsyncRequestHandler } from "../types/async-handler.type.js";
 
 /**
@@ -17,18 +15,10 @@ export function asyncHandler<
 	Params = unknown,
 	Query = unknown,
 	Locals extends Record<string, unknown> = Record<string, unknown>,
->(fn: AsyncRequestHandler<ReqBody, ResBody, Params, Query, Locals>) {
-	return async function asyncHandlerWrapper(
-		req: Request<
-			Partial<Params>,
-			ResBody,
-			Partial<ReqBody>,
-			Partial<Query>,
-			Locals
-		>,
-		res: Response<ResBody, Locals>,
-		next: NextFunction,
-	) {
+>(
+	fn: AsyncRequestHandler<ReqBody, ResBody, Params, Query, Locals>,
+): AsyncRequestHandler<ReqBody, ResBody, Params, Query, Locals> {
+	return async function asyncHandlerWrapper(req, res, next) {
 		try {
 			await fn(req, res, next);
 		} catch (error) {
