@@ -15,4 +15,10 @@ export type AsyncRequestHandler<
 	Params = unknown,
 	Query = unknown,
 	Locals extends Record<string, unknown> = Record<string, unknown>,
-> = RequestHandler<Params, ResBody, ReqBody, Query, Locals>;
+> = RequestHandler<
+	Partial<Params>,
+	ResBody,
+	Partial<ReqBody>,
+	Partial<Query>,
+	Locals
+>;

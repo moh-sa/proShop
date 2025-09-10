@@ -19,7 +19,13 @@ export function asyncHandler<
 	Locals extends Record<string, unknown> = Record<string, unknown>,
 >(fn: AsyncRequestHandler<ReqBody, ResBody, Params, Query, Locals>) {
 	return async function (
-		req: Request<Params, ResBody, ReqBody, Query, Locals>,
+		req: Request<
+			Partial<Params>,
+			ResBody,
+			Partial<ReqBody>,
+			Partial<Query>,
+			Locals
+		>,
 		res: Response<ResBody, Locals>,
 		next: NextFunction,
 	) {
