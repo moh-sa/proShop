@@ -1,14 +1,13 @@
-import type { NextFunction, Request, Response } from "express";
-
 import type { IAuthService } from "../services/index.js";
+import type { AsyncRequestHandler } from "../types/index.js";
 
 import { insertUserSchema, selectUserSchema } from "../schemas/index.js";
 import { AuthService } from "../services/index.js";
 import { asyncHandler, sendSuccessResponse } from "../utils/index.js";
 
 export interface IAuthController {
-	signin: (req: Request, res: Response, next: NextFunction) => Promise<void>;
-	signup: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+	signin: AsyncRequestHandler;
+	signup: AsyncRequestHandler;
 }
 export class AuthController implements IAuthController {
 	private readonly _service: IAuthService;

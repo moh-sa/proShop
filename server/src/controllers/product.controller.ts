@@ -1,8 +1,7 @@
-import type { NextFunction, Request, Response } from "express";
-
 import { z } from "zod";
 
 import type { IProductService } from "../services/index.js";
+import type { AsyncRequestHandler } from "../types/index.js";
 
 import { insertProductSchema } from "../schemas/index.js";
 import { ProductService } from "../services/index.js";
@@ -14,16 +13,12 @@ import {
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IProductController {
-	create: (req: Request, res: Response, next: NextFunction) => Promise<void>;
-	delete: (req: Request, res: Response, next: NextFunction) => Promise<void>;
-	getAll: (req: Request, res: Response, next: NextFunction) => Promise<void>;
-	getById: (req: Request, res: Response, next: NextFunction) => Promise<void>;
-	getTopRated: (
-		req: Request,
-		res: Response,
-		next: NextFunction,
-	) => Promise<void>;
-	update: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+	create: AsyncRequestHandler;
+	delete: AsyncRequestHandler<unknown, unknown, { productId: string }>;
+	getAll: AsyncRequestHandler;
+	getById: AsyncRequestHandler<unknown, unknown, { productId: string }>;
+	getTopRated: AsyncRequestHandler;
+	update: AsyncRequestHandler<unknown, unknown, { productId: string }>;
 }
 export class ProductController implements IProductController {
 	private readonly _service: IProductService;
@@ -44,17 +39,19 @@ export class ProductController implements IProductController {
 		});
 	});
 
-	delete = asyncHandler(async (req, res) => {
-		const productId = objectIdValidator.parse(req.params.productId);
+	delete = asyncHandler<unknown, unknown, { productId: string }>(
+		async (req, res) => {
+			const productId = objectIdValidator.parse(req.params.productId);
 
-		await this._service.delete({ productId });
+			await this._service.delete({ productId });
 
-		return sendSuccessResponse({
-			data: null,
-			responseContext: res,
-			statusCode: 204,
-		});
-	});
+			return sendSuccessResponse({
+				data: null,
+				responseContext: res,
+				statusCode: 204,
+			});
+		},
+	);
 
 	getAll = asyncHandler(async (req, res) => {
 		const query = z
@@ -77,17 +74,19 @@ export class ProductController implements IProductController {
 		});
 	});
 
-	getById = asyncHandler(async (req, res) => {
-		const productId = objectIdValidator.parse(req.params.productId);
+	getById = asyncHandler<unknown, unknown, { productId: string }>(
+		async (req, res) => {
+			const productId = objectIdValidator.parse(req.params.productId);
 
-		const product = await this._service.getById({ productId });
+			const product = await this._service.getById({ productId });
 
-		return sendSuccessResponse({
-			data: product,
-			responseContext: res,
-			statusCode: 200,
-		});
-	});
+			return sendSuccessResponse({
+				data: product,
+				responseContext: res,
+				statusCode: 200,
+			});
+		},
+	);
 
 	getTopRated = asyncHandler(async (req, res) => {
 		const products = await this._service.getTopRated();
@@ -99,24 +98,28 @@ export class ProductController implements IProductController {
 		});
 	});
 
-	update = asyncHandler(async (req, res) => {
-		const productId = objectIdValidator.parse(req.params.productId);
-		const data = removeEmptyFieldsSchema(insertProductSchema.partial()).parse({
-			...req.body,
-			image: req.file,
-		});
+	update = asyncHandler<unknown, unknown, { productId: string }>(
+		async (req, res) => {
+			const productId = objectIdValidator.parse(req.params.productId);
+			const data = removeEmptyFieldsSchema(insertProductSchema.partial()).parse(
+				{
+					...req.body,
+					image: req.file,
+				},
+			);
 
-		const updatedProduct = await this._service.update({
-			data,
-			productId,
-		});
+			const updatedProduct = await this._service.update({
+				data,
+				productId,
+			});
 
-		return sendSuccessResponse({
-			data: updatedProduct,
-			responseContext: res,
-			statusCode: 200,
-		});
-	});
+			return sendSuccessResponse({
+				data: updatedProduct,
+				responseContext: res,
+				statusCode: 200,
+			});
+		},
+	);
 
 	constructor(service: IProductService = new ProductService()) {
 		this._service = service;
