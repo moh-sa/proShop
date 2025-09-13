@@ -4,7 +4,7 @@ import type { RateLimitConfig } from "../types/index.js";
 
 import { RATE_LIMIT_CONFIG } from "../config/index.js";
 import { RateLimitError } from "../errors/index.js";
-import { CacheService } from "./index.js";
+import { CacheService } from "./cache.service.js";
 
 interface RateLimitData {
 	count: number;
