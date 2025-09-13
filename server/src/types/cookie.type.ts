@@ -1,9 +1,11 @@
 import type { CookieOptions as ExpressCookieOptions } from "express";
 
+import type { CookieName } from "../constants/index.js";
+
 export type CookieConfig = ExpressCookieOptions;
 
 export interface CookieItem {
-	name: string;
+	name: CookieName;
 	value: unknown;
 }
 
