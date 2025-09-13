@@ -1,6 +1,7 @@
 import type { IUserService } from "../services/index.js";
 import type { AsyncRequestHandler } from "../types/index.js";
 
+import { HTTP_STATUS } from "../constants/index.js";
 import { NotFoundError } from "../errors/index.js";
 import { insertUserSchema } from "../schemas/index.js";
 import { UserService } from "../services/index.js";
@@ -34,7 +35,7 @@ export class UserController implements IUserController {
 			return sendSuccessResponse({
 				data: null,
 				responseContext: res,
-				statusCode: 204,
+				statusCode: HTTP_STATUS.NO_CONTENT,
 			});
 		},
 	);
@@ -45,7 +46,7 @@ export class UserController implements IUserController {
 		return sendSuccessResponse({
 			data: response,
 			responseContext: res,
-			statusCode: 200,
+			statusCode: HTTP_STATUS.OK,
 		});
 	});
 
@@ -59,7 +60,7 @@ export class UserController implements IUserController {
 			return sendSuccessResponse({
 				data: response,
 				responseContext: res,
-				statusCode: 200,
+				statusCode: HTTP_STATUS.OK,
 			});
 		},
 	);
@@ -81,7 +82,7 @@ export class UserController implements IUserController {
 			return sendSuccessResponse({
 				data: response,
 				responseContext: res,
-				statusCode: 200,
+				statusCode: HTTP_STATUS.OK,
 			});
 		},
 	);

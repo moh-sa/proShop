@@ -1,6 +1,7 @@
 import type { IOrderService } from "../services/index.js";
 import type { AsyncRequestHandler } from "../types/index.js";
 
+import { HTTP_STATUS } from "../constants/index.js";
 import { insertOrderSchema } from "../schemas/index.js";
 import { OrderService } from "../services/index.js";
 import { asyncHandler, sendSuccessResponse } from "../utils/index.js";
@@ -28,7 +29,7 @@ export class OrderController implements IOrderController {
 		return sendSuccessResponse({
 			data: response,
 			responseContext: res,
-			statusCode: 201,
+			statusCode: HTTP_STATUS.CREATED,
 		});
 	});
 
@@ -38,7 +39,7 @@ export class OrderController implements IOrderController {
 		return sendSuccessResponse({
 			data: orders,
 			responseContext: res,
-			statusCode: 200,
+			statusCode: HTTP_STATUS.OK,
 		});
 	});
 
@@ -51,7 +52,7 @@ export class OrderController implements IOrderController {
 			return sendSuccessResponse({
 				data: orders,
 				responseContext: res,
-				statusCode: 200,
+				statusCode: HTTP_STATUS.OK,
 			});
 		},
 	);
@@ -65,7 +66,7 @@ export class OrderController implements IOrderController {
 			return sendSuccessResponse({
 				data: order,
 				responseContext: res,
-				statusCode: 200,
+				statusCode: HTTP_STATUS.OK,
 			});
 		},
 	);
@@ -79,7 +80,7 @@ export class OrderController implements IOrderController {
 			return sendSuccessResponse({
 				data: order,
 				responseContext: res,
-				statusCode: 200,
+				statusCode: HTTP_STATUS.OK,
 			});
 		},
 	);
@@ -93,7 +94,7 @@ export class OrderController implements IOrderController {
 			return sendSuccessResponse({
 				data: order,
 				responseContext: res,
-				statusCode: 200,
+				statusCode: HTTP_STATUS.OK,
 			});
 		},
 	);

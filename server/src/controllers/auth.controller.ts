@@ -1,6 +1,7 @@
 import type { IAuthService } from "../services/index.js";
 import type { AsyncRequestHandler } from "../types/index.js";
 
+import { HTTP_STATUS } from "../constants/index.js";
 import { insertUserSchema, selectUserSchema } from "../schemas/index.js";
 import { AuthService } from "../services/index.js";
 import { asyncHandler, sendSuccessResponse } from "../utils/index.js";
@@ -24,7 +25,7 @@ export class AuthController implements IAuthController {
 		return sendSuccessResponse({
 			data: response,
 			responseContext: res,
-			statusCode: 200,
+			statusCode: HTTP_STATUS.OK,
 		});
 	});
 
@@ -36,7 +37,7 @@ export class AuthController implements IAuthController {
 		return sendSuccessResponse({
 			data: response,
 			responseContext: res,
-			statusCode: 201,
+			statusCode: HTTP_STATUS.CREATED,
 		});
 	});
 

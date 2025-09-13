@@ -1,5 +1,6 @@
 import type { Response } from "express";
 
+import type { HTTP_STATUS } from "../constants/index.js";
 import type { ErrorType } from "../types/index.js";
 
 interface ErrorDetails {
@@ -34,7 +35,7 @@ export function sendErrorResponse({
 	statusCode,
 }: Omit<ErrorResponse, "success" | "timestamp"> & {
 	responseContext: Response;
-	statusCode: number;
+	statusCode: HTTP_STATUS;
 }): void {
 	const response = createErrorResponseObject({ code, errors });
 	responseContext.status(statusCode).json(response);

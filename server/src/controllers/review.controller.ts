@@ -1,6 +1,7 @@
 import type { IReviewService } from "../services/index.js";
 import type { AsyncRequestHandler } from "../types/index.js";
 
+import { HTTP_STATUS } from "../constants/index.js";
 import { insertReviewSchema } from "../schemas/index.js";
 import { ReviewService } from "../services/index.js";
 import {
@@ -45,7 +46,7 @@ export class ReviewController implements IReviewController {
 		return sendSuccessResponse({
 			data: count,
 			responseContext: res,
-			statusCode: 200,
+			statusCode: HTTP_STATUS.OK,
 		});
 	});
 
@@ -58,7 +59,7 @@ export class ReviewController implements IReviewController {
 			return sendSuccessResponse({
 				data: count,
 				responseContext: res,
-				statusCode: 200,
+				statusCode: HTTP_STATUS.OK,
 			});
 		},
 	);
@@ -72,7 +73,7 @@ export class ReviewController implements IReviewController {
 			return sendSuccessResponse({
 				data: count,
 				responseContext: res,
-				statusCode: 200,
+				statusCode: HTTP_STATUS.OK,
 			});
 		},
 	);
@@ -89,7 +90,7 @@ export class ReviewController implements IReviewController {
 		return sendSuccessResponse({
 			data: newReview,
 			responseContext: res,
-			statusCode: 201,
+			statusCode: HTTP_STATUS.CREATED,
 		});
 	});
 
@@ -102,7 +103,7 @@ export class ReviewController implements IReviewController {
 			return sendSuccessResponse({
 				data: null,
 				responseContext: res,
-				statusCode: 204,
+				statusCode: HTTP_STATUS.NO_CONTENT,
 			});
 		},
 	);
@@ -116,7 +117,7 @@ export class ReviewController implements IReviewController {
 			return sendSuccessResponse({
 				data: exists,
 				responseContext: res,
-				statusCode: 200,
+				statusCode: HTTP_STATUS.OK,
 			});
 		},
 	);
@@ -137,7 +138,7 @@ export class ReviewController implements IReviewController {
 		return sendSuccessResponse({
 			data: exists,
 			responseContext: res,
-			statusCode: 200,
+			statusCode: HTTP_STATUS.OK,
 		});
 	});
 
@@ -147,7 +148,7 @@ export class ReviewController implements IReviewController {
 		return sendSuccessResponse({
 			data: reviews,
 			responseContext: res,
-			statusCode: 200,
+			statusCode: HTTP_STATUS.OK,
 		});
 	});
 
@@ -160,7 +161,7 @@ export class ReviewController implements IReviewController {
 			return sendSuccessResponse({
 				data: reviews,
 				responseContext: res,
-				statusCode: 200,
+				statusCode: HTTP_STATUS.OK,
 			});
 		},
 	);
@@ -174,7 +175,7 @@ export class ReviewController implements IReviewController {
 			return sendSuccessResponse({
 				data: reviews,
 				responseContext: res,
-				statusCode: 200,
+				statusCode: HTTP_STATUS.OK,
 			});
 		},
 	);
@@ -188,7 +189,7 @@ export class ReviewController implements IReviewController {
 			return sendSuccessResponse({
 				data: review,
 				responseContext: res,
-				statusCode: 200,
+				statusCode: HTTP_STATUS.OK,
 			});
 		},
 	);
@@ -208,7 +209,7 @@ export class ReviewController implements IReviewController {
 			return sendSuccessResponse({
 				data: updatedReview,
 				responseContext: res,
-				statusCode: 200,
+				statusCode: HTTP_STATUS.OK,
 			});
 		},
 	);

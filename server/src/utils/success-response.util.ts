@@ -1,5 +1,7 @@
 import type { Response } from "express";
 
+import type { HTTP_STATUS } from "../constants/index.js";
+
 type ObjectType = Record<string, unknown>;
 
 interface SuccessResponse<D = ObjectType, M = ObjectType> {
@@ -29,7 +31,7 @@ export function sendSuccessResponse<D, M>({
 	statusCode,
 }: SuccessResponse<D, M> & {
 	responseContext: Response;
-	statusCode: number;
+	statusCode: HTTP_STATUS;
 }): void {
 	const response = createSuccessResponseObject({ data, meta });
 	responseContext.status(statusCode).json(response);

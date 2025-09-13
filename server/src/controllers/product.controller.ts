@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { IProductService } from "../services/index.js";
 import type { AsyncRequestHandler } from "../types/index.js";
 
+import { HTTP_STATUS } from "../constants/index.js";
 import { insertProductSchema } from "../schemas/index.js";
 import { ProductService } from "../services/index.js";
 import {
@@ -35,7 +36,7 @@ export class ProductController implements IProductController {
 		return sendSuccessResponse({
 			data: newProduct,
 			responseContext: res,
-			statusCode: 201,
+			statusCode: HTTP_STATUS.CREATED,
 		});
 	});
 
@@ -48,7 +49,7 @@ export class ProductController implements IProductController {
 			return sendSuccessResponse({
 				data: null,
 				responseContext: res,
-				statusCode: 204,
+				statusCode: HTTP_STATUS.NO_CONTENT,
 			});
 		},
 	);
@@ -70,7 +71,7 @@ export class ProductController implements IProductController {
 				numberOfPages: data.numberOfPages,
 			},
 			responseContext: res,
-			statusCode: 200,
+			statusCode: HTTP_STATUS.OK,
 		});
 	});
 
@@ -83,7 +84,7 @@ export class ProductController implements IProductController {
 			return sendSuccessResponse({
 				data: product,
 				responseContext: res,
-				statusCode: 200,
+				statusCode: HTTP_STATUS.OK,
 			});
 		},
 	);
@@ -94,7 +95,7 @@ export class ProductController implements IProductController {
 		return sendSuccessResponse({
 			data: products,
 			responseContext: res,
-			statusCode: 200,
+			statusCode: HTTP_STATUS.OK,
 		});
 	});
 
@@ -116,7 +117,7 @@ export class ProductController implements IProductController {
 			return sendSuccessResponse({
 				data: updatedProduct,
 				responseContext: res,
-				statusCode: 200,
+				statusCode: HTTP_STATUS.OK,
 			});
 		},
 	);
