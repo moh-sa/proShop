@@ -10,7 +10,7 @@ interface SuccessResponse<D = ObjectType, M = ObjectType> {
 	success?: boolean;
 }
 
-export function createSuccessResponseObject<D, M>({
+export function createSuccessResponseObject<D, M = undefined>({
 	data,
 	meta,
 }: {
@@ -24,7 +24,7 @@ export function createSuccessResponseObject<D, M>({
 	};
 }
 
-export function sendSuccessResponse<D, M>({
+export function sendSuccessResponse<D, M = undefined>({
 	data,
 	meta,
 	responseContext,
