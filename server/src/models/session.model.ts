@@ -50,7 +50,22 @@ const SessionSchema = new Schema<SessionSchema>(
 		},
 	},
 	{
+		id: true,
 		timestamps: true,
+
+		toJSON: {
+			transform(_, ret) {
+				delete ret._id;
+			},
+			virtuals: true,
+		},
+
+		toObject: {
+			transform(_, ret) {
+				delete ret._id;
+			},
+			virtuals: true,
+		},
 	},
 );
 
