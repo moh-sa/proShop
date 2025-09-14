@@ -62,7 +62,7 @@ export interface IAuthManager {
 
 	signOut(args: { refreshToken: string }): Promise<AuthResult<undefined>>;
 
-	signOutAll(args: { userId: string }): Promise<AuthResult<number>>;
+	signOutAll(args: { refreshToken: string }): Promise<AuthResult<number>>;
 
 	signUp(args: InsertUser): Promise<
 		AuthResult<{
@@ -254,15 +254,25 @@ export class AuthManager implements IAuthManager {
 	}
 
 	public async signOutAll(args: Params<"signOutAll">): Return<"signOutAll"> {
-		if (!args?.userId) {
+		if (!args?.refreshToken) {
 			return {
-				error: new ValidationError("User ID is required"),
+				error: new ValidationError("Refresh token is required"),
 				success: false,
 			};
 		}
 
+		const refreshTokenResult = this._jwt.verify({
+			expectedType: TokenType.REFRESH,
+			token: args.refreshToken,
+		});
+		if (!refreshTokenResult.success) {
+			return refreshTokenResult;
+		}
+
+		const userId = refreshTokenResult.data.userId;
+
 		const result = await this._session.deleteAllByUserId({
-			userId: args.userId,
+			userId,
 		});
 		if (!result.success) {
 			return result;
