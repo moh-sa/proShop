@@ -1,5 +1,3 @@
-import { Types } from "mongoose";
-
 import type {
 	IJwtService,
 	IPasswordService,
@@ -18,7 +16,6 @@ import type {
 import {
 	ConflictError,
 	InvalidCredentialsError,
-	NotFoundError,
 	ValidationError,
 } from "../errors/index.js";
 import {
@@ -42,8 +39,9 @@ export interface IAuthManager {
 
 	refreshAccessToken(args: { refreshToken: string }): Promise<
 		AuthResult<{
-			accessToken: string;
-			user: SafeSelectUser;
+			expiresAt: Date;
+			token: string;
+			// user: SafeSelectUser;
 		}>
 	>;
 
@@ -140,16 +138,6 @@ export class AuthManager implements IAuthManager {
 			return sessionValidationResult;
 		}
 
-		const userResult = await this._user.getById_UNSAFE({
-			userId: new Types.ObjectId(tokenValidationResult.data.userId),
-		});
-		if (!userResult) {
-			return {
-				error: new NotFoundError("User"),
-				success: false,
-			};
-		}
-
 		const accessTokenResult = this._jwt.generateAccessToken({
 			userId: tokenValidationResult.data.userId,
 		});
@@ -159,8 +147,8 @@ export class AuthManager implements IAuthManager {
 
 		return {
 			data: {
-				accessToken: accessTokenResult.data.token,
-				user: userResult,
+				expiresAt: accessTokenResult.data.expiresAt,
+				token: accessTokenResult.data.token,
 			},
 			success: true,
 		};
