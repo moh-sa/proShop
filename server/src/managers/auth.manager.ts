@@ -34,7 +34,7 @@ type Return<T extends keyof IAuthManager> = ReturnType<IAuthManager[T]>;
 // interfaces
 export interface IAuthManager {
 	getUserSessions(args: {
-		userId: string;
+		refreshToken: string;
 	}): Promise<AuthResult<Array<SelectSession>>>;
 
 	refreshAccessToken(args: { refreshToken: string }): Promise<
@@ -92,15 +92,25 @@ export class AuthManager implements IAuthManager {
 	public async getUserSessions(
 		args: Params<"getUserSessions">,
 	): Return<"getUserSessions"> {
-		if (!args?.userId) {
+		if (!args?.refreshToken) {
 			return {
-				error: new ValidationError("User ID is required"),
+				error: new ValidationError("Refresh token is required"),
 				success: false,
 			};
 		}
 
+		const refreshTokenValidationResult = this._jwt.verify({
+			expectedType: TokenType.REFRESH,
+			token: args.refreshToken,
+		});
+		if (!refreshTokenValidationResult.success) {
+			return refreshTokenValidationResult;
+		}
+
+		const userId = refreshTokenValidationResult.data.userId;
+
 		const result = await this._session.getActiveByUserId({
-			userId: args.userId,
+			userId,
 		});
 		if (!result.success) {
 			return result;
