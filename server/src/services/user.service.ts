@@ -21,6 +21,7 @@ export interface IUserService {
 	getAll: () => Promise<Array<SafeSelectUser>>;
 	getByEmail: (data: { email: string }) => Promise<SafeSelectUser>;
 	getById: (data: { userId: Types.ObjectId }) => Promise<SafeSelectUser>;
+	sanitizeUser: (user: SelectUser) => SafeSelectUser;
 	updateById: (data: {
 		data: Partial<InsertUser>;
 		userId: Types.ObjectId;
@@ -46,7 +47,7 @@ export class UserService implements IUserService {
 
 	async create(data: InsertUser): Promise<SafeSelectUser> {
 		const user = await this._repository.create(data);
-		const sanitizedUser = this._sanitizeUser(user);
+		const sanitizedUser = this.sanitizeUser(user);
 
 		return sanitizedUser;
 	}
@@ -60,7 +61,7 @@ export class UserService implements IUserService {
 		if (!user) {
 			throw new NotFoundError("User");
 		}
-		const sanitizedUser = this._sanitizeUser(user);
+		const sanitizedUser = this.sanitizeUser(user);
 
 		return sanitizedUser;
 	}
@@ -75,7 +76,7 @@ export class UserService implements IUserService {
 
 	async getAll(): Promise<Array<SafeSelectUser>> {
 		const users = await this._repository.getAll();
-		const sanitizedUsers = users.map((user) => this._sanitizeUser(user));
+		const sanitizedUsers = users.map((user) => this.sanitizeUser(user));
 
 		return sanitizedUsers;
 	}
@@ -85,7 +86,7 @@ export class UserService implements IUserService {
 		if (!user) {
 			throw new NotFoundError("User");
 		}
-		const sanitizedUser = this._sanitizeUser(user);
+		const sanitizedUser = this.sanitizeUser(user);
 
 		return sanitizedUser;
 	}
@@ -99,7 +100,7 @@ export class UserService implements IUserService {
 		if (!user) {
 			throw new NotFoundError("User");
 		}
-		const sanitizedUser = this._sanitizeUser(user);
+		const sanitizedUser = this.sanitizeUser(user);
 
 		return sanitizedUser;
 	}
@@ -118,7 +119,7 @@ export class UserService implements IUserService {
 		if (!updatedUser) {
 			throw new NotFoundError("User");
 		}
-		const sanitizedUser = this._sanitizeUser(updatedUser);
+		const sanitizedUser = this.sanitizeUser(updatedUser);
 
 		return sanitizedUser;
 	}
@@ -153,7 +154,7 @@ export class UserService implements IUserService {
 		return user;
 	}
 
-	private _sanitizeUser(user: SelectUser): SafeSelectUser {
+	public sanitizeUser(user: SelectUser): SafeSelectUser {
 		const result = selectUserSchema.omit({ password: true }).safeParse(user);
 		if (!result.success) {
 			throw new InternalError("Invalid user data", { cause: result.error });

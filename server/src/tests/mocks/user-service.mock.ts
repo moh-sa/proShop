@@ -17,6 +17,7 @@ export function mockUserService(): FunctionMocksWithReset<IUserService> {
 		create_UNSAFE: mock.fn(),
 		getByEmail_UNSAFE: mock.fn(),
 		getById_UNSAFE: mock.fn(),
+		sanitizeUser: mock.fn(),
 
 		reset() {
 			this.create.mock.resetCalls();
@@ -29,6 +30,7 @@ export function mockUserService(): FunctionMocksWithReset<IUserService> {
 			this.create_UNSAFE.mock.resetCalls();
 			this.getByEmail_UNSAFE.mock.resetCalls();
 			this.getById_UNSAFE.mock.resetCalls();
+			this.sanitizeUser.mock.resetCalls();
 
 			this.create.mock.restore();
 			this.getAll.mock.restore();
@@ -40,6 +42,7 @@ export function mockUserService(): FunctionMocksWithReset<IUserService> {
 			this.create_UNSAFE.mock.restore();
 			this.getByEmail_UNSAFE.mock.restore();
 			this.getById_UNSAFE.mock.restore();
+			this.sanitizeUser.mock.restore();
 		},
 	};
 }
