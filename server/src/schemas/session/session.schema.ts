@@ -1,14 +1,11 @@
 import { z } from "zod";
 
-import {
-	jwtTokenValidator,
-	objectIdValidator,
-} from "../../validators/index.js";
+import { objectIdValidator, uuidValidator } from "../../validators/index.js";
 
 const baseSessionSchema = z.object({
 	expiresAt: z.date(),
 	revokedAt: z.date().nullable().default(null),
-	tokenId: jwtTokenValidator,
+	tokenId: uuidValidator("Token ID"),
 	userId: objectIdValidator,
 });
 

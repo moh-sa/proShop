@@ -1,7 +1,7 @@
 import { model, Schema } from "mongoose";
 
 import { SessionSchema } from "../types/index.js";
-import { jwtTokenValidator } from "../validators/index.js";
+import { uuidValidator } from "../validators/index.js";
 
 const SessionSchema = new Schema<SessionSchema>(
 	{
@@ -38,7 +38,7 @@ const SessionSchema = new Schema<SessionSchema>(
 			validate: {
 				message: "Invalid token ID",
 				validator(value: string) {
-					return jwtTokenValidator.safeParse(value).success;
+					return uuidValidator("Token ID").safeParse(value).success;
 				},
 			},
 		},
