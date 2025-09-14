@@ -1,4 +1,4 @@
-import { ErrorType } from "../../types/index.js";
+import { ErrorType } from "../../constants/index.js";
 import { DatabaseBaseError } from "./database-base.error.js";
 
 export class DatabaseQueryError extends DatabaseBaseError {

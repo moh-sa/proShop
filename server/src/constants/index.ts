@@ -1,4 +1,5 @@
 export * from "./cookie.constants.js";
+export * from "./error-type.constants.js";
 export * from "./http-status.constants.js";
 export * from "./password.constants.js";
 export * from "./product.constants.js";

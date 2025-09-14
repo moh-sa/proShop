@@ -1,4 +1,4 @@
-import { ErrorType } from "../../types/index.js";
+import { ErrorType } from "../../constants/index.js";
 import { JwtBaseError } from "./jwt-base.error.js";
 
 export class JwtInvalidPayloadError extends JwtBaseError {

@@ -1,4 +1,4 @@
-import { ErrorType } from "../../types/index.js";
+import { ErrorType } from "../../constants/index.js";
 import { CookieBaseError } from "./cookie-base.error.js";
 
 export class CookieOperationError extends CookieBaseError {

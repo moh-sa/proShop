@@ -33,11 +33,3 @@ export enum ErrorType {
 
 	VALIDATION = "VALIDATION",
 }
-
-export interface ErrorResponse {
-	code: string;
-	details?: Record<string, unknown>;
-	message: string;
-	path: string;
-	timestamp: string;
-}

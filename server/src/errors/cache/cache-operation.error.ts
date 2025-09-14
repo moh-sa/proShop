@@ -1,4 +1,4 @@
-import { ErrorType } from "../../types/index.js";
+import { ErrorType } from "../../constants/index.js";
 import { CacheBaseError } from "./cache-base.error.js";
 
 type CacheOperation = "DELETE" | "FLUSH" | "GET" | "HAS" | "SET" | "TAKE";

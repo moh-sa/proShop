@@ -1,4 +1,4 @@
-import { ErrorType } from "../../types/index.js";
+import { ErrorType } from "../../constants/index.js";
 import { SessionBaseError } from "./session-base.error.js";
 
 export class SessionNotFoundError extends SessionBaseError {

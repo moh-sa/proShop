@@ -1,4 +1,4 @@
-import type { ErrorType } from "../types/index.js";
+import type { ErrorType } from "../constants/index.js";
 
 export class BaseError extends Error {
 	constructor(

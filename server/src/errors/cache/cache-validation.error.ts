@@ -1,4 +1,4 @@
-import { ErrorType } from "../../types/index.js";
+import { ErrorType } from "../../constants/index.js";
 import { CacheBaseError } from "./cache-base.error.js";
 
 export class CacheValidationError extends CacheBaseError {

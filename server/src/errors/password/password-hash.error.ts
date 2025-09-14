@@ -1,4 +1,4 @@
-import { ErrorType } from "../../types/index.js";
+import { ErrorType } from "../../constants/index.js";
 import { PasswordBaseError } from "./password-base.error.js";
 
 export class PasswordHashError extends PasswordBaseError {

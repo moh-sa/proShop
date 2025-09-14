@@ -4,8 +4,8 @@ import { MulterError } from "multer";
 import { ZodError } from "zod";
 
 import { env } from "../config/index.js";
+import { ErrorType } from "../constants/index.js";
 import { BaseError, JwtBaseError } from "../errors/index.js";
-import { ErrorType } from "../types/index.js";
 import { sendErrorResponse } from "../utils/index.js";
 
 export function errorHandler(
