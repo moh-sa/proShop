@@ -218,7 +218,8 @@ export class AuthManager implements IAuthManager {
 			};
 		}
 
-		return this._createAuthSession(user);
+		const sanitizedUser = this._user.sanitizeUser(user);
+		return this._createAuthSession(sanitizedUser);
 	}
 
 	public async signOut(args: Params<"signOut">): Return<"signOut"> {
