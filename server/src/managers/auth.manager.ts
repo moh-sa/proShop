@@ -6,7 +6,14 @@ import type {
 	ISessionService,
 	IUserService,
 } from "../services/index.js";
-import type { SelectSession } from "../types/index.js";
+import type {
+	InsertUser,
+	Result,
+	SafeSelectUser,
+	SelectSession,
+	TokenPair,
+	UnSafeSelectUser,
+} from "../types/index.js";
 
 import {
 	ConflictError,
@@ -20,13 +27,7 @@ import {
 	SessionService,
 	UserService,
 } from "../services/index.js";
-import {
-	type InsertUser,
-	type Result,
-	type SelectUser,
-	type TokenPair,
-	TokenType,
-} from "../types/index.js";
+import { TokenType } from "../types/index.js";
 
 // helpers types
 type AuthResult<T> = Result<T>;
@@ -42,7 +43,7 @@ export interface IAuthManager {
 	refreshAccessToken(args: { refreshToken: string }): Promise<
 		AuthResult<{
 			accessToken: string;
-			user: SelectUser;
+			user: SafeSelectUser;
 		}>
 	>;
 
@@ -55,7 +56,7 @@ export interface IAuthManager {
 		AuthResult<{
 			sessionId: string;
 			tokens: TokenPair;
-			user: SelectUser;
+			user: SafeSelectUser;
 		}>
 	>;
 
@@ -67,7 +68,7 @@ export interface IAuthManager {
 		AuthResult<{
 			sessionId: string;
 			tokens: TokenPair;
-			user: SelectUser;
+			user: SafeSelectUser;
 		}>
 	>;
 }
@@ -296,7 +297,7 @@ export class AuthManager implements IAuthManager {
 			return hashedPasswordResult;
 		}
 
-		const createdUser = await this._user.create_UNSAFE({
+		const createdUser = await this._user.create({
 			...args,
 			password: hashedPasswordResult.data,
 		});
@@ -304,11 +305,13 @@ export class AuthManager implements IAuthManager {
 		return this._createAuthSession(createdUser);
 	}
 
-	private async _createAuthSession(user: SelectUser): Promise<
+	private async _createAuthSession(
+		user: SafeSelectUser | UnSafeSelectUser,
+	): Promise<
 		AuthResult<{
 			sessionId: string;
 			tokens: TokenPair;
-			user: SelectUser;
+			user: SafeSelectUser;
 		}>
 	> {
 		const tokensResult = this._jwt.generateTokenPair({
