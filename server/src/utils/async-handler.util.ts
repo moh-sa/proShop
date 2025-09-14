@@ -4,20 +4,22 @@ import type { AsyncRequestHandler } from "../types/async-handler.type.js";
  * Wraps an async Express handler so errors are automatically passed to `next()`.
  *
  * @template ReqBody Type of `req.body`
- * @template ResBody Type of `res.json()`
+ * @template ResData Type of `res.json({data})`
+ * @template ResMeta Type of `res.json({meta})`
  * @template Params  Type of `req.params`
  * @template Query   Type of `req.query`
  * @template Locals  Type of `res.locals`
  */
 export function asyncHandler<
 	ReqBody = unknown,
-	ResBody = unknown,
+	ResData = Record<string, unknown>,
+	ResMeta = Record<string, unknown>,
 	Params = unknown,
 	Query = unknown,
 	Locals extends Record<string, unknown> = Record<string, unknown>,
 >(
-	fn: AsyncRequestHandler<ReqBody, ResBody, Params, Query, Locals>,
-): AsyncRequestHandler<ReqBody, ResBody, Params, Query, Locals> {
+	fn: AsyncRequestHandler<ReqBody, ResData, ResMeta, Params, Query, Locals>,
+): AsyncRequestHandler<ReqBody, ResData, ResMeta, Params, Query, Locals> {
 	return async function asyncHandlerWrapper(req, res, next) {
 		try {
 			await fn(req, res, next);
