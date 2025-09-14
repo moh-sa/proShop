@@ -151,8 +151,10 @@ export class CookieService implements ICookieService {
 		options: CookieItemOptions;
 		response: Response;
 	}): CookieResult<undefined> {
+		// Express v5 ignores expires and maxAge in clearCookie method
+		const { expires: _expires, maxAge: _maxAge, ...options } = args.options;
 		try {
-			args.response.clearCookie(args.name, args.options);
+			args.response.clearCookie(args.name, options);
 
 			return {
 				data: undefined,
