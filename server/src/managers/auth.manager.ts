@@ -273,9 +273,9 @@ export class AuthManager implements IAuthManager {
 	}
 
 	public async signUp(args: Params<"signUp">): Return<"signUp"> {
-		if (!args?.email || !args?.password) {
+		if (!args?.email || !args?.password || !args?.name) {
 			return {
-				error: new ValidationError("Email and password are required"),
+				error: new ValidationError("Email, password and name are required"),
 				success: false,
 			};
 		}
