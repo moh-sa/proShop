@@ -1,20 +1,7 @@
 import type { Response } from "express";
 
 import type { HTTP_STATUS } from "../constants/index.js";
-import type { ErrorType } from "../types/index.js";
-
-interface ErrorDetails {
-	[key: string]: unknown;
-	message: string;
-	path?: string;
-}
-
-interface ErrorResponse {
-	code: ErrorType;
-	errors: Array<ErrorDetails>;
-	success: false;
-	timestamp: string;
-}
+import type { ErrorResponse } from "../types/index.js";
 
 export function createErrorResponseObject({
 	code,

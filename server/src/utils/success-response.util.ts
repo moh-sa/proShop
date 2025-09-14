@@ -1,14 +1,7 @@
 import type { Response } from "express";
 
 import type { HTTP_STATUS } from "../constants/index.js";
-
-type ObjectType = Record<string, unknown>;
-
-interface SuccessResponse<D = ObjectType, M = ObjectType> {
-	data: D;
-	meta?: M;
-	success?: boolean;
-}
+import type { SuccessResponse } from "../types/index.js";
 
 export function createSuccessResponseObject<D, M = undefined>({
 	data,
