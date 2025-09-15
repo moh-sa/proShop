@@ -45,6 +45,10 @@ export interface IAuthManager {
 		}>
 	>;
 
+	revokeAllSessions(args: {
+		refreshToken: string;
+	}): Promise<AuthResult<number>>;
+
 	revokeSession(args: { refreshToken: string }): Promise<AuthResult<undefined>>;
 
 	signIn(args: Pick<InsertUser, "email" | "password">): Promise<
@@ -157,6 +161,37 @@ export class AuthManager implements IAuthManager {
 				expiresAt: accessTokenResult.data.expiresAt,
 				token: accessTokenResult.data.token,
 			},
+			success: true,
+		};
+	}
+
+	public async revokeAllSessions(args: {
+		refreshToken: string;
+	}): Promise<AuthResult<number>> {
+		if (!args?.refreshToken) {
+			return {
+				error: new ValidationError("Refresh token is required"),
+				success: false,
+			};
+		}
+
+		const refreshTokenValidationResult = this._jwt.verify({
+			expectedType: TokenType.REFRESH,
+			token: args.refreshToken,
+		});
+		if (!refreshTokenValidationResult.success) {
+			return refreshTokenValidationResult;
+		}
+
+		const result = await this._session.revokeAllByUserId({
+			userId: refreshTokenValidationResult.data.userId,
+		});
+		if (!result.success) {
+			return result;
+		}
+
+		return {
+			data: result.data,
 			success: true,
 		};
 	}
