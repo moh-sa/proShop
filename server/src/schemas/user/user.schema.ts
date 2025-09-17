@@ -9,7 +9,7 @@ import {
 
 const baseUserSchema = z.object({
 	email: emailValidator,
-	isAdmin: z.boolean().default(false),
+	isAdmin: z.coerce.boolean().default(false),
 	name: z
 		.string()
 		.trim()
