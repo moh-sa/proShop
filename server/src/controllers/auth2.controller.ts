@@ -1,0 +1,28 @@
+import type { IAuthManager } from "../managers/index.js";
+import type { ICookieService } from "../services/index.js";
+
+import { AuthManager } from "../managers/index.js";
+import { CookieService } from "../services/index.js";
+
+/**
+ * Authentication Controller (v2) Interface
+ * @remarks The v1 Auth controller is being deprecated soon.
+ */
+export interface IAuth2Controller {}
+
+/**
+ * Authentication Controller (v2)
+ * @remarks The v1 Auth controller is being deprecated soon.
+ */
+export class Auth2Controller implements IAuth2Controller {
+	private readonly _authManager: IAuthManager;
+	private readonly _cookieService: ICookieService;
+
+	constructor(
+		authManager: IAuthManager = new AuthManager(),
+		cookieService: ICookieService = new CookieService(),
+	) {
+		this._authManager = authManager;
+		this._cookieService = cookieService;
+	}
+}
