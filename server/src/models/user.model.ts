@@ -56,6 +56,7 @@ const userSchema = new Schema<UserSchema>(
 	},
 );
 
+// TODO: remove after implementing auth v2
 userSchema.pre("save", async function (next) {
 	if (!this.isModified("password")) {
 		return next();
@@ -63,7 +64,13 @@ userSchema.pre("save", async function (next) {
 
 	const pswService = new PasswordService();
 	try {
-		this.password = await pswService.hash({ password: this.password });
+		const passwordHashingResult = await pswService.hash({
+			password: this.password,
+		});
+		if (!passwordHashingResult.success) {
+			return next(passwordHashingResult.error);
+		}
+		this.password = passwordHashingResult.data;
 		next();
 	} catch (error) {
 		return next(error as Error);
