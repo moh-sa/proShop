@@ -49,4 +49,25 @@ export class Auth2Controller implements IAuth2Controller {
 			throw accessCookieResult.error;
 		}
 	}
+
+	private _setRefreshTokenCookie(args: {
+		expiresAt: Date;
+		res: Response;
+		token: string;
+	}): void {
+		const refreshCookieResult = this._cookieService.set({
+			item: {
+				name: CookieName.REFRESH_TOKEN,
+				value: args.token,
+			},
+			options: {
+				expires: args.expiresAt,
+				httpOnly: true,
+			},
+			response: args.res,
+		});
+		if (!refreshCookieResult.success) {
+			throw refreshCookieResult.error;
+		}
+	}
 }
