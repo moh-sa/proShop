@@ -30,6 +30,11 @@ protectedRouter
 	.route("/token/refresh")
 	.post(strictLimiter, controller.refreshAccessToken);
 
+// Session routes
+protectedRouter
+	.route("/sessions")
+	.get(defaultLimiter, controller.getUserSessions);
+
 // Mount protected routes
 router.use("/", protectedRouter);
 
