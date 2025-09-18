@@ -1,7 +1,11 @@
 import express from "express";
 
 import { Auth2Controller } from "../../controllers/auth2.controller.js";
-import { authLimiter, defaultLimiter } from "../../services/index.js";
+import {
+	authLimiter,
+	defaultLimiter,
+	strictLimiter,
+} from "../../services/index.js";
 
 const router = express.Router();
 const controller = new Auth2Controller();
@@ -18,6 +22,8 @@ const protectedRouter = express.Router();
 protectedRouter
 	.route("/signout/current")
 	.delete(defaultLimiter, controller.signOut);
+
+protectedRouter.route("/signout").delete(strictLimiter, controller.signOutAll);
 
 // Mount protected routes
 router.use("/", protectedRouter);
