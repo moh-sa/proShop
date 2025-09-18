@@ -35,6 +35,10 @@ protectedRouter
 	.route("/sessions")
 	.get(defaultLimiter, controller.getUserSessions);
 
+protectedRouter
+	.route("/sessions/current")
+	.delete(strictLimiter, controller.revokeSession);
+
 // Mount protected routes
 router.use("/", protectedRouter);
 
