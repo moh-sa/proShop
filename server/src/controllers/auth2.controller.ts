@@ -64,6 +64,11 @@ export interface IAuth2Controller {
 		unknown,
 		{ sessions: Array<SelectSession> }
 	>;
+
+	/**
+	 * DELETE /auth/sessions/current
+	 */
+	revokeSession: AsyncRequestHandler<unknown, { message: string }>;
 }
 
 /**
@@ -289,6 +294,39 @@ export class Auth2Controller implements IAuth2Controller {
 			return res.status(HTTP_STATUS.OK).json({
 				data: {
 					sessions: result.data,
+				},
+				success: true,
+			});
+		},
+	);
+
+	/**
+	 * DELETE /auth/sessions/current
+	 */
+	revokeSession = asyncHandler<unknown, { message: string }>(
+		async (req, res) => {
+			console.info(`[AUTH] Revoke session attempt`);
+
+			// Get refresh token from cookie
+			const refreshCookie = this._getRefreshTokenFromCookie(req);
+
+			// Revoke session
+			const result = await this._authManager.revokeSession({
+				refreshToken: refreshCookie,
+			});
+			if (!result.success) {
+				console.error(`[AUTH] Revoke session failed - ${result.error.message}`);
+				throw result.error;
+			}
+
+			// Clear the access and refresh tokens cookies
+			this._clearAuthCookies(res);
+
+			console.info(`[AUTH] Revoke session successful`);
+
+			return res.status(HTTP_STATUS.OK).json({
+				data: {
+					message: "Session revoked successfully",
 				},
 				success: true,
 			});
