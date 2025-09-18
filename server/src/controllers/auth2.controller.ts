@@ -48,6 +48,12 @@ export interface IAuth2Controller {
 		{ message: string },
 		{ removedCount: number }
 	>;
+
+	// Token Management
+	/**
+	 * POST /auth/token/refresh
+	 */
+	refreshAccessToken: AsyncRequestHandler<unknown, { message: string }>;
 }
 
 /**
@@ -205,6 +211,45 @@ export class Auth2Controller implements IAuth2Controller {
 			success: true,
 		});
 	});
+
+	/**
+	 * POST /auth/token/refresh
+	 */
+	refreshAccessToken = asyncHandler<unknown, { message: string }>(
+		async (req, res) => {
+			console.info(`[AUTH] Access token refresh attempt`);
+
+			// Get refresh token from cookie
+			const refreshCookie = this._getRefreshTokenFromCookie(req);
+
+			// Refresh access token
+			const accessTokenResult = await this._authManager.refreshAccessToken({
+				refreshToken: refreshCookie,
+			});
+			if (!accessTokenResult.success) {
+				console.error(
+					`[AUTH] Access token refresh failed - ${accessTokenResult.error.message}`,
+				);
+				throw accessTokenResult.error;
+			}
+
+			// Set the new access token in the cookie
+			this._setAccessTokenCookie({
+				expiresAt: accessTokenResult.data.expiresAt,
+				res,
+				token: accessTokenResult.data.token,
+			});
+
+			console.info(`[AUTH] Access token refresh successful`);
+
+			return res.status(HTTP_STATUS.OK).json({
+				data: {
+					message: "Access token refreshed successfully",
+				},
+				success: true,
+			});
+		},
+	);
 
 	private _clearAuthCookies(res: Response): void {
 		// clear access token cookie
