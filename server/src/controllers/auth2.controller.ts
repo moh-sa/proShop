@@ -34,6 +34,11 @@ export interface IAuth2Controller {
 		Pick<InsertUser, "email" | "password">,
 		{ user: SafeSelectUser }
 	>;
+
+	/**
+	 * DELETE /auth/signout/current
+	 */
+	signOut: AsyncRequestHandler<unknown, { message: string }>;
 }
 
 /**
@@ -120,6 +125,37 @@ export class Auth2Controller implements IAuth2Controller {
 			});
 		},
 	);
+
+	/**
+	 * DELETE /auth/signout/current
+	 */
+	signOut = asyncHandler<unknown, { message: string }>(async (req, res) => {
+		console.info(`[AUTH] Sign-out attempt`);
+
+		// Get refresh token from cookie
+		const refreshCookie = this._getRefreshTokenFromCookie(req);
+
+		// Delete the session
+		const result = await this._authManager.signOut({
+			refreshToken: refreshCookie,
+		});
+		if (!result.success) {
+			console.error(`[AUTH] Sign-out failed - ${result.error.message}`);
+			throw result.error;
+		}
+
+		// Clear the access and refresh tokens cookies
+		this._clearAuthCookies(res);
+
+		console.info(`[AUTH] Sign-out successful`);
+
+		res.status(HTTP_STATUS.OK).json({
+			data: {
+				message: "Logged out successfully",
+			},
+			success: true,
+		});
+	});
 
 	private _clearAuthCookies(res: Response): void {
 		// clear access token cookie
