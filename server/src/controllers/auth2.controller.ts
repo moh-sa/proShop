@@ -2,18 +2,30 @@ import type { Request, Response } from "express";
 
 import type { IAuthManager } from "../managers/index.js";
 import type { ICookieService } from "../services/index.js";
-import type { TokenPair } from "../types/jwt.type.js";
+import type {
+	AsyncRequestHandler,
+	InsertUser,
+	SafeSelectUser,
+	TokenPair,
+} from "../types/index.js";
 
-import { CookieName } from "../constants/index.js";
+import { CookieName, HTTP_STATUS } from "../constants/index.js";
 import { AuthManager } from "../managers/index.js";
+import { insertUserSchema } from "../schemas/index.js";
 import { CookieService } from "../services/index.js";
+import { asyncHandler } from "../utils/index.js";
 import { jwtTokenValidator } from "../validators/index.js";
 
 /**
  * Authentication Controller (v2) Interface
  * @remarks The v1 Auth controller is being deprecated soon.
  */
-export interface IAuth2Controller {}
+export interface IAuth2Controller {
+	/**
+	 * POST /auth/signup
+	 */
+	signUp: AsyncRequestHandler<InsertUser, { user: SafeSelectUser }>;
+}
 
 /**
  * Authentication Controller (v2)
@@ -21,8 +33,8 @@ export interface IAuth2Controller {}
  */
 export class Auth2Controller implements IAuth2Controller {
 	private readonly _authManager: IAuthManager;
-	private readonly _cookieService: ICookieService;
 
+	private readonly _cookieService: ICookieService;
 	constructor(
 		authManager: IAuthManager = new AuthManager(),
 		cookieService: ICookieService = new CookieService(),
@@ -30,6 +42,39 @@ export class Auth2Controller implements IAuth2Controller {
 		this._authManager = authManager;
 		this._cookieService = cookieService;
 	}
+
+	/**
+	 * POST /auth/signup
+	 */
+	signUp = asyncHandler<InsertUser, { user: SafeSelectUser }>(
+		async (req, res) => {
+			// Validate request body
+			const data = insertUserSchema.parse(req.body);
+
+			console.info(`[AUTH] Sign-up attempt for email: ${data.email}`);
+
+			// Create a session
+			const result = await this._authManager.signUp(data);
+			if (!result.success) {
+				console.error(
+					`[AUTH] Sign-up failed for email: ${data.email} - ${result.error.message}`,
+				);
+				throw result.error;
+			}
+
+			// Set access and refresh tokens in cookies
+			this._setAuthCookies(result.data.tokens, res);
+
+			console.info(`[AUTH] Sign-up successful for email: ${data.email}`);
+
+			return res.status(HTTP_STATUS.CREATED).json({
+				data: {
+					user: result.data.user,
+				},
+				success: true,
+			});
+		},
+	);
 
 	private _clearAuthCookies(res: Response): void {
 		// clear access token cookie
