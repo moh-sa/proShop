@@ -21,10 +21,19 @@ import { jwtTokenValidator } from "../validators/index.js";
  * @remarks The v1 Auth controller is being deprecated soon.
  */
 export interface IAuth2Controller {
+	// User Registration & Authentication
 	/**
 	 * POST /auth/signup
 	 */
 	signUp: AsyncRequestHandler<InsertUser, { user: SafeSelectUser }>;
+
+	/**
+	 * POST /auth/signin
+	 */
+	signIn: AsyncRequestHandler<
+		Pick<InsertUser, "email" | "password">,
+		{ user: SafeSelectUser }
+	>;
 }
 
 /**
@@ -42,6 +51,42 @@ export class Auth2Controller implements IAuth2Controller {
 		this._authManager = authManager;
 		this._cookieService = cookieService;
 	}
+
+	/**
+	 * POST /auth/signin
+	 */
+	signIn = asyncHandler<
+		Pick<InsertUser, "email" | "password">,
+		{ user: SafeSelectUser }
+	>(async (req, res) => {
+		// Validate request body
+		const data = insertUserSchema
+			.pick({ email: true, password: true })
+			.parse(req.body);
+
+		console.info("[AUTH] Sign-in attempt for email: ", data.email);
+
+		// Create a session
+		const result = await this._authManager.signIn(data);
+		if (!result.success) {
+			console.error(
+				`[AUTH] Sign-in failed for email: ${data.email} - ${result.error.message}`,
+			);
+			throw result.error;
+		}
+
+		// Set access and refresh tokens in cookies
+		this._setAuthCookies(result.data.tokens, res);
+
+		console.info(`[AUTH] Sign-in successful for email: ${data.email}`);
+
+		return res.status(HTTP_STATUS.OK).json({
+			data: {
+				user: result.data.user,
+			},
+			success: true,
+		});
+	});
 
 	/**
 	 * POST /auth/signup
