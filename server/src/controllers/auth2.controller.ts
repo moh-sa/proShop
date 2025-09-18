@@ -2,6 +2,7 @@ import type { Response } from "express";
 
 import type { IAuthManager } from "../managers/index.js";
 import type { ICookieService } from "../services/index.js";
+import type { TokenPair } from "../types/jwt.type.js";
 
 import { CookieName } from "../constants/index.js";
 import { AuthManager } from "../managers/index.js";
@@ -48,6 +49,19 @@ export class Auth2Controller implements IAuth2Controller {
 		if (!accessCookieResult.success) {
 			throw accessCookieResult.error;
 		}
+	}
+
+	private _setAuthCookies(tokens: TokenPair, res: Response): void {
+		this._setAccessTokenCookie({
+			expiresAt: tokens.access.expiresAt,
+			res,
+			token: tokens.access.token,
+		});
+		this._setRefreshTokenCookie({
+			expiresAt: tokens.refresh.expiresAt,
+			res,
+			token: tokens.refresh.token,
+		});
 	}
 
 	private _setRefreshTokenCookie(args: {
