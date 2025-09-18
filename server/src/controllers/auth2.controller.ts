@@ -1,6 +1,9 @@
+import type { Response } from "express";
+
 import type { IAuthManager } from "../managers/index.js";
 import type { ICookieService } from "../services/index.js";
 
+import { CookieName } from "../constants/index.js";
 import { AuthManager } from "../managers/index.js";
 import { CookieService } from "../services/index.js";
 
@@ -24,5 +27,26 @@ export class Auth2Controller implements IAuth2Controller {
 	) {
 		this._authManager = authManager;
 		this._cookieService = cookieService;
+	}
+
+	private _setAccessTokenCookie(args: {
+		expiresAt: Date;
+		res: Response;
+		token: string;
+	}): void {
+		const accessCookieResult = this._cookieService.set({
+			item: {
+				name: CookieName.ACCESS_TOKEN,
+				value: args.token,
+			},
+			options: {
+				expires: args.expiresAt,
+				httpOnly: false,
+			},
+			response: args.res,
+		});
+		if (!accessCookieResult.success) {
+			throw accessCookieResult.error;
+		}
 	}
 }
