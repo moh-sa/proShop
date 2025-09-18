@@ -6,6 +6,7 @@ import type {
 	AsyncRequestHandler,
 	InsertUser,
 	SafeSelectUser,
+	SelectSession,
 	TokenPair,
 } from "../types/index.js";
 
@@ -54,6 +55,15 @@ export interface IAuth2Controller {
 	 * POST /auth/token/refresh
 	 */
 	refreshAccessToken: AsyncRequestHandler<unknown, { message: string }>;
+
+	// Session Management
+	/**
+	 * GET /auth/sessions
+	 */
+	getUserSessions: AsyncRequestHandler<
+		unknown,
+		{ sessions: Array<SelectSession> }
+	>;
 }
 
 /**
@@ -245,6 +255,40 @@ export class Auth2Controller implements IAuth2Controller {
 			return res.status(HTTP_STATUS.OK).json({
 				data: {
 					message: "Access token refreshed successfully",
+				},
+				success: true,
+			});
+		},
+	);
+
+	/**
+	 * GET /auth/sessions
+	 */
+	getUserSessions = asyncHandler<unknown, { sessions: Array<SelectSession> }>(
+		async (req, res) => {
+			console.info(`[AUTH] Get user sessions attempt`);
+
+			// Get refresh token from cookie
+			const refreshCookie = this._getRefreshTokenFromCookie(req);
+
+			// Get user sessions
+			const result = await this._authManager.getUserSessions({
+				refreshToken: refreshCookie,
+			});
+			if (!result.success) {
+				console.error(
+					`[AUTH] Get user sessions failed - ${result.error.message}`,
+				);
+				throw result.error;
+			}
+
+			console.info(
+				`[AUTH] Get user sessions successful - ${result.data.length} sessions found`,
+			);
+
+			return res.status(HTTP_STATUS.OK).json({
+				data: {
+					sessions: result.data,
 				},
 				success: true,
 			});
