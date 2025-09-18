@@ -39,6 +39,15 @@ export interface IAuth2Controller {
 	 * DELETE /auth/signout/current
 	 */
 	signOut: AsyncRequestHandler<unknown, { message: string }>;
+
+	/**
+	 * DELETE /auth/signout
+	 */
+	signOutAll: AsyncRequestHandler<
+		unknown,
+		{ message: string },
+		{ removedCount: number }
+	>;
 }
 
 /**
@@ -152,6 +161,46 @@ export class Auth2Controller implements IAuth2Controller {
 		res.status(HTTP_STATUS.OK).json({
 			data: {
 				message: "Logged out successfully",
+			},
+			success: true,
+		});
+	});
+
+	/**
+	 * DELETE /auth/signout
+	 */
+	signOutAll = asyncHandler<
+		unknown,
+		{ message: string },
+		{ removedCount: number }
+	>(async (req, res) => {
+		console.info(`[AUTH] Sign-out-all attempt`);
+
+		// Get refresh token from cookie
+		const refreshCookie = this._getRefreshTokenFromCookie(req);
+
+		// Delete all sessions
+		const result = await this._authManager.signOutAll({
+			refreshToken: refreshCookie,
+		});
+		if (!result.success) {
+			console.error(`[AUTH] Sign-out-all failed - ${result.error.message}`);
+			throw result.error;
+		}
+
+		// Clear the access and refresh tokens cookies
+		this._clearAuthCookies(res);
+
+		console.info(
+			`[AUTH] Sign-out-all successful - revoked ${result.data} sessions`,
+		);
+
+		return res.status(HTTP_STATUS.OK).json({
+			data: {
+				message: "Logged out from all devices",
+			},
+			meta: {
+				removedCount: result.data,
 			},
 			success: true,
 		});
