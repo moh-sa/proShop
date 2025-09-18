@@ -31,6 +31,26 @@ export class Auth2Controller implements IAuth2Controller {
 		this._cookieService = cookieService;
 	}
 
+	private _clearAuthCookies(res: Response): void {
+		// clear access token cookie
+		const clearAccessCookieResult = this._cookieService.delete({
+			name: CookieName.ACCESS_TOKEN,
+			response: res,
+		});
+		if (!clearAccessCookieResult.success) {
+			throw clearAccessCookieResult.error;
+		}
+
+		// clear refresh token cookie
+		const clearRefreshCookieResult = this._cookieService.delete({
+			name: CookieName.REFRESH_TOKEN,
+			response: res,
+		});
+		if (!clearRefreshCookieResult.success) {
+			throw clearRefreshCookieResult.error;
+		}
+	}
+
 	private _getRefreshTokenFromCookie(req: Request): string {
 		const result = this._cookieService.get({
 			name: CookieName.REFRESH_TOKEN,
