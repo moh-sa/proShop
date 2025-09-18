@@ -69,6 +69,15 @@ export interface IAuth2Controller {
 	 * DELETE /auth/sessions/current
 	 */
 	revokeSession: AsyncRequestHandler<unknown, { message: string }>;
+
+	/**
+	 * DELETE /auth/sessions
+	 */
+	revokeAllSessions: AsyncRequestHandler<
+		unknown,
+		{ message: string },
+		{ revokedCount: number }
+	>;
 }
 
 /**
@@ -332,6 +341,48 @@ export class Auth2Controller implements IAuth2Controller {
 			});
 		},
 	);
+
+	/**
+	 * DELETE /auth/sessions
+	 */
+	revokeAllSessions = asyncHandler<
+		unknown,
+		{ message: string },
+		{ revokedCount: number }
+	>(async (req, res) => {
+		console.info(`[AUTH] Revoke all sessions attempt`);
+
+		// Get refresh token from cookie
+		const refreshCookie = this._getRefreshTokenFromCookie(req);
+
+		// Revoke all sessions
+		const result = await this._authManager.revokeAllSessions({
+			refreshToken: refreshCookie,
+		});
+		if (!result.success) {
+			console.error(
+				`[AUTH] Revoke all sessions failed - ${result.error.message}`,
+			);
+			throw result.error;
+		}
+
+		// Clear the access and refresh tokens cookies
+		this._clearAuthCookies(res);
+
+		console.info(
+			`[AUTH] Revoke all sessions successful - revoked ${result.data} sessions`,
+		);
+
+		return res.status(HTTP_STATUS.OK).json({
+			data: {
+				message: "All sessions revoked successfully",
+			},
+			meta: {
+				revokedCount: result.data,
+			},
+			success: true,
+		});
+	});
 
 	private _clearAuthCookies(res: Response): void {
 		// clear access token cookie
