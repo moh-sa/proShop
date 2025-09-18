@@ -25,6 +25,11 @@ protectedRouter
 
 protectedRouter.route("/signout").delete(strictLimiter, controller.signOutAll);
 
+// Token routes
+protectedRouter
+	.route("/token/refresh")
+	.post(strictLimiter, controller.refreshAccessToken);
+
 // Mount protected routes
 router.use("/", protectedRouter);
 
