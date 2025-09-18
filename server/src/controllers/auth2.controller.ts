@@ -1,4 +1,4 @@
-import type { Response } from "express";
+import type { Request, Response } from "express";
 
 import type { IAuthManager } from "../managers/index.js";
 import type { ICookieService } from "../services/index.js";
@@ -7,6 +7,7 @@ import type { TokenPair } from "../types/jwt.type.js";
 import { CookieName } from "../constants/index.js";
 import { AuthManager } from "../managers/index.js";
 import { CookieService } from "../services/index.js";
+import { jwtTokenValidator } from "../validators/index.js";
 
 /**
  * Authentication Controller (v2) Interface
@@ -28,6 +29,19 @@ export class Auth2Controller implements IAuth2Controller {
 	) {
 		this._authManager = authManager;
 		this._cookieService = cookieService;
+	}
+
+	private _getRefreshTokenFromCookie(req: Request): string {
+		const result = this._cookieService.get({
+			name: CookieName.REFRESH_TOKEN,
+			request: req,
+			schema: jwtTokenValidator,
+		});
+		if (!result.success) {
+			throw result.error;
+		}
+
+		return result.data;
 	}
 
 	private _setAccessTokenCookie(args: {
