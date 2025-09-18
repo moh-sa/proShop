@@ -9,6 +9,8 @@ const controller = new Auth2Controller();
 //============= 🔓 PUBLIC ROUTES =============
 router.route("/signup").post(authLimiter, controller.signUp);
 
+router.route("/signin").post(authLimiter, controller.signIn);
+
 //============= 🔒 PROTECTED ROUTES =============
 const protectedRouter = express.Router();
 
