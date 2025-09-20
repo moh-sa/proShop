@@ -234,7 +234,79 @@ suite("JWT Service〖 Unit Tests 〗", { todo: "IMPLEMENT" }, () => {
 			assert(result.error.message.includes("Failed to generate JWT token"));
 		});
 	});
-	describe("generateTokenPair", () => {});
+
+	describe("generateTokenPair", () => {
+		it("should successfully generate both access and refresh tokens", (t) => {
+			// Arrange
+			t.mock.method(crypto, "randomUUID", () => tokenId);
+
+			mockJWT.sign.mock.mockImplementation((payload: any) =>
+				payload.type === TokenType.ACCESS
+					? validAccessToken
+					: validRefreshToken,
+			);
+
+			mockJWT.decode.mock.mockImplementation(() => ({
+				exp: expiresAt.getTime() / 1000,
+			}));
+
+			// Act
+			const result = service.generateTokenPair({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.access.token, validAccessToken);
+			assert.strictEqual(result.data.access.tokenId, tokenId);
+
+			assert.strictEqual(result.data.refresh.token, validRefreshToken);
+			assert.strictEqual(result.data.refresh.tokenId, tokenId);
+
+			// Verify jwt.sign was called twice
+			assert.strictEqual(mockJWT.sign.mock.callCount(), 2);
+		});
+
+		it("should fail when access token generation fails", () => {
+			// Arrange
+			const userId = "";
+
+			// Act
+			const result = service.generateTokenPair({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtInvalidPayloadError);
+
+			// Verify no tokens were generated after the failure
+			assert.strictEqual(mockJWT.sign.mock.callCount(), 0);
+		});
+
+		it("should fail when refresh token generation fails", (t) => {
+			// Arrange
+			t.mock.method(crypto, "randomUUID", () => tokenId);
+
+			mockJWT.sign.mock.mockImplementation((payload: any) => {
+				if (payload.type === TokenType.ACCESS) {
+					return validAccessToken;
+				}
+
+				throw new Error("Refresh token generation failed");
+			});
+
+			mockJWT.decode.mock.mockImplementation(() => ({
+				exp: expiresAt.getTime() / 1000,
+			}));
+
+			// Act
+			const result = service.generateTokenPair({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtGenerationError);
+
+			// Verify both tokens were attempted
+			assert.strictEqual(mockJWT.sign.mock.callCount(), 2);
+		});
+	});
 	describe("refreshAccessToken", () => {});
 	describe("verify", () => {});
 });
