@@ -147,7 +147,93 @@ suite("JWT Service〖 Unit Tests 〗", { todo: "IMPLEMENT" }, () => {
 			assert(result.error.message.includes("Invalid JWT token format"));
 		});
 	});
-	describe("generateRefreshToken", () => {});
+
+	describe("generateRefreshToken", () => {
+		it("should successfully generate refresh token with valid userId", (t) => {
+			// Arrange
+			t.mock.method(crypto, "randomUUID", () => tokenId);
+
+			mockJWT.sign.mock.mockImplementation(() => validRefreshToken);
+
+			mockJWT.decode.mock.mockImplementation(() => ({
+				exp: expiresAt.getTime() / 1000,
+			}));
+
+			// Act
+			const result = service.generateRefreshToken({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.token, validRefreshToken);
+			assert.strictEqual(result.data.tokenId, tokenId);
+			assert.strictEqual(result.data.expiresAt.getTime(), expiresAt.getTime());
+
+			// Verify jwt.sign was called with correct parameters
+			const signCall = mockJWT.sign.mock;
+			assert.strictEqual(signCall.callCount(), 1);
+			assert.deepStrictEqual(signCall.calls[0].arguments[0], {
+				tokenId,
+				type: TokenType.REFRESH,
+				userId,
+			});
+			assert.strictEqual(
+				signCall.calls[0].arguments[1],
+				DEFAULT_JWT_CONFIG.refreshTokenSecret,
+			);
+			assert.deepStrictEqual(signCall.calls[0].arguments[2], {
+				expiresIn: DEFAULT_JWT_CONFIG.refreshTokenExpiresIn,
+			});
+		});
+
+		it("should fail when userId is empty string", () => {
+			// Arrange
+			const userId = "";
+
+			// Act
+			const result = service.generateRefreshToken({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtInvalidPayloadError);
+			assert(result.error.message.includes("Invalid JWT token payload"));
+
+			// Verify jwt.sign was not called
+			assert.strictEqual(mockJWT.sign.mock.callCount(), 0);
+		});
+
+		it("should fail when userId is whitespace only", () => {
+			// Arrange
+			const userId = "   ";
+
+			// Act
+			const result = service.generateRefreshToken({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtInvalidPayloadError);
+			assert(result.error.message.includes("Invalid JWT token payload"));
+
+			// Verify jwt.sign was not called
+			assert.strictEqual(mockJWT.sign.mock.callCount(), 0);
+		});
+
+		it("should fail when JWT provider throws an error", (t) => {
+			// Arrange
+			t.mock.method(crypto, "randomUUID", () => tokenId);
+
+			mockJWT.sign.mock.mockImplementation(() => {
+				throw new Error("JWT signing failed");
+			});
+
+			// Act
+			const result = service.generateRefreshToken({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtGenerationError);
+			assert(result.error.message.includes("Failed to generate JWT token"));
+		});
+	});
 	describe("generateTokenPair", () => {});
 	describe("refreshAccessToken", () => {});
 	describe("verify", () => {});
