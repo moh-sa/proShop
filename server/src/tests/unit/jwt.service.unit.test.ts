@@ -1,3 +1,4 @@
+import { JsonWebTokenError } from "jsonwebtoken";
 import assert from "node:assert";
 import { beforeEach, describe, it, suite } from "node:test";
 
@@ -307,6 +308,105 @@ suite("JWT Service〖 Unit Tests 〗", { todo: "IMPLEMENT" }, () => {
 			assert.strictEqual(mockJWT.sign.mock.callCount(), 2);
 		});
 	});
-	describe("refreshAccessToken", () => {});
+
+	describe("refreshAccessToken", () => {
+		// the date of the refresh token creation
+		const mockExpiresAt = new Date(2020, 9, 20);
+
+		it("should successfully refresh access token with valid refresh token", (t) => {
+			// Arrange
+			const mockRefreshDecoded = {
+				exp: mockExpiresAt.getTime() / 1000 + 3600,
+				iat: mockExpiresAt.getTime() / 1000,
+				tokenId,
+				type: TokenType.REFRESH,
+				userId,
+			};
+
+			t.mock.method(crypto, "randomUUID", () => tokenId);
+
+			mockJWT.verify.mock.mockImplementation(() => mockRefreshDecoded);
+
+			mockJWT.sign.mock.mockImplementation(() => validAccessToken);
+
+			mockJWT.decode.mock.mockImplementation(() => ({
+				exp: mockExpiresAt.getTime() / 1000 + 3600,
+			}));
+
+			// Act
+			const result = service.refreshAccessToken({
+				refreshToken: validRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.access.token, validAccessToken);
+			assert.strictEqual(result.data.access.tokenId, tokenId);
+			assert.deepStrictEqual(
+				result.data.decodedRefreshToken,
+				mockRefreshDecoded,
+			);
+
+			// Verify jwt.verify was called for refresh token
+			const verifyCall = mockJWT.verify.mock;
+			assert.strictEqual(verifyCall.callCount(), 1);
+			assert.strictEqual(verifyCall.calls[0].arguments[0], validRefreshToken);
+			assert.strictEqual(
+				verifyCall.calls[0].arguments[1],
+				DEFAULT_JWT_CONFIG.refreshTokenSecret,
+			);
+		});
+
+		it("should fail when refresh token verification fails", () => {
+			// Arrange
+			mockJWT.verify.mock.mockImplementation(() => {
+				throw new JsonWebTokenError("Invalid token");
+			});
+
+			// Act
+			const result = service.refreshAccessToken({
+				refreshToken: invalidRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtInvalidTokenError);
+
+			// Verify jwt.sign was not called for new access token
+			assert.strictEqual(mockJWT.sign.mock.callCount(), 0);
+		});
+
+		it("should fail when access token generation fails after refresh token verification", (t) => {
+			// Arrange
+			const mockRefreshDecoded = {
+				exp: mockExpiresAt.getTime() / 1000 + 3600,
+				iat: mockExpiresAt.getTime() / 1000,
+				tokenId,
+				type: TokenType.REFRESH,
+				userId,
+			};
+
+			t.mock.method(crypto, "randomUUID", () => tokenId);
+
+			mockJWT.verify.mock.mockImplementation(() => mockRefreshDecoded);
+
+			mockJWT.sign.mock.mockImplementation(() => {
+				throw new Error("Access token generation failed");
+			});
+
+			// Act
+			const result = service.refreshAccessToken({
+				refreshToken: validRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtGenerationError);
+
+			// Verify jwt.verify was called but jwt.sign failed
+			assert.strictEqual(mockJWT.verify.mock.callCount(), 1);
+			assert.strictEqual(mockJWT.sign.mock.callCount(), 1);
+		});
+	});
 	describe("verify", () => {});
 });
