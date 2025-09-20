@@ -1,9 +1,11 @@
-import { JsonWebTokenError } from "jsonwebtoken";
+import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import assert from "node:assert";
 import { beforeEach, describe, it, suite } from "node:test";
 
 import { DEFAULT_JWT_CONFIG } from "../../config/index.js";
 import {
+	JwtBaseError,
+	JwtExpirationError,
 	JwtGenerationError,
 	JwtInvalidPayloadError,
 	JwtInvalidTokenError,
@@ -408,5 +410,185 @@ suite("JWT Service〖 Unit Tests 〗", { todo: "IMPLEMENT" }, () => {
 			assert.strictEqual(mockJWT.sign.mock.callCount(), 1);
 		});
 	});
-	describe("verify", () => {});
+
+	describe("verify", () => {
+		it("should successfully verify valid token with correct type", () => {
+			// Arrange
+			const expectedType = TokenType.ACCESS;
+			const mockDecoded = {
+				exp: Math.floor(Date.now() / 1000) + 3600,
+				iat: Math.floor(Date.now() / 1000),
+				tokenId: "token-id",
+				type: expectedType,
+				userId: "user-id",
+			};
+
+			mockJWT.verify.mock.mockImplementation(() => mockDecoded);
+
+			// Act
+			const result = service.verify({ expectedType, token: validAccessToken });
+
+			// Assert
+			assert.strictEqual(result.success, true);
+
+			assert.deepStrictEqual(result.data, mockDecoded);
+
+			// Verify jwt.verify was called with correct parameters
+			const verifyCall = mockJWT.verify.mock;
+			assert.strictEqual(verifyCall.callCount(), 1);
+			assert.strictEqual(verifyCall.calls[0].arguments[0], validAccessToken);
+			assert.strictEqual(
+				verifyCall.calls[0].arguments[1],
+				DEFAULT_JWT_CONFIG.accessTokenSecret,
+			);
+		});
+
+		it("should fail with invalid token format", () => {
+			// Act
+			const result = service.verify({
+				expectedType: TokenType.ACCESS,
+				token: invalidAccessToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtInvalidTokenError);
+
+			// Verify jwt.verify was not called
+			assert.strictEqual(mockJWT.verify.mock.callCount(), 0);
+		});
+
+		it("should fail with invalid expected type", () => {
+			// Act
+			const result = service.verify({
+				expectedType: "invalid-type" as any,
+				token: validAccessToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtInvalidPayloadError);
+
+			// Verify jwt.verify was not called
+			assert.strictEqual(mockJWT.verify.mock.callCount(), 0);
+		});
+
+		it("should fail when token type doesn't match expected type", () => {
+			// Arrange
+			const mockDecoded = {
+				exp: Math.floor(Date.now() / 1000) + 3600,
+				iat: Math.floor(Date.now() / 1000),
+				tokenId: "token-id",
+				type: TokenType.REFRESH,
+				userId: "user-id",
+			};
+
+			mockJWT.verify.mock.mockImplementation(() => mockDecoded);
+
+			// Act
+			const result = service.verify({
+				expectedType: TokenType.ACCESS,
+				token: validAccessToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtInvalidPayloadError);
+		});
+
+		it("should fail when JWT provider throws TokenExpiredError", (t) => {
+			// Arrange
+			// set the current date to the date of the token creation
+			t.mock.timers.enable({
+				apis: ["Date"],
+				now: new Date(2025, 9, 20),
+			});
+			// advance the current date by two months
+			t.mock.timers.tick(2 * 30 * 24 * 60 * 60 * 1000);
+
+			mockJWT.verify.mock.mockImplementation(() => {
+				throw new TokenExpiredError("Token expired", new Date());
+			});
+
+			// Act
+			const result = service.verify({
+				expectedType: TokenType.ACCESS,
+				token: validAccessToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtExpirationError);
+		});
+
+		it("should fail when JWT provider throws JsonWebTokenError", () => {
+			// Arrange
+			mockJWT.verify.mock.mockImplementation(() => {
+				throw new JsonWebTokenError("Invalid token");
+			});
+
+			// Act
+			const result = service.verify({
+				expectedType: TokenType.ACCESS,
+				token: invalidAccessToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtInvalidTokenError);
+		});
+
+		it("should fail when JWT provider throws unknown error", () => {
+			// Arrange
+			mockJWT.verify.mock.mockImplementation(() => {
+				throw new Error("Unknown error");
+			});
+
+			// Act
+			const result = service.verify({
+				expectedType: TokenType.ACCESS,
+				token: validAccessToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtBaseError);
+			assert(result.error.message.includes("Unknown error"));
+		});
+
+		it("should fail when decoded token is string instead of object", () => {
+			// Arrange
+			mockJWT.verify.mock.mockImplementation(() => "invalid-decoded-string");
+
+			// Act
+			const result = service.verify({
+				expectedType: TokenType.ACCESS,
+				token: validAccessToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtInvalidTokenError);
+		});
+
+		it("should fail when decoded token is missing required fields", () => {
+			// Arrange
+			const mockDecoded = {
+				type: TokenType.ACCESS,
+				// Missing userId, exp, iat, tokenId
+			};
+
+			mockJWT.verify.mock.mockImplementation(() => mockDecoded);
+
+			// Act
+			const result = service.verify({
+				expectedType: TokenType.ACCESS,
+				token: validAccessToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtInvalidTokenError);
+		});
+	});
 });
