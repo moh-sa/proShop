@@ -1,12 +1,19 @@
-import { beforeEach, describe, suite } from "node:test";
+import assert from "node:assert";
+import { beforeEach, describe, it, suite } from "node:test";
 
-import { DEFAULT_JWT_CONFIG } from "../../config/jwt.config.js";
+import { DEFAULT_JWT_CONFIG } from "../../config/index.js";
+import {
+	JwtGenerationError,
+	JwtInvalidPayloadError,
+	JwtInvalidTokenError,
+} from "../../errors/index.js";
 import { JwtService } from "../../services/index.js";
-import { mockJwt } from "../mocks/jwt.mock.js";
+import { TokenType } from "../../types/index.js";
+import { mockJwt } from "../mocks/index.js";
 
 suite("JWT Service〖 Unit Tests 〗", { todo: "IMPLEMENT" }, () => {
 	const mockJWT = mockJwt();
-	const service = new JwtService(DEFAULT_JWT_CONFIG, mockJWT as any); // eslint-disable-line @typescript-eslint/no-unused-vars
+	const service = new JwtService(DEFAULT_JWT_CONFIG, mockJWT as any);
 
 	const userId = "user-id";
 	const tokenId = "token-id";
@@ -20,8 +27,126 @@ suite("JWT Service〖 Unit Tests 〗", { todo: "IMPLEMENT" }, () => {
 
 	beforeEach(() => mockJWT.reset());
 
-	// I AM TIRED BOSS :')
-	describe("generateAccessToken", () => {});
+	describe("generateAccessToken", () => {
+		it("should successfully generate access token with valid userId", (t) => {
+			// Arrange
+			t.mock.method(crypto, "randomUUID", () => tokenId);
+
+			mockJWT.sign.mock.mockImplementation(() => validAccessToken);
+
+			mockJWT.decode.mock.mockImplementation(() => ({
+				exp: expiresAt.getTime() / 1000,
+			}));
+
+			// Act
+			const result = service.generateAccessToken({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.token, validAccessToken);
+			assert.strictEqual(result.data.tokenId, tokenId);
+			assert.strictEqual(result.data.expiresAt.getTime(), expiresAt.getTime());
+
+			// Verify jwt.sign was called with correct parameters
+			const signCall = mockJWT.sign.mock;
+			assert.strictEqual(signCall.callCount(), 1);
+			assert.deepStrictEqual(signCall.calls[0].arguments[0], {
+				tokenId,
+				type: TokenType.ACCESS,
+				userId,
+			});
+			assert.strictEqual(
+				signCall.calls[0].arguments[1],
+				DEFAULT_JWT_CONFIG.accessTokenSecret,
+			);
+			assert.deepStrictEqual(signCall.calls[0].arguments[2], {
+				expiresIn: DEFAULT_JWT_CONFIG.accessTokenExpiresIn,
+			});
+		});
+
+		it("should fail when userId is empty string", () => {
+			// Arrange
+			const userId = "";
+
+			// Act
+			const result = service.generateAccessToken({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtInvalidPayloadError);
+			assert(result.error.message.includes("Invalid JWT token payload"));
+
+			// Verify jwt.sign was not called
+			assert.strictEqual(mockJWT.sign.mock.callCount(), 0);
+		});
+
+		it("should fail when userId is whitespace only", () => {
+			// Arrange
+			const userId = "   ";
+
+			// Act
+			const result = service.generateAccessToken({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtInvalidPayloadError);
+			assert(result.error.message.includes("Invalid JWT token payload"));
+
+			// Verify jwt.sign was not called
+			assert.strictEqual(mockJWT.sign.mock.callCount(), 0);
+		});
+
+		it("should fail when JWT provider throws an error", (t) => {
+			// Arrange
+			t.mock.method(crypto, "randomUUID", () => tokenId);
+
+			mockJWT.sign.mock.mockImplementation(() => {
+				throw new Error("JWT signing failed");
+			});
+
+			// Act
+			const result = service.generateAccessToken({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtGenerationError);
+			assert(result.error.message.includes("Failed to generate JWT token"));
+		});
+
+		it("should fail when token decode returns invalid expiration", (t) => {
+			// Arrange
+			t.mock.method(crypto, "randomUUID", () => tokenId);
+
+			mockJWT.sign.mock.mockImplementation(() => validAccessToken);
+
+			mockJWT.decode.mock.mockImplementation(() => ({}));
+
+			// Act
+			const result = service.generateAccessToken({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtInvalidTokenError);
+			assert(result.error.message.includes("Invalid JWT token format"));
+		});
+
+		it("should fail when token decode returns string instead of object", (t) => {
+			// Arrange
+			t.mock.method(crypto, "randomUUID", () => tokenId);
+
+			mockJWT.sign.mock.mockImplementation(() => validAccessToken);
+
+			mockJWT.decode.mock.mockImplementation(() => "invalid-decoded-token");
+
+			// Act
+			const result = service.generateAccessToken({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof JwtInvalidTokenError);
+			assert(result.error.message.includes("Invalid JWT token format"));
+		});
+	});
 	describe("generateRefreshToken", () => {});
 	describe("generateTokenPair", () => {});
 	describe("refreshAccessToken", () => {});
