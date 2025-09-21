@@ -895,7 +895,98 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("revokeAllByUserId", () => {});
+	describe("revokeAllByUserId", () => {
+		const userIdObj = generateMockObjectId();
+		const userId = userIdObj.toString();
+
+		test("Should return 'modified count' when 'db.updateMany' is called once with 'userId' and 'revokedAt'", async (t) => {
+			const expected = 2;
+			const updateManyMock = t.mock.method(Session, "updateMany", () => ({
+				lean: async () => ({ modifiedCount: expected }),
+			}));
+
+			const modifiedCount = await repo.revokeAllByUserId({ userId });
+
+			assert.strictEqual(modifiedCount, expected);
+
+			assert.strictEqual(updateManyMock.mock.callCount(), 1);
+			assert.deepStrictEqual(updateManyMock.mock.calls[0].arguments[0], {
+				userId,
+			});
+			const updateArg = updateManyMock.mock.calls[0].arguments[1] as {
+				revokedAt: Date;
+			};
+			assert.ok(updateArg.revokedAt instanceof Date);
+		});
+
+		test("Should throw 'DatabaseValidationError' when 'db.updateMany' throws 'ValidationError'", async (t) => {
+			const validationError = new mongoose.Error.ValidationError();
+
+			t.mock.method(Session, "updateMany", () => {
+				throw validationError;
+			});
+
+			await assert.rejects(
+				async () => await repo.revokeAllByUserId({ userId }),
+				DatabaseValidationError,
+			);
+		});
+
+		test("Should throw 'DatabaseTimeoutError' when 'db.updateMany' throws 'MongoNetworkTimeoutError'", async (t) => {
+			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
+				"Timeout",
+			);
+
+			t.mock.method(Session, "updateMany", () => {
+				throw timeoutError;
+			});
+
+			await assert.rejects(
+				async () => await repo.revokeAllByUserId({ userId }),
+				DatabaseTimeoutError,
+			);
+		});
+
+		test("Should throw 'DatabaseQueryError' when 'db.updateMany' throws 'MongooseError'", async (t) => {
+			const queryError = new mongoose.Error("Query failed");
+
+			t.mock.method(Session, "updateMany", () => {
+				throw queryError;
+			});
+
+			await assert.rejects(
+				async () => await repo.revokeAllByUserId({ userId }),
+				DatabaseQueryError,
+			);
+		});
+
+		test("Should throw 'DatabaseNetworkError' when 'db.updateMany' throws 'MongoError'", async (t) => {
+			const networkError = new mongoose.mongo.MongoError("Network error");
+
+			t.mock.method(Session, "updateMany", () => {
+				throw networkError;
+			});
+
+			await assert.rejects(
+				async () => await repo.revokeAllByUserId({ userId }),
+				DatabaseNetworkError,
+			);
+		});
+
+		test("Should throw 'GenericDatabaseError' when 'db.updateMany' throws unknown error", async (t) => {
+			const unknownError = new Error("Something unexpected happened");
+
+			t.mock.method(Session, "updateMany", () => {
+				throw unknownError;
+			});
+
+			await assert.rejects(
+				async () => await repo.revokeAllByUserId({ userId }),
+				GenericDatabaseError,
+			);
+		});
+	});
+
 	describe("revokeByTokenIdAndUserId", () => {});
 	describe("deleteAllByUserId", () => {});
 	describe("deleteByTokenIdAndUserId", () => {});
