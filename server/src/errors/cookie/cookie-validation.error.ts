@@ -20,7 +20,9 @@ export class CookieValidationError extends CookieBaseError {
 	}
 
 	static invalidName(name: string) {
-		return new CookieValidationError("Cookie name must be a string", { name });
+		return new CookieValidationError("Invalid cookie name", {
+			name,
+		});
 	}
 
 	static invalidRequest() {
