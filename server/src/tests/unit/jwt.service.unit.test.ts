@@ -1,4 +1,4 @@
-import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import assert from "node:assert";
 import { beforeEach, describe, it, suite } from "node:test";
 
@@ -362,7 +362,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 		it("should fail when refresh token verification fails", () => {
 			// Arrange
 			mockJWT.verify.mock.mockImplementation(() => {
-				throw new JsonWebTokenError("Invalid token");
+				throw new jwt.JsonWebTokenError("Invalid token");
 			});
 
 			// Act
@@ -507,7 +507,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 			t.mock.timers.tick(2 * 30 * 24 * 60 * 60 * 1000);
 
 			mockJWT.verify.mock.mockImplementation(() => {
-				throw new TokenExpiredError("Token expired", new Date());
+				throw new jwt.TokenExpiredError("Token expired", new Date());
 			});
 
 			// Act
@@ -524,7 +524,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 		it("should fail when JWT provider throws JsonWebTokenError", () => {
 			// Arrange
 			mockJWT.verify.mock.mockImplementation(() => {
-				throw new JsonWebTokenError("Invalid token");
+				throw new jwt.JsonWebTokenError("Invalid token");
 			});
 
 			// Act
