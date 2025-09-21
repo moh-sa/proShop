@@ -265,5 +265,65 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("delete", () => {});
+	describe("delete", () => {
+		it("should clear cookie with merged options and without expires/maxAge", () => {
+			// Arrange
+			const name = CookieName.ACCESS_TOKEN;
+			const { res } = createMockExpressContext();
+
+			// Act
+			const result = service.delete({ name, response: res });
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(res.cookies[name].value, "");
+			assert.strictEqual("expires" in res.cookies[name].options, true);
+			assert.strictEqual("maxAge" in res.cookies[name].options, false);
+		});
+
+		it("should fail when cookie name is empty", () => {
+			// Arrange
+			const { res } = createMockExpressContext();
+
+			// Act
+			const result = service.delete({ name: "" as any, response: res });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof CookieValidationError);
+		});
+
+		it("should fail when response is invalid", () => {
+			// Arrange
+			const invalidRes = {} as any;
+
+			// Act
+			const result = service.delete({
+				name: CookieName.ACCESS_TOKEN,
+				response: invalidRes,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof CookieValidationError);
+		});
+
+		it("should return operation error when clearCookie throws", () => {
+			// Arrange
+			const { res } = createMockExpressContext();
+			res.clearCookie = () => {
+				throw new Error("fail");
+			};
+
+			// Act
+			const result = service.delete({
+				name: CookieName.ACCESS_TOKEN,
+				response: res,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof CookieOperationError);
+		});
+	});
 });
