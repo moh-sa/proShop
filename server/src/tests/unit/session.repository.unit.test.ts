@@ -987,7 +987,118 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("revokeByTokenIdAndUserId", () => {});
+	describe("revokeByTokenIdAndUserId", () => {
+		const userIdObj = generateMockObjectId();
+		const userId = userIdObj.toString();
+		const tokenId = "jwt-token-id";
+		const expected = generateMockSelectSession({
+			revokedAt: new Date(),
+			tokenId,
+			userId: userIdObj,
+		});
+
+		test("Should return 'session object' when 'db.findOneAndUpdate' is called once with 'tokenId+userId' and sets 'revokedAt'", async (t) => {
+			const findOneAndUpdateMock = t.mock.method(
+				Session,
+				"findOneAndUpdate",
+				() => ({
+					lean: async () => expected,
+				}),
+			);
+
+			const session = await repo.revokeByTokenIdAndUserId({ tokenId, userId });
+
+			assert.ok(session);
+			assert.deepStrictEqual(session, expected);
+
+			assert.strictEqual(findOneAndUpdateMock.mock.callCount(), 1);
+			assert.deepStrictEqual(findOneAndUpdateMock.mock.calls[0].arguments[0], {
+				tokenId,
+				userId,
+			});
+			const updateArg = findOneAndUpdateMock.mock.calls[0].arguments[1] as {
+				revokedAt: Date;
+			};
+			assert.ok(updateArg.revokedAt instanceof Date);
+		});
+
+		test("Should return 'null' when 'db.findOneAndUpdate' returns 'null'", async (t) => {
+			t.mock.method(Session, "findOneAndUpdate", () => ({
+				lean: async () => null,
+			}));
+
+			const session = await repo.revokeByTokenIdAndUserId({ tokenId, userId });
+			assert.strictEqual(session, null);
+		});
+
+		test("Should throw 'DatabaseValidationError' when 'db.findOneAndUpdate' throws 'ValidationError'", async (t) => {
+			const validationError = new mongoose.Error.ValidationError();
+
+			t.mock.method(Session, "findOneAndUpdate", () => {
+				throw validationError;
+			});
+
+			await assert.rejects(
+				async () => await repo.revokeByTokenIdAndUserId({ tokenId, userId }),
+				DatabaseValidationError,
+			);
+		});
+
+		test("Should throw 'DatabaseTimeoutError' when 'db.findOneAndUpdate' throws 'MongoNetworkTimeoutError'", async (t) => {
+			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
+				"Timeout",
+			);
+
+			t.mock.method(Session, "findOneAndUpdate", () => {
+				throw timeoutError;
+			});
+
+			await assert.rejects(
+				async () => await repo.revokeByTokenIdAndUserId({ tokenId, userId }),
+				DatabaseTimeoutError,
+			);
+		});
+
+		test("Should throw 'DatabaseQueryError' when 'db.findOneAndUpdate' throws 'MongooseError'", async (t) => {
+			const queryError = new mongoose.Error("Query failed");
+
+			t.mock.method(Session, "findOneAndUpdate", () => {
+				throw queryError;
+			});
+
+			await assert.rejects(
+				async () => await repo.revokeByTokenIdAndUserId({ tokenId, userId }),
+				DatabaseQueryError,
+			);
+		});
+
+		test("Should throw 'DatabaseNetworkError' when 'db.findOneAndUpdate' throws 'MongoError'", async (t) => {
+			const networkError = new mongoose.mongo.MongoError("Network error");
+
+			t.mock.method(Session, "findOneAndUpdate", () => {
+				throw networkError;
+			});
+
+			await assert.rejects(
+				async () => await repo.revokeByTokenIdAndUserId({ tokenId, userId }),
+				DatabaseNetworkError,
+			);
+		});
+
+		test("Should throw 'GenericDatabaseError' when 'db.findOneAndUpdate' throws unknown error", async (t) => {
+			const unknownError = new Error("Something unexpected happened");
+
+			t.mock.method(Session, "findOneAndUpdate", () => {
+				throw unknownError;
+			});
+
+			await assert.rejects(
+				async () => await repo.revokeByTokenIdAndUserId({ tokenId, userId }),
+				GenericDatabaseError,
+			);
+		});
+	});
+
 	describe("deleteAllByUserId", () => {});
 	describe("deleteByTokenIdAndUserId", () => {});
 	describe("countActiveByUserId", () => {});
