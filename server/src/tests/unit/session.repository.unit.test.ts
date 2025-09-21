@@ -1186,7 +1186,113 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("deleteByTokenIdAndUserId", () => {});
+	describe("deleteByTokenIdAndUserId", () => {
+		const userIdObj = generateMockObjectId();
+		const userId = userIdObj.toString();
+		const tokenId = "jwt-token-id";
+		const mockSession = generateMockSelectSession({
+			tokenId,
+			userId: userIdObj,
+		});
+
+		test("Should return 'session object' when 'db.findOneAndDelete' is called once with 'tokenId+userId'", async (t) => {
+			const findOneAndDeleteMock = t.mock.method(
+				Session,
+				"findOneAndDelete",
+				() => ({
+					lean: async () => mockSession,
+				}),
+			);
+
+			const session = await repo.deleteByTokenIdAndUserId({ tokenId, userId });
+
+			assert.ok(session);
+			assert.deepStrictEqual(session, mockSession);
+
+			assert.strictEqual(findOneAndDeleteMock.mock.callCount(), 1);
+			assert.deepStrictEqual(findOneAndDeleteMock.mock.calls[0].arguments[0], {
+				tokenId,
+				userId,
+			});
+		});
+
+		test("Should return 'null' when 'db.findOneAndDelete' returns 'null'", async (t) => {
+			t.mock.method(Session, "findOneAndDelete", () => ({
+				lean: async () => null,
+			}));
+
+			const session = await repo.deleteByTokenIdAndUserId({ tokenId, userId });
+			assert.strictEqual(session, null);
+		});
+
+		test("Should throw 'DatabaseValidationError' when 'db.findOneAndDelete' throws 'ValidationError'", async (t) => {
+			const validationError = new mongoose.Error.ValidationError();
+
+			t.mock.method(Session, "findOneAndDelete", () => {
+				throw validationError;
+			});
+
+			await assert.rejects(
+				async () => await repo.deleteByTokenIdAndUserId({ tokenId, userId }),
+				DatabaseValidationError,
+			);
+		});
+
+		test("Should throw 'DatabaseTimeoutError' when 'db.findOneAndDelete' throws 'MongoNetworkTimeoutError'", async (t) => {
+			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
+				"Timeout",
+			);
+
+			t.mock.method(Session, "findOneAndDelete", () => {
+				throw timeoutError;
+			});
+
+			await assert.rejects(
+				async () => await repo.deleteByTokenIdAndUserId({ tokenId, userId }),
+				DatabaseTimeoutError,
+			);
+		});
+
+		test("Should throw 'DatabaseQueryError' when 'db.findOneAndDelete' throws 'MongooseError'", async (t) => {
+			const queryError = new mongoose.Error("Query failed");
+
+			t.mock.method(Session, "findOneAndDelete", () => {
+				throw queryError;
+			});
+
+			await assert.rejects(
+				async () => await repo.deleteByTokenIdAndUserId({ tokenId, userId }),
+				DatabaseQueryError,
+			);
+		});
+
+		test("Should throw 'DatabaseNetworkError' when 'db.findOneAndDelete' throws 'MongoError'", async (t) => {
+			const networkError = new mongoose.mongo.MongoError("Network error");
+
+			t.mock.method(Session, "findOneAndDelete", () => {
+				throw networkError;
+			});
+
+			await assert.rejects(
+				async () => await repo.deleteByTokenIdAndUserId({ tokenId, userId }),
+				DatabaseNetworkError,
+			);
+		});
+
+		test("Should throw 'GenericDatabaseError' when 'db.findOneAndDelete' throws unknown error", async (t) => {
+			const unknownError = new Error("Something unexpected happened");
+
+			t.mock.method(Session, "findOneAndDelete", () => {
+				throw unknownError;
+			});
+
+			await assert.rejects(
+				async () => await repo.deleteByTokenIdAndUserId({ tokenId, userId }),
+				GenericDatabaseError,
+			);
+		});
+	});
+
 	describe("countActiveByUserId", () => {});
 	describe("existsByTokenIdAndUserId", () => {});
 });
