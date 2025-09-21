@@ -1388,5 +1388,103 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("existsByTokenIdAndUserId", () => {});
+	describe("existsByTokenIdAndUserId", () => {
+		const userIdObj = generateMockObjectId();
+		const userId = userIdObj.toString();
+		const tokenId = "jwt-token-id";
+		const expectedResult = { _id: generateMockObjectId() };
+
+		test("Should return 'document id' when 'db.exists' is called once with 'tokenId+userId'", async (t) => {
+			const existsMock = t.mock.method(Session, "exists", () => ({
+				lean: async () => expectedResult,
+			}));
+
+			const result = await repo.existsByTokenIdAndUserId({ tokenId, userId });
+
+			assert.ok(result);
+			assert.deepStrictEqual(result, expectedResult);
+
+			assert.strictEqual(existsMock.mock.callCount(), 1);
+			assert.deepStrictEqual(existsMock.mock.calls[0].arguments[0], {
+				tokenId,
+				userId,
+			});
+		});
+
+		test("Should return 'null' when 'db.exists' returns 'null'", async (t) => {
+			t.mock.method(Session, "exists", () => ({
+				lean: async () => null,
+			}));
+
+			const result = await repo.existsByTokenIdAndUserId({ tokenId, userId });
+			assert.strictEqual(result, null);
+		});
+
+		test("Should throw 'DatabaseValidationError' when 'db.exists' throws 'ValidationError'", async (t) => {
+			const validationError = new mongoose.Error.ValidationError();
+
+			t.mock.method(Session, "exists", () => {
+				throw validationError;
+			});
+
+			await assert.rejects(
+				async () => await repo.existsByTokenIdAndUserId({ tokenId, userId }),
+				DatabaseValidationError,
+			);
+		});
+
+		test("Should throw 'DatabaseTimeoutError' when 'db.exists' throws 'MongoNetworkTimeoutError'", async (t) => {
+			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
+				"Timeout",
+			);
+
+			t.mock.method(Session, "exists", () => {
+				throw timeoutError;
+			});
+
+			await assert.rejects(
+				async () => await repo.existsByTokenIdAndUserId({ tokenId, userId }),
+				DatabaseTimeoutError,
+			);
+		});
+
+		test("Should throw 'DatabaseQueryError' when 'db.exists' throws 'MongooseError'", async (t) => {
+			const queryError = new mongoose.Error("Query failed");
+
+			t.mock.method(Session, "exists", () => {
+				throw queryError;
+			});
+
+			await assert.rejects(
+				async () => await repo.existsByTokenIdAndUserId({ tokenId, userId }),
+				DatabaseQueryError,
+			);
+		});
+
+		test("Should throw 'DatabaseNetworkError' when 'db.exists' throws 'MongoError'", async (t) => {
+			const networkError = new mongoose.mongo.MongoError("Network error");
+
+			t.mock.method(Session, "exists", () => {
+				throw networkError;
+			});
+
+			await assert.rejects(
+				async () => await repo.existsByTokenIdAndUserId({ tokenId, userId }),
+				DatabaseNetworkError,
+			);
+		});
+
+		test("Should throw 'GenericDatabaseError' when 'db.exists' throws unknown error", async (t) => {
+			const unknownError = new Error("Something unexpected happened");
+
+			t.mock.method(Session, "exists", () => {
+				throw unknownError;
+			});
+
+			await assert.rejects(
+				async () => await repo.existsByTokenIdAndUserId({ tokenId, userId }),
+				GenericDatabaseError,
+			);
+		});
+	});
 });
