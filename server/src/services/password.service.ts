@@ -2,7 +2,7 @@ import * as argon from "argon2";
 import { z } from "zod";
 
 import type { PasswordBaseError } from "../errors/index.js";
-import type { Result } from "../types/index.js";
+import type { FailureResult, Result } from "../types/index.js";
 
 import {
 	PasswordHashError,
@@ -34,7 +34,7 @@ export class PasswordService implements IPasswordService {
 	}
 
 	public async hash(args: Params<"hash">): Return<"hash"> {
-		const validationResult = this._validate(args);
+		const validationResult = this._validateForHash(args.password);
 		if (!validationResult.success) {
 			return validationResult;
 		}
@@ -54,7 +54,10 @@ export class PasswordService implements IPasswordService {
 	}
 
 	public async verify(args: Params<"verify">): Return<"verify"> {
-		const validationResult = this._validate(args);
+		const validationResult = this._validateForVerify(
+			args.hashedPassword,
+			args.password,
+		);
 		if (!validationResult.success) {
 			return validationResult;
 		}
@@ -85,27 +88,43 @@ export class PasswordService implements IPasswordService {
 		}
 	}
 
-	private _validate(args: {
-		hashedPassword?: string;
-		password: string;
-	}): PswResult<undefined> {
+	private _handleValidationError(
+		error: z.ZodError,
+	): FailureResult<PasswordBaseError> {
+		const message = formatZodErrors(error);
+		return {
+			error: new PasswordValidationError(message, { cause: error }),
+			success: false,
+		};
+	}
+
+	private _validateForHash(password: string): PswResult<undefined> {
+		const result = passwordValidator.safeParse(password);
+		if (!result.success) {
+			return this._handleValidationError(result.error);
+		}
+
+		return {
+			data: undefined,
+			success: true,
+		};
+	}
+
+	private _validateForVerify(
+		hashedPassword: string,
+		password: string,
+	): PswResult<undefined> {
 		const result = z
 			.object({
 				hashedPassword: z
 					.string()
 					.trim()
-					.min(1, "Hashed password cannot be empty")
-					.optional(),
+					.min(1, "Hashed password cannot be empty"),
 				password: passwordValidator,
 			})
-			.safeParse(args);
-
+			.safeParse({ hashedPassword, password });
 		if (!result.success) {
-			const message = formatZodErrors(result.error);
-			return {
-				error: new PasswordValidationError(message, { cause: result.error }),
-				success: false,
-			};
+			return this._handleValidationError(result.error);
 		}
 
 		return {
