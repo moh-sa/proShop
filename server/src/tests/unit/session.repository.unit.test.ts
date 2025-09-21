@@ -1099,7 +1099,93 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("deleteAllByUserId", () => {});
+	describe("deleteAllByUserId", () => {
+		const userIdObj = generateMockObjectId();
+		const userId = userIdObj.toString();
+
+		test("Should return 'deleted count' when 'db.deleteMany' is called once with 'userId'", async (t) => {
+			const expected = 3;
+			const deleteManyMock = t.mock.method(Session, "deleteMany", () => ({
+				lean: async () => ({ deletedCount: expected }),
+			}));
+
+			const deletedCount = await repo.deleteAllByUserId({ userId });
+
+			assert.strictEqual(deletedCount, expected);
+			assert.strictEqual(deleteManyMock.mock.callCount(), 1);
+			assert.deepStrictEqual(deleteManyMock.mock.calls[0].arguments[0], {
+				userId,
+			});
+		});
+
+		test("Should throw 'DatabaseValidationError' when 'db.deleteMany' throws 'ValidationError'", async (t) => {
+			const validationError = new mongoose.Error.ValidationError();
+
+			t.mock.method(Session, "deleteMany", () => {
+				throw validationError;
+			});
+
+			await assert.rejects(
+				async () => await repo.deleteAllByUserId({ userId }),
+				DatabaseValidationError,
+			);
+		});
+
+		test("Should throw 'DatabaseTimeoutError' when 'db.deleteMany' throws 'MongoNetworkTimeoutError'", async (t) => {
+			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
+				"Timeout",
+			);
+
+			t.mock.method(Session, "deleteMany", () => {
+				throw timeoutError;
+			});
+
+			await assert.rejects(
+				async () => await repo.deleteAllByUserId({ userId }),
+				DatabaseTimeoutError,
+			);
+		});
+
+		test("Should throw 'DatabaseQueryError' when 'db.deleteMany' throws 'MongooseError'", async (t) => {
+			const queryError = new mongoose.Error("Query failed");
+
+			t.mock.method(Session, "deleteMany", () => {
+				throw queryError;
+			});
+
+			await assert.rejects(
+				async () => await repo.deleteAllByUserId({ userId }),
+				DatabaseQueryError,
+			);
+		});
+
+		test("Should throw 'DatabaseNetworkError' when 'db.deleteMany' throws 'MongoError'", async (t) => {
+			const networkError = new mongoose.mongo.MongoError("Network error");
+
+			t.mock.method(Session, "deleteMany", () => {
+				throw networkError;
+			});
+
+			await assert.rejects(
+				async () => await repo.deleteAllByUserId({ userId }),
+				DatabaseNetworkError,
+			);
+		});
+
+		test("Should throw 'GenericDatabaseError' when 'db.deleteMany' throws unknown error", async (t) => {
+			const unknownError = new Error("Something unexpected happened");
+
+			t.mock.method(Session, "deleteMany", () => {
+				throw unknownError;
+			});
+
+			await assert.rejects(
+				async () => await repo.deleteAllByUserId({ userId }),
+				GenericDatabaseError,
+			);
+		});
+	});
+
 	describe("deleteByTokenIdAndUserId", () => {});
 	describe("countActiveByUserId", () => {});
 	describe("existsByTokenIdAndUserId", () => {});
