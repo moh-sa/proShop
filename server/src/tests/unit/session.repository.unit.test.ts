@@ -1293,6 +1293,100 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("countActiveByUserId", () => {});
+	describe("countActiveByUserId", () => {
+		const userIdObj = generateMockObjectId();
+		const userId = userIdObj.toString();
+
+		test("Should return 'count' when 'db.countDocuments' is called once with 'active filter'", async (t) => {
+			const expected = 4;
+			const countMock = t.mock.method(
+				Session,
+				"countDocuments",
+				async () => expected,
+			);
+
+			const count = await repo.countActiveByUserId({ userId });
+
+			assert.strictEqual(count, expected);
+			assert.strictEqual(countMock.mock.callCount(), 1);
+			const [filterArg] = countMock.mock.calls[0].arguments as Array<unknown>;
+			const filter = filterArg as {
+				expiresAt: { $gt: Date };
+				revokedAt: null;
+				userId: string;
+			};
+			assert.ok(filter.expiresAt.$gt instanceof Date);
+			assert.strictEqual(filter.revokedAt, null);
+			assert.strictEqual(filter.userId, userId);
+		});
+
+		test("Should throw 'DatabaseValidationError' when 'db.countDocuments' throws 'ValidationError'", async (t) => {
+			const validationError = new mongoose.Error.ValidationError();
+
+			t.mock.method(Session, "countDocuments", () => {
+				throw validationError;
+			});
+
+			await assert.rejects(
+				async () => await repo.countActiveByUserId({ userId }),
+				DatabaseValidationError,
+			);
+		});
+
+		test("Should throw 'DatabaseTimeoutError' when 'db.countDocuments' throws 'MongoNetworkTimeoutError'", async (t) => {
+			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
+				"Timeout",
+			);
+
+			t.mock.method(Session, "countDocuments", () => {
+				throw timeoutError;
+			});
+
+			await assert.rejects(
+				async () => await repo.countActiveByUserId({ userId }),
+				DatabaseTimeoutError,
+			);
+		});
+
+		test("Should throw 'DatabaseQueryError' when 'db.countDocuments' throws 'MongooseError'", async (t) => {
+			const queryError = new mongoose.Error("Query failed");
+
+			t.mock.method(Session, "countDocuments", () => {
+				throw queryError;
+			});
+
+			await assert.rejects(
+				async () => await repo.countActiveByUserId({ userId }),
+				DatabaseQueryError,
+			);
+		});
+
+		test("Should throw 'DatabaseNetworkError' when 'db.countDocuments' throws 'MongoError'", async (t) => {
+			const networkError = new mongoose.mongo.MongoError("Network error");
+
+			t.mock.method(Session, "countDocuments", () => {
+				throw networkError;
+			});
+
+			await assert.rejects(
+				async () => await repo.countActiveByUserId({ userId }),
+				DatabaseNetworkError,
+			);
+		});
+
+		test("Should throw 'GenericDatabaseError' when 'db.countDocuments' throws unknown error", async (t) => {
+			const unknownError = new Error("Something unexpected happened");
+
+			t.mock.method(Session, "countDocuments", () => {
+				throw unknownError;
+			});
+
+			await assert.rejects(
+				async () => await repo.countActiveByUserId({ userId }),
+				GenericDatabaseError,
+			);
+		});
+	});
+
 	describe("existsByTokenIdAndUserId", () => {});
 });
