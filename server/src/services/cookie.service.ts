@@ -11,6 +11,7 @@ import type {
 } from "../types/index.js";
 
 import { DEFAULT_COOKIE_CONFIG } from "../config/index.js";
+import { CookieName } from "../constants/cookie.constants.js";
 import {
 	CookieNotFoundError,
 	CookieOperationError,
@@ -19,10 +20,13 @@ import {
 } from "../errors/index.js";
 
 export interface ICookieService {
-	delete(args: { name: string; response: Response }): CookieResult<undefined>;
+	delete(args: {
+		name: CookieName;
+		response: Response;
+	}): CookieResult<undefined>;
 
 	get<T>(args: {
-		name: string;
+		name: CookieName;
 		request: Request;
 		schema?: z.ZodSchema<T>;
 	}): CookieResult<T>;
@@ -44,7 +48,7 @@ export class CookieService implements ICookieService {
 	}
 
 	public delete(args: {
-		name: string;
+		name: CookieName;
 		response: Response;
 	}): CookieResult<undefined> {
 		const nameValidationResult = this._validateName(args.name);
@@ -69,7 +73,7 @@ export class CookieService implements ICookieService {
 	}
 
 	public get<T>(args: {
-		name: string;
+		name: CookieName;
 		request: Request;
 		schema?: z.ZodSchema<T>;
 	}): CookieResult<T> {
