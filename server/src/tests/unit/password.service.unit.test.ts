@@ -8,6 +8,7 @@ import {
 import {
 	PasswordHashError,
 	PasswordValidationError,
+	PasswordVerifyError,
 } from "../../errors/index.js";
 import { PasswordService } from "../../services/index.js";
 import { mockArgon2 } from "../mocks/index.js";
@@ -139,5 +140,165 @@ suite("Password Service 〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("verify", () => {});
+	describe("verify", () => {
+		it("should successfully verify when verify method returns true", async () => {
+			// Arrange
+			const hashedPassword = "hashed";
+			const password = "validPassword123";
+			mockProvider.verify.mock.mockImplementation(() => Promise.resolve(true));
+
+			// Act
+			const result = await service.verify({ hashedPassword, password });
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, undefined);
+
+			assert.strictEqual(mockProvider.verify.mock.callCount(), 1);
+			assert.deepStrictEqual(mockProvider.verify.mock.calls[0].arguments, [
+				hashedPassword,
+				password,
+			]);
+			assert.strictEqual(mockProvider.hash.mock.callCount(), 0);
+		});
+
+		it("should fail when verify method returns false (invalid password)", async () => {
+			// Arrange
+			const hashedPassword = "hashed";
+			const password = "validPassword123";
+			mockProvider.verify.mock.mockImplementation(() => Promise.resolve(false));
+
+			// Act
+			const result = await service.verify({ hashedPassword, password });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof PasswordVerifyError);
+			assert(result.error.message.includes("Failed to verify password"));
+			assert.strictEqual(mockProvider.verify.mock.callCount(), 1);
+		});
+
+		it("should fail when verify method throws an error", async () => {
+			// Arrange
+			const hashedPassword = "hashed";
+			const password = "validPassword123";
+			mockProvider.verify.mock.mockImplementation(() => {
+				throw new Error("verify failed");
+			});
+
+			// Act
+			const result = await service.verify({ hashedPassword, password });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof PasswordVerifyError);
+			assert(result.error.message.includes("Failed to verify password"));
+			assert.strictEqual(mockProvider.verify.mock.callCount(), 1);
+		});
+
+		it("should fail when hashedPassword is empty string", async () => {
+			// Arrange
+			const hashedPassword = "";
+			const password = "validPassword123";
+
+			// Act
+			const result = await service.verify({ hashedPassword, password });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof PasswordValidationError);
+			assert(
+				result.error.message.includes(
+					"hashedPassword Hashed password cannot be empty",
+				),
+			);
+
+			// Verify method should not be called
+			assert.strictEqual(mockProvider.verify.mock.callCount(), 0);
+		});
+
+		it("should fail when hashedPassword is whitespace only", async () => {
+			// Arrange
+			const hashedPassword = "   \t  ";
+			const password = "validPassword123";
+
+			// Act
+			const result = await service.verify({ hashedPassword, password });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof PasswordValidationError);
+			assert(
+				result.error.message.includes(
+					"hashedPassword Hashed password cannot be empty",
+				),
+			);
+
+			// Verify method should not be called
+			assert.strictEqual(mockProvider.verify.mock.callCount(), 0);
+		});
+
+		it("should fail when password is empty string", async () => {
+			// Arrange
+			const hashedPassword = "hashed";
+			const password = "";
+
+			// Act
+			const result = await service.verify({ hashedPassword, password });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof PasswordValidationError);
+			assert(
+				result.error.message.includes(
+					`password Password should be at least ${MIN_PASSWORD_LENGTH} characters long.`,
+				),
+			);
+
+			// Verify method should not be called
+			assert.strictEqual(mockProvider.verify.mock.callCount(), 0);
+		});
+
+		it("should fail when password is below minimum length", async () => {
+			// Arrange
+			const hashedPassword = "hashed";
+			const password = "a".repeat(MIN_PASSWORD_LENGTH - 1);
+
+			// Act
+			const result = await service.verify({ hashedPassword, password });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof PasswordValidationError);
+			assert(
+				result.error.message.includes(
+					`password Password should be at least ${MIN_PASSWORD_LENGTH} characters long.`,
+				),
+			);
+
+			// Verify method should not be called
+			assert.strictEqual(mockProvider.verify.mock.callCount(), 0);
+		});
+
+		it("should fail when password exceeds maximum length", async () => {
+			// Arrange
+			const hashedPassword = "hashed";
+			const password = "a".repeat(MAX_PASSWORD_LENGTH + 1);
+
+			// Act
+			const result = await service.verify({ hashedPassword, password });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert(result.error instanceof PasswordValidationError);
+			assert(
+				result.error.message.includes(
+					`password Password should be at most ${MAX_PASSWORD_LENGTH} characters long.`,
+				),
+			);
+
+			// Verify method should not be called
+			assert.strictEqual(mockProvider.verify.mock.callCount(), 0);
+		});
+	});
 });
