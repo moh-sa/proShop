@@ -420,7 +420,105 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("getAllRevoked", () => {});
+	describe("getAllRevoked", () => {
+		const mockSessions = generateMockSelectSessions({
+			count: 2,
+			options: { revokedAt: new Date() },
+		});
+
+		test("Should return 'array of revoked sessions' when 'db.find' is called once with 'revoked filter'", async (t) => {
+			const findMock = t.mock.method(Session, "find", () => ({
+				lean: async () => mockSessions,
+			}));
+
+			const sessions = await repo.getAllRevoked();
+
+			assert.ok(sessions);
+			assert.deepStrictEqual(sessions, mockSessions);
+
+			assert.strictEqual(findMock.mock.callCount(), 1);
+			assert.deepStrictEqual(findMock.mock.calls[0].arguments[0], {
+				revokedAt: { $ne: null },
+			});
+		});
+
+		test("Should return 'empty array' when 'db.find' returns 'empty array'", async (t) => {
+			t.mock.method(Session, "find", () => ({
+				lean: async () => [],
+			}));
+
+			const sessions = await repo.getAllRevoked();
+			assert.strictEqual(sessions.length, 0);
+		});
+
+		test("Should throw 'DatabaseValidationError' when 'db.find' throws 'ValidationError'", async (t) => {
+			const validationError = new mongoose.Error.ValidationError();
+
+			t.mock.method(Session, "find", () => {
+				throw validationError;
+			});
+
+			await assert.rejects(
+				async () => await repo.getAllRevoked(),
+				DatabaseValidationError,
+			);
+		});
+
+		test("Should throw 'DatabaseTimeoutError' when 'db.find' throws 'MongoNetworkTimeoutError'", async (t) => {
+			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
+				"Timeout",
+			);
+
+			t.mock.method(Session, "find", () => {
+				throw timeoutError;
+			});
+
+			await assert.rejects(
+				async () => await repo.getAllRevoked(),
+				DatabaseTimeoutError,
+			);
+		});
+
+		test("Should throw 'DatabaseQueryError' when 'db.find' throws 'MongooseError'", async (t) => {
+			const queryError = new mongoose.Error("Query failed");
+
+			t.mock.method(Session, "find", () => {
+				throw queryError;
+			});
+
+			await assert.rejects(
+				async () => await repo.getAllRevoked(),
+				DatabaseQueryError,
+			);
+		});
+
+		test("Should throw 'DatabaseNetworkError' when 'db.find' throws 'MongoError'", async (t) => {
+			const networkError = new mongoose.mongo.MongoError("Network error");
+
+			t.mock.method(Session, "find", () => {
+				throw networkError;
+			});
+
+			await assert.rejects(
+				async () => await repo.getAllRevoked(),
+				DatabaseNetworkError,
+			);
+		});
+
+		test("Should throw 'GenericDatabaseError' when 'db.find' throws unknown error", async (t) => {
+			const unknownError = new Error("Something unexpected happened");
+
+			t.mock.method(Session, "find", () => {
+				throw unknownError;
+			});
+
+			await assert.rejects(
+				async () => await repo.getAllRevoked(),
+				GenericDatabaseError,
+			);
+		});
+	});
+
 	describe("getAllRevokedByUserId", () => {});
 	describe("getByTokenIdAndUserId", () => {});
 	describe("updateByTokenIdAndUserId", () => {});
