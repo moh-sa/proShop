@@ -14,7 +14,7 @@ import { JwtService } from "../../services/index.js";
 import { TokenType } from "../../types/index.js";
 import { mockJwt } from "../mocks/index.js";
 
-suite("JWT Service〖 Unit Tests 〗", { todo: "IMPLEMENT" }, () => {
+suite("JWT Service〖 Unit Tests 〗", () => {
 	const mockJWT = mockJwt();
 	const service = new JwtService(DEFAULT_JWT_CONFIG, mockJWT as any);
 
