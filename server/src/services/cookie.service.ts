@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
-import type { z } from "zod";
+
+import { z } from "zod";
 
 import type { CookieBaseError } from "../errors/index.js";
 import type {
@@ -46,9 +47,9 @@ export class CookieService implements ICookieService {
 		name: string;
 		response: Response;
 	}): CookieResult<undefined> {
-		const nameResult = this._validateStringExists("Cookie Name", args.name);
-		if (!nameResult.success) {
-			return nameResult;
+		const nameValidationResult = this._validateName(args.name);
+		if (!nameValidationResult.success) {
+			return nameValidationResult;
 		}
 
 		const resResult = this._validateResponse(args.response);
@@ -72,9 +73,9 @@ export class CookieService implements ICookieService {
 		request: Request;
 		schema?: z.ZodSchema<T>;
 	}): CookieResult<T> {
-		const nameResult = this._validateStringExists("Cookie Name", args.name);
-		if (!nameResult.success) {
-			return nameResult;
+		const nameValidationResult = this._validateName(args.name);
+		if (!nameValidationResult.success) {
+			return nameValidationResult;
 		}
 
 		const reqResult = this._validateRequest(args.request);
@@ -118,12 +119,9 @@ export class CookieService implements ICookieService {
 		options?: CookieItemOptions;
 		response: Response;
 	}): CookieResult<undefined> {
-		const nameResult = this._validateStringExists(
-			"Cookie name",
-			args.item.name,
-		);
-		if (!nameResult.success) {
-			return nameResult;
+		const nameValidationResult = this._validateName(args.item.name);
+		if (!nameValidationResult.success) {
+			return nameValidationResult;
 		}
 
 		const resResult = this._validateResponse(args.response);
@@ -249,6 +247,21 @@ export class CookieService implements ICookieService {
 		}
 	}
 
+	private _validateName(name: CookieName): CookieResult<undefined> {
+		const result = z.nativeEnum(CookieName).safeParse(name);
+		if (!result.success) {
+			return {
+				error: CookieValidationError.invalidName(name),
+				success: false,
+			};
+		}
+
+		return {
+			data: undefined,
+			success: true,
+		};
+	}
+
 	private _validateRequest(req: Request): CookieResult<undefined> {
 		if (!req || typeof req !== "object" || !req.cookies || !req.signedCookies) {
 			return {
@@ -267,43 +280,6 @@ export class CookieService implements ICookieService {
 		if (!res || typeof res !== "object" || !res.cookie || !res.clearCookie) {
 			return {
 				error: CookieValidationError.invalidResponse(),
-				success: false,
-			};
-		}
-
-		return {
-			data: undefined,
-			success: true,
-		};
-	}
-
-	private _validateStringExists(
-		field: string,
-		val: unknown,
-	): CookieResult<undefined> {
-		if (!val) {
-			return {
-				error: field.toLowerCase().includes("name")
-					? CookieValidationError.emptyName()
-					: CookieValidationError.emptyValue(),
-				success: false,
-			};
-		}
-
-		if (typeof val !== "string") {
-			return {
-				error: field.toLowerCase().includes("name")
-					? CookieValidationError.invalidName(String(val))
-					: CookieValidationError.invalidValue(val),
-				success: false,
-			};
-		}
-
-		if (!val.trim()) {
-			return {
-				error: field.toLowerCase().includes("name")
-					? CookieValidationError.emptyName()
-					: CookieValidationError.emptyValue(),
 				success: false,
 			};
 		}
