@@ -94,6 +94,11 @@ export class SessionService implements ISessionService {
 	public async deleteAllByUserId(args: {
 		userId: string;
 	}): Promise<SessionResult<number>> {
+		const argsValidationResult = this._validateUserId(args.userId);
+		if (!argsValidationResult.success) {
+			return argsValidationResult;
+		}
+
 		try {
 			const deletedCount = await this._repository.deleteAllByUserId(args);
 
@@ -131,6 +136,11 @@ export class SessionService implements ISessionService {
 	public async getActiveByUserId(args: {
 		userId: string;
 	}): Promise<SessionResult<Array<SelectSession>>> {
+		const argsValidationResult = this._validateUserId(args.userId);
+		if (!argsValidationResult.success) {
+			return argsValidationResult;
+		}
+
 		try {
 			const sessions = await this._repository.getAllActiveByUserId({
 				userId: args.userId,
@@ -174,6 +184,11 @@ export class SessionService implements ISessionService {
 	public async revokeAllByUserId(args: {
 		userId: string;
 	}): Promise<SessionResult<number>> {
+		const argsValidationResult = this._validateUserId(args.userId);
+		if (!argsValidationResult.success) {
+			return argsValidationResult;
+		}
+
 		try {
 			const revokedCount = await this._repository.revokeAllByUserId(args);
 			return { data: revokedCount, success: true };
