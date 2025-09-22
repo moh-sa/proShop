@@ -14,8 +14,10 @@ import {
 	SessionBaseError,
 	SessionExpiredError,
 	SessionNotFoundError,
+	SessionValidationError,
 } from "../errors/index.js";
 import { SessionRepository } from "../repositories/index.js";
+import { insertSessionSchema } from "../schemas/index.js";
 
 export interface ISessionService {
 	create(args: InsertSession): Promise<SessionResult<SelectSession>>;
@@ -256,5 +258,18 @@ export class SessionService implements ISessionService {
 			),
 			success: false,
 		};
+	}
+
+	private _validateCreateArgs(args: InsertSession): SessionResult<undefined> {
+		const argsValidationResult = insertSessionSchema.safeParse(args);
+		if (!argsValidationResult.success) {
+			return {
+				error: new SessionValidationError({
+					cause: argsValidationResult.error.errors,
+				}),
+				success: false,
+			};
+		}
+		return { data: undefined, success: true };
 	}
 }
