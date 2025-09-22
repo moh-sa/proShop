@@ -7,6 +7,7 @@ import {
 	DatabaseTimeoutError,
 	SessionAlreadyExistsError,
 	SessionBaseError,
+	SessionNotFoundError,
 	SessionValidationError,
 } from "../../errors/index.js";
 import { SessionService } from "../../services/index.js";
@@ -250,7 +251,100 @@ suite("Session Service〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("getByTokenIdAndUserId", () => {});
+	describe("getByTokenIdAndUserId", () => {
+		it("Should return success with session when repository resolves", async () => {
+			// Arrange
+			const expected = generateMockSelectSession();
+			const userId = expected.userId.toString();
+			const tokenId = expected.tokenId;
+
+			mockRepo.getByTokenIdAndUserId.mock.mockImplementation(
+				async () => expected,
+			);
+
+			// Act
+			const result = await service.getByTokenIdAndUserId({ tokenId, userId });
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, expected);
+
+			assert.strictEqual(mockRepo.getByTokenIdAndUserId.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRepo.getByTokenIdAndUserId.mock.calls[0].arguments[0].tokenId,
+				tokenId,
+			);
+			assert.deepStrictEqual(
+				mockRepo.getByTokenIdAndUserId.mock.calls[0].arguments[0].userId,
+				userId,
+			);
+		});
+
+		it("Should return SessionValidationError for invalid args", async () => {
+			// Arrange
+			const userId = "invalid-objectid";
+			const tokenId = "invalid-uuid";
+
+			// Act
+			const result = await service.getByTokenIdAndUserId({ tokenId, userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof SessionValidationError);
+
+			assert.strictEqual(mockRepo.getByTokenIdAndUserId.mock.callCount(), 0);
+		});
+
+		it("Should return SessionNotFoundError when repository returns null", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
+
+			mockRepo.getByTokenIdAndUserId.mock.mockImplementation(async () => null);
+
+			// Act
+			const result = await service.getByTokenIdAndUserId({ tokenId, userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof SessionNotFoundError);
+		});
+
+		it("Should pass through BaseError from repository", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
+
+			mockRepo.getByTokenIdAndUserId.mock.mockImplementation(() => {
+				throw new DatabaseTimeoutError("timeout");
+			});
+
+			// Act
+			const result = await service.getByTokenIdAndUserId({ tokenId, userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseTimeoutError);
+		});
+
+		it("Should wrap unknown Error into SessionBaseError", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
+
+			mockRepo.getByTokenIdAndUserId.mock.mockImplementation(() => {
+				throw new Error();
+			});
+
+			// Act
+			const result = await service.getByTokenIdAndUserId({ tokenId, userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof SessionBaseError);
+		});
+	});
+
 	describe("revokeAllByUserId", () => {});
 	describe("revokeByTokenIdAndUserId", () => {});
 	describe("validate", () => {});
