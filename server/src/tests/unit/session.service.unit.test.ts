@@ -14,6 +14,7 @@ import {
 	generateMockInsertSession,
 	generateMockObjectId,
 	generateMockSelectSession,
+	generateMockSelectSessions,
 	mockSessionRepository,
 } from "../mocks/index.js";
 
@@ -179,7 +180,76 @@ suite("Session Service〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("getActiveByUserId", () => {});
+	describe("getActiveByUserId", () => {
+		it("Should return success with active sessions when repository resolves", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+			const expected = generateMockSelectSessions({ count: 2 });
+
+			mockRepo.getAllActiveByUserId.mock.mockImplementation(
+				async () => expected,
+			);
+
+			// Act
+			const result = await service.getActiveByUserId({ userId });
+
+			// Assert
+			assert.ok(result.success);
+			assert.deepStrictEqual(result.data, expected);
+
+			assert.strictEqual(mockRepo.getAllActiveByUserId.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRepo.getAllActiveByUserId.mock.calls[0].arguments[0].userId,
+				userId,
+			);
+		});
+
+		it("Should return SessionValidationError for invalid userId", async () => {
+			// Arrange
+			const userId = "invalid-objectid";
+
+			// Act
+			const result = await service.getActiveByUserId({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof SessionValidationError);
+
+			assert.strictEqual(mockRepo.getAllActiveByUserId.mock.callCount(), 0);
+		});
+
+		it("Should pass through BaseError from repository", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+
+			mockRepo.getAllActiveByUserId.mock.mockImplementation(() => {
+				throw new DatabaseQueryError("query");
+			});
+
+			// Act
+			const result = await service.getActiveByUserId({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseQueryError);
+		});
+
+		it("Should wrap unknown Error into SessionBaseError", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+			mockRepo.getAllActiveByUserId.mock.mockImplementation(() => {
+				throw new Error();
+			});
+
+			// Act
+			const result = await service.getActiveByUserId({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof SessionBaseError);
+		});
+	});
+
 	describe("getByTokenIdAndUserId", () => {});
 	describe("revokeAllByUserId", () => {});
 	describe("revokeByTokenIdAndUserId", () => {});
