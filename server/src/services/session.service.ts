@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import type { ISessionRepository } from "../repositories/session.repository.js";
 import type {
 	FailureResult,
@@ -18,7 +20,7 @@ import {
 } from "../errors/index.js";
 import { SessionRepository } from "../repositories/index.js";
 import { insertSessionSchema } from "../schemas/index.js";
-import { objectIdValidator } from "../validators/index.js";
+import { objectIdValidator, uuidValidator } from "../validators/index.js";
 
 export interface ISessionService {
 	create(args: InsertSession): Promise<SessionResult<SelectSession>>;
@@ -291,6 +293,28 @@ export class SessionService implements ISessionService {
 				success: false,
 			};
 		}
+		return { data: undefined, success: true };
+	}
+
+	private _validateTokenIdAndUserId(
+		tokenId: string,
+		userId: string,
+	): SessionResult<undefined> {
+		const argsValidationResult = z
+			.object({
+				tokenId: uuidValidator("tokenId"),
+				userId: objectIdValidator,
+			})
+			.safeParse({ tokenId, userId });
+		if (!argsValidationResult.success) {
+			return {
+				error: new SessionValidationError({
+					cause: argsValidationResult.error.errors,
+				}),
+				success: false,
+			};
+		}
+
 		return { data: undefined, success: true };
 	}
 
