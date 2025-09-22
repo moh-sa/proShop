@@ -10,7 +10,7 @@ export function generateMockInsertSession(
 	return {
 		expiresAt: faker.date.future(),
 		revokedAt: null,
-		tokenId: faker.internet.jwt(),
+		tokenId: faker.string.uuid(),
 		userId: generateMockObjectId(),
 		...options,
 	};
@@ -37,7 +37,7 @@ export function generateMockSelectSession(
 		expiresAt: faker.date.future(),
 		id: generateMockObjectId(),
 		revokedAt: null,
-		tokenId: faker.internet.jwt(),
+		tokenId: faker.string.uuid(),
 		updatedAt: faker.date.recent(),
 		userId: generateMockObjectId(),
 		...options,
