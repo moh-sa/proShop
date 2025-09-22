@@ -117,6 +117,14 @@ export class SessionService implements ISessionService {
 		tokenId: string;
 		userId: string;
 	}): Promise<SessionResult<SelectSession>> {
+		const argsValidationResult = this._validateTokenIdAndUserId(
+			args.tokenId,
+			args.userId,
+		);
+		if (!argsValidationResult.success) {
+			return argsValidationResult;
+		}
+
 		try {
 			const session = await this._repository.deleteByTokenIdAndUserId(args);
 			if (!session) {
@@ -161,6 +169,14 @@ export class SessionService implements ISessionService {
 		tokenId: string;
 		userId: string;
 	}): Promise<SessionResult<SelectSession>> {
+		const argsValidationResult = this._validateTokenIdAndUserId(
+			args.tokenId,
+			args.userId,
+		);
+		if (!argsValidationResult.success) {
+			return argsValidationResult;
+		}
+
 		try {
 			const session = await this._repository.getByTokenIdAndUserId({
 				tokenId: args.tokenId,
@@ -203,6 +219,14 @@ export class SessionService implements ISessionService {
 		tokenId: string;
 		userId: string;
 	}): Promise<SessionResult<SelectSession>> {
+		const argsValidationResult = this._validateTokenIdAndUserId(
+			args.tokenId,
+			args.userId,
+		);
+		if (!argsValidationResult.success) {
+			return argsValidationResult;
+		}
+
 		try {
 			const revokedSession =
 				await this._repository.revokeByTokenIdAndUserId(args);
@@ -230,6 +254,14 @@ export class SessionService implements ISessionService {
 		tokenId: string;
 		userId: string;
 	}): Promise<SessionResult<SelectSession>> {
+		const argsValidationResult = this._validateTokenIdAndUserId(
+			args.tokenId,
+			args.userId,
+		);
+		if (!argsValidationResult.success) {
+			return argsValidationResult;
+		}
+
 		try {
 			const session = await this._repository.getByTokenIdAndUserId(args);
 
