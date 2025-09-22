@@ -1,11 +1,13 @@
-import { describe, suite } from "node:test";
+import { beforeEach, describe, suite } from "node:test";
 
 import { SessionService } from "../../services/index.js";
-import { mockSessionService } from "../mocks/session-service.mock.js";
+import { mockSessionRepository } from "../mocks/index.js";
 
 suite("Session Service〖 Unit Tests 〗", { todo: "IMPLEMENT" }, () => {
-	const service = new SessionService(); // eslint-disable-line @typescript-eslint/no-unused-vars
-	const mockService = mockSessionService(); // eslint-disable-line @typescript-eslint/no-unused-vars
+	const mockRepo = mockSessionRepository();
+	const service = new SessionService(mockRepo); // eslint-disable-line @typescript-eslint/no-unused-vars
+
+	beforeEach(() => mockRepo.reset());
 
 	// I AM TIRED BOSS :')
 	describe("create", () => {});
