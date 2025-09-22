@@ -66,6 +66,11 @@ export class SessionService implements ISessionService {
 	public async create(
 		args: InsertSession,
 	): Promise<SessionResult<SelectSession>> {
+		const argsValidationResult = this._validateCreateArgs(args);
+		if (!argsValidationResult.success) {
+			return argsValidationResult;
+		}
+
 		try {
 			const session = await this._repository.create(args);
 
