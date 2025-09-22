@@ -3,6 +3,7 @@ import { beforeEach, describe, it, suite } from "node:test";
 
 import {
 	DatabaseDuplicateKeyError,
+	DatabaseNetworkError,
 	DatabaseQueryError,
 	DatabaseTimeoutError,
 	GenericDatabaseError,
@@ -414,6 +415,113 @@ suite("Session Service〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("revokeByTokenIdAndUserId", () => {});
+	describe("revokeByTokenIdAndUserId", () => {
+		it("Should return success with revoked session when repository resolves", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
+
+			const expected = generateMockSelectSession({ revokedAt: new Date() });
+
+			mockRepo.revokeByTokenIdAndUserId.mock.mockImplementation(
+				async () => expected,
+			);
+
+			// Act
+			const result = await service.revokeByTokenIdAndUserId({
+				tokenId,
+				userId,
+			});
+
+			// Assert
+			assert.ok(result.success);
+			assert.deepStrictEqual(result.data, expected);
+
+			assert.strictEqual(mockRepo.revokeByTokenIdAndUserId.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRepo.revokeByTokenIdAndUserId.mock.calls[0].arguments[0],
+				{ tokenId, userId },
+			);
+		});
+
+		it("Should return SessionValidationError for invalid args", async () => {
+			// Arrange
+			const userId = "invalid-objectid";
+			const tokenId = "invalid-uuid";
+
+			// Act
+			const result = await service.revokeByTokenIdAndUserId({
+				tokenId,
+				userId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof SessionValidationError);
+
+			assert.strictEqual(mockRepo.revokeByTokenIdAndUserId.mock.callCount(), 0);
+		});
+
+		it("Should return SessionNotFoundError when repository returns null", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
+
+			mockRepo.revokeByTokenIdAndUserId.mock.mockImplementation(
+				async () => null,
+			);
+
+			// Act
+			const result = await service.revokeByTokenIdAndUserId({
+				tokenId,
+				userId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof SessionNotFoundError);
+		});
+
+		it("Should pass through BaseError from repository", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
+
+			mockRepo.revokeByTokenIdAndUserId.mock.mockImplementation(() => {
+				throw new DatabaseNetworkError();
+			});
+
+			// Act
+			const result = await service.revokeByTokenIdAndUserId({
+				tokenId,
+				userId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseNetworkError);
+		});
+
+		it("Should wrap unknown Error into SessionBaseError", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
+
+			mockRepo.revokeByTokenIdAndUserId.mock.mockImplementation(() => {
+				throw new Error();
+			});
+
+			// Act
+			const result = await service.revokeByTokenIdAndUserId({
+				tokenId,
+				userId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof SessionBaseError);
+		});
+	});
+
 	describe("validate", () => {});
 });
