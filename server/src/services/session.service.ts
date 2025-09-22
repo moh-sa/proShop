@@ -18,6 +18,7 @@ import {
 } from "../errors/index.js";
 import { SessionRepository } from "../repositories/index.js";
 import { insertSessionSchema } from "../schemas/index.js";
+import { objectIdValidator } from "../validators/index.js";
 
 export interface ISessionService {
 	create(args: InsertSession): Promise<SessionResult<SelectSession>>;
@@ -271,6 +272,19 @@ export class SessionService implements ISessionService {
 			return {
 				error: new SessionValidationError({
 					cause: argsValidationResult.error.errors,
+				}),
+				success: false,
+			};
+		}
+		return { data: undefined, success: true };
+	}
+
+	private _validateUserId(userId: string): SessionResult<undefined> {
+		const userIdValidationResult = objectIdValidator.safeParse(userId);
+		if (!userIdValidationResult.success) {
+			return {
+				error: new SessionValidationError({
+					cause: userIdValidationResult.error.errors,
 				}),
 				success: false,
 			};
