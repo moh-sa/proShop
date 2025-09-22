@@ -4,6 +4,7 @@ import { beforeEach, describe, it, suite } from "node:test";
 import {
 	DatabaseDuplicateKeyError,
 	DatabaseQueryError,
+	DatabaseTimeoutError,
 	SessionAlreadyExistsError,
 	SessionBaseError,
 	SessionValidationError,
@@ -11,6 +12,7 @@ import {
 import { SessionService } from "../../services/index.js";
 import {
 	generateMockInsertSession,
+	generateMockObjectId,
 	generateMockSelectSession,
 	mockSessionRepository,
 } from "../mocks/index.js";
@@ -102,6 +104,74 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = await service.create(insertData);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof SessionBaseError);
+		});
+	});
+
+	describe("deleteAllByUserId", () => {
+		it("Should return success with deleted count when repository resolves", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+			const expected = 3;
+
+			mockRepo.deleteAllByUserId.mock.mockImplementation(async () => expected);
+
+			// Act
+			const result = await service.deleteAllByUserId({ userId });
+
+			// Assert
+			assert.ok(result.success);
+			assert.strictEqual(result.data, expected);
+
+			assert.strictEqual(mockRepo.deleteAllByUserId.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRepo.deleteAllByUserId.mock.calls[0].arguments[0],
+				{ userId },
+			);
+		});
+
+		it("Should return SessionValidationError for invalid userId", async () => {
+			// Arrange
+			const userId = "invalid-objectid";
+
+			// Act
+			const result = await service.deleteAllByUserId({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof SessionValidationError);
+
+			assert.strictEqual(mockRepo.deleteAllByUserId.mock.callCount(), 0);
+		});
+
+		it("Should pass through BaseError from repository", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+
+			mockRepo.deleteAllByUserId.mock.mockImplementation(() => {
+				throw new DatabaseTimeoutError();
+			});
+
+			// Act
+			const result = await service.deleteAllByUserId({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseTimeoutError);
+		});
+
+		it("Should map unknown Error into SessionBaseError", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+			mockRepo.deleteAllByUserId.mock.mockImplementation(() => {
+				throw new Error();
+			});
+
+			// Act
+			const result = await service.deleteAllByUserId({ userId });
 
 			// Assert
 			assert.strictEqual(result.success, false);
