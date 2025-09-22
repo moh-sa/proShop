@@ -5,6 +5,7 @@ import {
 	DatabaseDuplicateKeyError,
 	DatabaseQueryError,
 	DatabaseTimeoutError,
+	GenericDatabaseError,
 	SessionAlreadyExistsError,
 	SessionBaseError,
 	SessionNotFoundError,
@@ -345,7 +346,74 @@ suite("Session Service〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("revokeAllByUserId", () => {});
+	describe("revokeAllByUserId", () => {
+		it("Should return success with revoked count when repository resolves", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+			const expected = 5;
+
+			mockRepo.revokeAllByUserId.mock.mockImplementation(async () => expected);
+
+			// Act
+			const result = await service.revokeAllByUserId({ userId });
+
+			// Assert
+			assert.ok(result.success);
+			assert.strictEqual(result.data, expected);
+
+			assert.strictEqual(mockRepo.revokeAllByUserId.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRepo.revokeAllByUserId.mock.calls[0].arguments[0],
+				{ userId },
+			);
+		});
+
+		it("Should return SessionValidationError for invalid userId", async () => {
+			// Arrange
+			const userId = "invalid-objectid";
+
+			// Act
+			const result = await service.revokeAllByUserId({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof SessionValidationError);
+
+			assert.strictEqual(mockRepo.revokeAllByUserId.mock.callCount(), 0);
+		});
+
+		it("Should pass through BaseError from repository", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+			mockRepo.revokeAllByUserId.mock.mockImplementation(() => {
+				throw new GenericDatabaseError();
+			});
+
+			// Act
+			const result = await service.revokeAllByUserId({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof GenericDatabaseError);
+		});
+
+		it("Should wrap unknown Error into SessionBaseError", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+
+			mockRepo.revokeAllByUserId.mock.mockImplementation(() => {
+				throw new Error();
+			});
+
+			// Act
+			const result = await service.revokeAllByUserId({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof SessionBaseError);
+		});
+	});
+
 	describe("revokeByTokenIdAndUserId", () => {});
 	describe("validate", () => {});
 });
