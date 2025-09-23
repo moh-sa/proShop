@@ -8,6 +8,8 @@ import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 export function mockSessionService(): FunctionMocksWithReset<ISessionService> {
 	return {
 		create: mock.fn(),
+		deleteAllByUserId: mock.fn(),
+		deleteByTokenIdAndUserId: mock.fn(),
 		getActiveByUserId: mock.fn(),
 		getByTokenIdAndUserId: mock.fn(),
 		revokeAllByUserId: mock.fn(),
@@ -15,6 +17,8 @@ export function mockSessionService(): FunctionMocksWithReset<ISessionService> {
 		validate: mock.fn(),
 		reset() {
 			this.create.mock.resetCalls();
+			this.deleteAllByUserId.mock.resetCalls();
+			this.deleteByTokenIdAndUserId.mock.resetCalls();
 			this.getActiveByUserId.mock.resetCalls();
 			this.getByTokenIdAndUserId.mock.resetCalls();
 			this.revokeAllByUserId.mock.resetCalls();
@@ -22,6 +26,8 @@ export function mockSessionService(): FunctionMocksWithReset<ISessionService> {
 			this.validate.mock.resetCalls();
 
 			this.create.mock.restore();
+			this.deleteAllByUserId.mock.restore();
+			this.deleteByTokenIdAndUserId.mock.restore();
 			this.getActiveByUserId.mock.restore();
 			this.getByTokenIdAndUserId.mock.restore();
 			this.revokeAllByUserId.mock.restore();
