@@ -284,6 +284,99 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.error, error);
 		});
 	});
+
+	describe("revokeAllSessions", () => {
+		it("should return success with count when refresh token valid and revokeAllByUserId resolves", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+
+			mockJwt.verify.mock.mockImplementation(() => ({
+				data: mockDecodedToken,
+				success: true,
+			}));
+			mockSession.revokeAllByUserId.mock.mockImplementation(async () => ({
+				data: 3,
+				success: true,
+			}));
+
+			// Act
+			const result = await manager.revokeAllSessions({
+				refreshToken: mockRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, 3);
+
+			assert.strictEqual(mockSession.revokeAllByUserId.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockSession.revokeAllByUserId.mock.calls[0].arguments[0].userId,
+				mockDecodedToken.userId,
+			);
+		});
+
+		it("should return ValidationError when refresh token is missing", async () => {
+			// Arrange
+			const emptyRefreshToken = "";
+
+			// Act
+			const result = await manager.revokeAllSessions({
+				refreshToken: emptyRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		it("should bubble jwt.verify error", async () => {
+			// Arrange
+			const invalidRefreshToken = "invalid-jwt";
+			const error = new ValidationError("jwt");
+
+			mockJwt.verify.mock.mockImplementation(() => ({
+				error,
+				success: false,
+			}));
+
+			// Act
+			const result = await manager.revokeAllSessions({
+				refreshToken: invalidRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, error);
+		});
+
+		it("should bubble session.revokeAllByUserId error", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+
+			const error = new ValidationError("svc");
+
+			mockJwt.verify.mock.mockImplementation(() => ({
+				data: mockDecodedToken,
+				success: true,
+			}));
+			mockSession.revokeAllByUserId.mock.mockImplementation(async () => ({
+				error,
+				success: false,
+			}));
+
+			// Act
+			const result = await manager.revokeAllSessions({
+				refreshToken: mockRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, error);
+		});
+	});
+
 	describe("revokeSession", () => {});
 	describe("signIn", () => {});
 	describe("signOut", () => {});
