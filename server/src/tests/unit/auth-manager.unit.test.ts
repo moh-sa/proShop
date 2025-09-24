@@ -377,7 +377,104 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("revokeSession", () => {});
+	describe("revokeSession", () => {
+		it("should return success when refresh token valid and revokeByTokenIdAndUserId resolves", async () => {
+			// Arrange
+			const mockSelectSession = generateMockSelectSession();
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+
+			mockJwt.verify.mock.mockImplementation(() => ({
+				data: mockDecodedToken,
+				success: true,
+			}));
+			mockSession.revokeByTokenIdAndUserId.mock.mockImplementation(
+				async () => ({ data: mockSelectSession, success: true }),
+			);
+
+			// Act
+			const result = await manager.revokeSession({
+				refreshToken: mockRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, undefined);
+
+			assert.strictEqual(
+				mockSession.revokeByTokenIdAndUserId.mock.callCount(),
+				1,
+			);
+			assert.deepStrictEqual(
+				mockSession.revokeByTokenIdAndUserId.mock.calls[0].arguments[0].tokenId,
+				mockDecodedToken.tokenId,
+			);
+			assert.deepStrictEqual(
+				mockSession.revokeByTokenIdAndUserId.mock.calls[0].arguments[0].userId,
+				mockDecodedToken.userId,
+			);
+		});
+
+		it("should return ValidationError when refresh token is missing", async () => {
+			// Arrange
+			const emptyRefreshToken = "";
+
+			// Act
+			const result = await manager.revokeSession({
+				refreshToken: emptyRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		it("should bubble jwt.verify error", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const error = new ValidationError("jwt");
+
+			mockJwt.verify.mock.mockImplementation(() => ({
+				error,
+				success: false,
+			}));
+
+			// Act
+			const result = await manager.revokeSession({
+				refreshToken: mockRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, error);
+		});
+
+		it("should bubble session.revokeByTokenIdAndUserId error", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+
+			const error = new ValidationError("svc");
+
+			mockJwt.verify.mock.mockImplementation(() => ({
+				data: mockDecodedToken,
+				success: true,
+			}));
+			mockSession.revokeByTokenIdAndUserId.mock.mockImplementation(
+				async () => ({ error, success: false }),
+			);
+
+			// Act
+			const result = await manager.revokeSession({
+				refreshToken: mockRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, error);
+		});
+	});
+
 	describe("signIn", () => {});
 	describe("signOut", () => {});
 	describe("signOutAll", () => {});
