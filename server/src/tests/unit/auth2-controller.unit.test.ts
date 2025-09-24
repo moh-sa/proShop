@@ -172,7 +172,164 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("signIn", () => {});
+	describe("signIn", () => {
+		it("should authenticate user and return 200 with user data", async () => {
+			// Arrange
+			const mockTokens = generateMockTokenPairWithData();
+
+			const mockInsertUser = generateMockInsertUser();
+			const { email, password } = mockInsertUser;
+			const { password: _, ...safeUser } =
+				generateMockSelectUser(mockInsertUser);
+
+			const { next, req, res } = createMockExpressContext();
+			req.body = { email, password };
+
+			mockManager.signIn.mock.mockImplementation(async () => ({
+				data: {
+					sessionId: "session-id",
+					tokens: mockTokens,
+					user: safeUser,
+				},
+				success: true,
+			}));
+			mockCookie.set.mock.mockImplementation(() => ({
+				data: undefined,
+				success: true,
+			}));
+
+			// Act
+			await controller.signIn(req, res, next);
+
+			// Assert
+			const responseData = res._getJSONData();
+			const expectedUserData = JSON.parse(JSON.stringify(safeUser));
+
+			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.OK);
+			assert.ok(responseData.success);
+			assert.deepStrictEqual(responseData.data.user, expectedUserData);
+		});
+
+		it("should set both access and refresh tokens as cookies after signin", async () => {
+			// Arrange
+			const mockTokens = generateMockTokenPairWithData();
+
+			const mockInsertUser = generateMockInsertUser();
+			const { email, password } = mockInsertUser;
+			const { password: _, ...safeUser } =
+				generateMockSelectUser(mockInsertUser);
+
+			const { next, req, res } = createMockExpressContext();
+			req.body = { email, password };
+
+			mockManager.signIn.mock.mockImplementation(async () => ({
+				data: {
+					sessionId: "session-id",
+					tokens: mockTokens,
+					user: safeUser,
+				},
+				success: true,
+			}));
+			mockCookie.set.mock.mockImplementation(() => ({
+				data: undefined,
+				success: true,
+			}));
+
+			// Act
+			await controller.signIn(req, res, next);
+
+			// Assert
+			const expectedCookieSetCount = 2;
+			assert.strictEqual(
+				mockCookie.set.mock.callCount(),
+				expectedCookieSetCount,
+			);
+
+			const accessTokenCall = mockCookie.set.mock.calls[0].arguments[0];
+			assert.strictEqual(accessTokenCall.item.name, CookieName.ACCESS_TOKEN);
+			assert.strictEqual(accessTokenCall.item.value, mockTokens.access.token);
+
+			const refreshTokenCall = mockCookie.set.mock.calls[1].arguments[0];
+			assert.strictEqual(refreshTokenCall.item.name, CookieName.REFRESH_TOKEN);
+			assert.strictEqual(refreshTokenCall.item.value, mockTokens.refresh.token);
+		});
+
+		it("should configure access token as non-httpOnly and refresh token as httpOnly", async () => {
+			// Arrange
+			const mockTokens = generateMockTokenPairWithData();
+
+			const mockInsertUser = generateMockInsertUser();
+			const { email, password } = mockInsertUser;
+			const { password: _, ...safeUser } =
+				generateMockSelectUser(mockInsertUser);
+
+			const { next, req, res } = createMockExpressContext();
+			req.body = { email, password };
+
+			mockManager.signIn.mock.mockImplementation(async () => ({
+				data: {
+					sessionId: "session-id",
+					tokens: mockTokens,
+					user: safeUser,
+				},
+				success: true,
+			}));
+			mockCookie.set.mock.mockImplementation(() => ({
+				data: undefined,
+				success: true,
+			}));
+
+			// Act
+			await controller.signIn(req, res, next);
+
+			// Assert
+			const accessTokenCall = mockCookie.set.mock.calls[0].arguments[0];
+			const refreshTokenCall = mockCookie.set.mock.calls[1].arguments[0];
+
+			assert.ok(accessTokenCall.options);
+			assert.strictEqual(accessTokenCall.options.httpOnly, false);
+
+			assert.ok(refreshTokenCall.options);
+			assert.strictEqual(refreshTokenCall.options.httpOnly, true);
+		});
+
+		it("should throw ZodError when email is missing", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			const invalidCredentials = { email: "invalid-email" };
+			req.body = invalidCredentials;
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.signIn(req, res, next),
+				ZodError,
+			);
+			assert.strictEqual(mockManager.signIn.mock.callCount(), 0);
+		});
+
+		it("should throw manager error and prevent cookie setting", async () => {
+			// Arrange
+			const { email, password } = generateMockInsertUser();
+
+			const { next, req, res } = createMockExpressContext();
+			req.body = { email, password };
+
+			const error = new Error("signin failed");
+			mockManager.signIn.mock.mockImplementation(async () => ({
+				error,
+				success: false,
+			}));
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.signIn(req, res, next),
+				error,
+			);
+
+			assert.strictEqual(mockCookie.set.mock.callCount(), 0);
+		});
+	});
+
 	describe("signOut", () => {});
 	describe("signOutAll", () => {});
 	describe("refreshAccessToken", () => {});
