@@ -8,6 +8,7 @@ export function mockAuthManager(): FunctionMocksWithReset<IAuthManager> {
 	return {
 		getUserSessions: mock.fn(),
 		refreshAccessToken: mock.fn(),
+		revokeAllSessions: mock.fn(),
 		revokeSession: mock.fn(),
 		signIn: mock.fn(),
 		signOut: mock.fn(),
@@ -16,6 +17,7 @@ export function mockAuthManager(): FunctionMocksWithReset<IAuthManager> {
 		reset() {
 			this.getUserSessions.mock.resetCalls();
 			this.refreshAccessToken.mock.resetCalls();
+			this.revokeAllSessions.mock.resetCalls();
 			this.revokeSession.mock.resetCalls();
 			this.signIn.mock.resetCalls();
 			this.signOut.mock.resetCalls();
@@ -24,6 +26,7 @@ export function mockAuthManager(): FunctionMocksWithReset<IAuthManager> {
 
 			this.getUserSessions.mock.restore();
 			this.refreshAccessToken.mock.restore();
+			this.revokeAllSessions.mock.restore();
 			this.revokeSession.mock.restore();
 			this.signIn.mock.restore();
 			this.signOut.mock.restore();
