@@ -3,14 +3,20 @@ import { beforeEach, describe, it, suite } from "node:test";
 
 import type { TokenResult } from "../../types/index.js";
 
-import { ValidationError } from "../../errors/index.js";
+import {
+	InvalidCredentialsError,
+	ValidationError,
+} from "../../errors/index.js";
 import { AuthManager } from "../../managers/auth.manager.js";
 import { TokenType } from "../../types/index.js";
 import {
+	generateMockInsertUser,
 	generateMockJwt,
 	generateMockSelectSession,
 	generateMockSelectSessions,
+	generateMockSelectUser,
 	generateMockTokenDecoded,
+	generateMockTokenPairWithData,
 	generateMockTokenWithData,
 	mockJwtService,
 	mockPasswordService,
@@ -475,7 +481,137 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("signIn", () => {});
+	describe("signIn", () => {
+		it("should return ValidationError when email is missing", async () => {
+			// Arrange
+			const mockUserEmptyEmail = generateMockInsertUser({ email: "" });
+			// Act
+			const result = await manager.signIn(mockUserEmptyEmail);
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		it("should return ValidationError when password is missing", async () => {
+			// Arrange
+			const mockUserEmptyPassword = generateMockInsertUser({ password: "" });
+			// Act
+			const result = await manager.signIn(mockUserEmptyPassword);
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		it("should return InvalidCredentialsError when user is not found by email", async () => {
+			// Arrange
+			const mockInsertUser = generateMockInsertUser();
+
+			mockUser.getByEmail_UNSAFE.mock.mockImplementation(
+				// @ts-expect-error - mock implementation
+				async () => null,
+			);
+
+			// Act
+			const result = await manager.signIn({
+				email: mockInsertUser.email,
+				password: mockInsertUser.password,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof InvalidCredentialsError);
+
+			assert.strictEqual(mockPassword.verify.mock.callCount(), 0);
+		});
+
+		it("should return InvalidCredentialsError when password verification fails", async () => {
+			// Arrange
+			const mockInsertUser = generateMockInsertUser();
+			const mockSelectUser = generateMockSelectUser(mockInsertUser);
+			const error = new ValidationError("invalid-password");
+
+			mockUser.getByEmail_UNSAFE.mock.mockImplementation(
+				async () => mockSelectUser,
+			);
+			mockPassword.verify.mock.mockImplementation(async () => ({
+				error,
+				success: false,
+			}));
+
+			// Act
+			const result = await manager.signIn({
+				email: mockInsertUser.email,
+				password: mockInsertUser.password,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof InvalidCredentialsError);
+		});
+
+		it("should return success with tokens, sessionId and sanitized user when credentials are valid", async () => {
+			// Arrange
+			const mockInsertUser = generateMockInsertUser();
+			const mockSelectUser = generateMockSelectUser(mockInsertUser);
+			const mockTokenPair = generateMockTokenPairWithData();
+
+			const session = generateMockSelectSession({
+				expiresAt: mockTokenPair.refresh.expiresAt,
+				tokenId: mockTokenPair.refresh.tokenId,
+				userId: mockSelectUser._id,
+			});
+
+			mockUser.getByEmail_UNSAFE.mock.mockImplementation(
+				async () => mockSelectUser,
+			);
+
+			mockPassword.verify.mock.mockImplementation(async () => ({
+				data: undefined,
+				success: true,
+			}));
+
+			mockUser.sanitizeUser.mock.mockImplementationOnce(() => mockSelectUser);
+
+			mockJwt.generateTokenPair.mock.mockImplementation(() => ({
+				data: mockTokenPair,
+				success: true,
+			}));
+
+			mockSession.create.mock.mockImplementation(async () => ({
+				data: session,
+				success: true,
+			}));
+
+			// Act
+			const result = await manager.signIn({
+				email: mockInsertUser.email,
+				password: mockInsertUser.password,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.sessionId, session.id.toString());
+			assert.deepStrictEqual(result.data.tokens, mockTokenPair);
+			assert.deepStrictEqual(result.data.user, mockSelectUser);
+
+			assert.strictEqual(mockJwt.generateTokenPair.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockJwt.generateTokenPair.mock.calls[0].arguments[0].userId,
+				mockSelectUser._id.toString(),
+			);
+
+			assert.strictEqual(mockSession.create.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockSession.create.mock.calls[0].arguments[0].tokenId,
+				mockTokenPair.refresh.tokenId,
+			);
+			assert.deepStrictEqual(
+				mockSession.create.mock.calls[0].arguments[0].userId,
+				mockSelectUser._id,
+			);
+		});
+	});
+
 	describe("signOut", () => {});
 	describe("signOutAll", () => {});
 	describe("signUp", () => {});
