@@ -1,27 +1,24 @@
 import { beforeEach, describe, suite } from "node:test";
 
 import { Auth2Controller } from "../../controllers/auth2.controller.js";
-import { mockAuthManager } from "../mocks/index.js";
+import { mockAuthManager, mockCookieService } from "../mocks/index.js";
 
-suite(
-	"Auth Controller (v2)〖 Unit Tests 〗",
-	{ skip: true, todo: "IMPLEMENT" },
-	() => {
-		const mockManager = mockAuthManager();
-		const controller = new Auth2Controller(mockManager); // eslint-disable-line @typescript-eslint/no-unused-vars
+suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
+	const mockManager = mockAuthManager();
+	const mockCookie = mockCookieService();
+	const controller = new Auth2Controller(mockManager, mockCookie as any);
 
-		beforeEach(() => {
-			mockManager.reset();
-		});
+	beforeEach(() => {
+		mockManager.reset();
+		mockCookie.reset();
+	});
 
-		// I AM TIRED BOSS :')
-		describe("signUp", () => {});
-		describe("signIn", () => {});
-		describe("signOut", () => {});
-		describe("signOutAll", () => {});
-		describe("refreshAccessToken", () => {});
-		describe("getUserSessions", () => {});
-		describe("revokeSession", () => {});
-		describe("revokeAllSessions", () => {});
-	},
-);
+	describe("signUp", () => {});
+	describe("signIn", () => {});
+	describe("signOut", () => {});
+	describe("signOutAll", () => {});
+	describe("refreshAccessToken", () => {});
+	describe("getUserSessions", () => {});
+	describe("revokeSession", () => {});
+	describe("revokeAllSessions", () => {});
+});
