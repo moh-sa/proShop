@@ -8,6 +8,7 @@ import { TokenType } from "../../types/index.js";
 import {
 	generateMockInsertUser,
 	generateMockJwt,
+	generateMockSelectSessions,
 	generateMockSelectUser,
 	generateMockTokenPairWithData,
 	generateMockTokenWithData,
@@ -753,7 +754,124 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("getUserSessions", () => {});
+	describe("getUserSessions", () => {
+		it("should get user sessions and return 200", async () => {
+			// Arrange
+			const mockSessions = generateMockSelectSessions({ count: 3 });
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+
+			const { next, req, res } = createMockExpressContext();
+
+			mockCookie.get.mock.mockImplementation(() => ({
+				data: mockRefreshToken,
+				success: true,
+			}));
+			mockManager.getUserSessions.mock.mockImplementation(async () => ({
+				data: mockSessions,
+				success: true,
+			}));
+
+			// Act
+			await controller.getUserSessions(req, res, next);
+
+			// Assert
+			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.OK);
+		});
+
+		it("should return sessions data in response body", async () => {
+			// Arrange
+			const mockSessions = generateMockSelectSessions({ count: 3 });
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+
+			const { next, req, res } = createMockExpressContext();
+
+			mockCookie.get.mock.mockImplementation(() => ({
+				data: mockRefreshToken,
+				success: true,
+			}));
+			mockManager.getUserSessions.mock.mockImplementation(async () => ({
+				data: mockSessions,
+				success: true,
+			}));
+
+			// Act
+			await controller.getUserSessions(req, res, next);
+
+			// Assert
+			const responseData = res._getJSONData();
+			const expectedSessions = JSON.parse(JSON.stringify(mockSessions));
+
+			assert.ok(responseData.success);
+			assert.deepStrictEqual(responseData.data.sessions, expectedSessions);
+		});
+
+		it("should not modify any cookies during session retrieval", async () => {
+			// Arrange
+			const mockSessions = generateMockSelectSessions({ count: 3 });
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+
+			const { next, req, res } = createMockExpressContext();
+			mockCookie.get.mock.mockImplementation(() => ({
+				data: mockRefreshToken,
+				success: true,
+			}));
+			mockManager.getUserSessions.mock.mockImplementation(async () => ({
+				data: mockSessions,
+				success: true,
+			}));
+
+			// Act
+			await controller.getUserSessions(req, res, next);
+
+			// Assert
+			assert.strictEqual(mockCookie.set.mock.callCount(), 0);
+			assert.strictEqual(mockCookie.delete.mock.callCount(), 0);
+		});
+
+		it("should throw when refresh cookie is missing/invalid", async () => {
+			// Arrange
+			const error = new Error("no cookie");
+
+			const { next, req, res } = createMockExpressContext();
+
+			mockCookie.get.mock.mockImplementation(
+				// @ts-expect-error - test case
+				() => ({ error, success: false }),
+			);
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.getUserSessions(req, res, next),
+				error,
+			);
+
+			assert.strictEqual(mockManager.getUserSessions.mock.callCount(), 0);
+		});
+
+		it("should throw when manager fails", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const error = new Error("x");
+
+			const { next, req, res } = createMockExpressContext();
+
+			mockCookie.get.mock.mockImplementation(() => ({
+				data: mockRefreshToken,
+				success: true,
+			}));
+			mockManager.getUserSessions.mock.mockImplementation(async () => ({
+				error,
+				success: false,
+			}));
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.getUserSessions(req, res, next),
+				error,
+			);
+		});
+	});
+
 	describe("revokeSession", () => {});
 	describe("revokeAllSessions", () => {});
 });
