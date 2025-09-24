@@ -10,6 +10,7 @@ import {
 	generateMockJwt,
 	generateMockSelectUser,
 	generateMockTokenPairWithData,
+	generateMockTokenWithData,
 	mockAuthManager,
 	mockCookieService,
 } from "../mocks/index.js";
@@ -599,7 +600,159 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("refreshAccessToken", () => {});
+	describe("refreshAccessToken", () => {
+		it("should refresh access token and return 200", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const { exp: expiresAt, token } = generateMockTokenWithData(
+				TokenType.ACCESS,
+			);
+
+			const { next, req, res } = createMockExpressContext();
+
+			mockCookie.get.mock.mockImplementation(() => ({
+				data: mockRefreshToken,
+				success: true,
+			}));
+			mockManager.refreshAccessToken.mock.mockImplementation(async () => ({
+				data: { expiresAt: new Date(expiresAt * 1000), token },
+				success: true,
+			}));
+			mockCookie.set.mock.mockImplementation(() => ({
+				data: undefined,
+				success: true,
+			}));
+
+			// Act
+			await controller.refreshAccessToken(req, res, next);
+
+			// Assert
+			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.OK);
+		});
+
+		it("should set only access token cookie (not refresh token)", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const { exp: expiresAt, token } = generateMockTokenWithData(
+				TokenType.ACCESS,
+			);
+			const mockNewAccessToken = {
+				expiresAt: new Date(expiresAt * 1000),
+				token,
+			};
+
+			const { next, req, res } = createMockExpressContext();
+
+			mockCookie.get.mock.mockImplementation(() => ({
+				data: mockRefreshToken,
+				success: true,
+			}));
+			mockManager.refreshAccessToken.mock.mockImplementation(async () => ({
+				data: mockNewAccessToken,
+				success: true,
+			}));
+			mockCookie.set.mock.mockImplementation(() => ({
+				data: undefined,
+				success: true,
+			}));
+
+			// Act
+			await controller.refreshAccessToken(req, res, next);
+
+			// Assert
+			const expectedCookieSetCount = 1;
+			assert.strictEqual(
+				mockCookie.set.mock.callCount(),
+				expectedCookieSetCount,
+			);
+
+			const accessTokenCall = mockCookie.set.mock.calls[0].arguments[0];
+			assert.strictEqual(accessTokenCall.item.name, CookieName.ACCESS_TOKEN);
+			assert.strictEqual(accessTokenCall.item.value, mockNewAccessToken.token);
+		});
+
+		it("should configure access token cookie as non-httpOnly", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const { exp: expiresAt, token } = generateMockTokenWithData(
+				TokenType.ACCESS,
+			);
+			const mockNewAccessToken = {
+				expiresAt: new Date(expiresAt * 1000),
+				token,
+			};
+
+			const { next, req, res } = createMockExpressContext();
+
+			mockCookie.get.mock.mockImplementation(() => ({
+				data: mockRefreshToken,
+				success: true,
+			}));
+			mockManager.refreshAccessToken.mock.mockImplementation(async () => ({
+				data: mockNewAccessToken,
+				success: true,
+			}));
+			mockCookie.set.mock.mockImplementation(() => ({
+				data: undefined,
+				success: true,
+			}));
+
+			// Act
+			await controller.refreshAccessToken(req, res, next);
+
+			// Assert
+			const accessTokenCall = mockCookie.set.mock.calls[0].arguments[0];
+			assert.ok(accessTokenCall.options);
+			assert.strictEqual(accessTokenCall.options.httpOnly, false);
+		});
+
+		it("should throw when refresh cookie is missing/invalid", async () => {
+			// Arrange
+			const error = new Error("no cookie");
+
+			const { next, req, res } = createMockExpressContext();
+
+			mockCookie.get.mock.mockImplementation(
+				// @ts-expect-error - test case
+				() => ({ error, success: false }),
+			);
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.refreshAccessToken(req, res, next),
+				error,
+			);
+
+			assert.strictEqual(mockManager.refreshAccessToken.mock.callCount(), 0);
+			assert.strictEqual(mockCookie.set.mock.callCount(), 0);
+		});
+
+		it("should throw when manager fails and prevent cookie setting", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const error = new Error("x");
+
+			const { next, req, res } = createMockExpressContext();
+
+			mockCookie.get.mock.mockImplementation(() => ({
+				data: mockRefreshToken,
+				success: true,
+			}));
+			mockManager.refreshAccessToken.mock.mockImplementation(async () => ({
+				error,
+				success: false,
+			}));
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.refreshAccessToken(req, res, next),
+				error,
+			);
+
+			assert.strictEqual(mockCookie.set.mock.callCount(), 0);
+		});
+	});
+
 	describe("getUserSessions", () => {});
 	describe("revokeSession", () => {});
 	describe("revokeAllSessions", () => {});
