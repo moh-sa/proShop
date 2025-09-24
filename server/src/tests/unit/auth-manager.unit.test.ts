@@ -711,6 +711,100 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("signOutAll", () => {});
+	describe("signOutAll", () => {
+		it("should return success with deleted count when deleteAllByUserId resolves", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const expectedDeletedSessions = 5;
+
+			mockJwt.verify.mock.mockImplementation(() => ({
+				data: mockDecodedToken,
+				success: true,
+			}));
+
+			mockSession.deleteAllByUserId.mock.mockImplementation(async () => ({
+				data: expectedDeletedSessions,
+				success: true,
+			}));
+
+			// Act
+			const result = await manager.signOutAll({
+				refreshToken: mockRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, expectedDeletedSessions);
+
+			assert.strictEqual(mockSession.deleteAllByUserId.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockSession.deleteAllByUserId.mock.calls[0].arguments[0].userId,
+				mockDecodedToken.userId,
+			);
+		});
+
+		it("should return ValidationError when refresh token is missing", async () => {
+			// Arrange
+			const emptyRefreshToken = "";
+
+			// Act
+			const result = await manager.signOutAll({
+				refreshToken: emptyRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		it("should bubble jwt.verify error", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+
+			const error = new ValidationError("jwt");
+
+			mockJwt.verify.mock.mockImplementation(() => ({
+				error,
+				success: false,
+			}));
+
+			// Act
+			const result = await manager.signOutAll({
+				refreshToken: mockRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, error);
+		});
+
+		it("should bubble session.deleteAllByUserId error", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+
+			const error = new ValidationError("svc");
+
+			mockJwt.verify.mock.mockImplementation(() => ({
+				data: mockDecodedToken,
+				success: true,
+			}));
+			mockSession.deleteAllByUserId.mock.mockImplementation(async () => ({
+				error,
+				success: false,
+			}));
+
+			// Act
+			const result = await manager.signOutAll({
+				refreshToken: mockRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, error);
+		});
+	});
+
 	describe("signUp", () => {});
 });
