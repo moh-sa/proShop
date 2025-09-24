@@ -612,7 +612,105 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("signOut", () => {});
+	describe("signOut", () => {
+		it("should return success when deleteByTokenIdAndUserId resolves", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+
+			mockJwt.verify.mock.mockImplementation(() => ({
+				data: mockDecodedToken,
+				success: true,
+			}));
+
+			mockSession.deleteByTokenIdAndUserId.mock.mockImplementation(
+				async () => ({ data: generateMockSelectSession(), success: true }),
+			);
+
+			// Act
+			const result = await manager.signOut({
+				refreshToken: mockRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, undefined);
+
+			assert.strictEqual(
+				mockSession.deleteByTokenIdAndUserId.mock.callCount(),
+				1,
+			);
+			assert.deepStrictEqual(
+				mockSession.deleteByTokenIdAndUserId.mock.calls[0].arguments[0].tokenId,
+				mockDecodedToken.tokenId,
+			);
+			assert.deepStrictEqual(
+				mockSession.deleteByTokenIdAndUserId.mock.calls[0].arguments[0].userId,
+				mockDecodedToken.userId,
+			);
+		});
+
+		it("should return ValidationError when refresh token is missing", async () => {
+			// Arrange
+			const emptyRefreshToken = "";
+
+			// Act
+			const result = await manager.signOut({
+				refreshToken: emptyRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		it("should bubble jwt.verify error", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+
+			const error = new ValidationError("jwt");
+
+			mockJwt.verify.mock.mockImplementation(() => ({
+				error,
+				success: false,
+			}));
+
+			// Act
+			const result = await manager.signOut({
+				refreshToken: mockRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, error);
+		});
+
+		it("should bubble session.deleteByTokenIdAndUserId error", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+
+			const error = new ValidationError("svc");
+
+			mockJwt.verify.mock.mockImplementation(() => ({
+				data: mockDecodedToken,
+				success: true,
+			}));
+			mockSession.deleteByTokenIdAndUserId.mock.mockImplementation(
+				async () => ({ error, success: false }),
+			);
+
+			// Act
+			const result = await manager.signOut({
+				refreshToken: mockRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, error);
+		});
+	});
+
 	describe("signOutAll", () => {});
 	describe("signUp", () => {});
 });
