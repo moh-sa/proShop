@@ -4,6 +4,7 @@ import { beforeEach, describe, it, suite } from "node:test";
 import type { TokenResult } from "../../types/index.js";
 
 import {
+	ConflictError,
 	InvalidCredentialsError,
 	ValidationError,
 } from "../../errors/index.js";
@@ -806,5 +807,154 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("signUp", () => {});
+	describe("signUp", () => {
+		it("should return ValidationError when email is missing", async () => {
+			// Arrange
+			const mockUserEmptyEmail = generateMockInsertUser({ email: "" });
+			// Act
+			const result = await manager.signUp(mockUserEmptyEmail);
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		it("should return ValidationError when password is missing", async () => {
+			// Arrange
+			const mockUserEmptyPassword = generateMockInsertUser({ password: "" });
+			// Act
+			const result = await manager.signUp(mockUserEmptyPassword);
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		it("should return ValidationError when name is missing", async () => {
+			// Arrange
+			const mockUserEmptyName = generateMockInsertUser({ name: "" });
+			// Act
+			const result = await manager.signUp(mockUserEmptyName);
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		it("should return ConflictError when user already exists by email", async () => {
+			// Arrange
+			const mockInsertUser = generateMockInsertUser();
+			const mockSelectUser = generateMockSelectUser(mockInsertUser);
+
+			mockUser.existsByEmail.mock.mockImplementation(async () => ({
+				_id: mockSelectUser._id,
+			}));
+
+			// Act
+			const result = await manager.signUp(mockInsertUser);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ConflictError);
+
+			assert.strictEqual(mockPassword.hash.mock.callCount(), 0);
+		});
+
+		it("should bubble password.hash error", async () => {
+			// Arrange
+			const mockInsertUser = generateMockInsertUser();
+			const error = new ValidationError("hash");
+
+			mockUser.existsByEmail.mock.mockImplementation(async () => null);
+			mockPassword.hash.mock.mockImplementation(async () => ({
+				error,
+				success: false,
+			}));
+
+			// Act
+			const result = await manager.signUp(mockInsertUser);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, error);
+		});
+
+		it("should return success with tokens, session and user when created successfully", async () => {
+			// Arrange
+			const mockInsertUser = generateMockInsertUser();
+			const mockSelectUser = generateMockSelectUser(mockInsertUser);
+			const mockTokenPair = generateMockTokenPairWithData();
+
+			const session = generateMockSelectSession({
+				expiresAt: mockTokenPair.refresh.expiresAt,
+				tokenId: mockTokenPair.refresh.tokenId,
+				userId: mockSelectUser._id,
+			});
+
+			mockUser.existsByEmail.mock.mockImplementation(async () => null);
+			mockUser.create.mock.mockImplementation(async () => mockSelectUser);
+
+			mockPassword.hash.mock.mockImplementation(async () => ({
+				data: mockInsertUser.password,
+				success: true,
+			}));
+
+			mockJwt.generateTokenPair.mock.mockImplementation(() => ({
+				data: mockTokenPair,
+				success: true,
+			}));
+
+			mockSession.create.mock.mockImplementation(async () => ({
+				data: session,
+				success: true,
+			}));
+
+			// Act
+			const result = await manager.signUp(mockInsertUser);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.sessionId, session.id.toString());
+			assert.deepStrictEqual(result.data.tokens, mockTokenPair);
+			assert.deepStrictEqual(result.data.user, mockSelectUser);
+
+			assert.strictEqual(mockUser.create.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockUser.create.mock.calls[0].arguments[0],
+				mockInsertUser,
+			);
+
+			assert.strictEqual(mockJwt.generateTokenPair.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockJwt.generateTokenPair.mock.calls[0].arguments[0].userId,
+				mockSelectUser._id.toString(),
+			);
+
+			assert.strictEqual(mockSession.create.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockSession.create.mock.calls[0].arguments[0].tokenId,
+				mockTokenPair.refresh.tokenId,
+			);
+		});
+
+		it("should bubble user.create error", async () => {
+			// Arrange
+			const mockInsertUser = generateMockInsertUser();
+			const error = new ValidationError("user creation failed");
+
+			mockUser.existsByEmail.mock.mockImplementation(async () => null);
+
+			mockPassword.hash.mock.mockImplementation(async () => ({
+				data: mockInsertUser.password,
+				success: true,
+			}));
+
+			mockUser.create.mock.mockImplementation(async () => {
+				throw error;
+			});
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await manager.signUp(mockInsertUser),
+				ValidationError,
+			);
+		});
+	});
 });
