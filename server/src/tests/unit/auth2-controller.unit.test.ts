@@ -465,7 +465,140 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("signOutAll", () => {});
+	describe("signOutAll", () => {
+		it("should sign out all sessions and return removed count", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRemovedCount = 3;
+
+			const { next, req, res } = createMockExpressContext();
+
+			mockCookie.get.mock.mockImplementation(() => ({
+				data: mockRefreshToken,
+				success: true,
+			}));
+			mockManager.signOutAll.mock.mockImplementation(async () => ({
+				data: mockRemovedCount,
+				success: true,
+			}));
+			mockCookie.delete.mock.mockImplementation(() => ({
+				data: undefined,
+				success: true,
+			}));
+
+			// Act
+			await controller.signOutAll(req, res, next);
+
+			// Assert
+			assert.strictEqual(mockManager.signOutAll.mock.callCount(), 1);
+		});
+
+		it("should clear both access and refresh token cookies", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+
+			const { next, req, res } = createMockExpressContext();
+
+			mockCookie.get.mock.mockImplementation(() => ({
+				data: mockRefreshToken,
+				success: true,
+			}));
+			mockManager.signOutAll.mock.mockImplementation(async () => ({
+				data: 3,
+				success: true,
+			}));
+			mockCookie.delete.mock.mockImplementation(() => ({
+				data: undefined,
+				success: true,
+			}));
+
+			// Act
+			await controller.signOutAll(req, res, next);
+
+			// Assert
+			const expectedCookieDeleteCount = 2;
+			assert.strictEqual(
+				mockCookie.delete.mock.callCount(),
+				expectedCookieDeleteCount,
+			);
+		});
+
+		it("should return 200 with removed count in meta", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRemovedCount = 3;
+
+			const { next, req, res } = createMockExpressContext();
+
+			mockCookie.get.mock.mockImplementation(() => ({
+				data: mockRefreshToken,
+				success: true,
+			}));
+			mockManager.signOutAll.mock.mockImplementation(async () => ({
+				data: mockRemovedCount,
+				success: true,
+			}));
+			mockCookie.delete.mock.mockImplementation(() => ({
+				data: undefined,
+				success: true,
+			}));
+
+			// Act
+			await controller.signOutAll(req, res, next);
+
+			// Assert
+			const responseData = res._getJSONData();
+			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.OK);
+			assert.ok(responseData.success);
+			assert.strictEqual(responseData.meta.removedCount, mockRemovedCount);
+		});
+
+		it("should throw when refresh cookie is missing/invalid", async () => {
+			// Arrange
+			const error = new Error("no cookie");
+
+			const { next, req, res } = createMockExpressContext();
+			mockCookie.get.mock.mockImplementation(
+				// @ts-expect-error - test case
+				() => ({ error, success: false }),
+			);
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.signOutAll(req, res, next),
+				error,
+			);
+
+			assert.strictEqual(mockManager.signOutAll.mock.callCount(), 0);
+			assert.strictEqual(mockCookie.delete.mock.callCount(), 0);
+		});
+
+		it("should throw when manager fails and prevent cookie deletion", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const error = new Error("Sign out all failed");
+
+			const { next, req, res } = createMockExpressContext();
+
+			mockCookie.get.mock.mockImplementation(() => ({
+				data: mockRefreshToken,
+				success: true,
+			}));
+			mockManager.signOutAll.mock.mockImplementation(async () => ({
+				error,
+				success: false,
+			}));
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.signOutAll(req, res, next),
+				error,
+			);
+
+			assert.strictEqual(mockCookie.delete.mock.callCount(), 0);
+		});
+	});
+
 	describe("refreshAccessToken", () => {});
 	describe("getUserSessions", () => {});
 	describe("revokeSession", () => {});
