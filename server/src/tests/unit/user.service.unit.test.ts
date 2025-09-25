@@ -427,4 +427,56 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 		});
 	});
+
+	describe("getByEmail_UNSAFE", () => {
+		test("Should return 'full user object' including password when user exists", async () => {
+			// Arrange
+			const mockUser = generateMockSelectUser();
+			const email = mockUser.email;
+
+			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
+				Promise.resolve(mockUser),
+			);
+
+			// Act
+			const user = await service.getByEmail_UNSAFE({ email });
+
+			// Assert
+			assert.ok(user);
+			assert.deepStrictEqual(user, mockUser);
+			assert.ok(user.password); // Ensure password is included
+
+			assert.strictEqual(mockRepo.getByEmail.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRepo.getByEmail.mock.calls[0].arguments[0].email,
+				email,
+			);
+		});
+
+		test("Should throw 'NotFoundError' when user does not exist", async () => {
+			// Arrange
+			const { email } = generateMockSelectUser();
+
+			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
+				Promise.resolve(null),
+			);
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.getByEmail_UNSAFE({ email }),
+				NotFoundError,
+			);
+		});
+
+		test("Should throw 'ValidationError' when email is invalid", async () => {
+			// Arrange
+			const invalidEmail = "not-an-email";
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.getByEmail_UNSAFE({ email: invalidEmail }),
+				ValidationError,
+			);
+		});
+	});
 });
