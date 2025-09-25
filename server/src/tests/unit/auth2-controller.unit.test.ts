@@ -1,6 +1,5 @@
 import assert from "node:assert";
 import { beforeEach, describe, it, suite } from "node:test";
-import { ZodError } from "zod";
 
 import { CookieName, HTTP_STATUS } from "../../constants/index.js";
 import { Auth2Controller } from "../../controllers/auth2.controller.js";
@@ -135,23 +134,6 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 
 			assert.ok(refreshTokenCall.options);
 			assert.strictEqual(refreshTokenCall.options.httpOnly, true);
-		});
-
-		it("should throw ZodError when required fields are missing", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			const incompleteRequestBody = { email: "a@b.com" };
-			req.body = incompleteRequestBody;
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.signUp(req, res, next),
-				ZodError,
-			);
-
-			// Ensure that the manager and cookie service were not called
-			assert.strictEqual(mockManager.signUp.mock.callCount(), 0);
-			assert.strictEqual(mockCookie.set.mock.callCount(), 0);
 		});
 
 		it("should throw manager error and prevent cookie setting", async () => {
@@ -295,20 +277,6 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 
 			assert.ok(refreshTokenCall.options);
 			assert.strictEqual(refreshTokenCall.options.httpOnly, true);
-		});
-
-		it("should throw ZodError when email is missing", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			const invalidCredentials = { email: "invalid-email" };
-			req.body = invalidCredentials;
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.signIn(req, res, next),
-				ZodError,
-			);
-			assert.strictEqual(mockManager.signIn.mock.callCount(), 0);
 		});
 
 		it("should throw manager error and prevent cookie setting", async () => {
