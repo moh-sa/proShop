@@ -479,4 +479,54 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 		});
 	});
+
+	describe("getById_UNSAFE", () => {
+		test("Should return 'full user object' including password when user exists", async () => {
+			// Arrange
+			const mockUser = generateMockSelectUser();
+			const userId = mockUser._id;
+
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve(mockUser),
+			);
+
+			// Act
+			const user = await service.getById_UNSAFE({ userId });
+
+			// Assert
+			assert.ok(user);
+			assert.deepStrictEqual(user, mockUser);
+			assert.ok(user.password); // Ensure password is included
+
+			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRepo.getById.mock.calls[0].arguments[0].userId,
+				userId,
+			);
+		});
+
+		test("Should throw 'NotFoundError' when user does not exist", async () => {
+			// Arrange
+			const { _id: userId } = generateMockSelectUser();
+
+			mockRepo.getById.mock.mockImplementationOnce(() => Promise.resolve(null));
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.getById_UNSAFE({ userId }),
+				NotFoundError,
+			);
+		});
+
+		test("Should throw 'ValidationError' when userId is invalid", async () => {
+			// Arrange
+			const invalidUserId = "invalid-objectid" as any;
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.getById_UNSAFE({ userId: invalidUserId }),
+				ValidationError,
+			);
+		});
+	});
 });
