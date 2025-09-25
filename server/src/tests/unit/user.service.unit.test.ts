@@ -3,7 +3,11 @@ import test, { beforeEach, describe, suite } from "node:test";
 
 import type { InsertUser } from "../../types/index.js";
 
-import { NotFoundError, ValidationError } from "../../errors/index.js";
+import {
+	InternalError,
+	NotFoundError,
+	ValidationError,
+} from "../../errors/index.js";
 import { UserService } from "../../services/index.js";
 import {
 	generateMockInsertUser,
@@ -359,6 +363,28 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 			// Repository should not be called when validation fails
 			assert.strictEqual(mockRepo.existsByEmail.mock.callCount(), 0);
+		});
+	});
+
+	describe("sanitizeUser", () => {
+		test("Should return user object without password", () => {
+			// Arrange
+			const mockUser = generateMockSelectUser();
+			const { password: _, ...expectedUser } = mockUser;
+
+			// Act
+			const sanitizedUser = service.sanitizeUser(mockUser);
+
+			// Assert
+			assert.deepStrictEqual(sanitizedUser, expectedUser);
+		});
+
+		test("Should throw 'InternalError' when user data is invalid", () => {
+			// Arrange
+			const invalidUser = { invalid: "data" } as any;
+
+			// Act & Assert
+			assert.throws(() => service.sanitizeUser(invalidUser), InternalError);
 		});
 	});
 });
