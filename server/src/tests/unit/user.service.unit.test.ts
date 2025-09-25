@@ -387,4 +387,44 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			assert.throws(() => service.sanitizeUser(invalidUser), InternalError);
 		});
 	});
+
+	describe("create_UNSAFE", () => {
+		test("Should return 'full user object' including password when 'repo.create' succeeds", async () => {
+			// Arrange
+			const mockInsertUser = generateMockInsertUser();
+			const mockSelectUser = generateMockSelectUser({ ...mockInsertUser });
+
+			mockRepo.create.mock.mockImplementationOnce(() =>
+				Promise.resolve(mockSelectUser),
+			);
+
+			// Act
+			const user = await service.create_UNSAFE(mockInsertUser);
+
+			// Assert
+			assert.ok(user);
+			assert.deepStrictEqual(user, mockSelectUser);
+			assert.ok(user.password); // Ensure password is included
+
+			assert.strictEqual(mockRepo.create.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRepo.create.mock.calls[0].arguments[0],
+				mockInsertUser,
+			);
+		});
+
+		test("Should throw 'ValidationError' when user data is invalid", async () => {
+			// Arrange
+			const mockInsertUser = generateMockInsertUser({
+				email: "invalid-email",
+				name: "",
+			});
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.create_UNSAFE(mockInsertUser),
+				ValidationError,
+			);
+		});
+	});
 });
