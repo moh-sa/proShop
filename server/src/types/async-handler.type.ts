@@ -1,4 +1,4 @@
-import type { RequestHandler } from "express";
+import type { Request, RequestHandler, Response } from "express";
 
 import type { ApiResponse } from "./api-response.type.js";
 
@@ -13,16 +13,16 @@ import type { ApiResponse } from "./api-response.type.js";
  * @template Locals  Type of `res.locals`
  */
 export type AsyncRequestHandler<
-	ReqBody = unknown,
+	ReqBody = Request["body"],
 	ResData = Record<string, unknown>,
 	ResMeta = Record<string, unknown>,
-	Params = unknown,
-	Query = unknown,
-	Locals extends Record<string, unknown> = Record<string, unknown>,
+	Params = Request["params"],
+	Query = Request["query"],
+	Locals = Response["locals"],
 > = RequestHandler<
 	Partial<Params>,
 	ApiResponse<ResData, ResMeta>,
 	Partial<ReqBody>,
 	Partial<Query>,
-	Locals
+	Locals extends Record<string, unknown> ? Locals : Record<string, unknown>
 >;

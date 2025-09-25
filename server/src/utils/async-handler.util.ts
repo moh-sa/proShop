@@ -1,3 +1,5 @@
+import type { Request, Response } from "express";
+
 import type { AsyncRequestHandler } from "../types/async-handler.type.js";
 
 /**
@@ -11,12 +13,12 @@ import type { AsyncRequestHandler } from "../types/async-handler.type.js";
  * @template Locals  Type of `res.locals`
  */
 export function asyncHandler<
-	ReqBody = unknown,
+	ReqBody = Request["body"],
 	ResData = Record<string, unknown>,
 	ResMeta = Record<string, unknown>,
-	Params = unknown,
-	Query = unknown,
-	Locals extends Record<string, unknown> = Record<string, unknown>,
+	Params = Request["params"],
+	Query = Request["query"],
+	Locals = Response["locals"],
 >(
 	fn: AsyncRequestHandler<ReqBody, ResData, ResMeta, Params, Query, Locals>,
 ): AsyncRequestHandler<ReqBody, ResData, ResMeta, Params, Query, Locals> {
