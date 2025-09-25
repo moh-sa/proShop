@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import test, { before, describe, suite } from "node:test";
+import test, { beforeEach, describe, suite } from "node:test";
 
 import type { InsertUser } from "../../types/index.js";
 
@@ -16,7 +16,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 	const mockRepo = mockUserRepository();
 	const service = new UserService(mockRepo);
 
-	before(() => mockRepo.reset());
+	beforeEach(() => mockRepo.reset());
 
 	describe("create", () => {
 		const mockInsertUser = generateMockInsertUser();
