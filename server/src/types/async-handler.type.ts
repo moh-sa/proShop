@@ -20,9 +20,9 @@ export type AsyncRequestHandler<
 	Query = Request["query"],
 	Locals = Response["locals"],
 > = RequestHandler<
-	Partial<Params>,
+	Params,
 	ApiResponse<ResData, ResMeta>,
-	Partial<ReqBody>,
-	Partial<Query>,
+	ReqBody,
+	Query,
 	Locals extends Record<string, unknown> ? Locals : Record<string, unknown>
 >;
