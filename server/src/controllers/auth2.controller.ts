@@ -12,7 +12,6 @@ import type {
 
 import { CookieName, HTTP_STATUS } from "../constants/index.js";
 import { AuthManager } from "../managers/index.js";
-import { insertUserSchema } from "../schemas/index.js";
 import { CookieService } from "../services/index.js";
 import { asyncHandler } from "../utils/index.js";
 import { jwtTokenValidator } from "../validators/index.js";
@@ -103,18 +102,13 @@ export class Auth2Controller implements IAuth2Controller {
 		Pick<InsertUser, "email" | "password">,
 		{ user: SafeSelectUser }
 	>(async (req, res) => {
-		// Validate request body
-		const data = insertUserSchema
-			.pick({ email: true, password: true })
-			.parse(req.body);
-
-		console.info("[AUTH] Sign-in attempt for email: ", data.email);
+		console.info("[AUTH] Sign-in attempt for email: ", req.body.email);
 
 		// Create a session
-		const result = await this._authManager.signIn(data);
+		const result = await this._authManager.signIn(req.body);
 		if (!result.success) {
 			console.error(
-				`[AUTH] Sign-in failed for email: ${data.email} - ${result.error.message}`,
+				`[AUTH] Sign-in failed for email: ${req.body.email} - ${result.error.message}`,
 			);
 			throw result.error;
 		}
@@ -122,7 +116,7 @@ export class Auth2Controller implements IAuth2Controller {
 		// Set access and refresh tokens in cookies
 		this._setAuthCookies(result.data.tokens, res);
 
-		console.info(`[AUTH] Sign-in successful for email: ${data.email}`);
+		console.info(`[AUTH] Sign-in successful for email: ${req.body.email}`);
 
 		return res.status(HTTP_STATUS.OK).json({
 			data: {
@@ -137,16 +131,13 @@ export class Auth2Controller implements IAuth2Controller {
 	 */
 	signUp = asyncHandler<InsertUser, { user: SafeSelectUser }>(
 		async (req, res) => {
-			// Validate request body
-			const data = insertUserSchema.parse(req.body);
-
-			console.info(`[AUTH] Sign-up attempt for email: ${data.email}`);
+			console.info(`[AUTH] Sign-up attempt for email: ${req.body.email}`);
 
 			// Create a session
-			const result = await this._authManager.signUp(data);
+			const result = await this._authManager.signUp(req.body);
 			if (!result.success) {
 				console.error(
-					`[AUTH] Sign-up failed for email: ${data.email} - ${result.error.message}`,
+					`[AUTH] Sign-up failed for email: ${req.body.email} - ${result.error.message}`,
 				);
 				throw result.error;
 			}
@@ -154,7 +145,7 @@ export class Auth2Controller implements IAuth2Controller {
 			// Set access and refresh tokens in cookies
 			this._setAuthCookies(result.data.tokens, res);
 
-			console.info(`[AUTH] Sign-up successful for email: ${data.email}`);
+			console.info(`[AUTH] Sign-up successful for email: ${req.body.email}`);
 
 			return res.status(HTTP_STATUS.CREATED).json({
 				data: {
