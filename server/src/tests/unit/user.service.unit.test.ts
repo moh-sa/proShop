@@ -3,7 +3,7 @@ import test, { beforeEach, describe, suite } from "node:test";
 
 import type { InsertUser } from "../../types/index.js";
 
-import { NotFoundError } from "../../errors/index.js";
+import { NotFoundError, ValidationError } from "../../errors/index.js";
 import { UserService } from "../../services/index.js";
 import {
 	generateMockInsertUser,
@@ -38,6 +38,23 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				mockRepo.create.mock.calls[0].arguments[0],
 				mockInsertUser,
 			);
+		});
+
+		test("Should throw 'ValidationError' when user data is invalid", async () => {
+			// Arrange
+			const mockInsertUser = generateMockInsertUser({
+				email: "invalid-email",
+				name: "",
+			});
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.create(mockInsertUser),
+				ValidationError,
+			);
+
+			// Repository should not be called when validation fails
+			assert.strictEqual(mockRepo.create.mock.callCount(), 0);
 		});
 	});
 
@@ -105,6 +122,20 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				},
 			);
 		});
+
+		test("Should throw 'ValidationError' when userId is invalid", async () => {
+			// Arrange
+			const invalidUserId = "invalid-objectid" as any;
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.getById({ userId: invalidUserId }),
+				ValidationError,
+			);
+
+			// Repository should not be called when validation fails
+			assert.strictEqual(mockRepo.getById.mock.callCount(), 0);
+		});
 	});
 
 	describe("getByEmail", () => {
@@ -142,6 +173,20 @@ suite("User Service 〖 Unit Tests 〗", () => {
 					return true;
 				},
 			);
+		});
+
+		test("Should throw 'ValidationError' when email is invalid", async () => {
+			// Arrange
+			const invalidEmail = "not-an-email";
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.getByEmail({ email: invalidEmail }),
+				ValidationError,
+			);
+
+			// Repository should not be called when validation fails
+			assert.strictEqual(mockRepo.getByEmail.mock.callCount(), 0);
 		});
 	});
 
@@ -186,6 +231,38 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				},
 			);
 		});
+
+		test("Should throw 'ValidationError' when userId is invalid", async () => {
+			// Arrange
+			const invalidUserId = "invalid-objectid" as any;
+
+			// Act & Assert
+			await assert.rejects(
+				async () =>
+					await service.updateById({ data: updateData, userId: invalidUserId }),
+				ValidationError,
+			);
+
+			// Repository should not be called when validation fails
+			assert.strictEqual(mockRepo.update.mock.callCount(), 0);
+		});
+
+		test("Should throw 'ValidationError' when update data is invalid", async () => {
+			// Arrange
+			const mockUpdateData = generateMockInsertUser({
+				email: "not-an-email",
+				name: "",
+			});
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.updateById({ data: mockUpdateData, userId }),
+				ValidationError,
+			);
+
+			// Repository should not be called when validation fails
+			assert.strictEqual(mockRepo.update.mock.callCount(), 0);
+		});
 	});
 
 	describe("delete", () => {
@@ -216,6 +293,72 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				async () => await service.delete({ userId }),
 				NotFoundError,
 			);
+		});
+
+		test("Should throw 'ValidationError' when userId is invalid", async () => {
+			// Arrange
+			const invalidUserId = "invalid-objectid" as any;
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.delete({ userId: invalidUserId }),
+				ValidationError,
+			);
+
+			// Repository should not be called when validation fails
+			assert.strictEqual(mockRepo.delete.mock.callCount(), 0);
+		});
+	});
+
+	describe("existsByEmail", () => {
+		test("Should return 'user id object' when user exists", async () => {
+			// Arrange
+			const { _id: userId, email } = generateMockSelectUser();
+			const expectedResult = { _id: userId };
+
+			mockRepo.existsByEmail.mock.mockImplementationOnce(() =>
+				Promise.resolve(expectedResult),
+			);
+
+			// Act
+			const result = await service.existsByEmail({ email });
+
+			// Assert
+			assert.deepStrictEqual(result, expectedResult);
+			assert.strictEqual(mockRepo.existsByEmail.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRepo.existsByEmail.mock.calls[0].arguments[0].email,
+				email,
+			);
+		});
+
+		test("Should return 'null' when user does not exist", async () => {
+			// Arrange
+			const { email } = generateMockSelectUser();
+
+			mockRepo.existsByEmail.mock.mockImplementationOnce(() =>
+				Promise.resolve(null),
+			);
+
+			// Act
+			const result = await service.existsByEmail({ email });
+
+			// Assert
+			assert.strictEqual(result, null);
+		});
+
+		test("Should throw 'ValidationError' when email is invalid", async () => {
+			// Arrange
+			const invalidEmail = "not-an-email";
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.existsByEmail({ email: invalidEmail }),
+				ValidationError,
+			);
+
+			// Repository should not be called when validation fails
+			assert.strictEqual(mockRepo.existsByEmail.mock.callCount(), 0);
 		});
 	});
 });
