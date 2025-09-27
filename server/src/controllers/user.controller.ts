@@ -5,7 +5,7 @@ import { HTTP_STATUS } from "../constants/index.js";
 import { NotFoundError } from "../errors/index.js";
 import { insertUserSchema } from "../schemas/index.js";
 import { UserService } from "../services/index.js";
-import { removeEmptyFieldsSchema, strictAsyncHandler } from "../utils/index.js";
+import { asyncHandler, removeEmptyFieldsSchema } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IUserController {
@@ -29,7 +29,7 @@ export interface IUserController {
 export class UserController implements IUserController {
 	private readonly _service: IUserService;
 
-	delete = strictAsyncHandler<{
+	delete = asyncHandler<{
 		params: { userId: string };
 		resBody: { data: null };
 	}>(async (req, res) => {
@@ -47,7 +47,7 @@ export class UserController implements IUserController {
 		});
 	});
 
-	getAll = strictAsyncHandler<{
+	getAll = asyncHandler<{
 		resBody: { data: Array<SafeSelectUser> };
 	}>(async (req, res) => {
 		const response = await this._service.getAll();
@@ -58,7 +58,7 @@ export class UserController implements IUserController {
 		});
 	});
 
-	getById = strictAsyncHandler<{
+	getById = asyncHandler<{
 		params: { userId: string };
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
@@ -73,7 +73,7 @@ export class UserController implements IUserController {
 		});
 	});
 
-	update = strictAsyncHandler<{
+	update = asyncHandler<{
 		params: { userId: string };
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {

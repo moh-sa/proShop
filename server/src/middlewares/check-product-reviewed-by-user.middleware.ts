@@ -1,10 +1,10 @@
 import { ReviewService } from "../services/index.js";
-import { strictAsyncHandler } from "../utils/index.js";
+import { asyncHandler } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 const reviewService = new ReviewService();
 
-export const checkProductReviewedByUser = strictAsyncHandler<{
+export const checkProductReviewedByUser = asyncHandler<{
 	params: { productId: string };
 	resBody: { data: null };
 }>(async (req, res, next) => {

@@ -28,7 +28,7 @@ import type {
  * 	});
  * });
  */
-export function strictAsyncHandler<G extends AsyncHandlerGenerics>(
+export function asyncHandler<G extends AsyncHandlerGenerics>(
 	fn: AsyncHandler<G>,
 ): AsyncHandler<G> {
 	return async function asyncHandlerWrapper(req, res, next) {

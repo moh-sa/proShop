@@ -13,7 +13,7 @@ import type {
 import { CookieName, HTTP_STATUS } from "../constants/index.js";
 import { AuthManager } from "../managers/index.js";
 import { CookieService } from "../services/index.js";
-import { strictAsyncHandler } from "../utils/index.js";
+import { asyncHandler } from "../utils/index.js";
 import { jwtTokenValidator } from "../validators/index.js";
 
 /**
@@ -101,7 +101,7 @@ export class Auth2Controller implements IAuth2Controller {
 	/**
 	 * POST /auth/signin
 	 */
-	signIn = strictAsyncHandler<{
+	signIn = asyncHandler<{
 		reqBody: Pick<InsertUser, "email" | "password">;
 		resBody: { data: { user: SafeSelectUser } };
 	}>(async (req, res) => {
@@ -132,7 +132,7 @@ export class Auth2Controller implements IAuth2Controller {
 	/**
 	 * POST /auth/signup
 	 */
-	signUp = strictAsyncHandler<{
+	signUp = asyncHandler<{
 		reqBody: InsertUser;
 		resBody: { data: { user: SafeSelectUser } };
 	}>(async (req, res) => {
@@ -163,7 +163,7 @@ export class Auth2Controller implements IAuth2Controller {
 	/**
 	 * DELETE /auth/signout/current
 	 */
-	signOut = strictAsyncHandler<{ resBody: { data: { message: string } } }>(
+	signOut = asyncHandler<{ resBody: { data: { message: string } } }>(
 		async (req, res) => {
 			console.info(`[AUTH] Sign-out attempt`);
 
@@ -196,7 +196,7 @@ export class Auth2Controller implements IAuth2Controller {
 	/**
 	 * DELETE /auth/signout
 	 */
-	signOutAll = strictAsyncHandler<{
+	signOutAll = asyncHandler<{
 		resBody: {
 			data: { message: string };
 			meta: { removedCount: number };
@@ -237,7 +237,7 @@ export class Auth2Controller implements IAuth2Controller {
 	/**
 	 * POST /auth/token/refresh
 	 */
-	refreshAccessToken = strictAsyncHandler<{
+	refreshAccessToken = asyncHandler<{
 		resBody: { data: { message: string } };
 	}>(async (req, res) => {
 		console.info(`[AUTH] Access token refresh attempt`);
@@ -276,7 +276,7 @@ export class Auth2Controller implements IAuth2Controller {
 	/**
 	 * GET /auth/sessions
 	 */
-	getUserSessions = strictAsyncHandler<{
+	getUserSessions = asyncHandler<{
 		resBody: { data: { sessions: Array<SelectSession> } };
 	}>(async (req, res) => {
 		console.info(`[AUTH] Get user sessions attempt`);
@@ -310,7 +310,7 @@ export class Auth2Controller implements IAuth2Controller {
 	/**
 	 * DELETE /auth/sessions/current
 	 */
-	revokeSession = strictAsyncHandler<{
+	revokeSession = asyncHandler<{
 		resBody: { data: { message: string } };
 	}>(async (req, res) => {
 		console.info(`[AUTH] Revoke session attempt`);
@@ -343,7 +343,7 @@ export class Auth2Controller implements IAuth2Controller {
 	/**
 	 * DELETE /auth/sessions
 	 */
-	revokeAllSessions = strictAsyncHandler<{
+	revokeAllSessions = asyncHandler<{
 		resBody: { data: { message: string }; meta: { revokedCount: number } };
 	}>(async (req, res) => {
 		console.info(`[AUTH] Revoke all sessions attempt`);

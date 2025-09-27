@@ -10,7 +10,7 @@ import type {
 import { HTTP_STATUS } from "../constants/index.js";
 import { insertReviewSchema } from "../schemas/index.js";
 import { ReviewService } from "../services/index.js";
-import { removeEmptyFieldsSchema, strictAsyncHandler } from "../utils/index.js";
+import { asyncHandler, removeEmptyFieldsSchema } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IReviewController {
@@ -64,7 +64,7 @@ export interface IReviewController {
 export class ReviewController implements IReviewController {
 	private readonly _service: IReviewService;
 
-	count = strictAsyncHandler<{
+	count = asyncHandler<{
 		resBody: { data: number };
 	}>(async (req, res) => {
 		const count = await this._service.count();
@@ -75,7 +75,7 @@ export class ReviewController implements IReviewController {
 		});
 	});
 
-	countByProductId = strictAsyncHandler<{
+	countByProductId = asyncHandler<{
 		params: { productId: string };
 		resBody: { data: number };
 	}>(async (req, res) => {
@@ -89,7 +89,7 @@ export class ReviewController implements IReviewController {
 		});
 	});
 
-	countByUserId = strictAsyncHandler<{
+	countByUserId = asyncHandler<{
 		params: { userId: string };
 		resBody: { data: number };
 	}>(async (req, res) => {
@@ -103,7 +103,7 @@ export class ReviewController implements IReviewController {
 		});
 	});
 
-	create = strictAsyncHandler<{
+	create = asyncHandler<{
 		reqBody: InsertReview;
 		resBody: { data: SelectReview };
 	}>(async (req, res) => {
@@ -121,7 +121,7 @@ export class ReviewController implements IReviewController {
 		});
 	});
 
-	delete = strictAsyncHandler<{
+	delete = asyncHandler<{
 		params: { reviewId: string };
 		resBody: { data: null };
 	}>(async (req, res) => {
@@ -135,7 +135,7 @@ export class ReviewController implements IReviewController {
 		});
 	});
 
-	existsById = strictAsyncHandler<{
+	existsById = asyncHandler<{
 		params: { reviewId: string };
 		resBody: { data: { _id: Types.ObjectId } };
 	}>(async (req, res) => {
@@ -149,7 +149,7 @@ export class ReviewController implements IReviewController {
 		});
 	});
 
-	existsByUserIdAndProductId = strictAsyncHandler<{
+	existsByUserIdAndProductId = asyncHandler<{
 		params: { productId: string; userId: string };
 		resBody: { data: { _id: Types.ObjectId } };
 	}>(async (req, res) => {
@@ -167,7 +167,7 @@ export class ReviewController implements IReviewController {
 		});
 	});
 
-	getAll = strictAsyncHandler<{
+	getAll = asyncHandler<{
 		resBody: { data: Array<SelectReview> };
 	}>(async (req, res) => {
 		const reviews = await this._service.getAll();
@@ -178,7 +178,7 @@ export class ReviewController implements IReviewController {
 		});
 	});
 
-	getAllByProductId = strictAsyncHandler<{
+	getAllByProductId = asyncHandler<{
 		params: { productId: string };
 		resBody: { data: Array<SelectReview> };
 	}>(async (req, res) => {
@@ -192,7 +192,7 @@ export class ReviewController implements IReviewController {
 		});
 	});
 
-	getAllByUserId = strictAsyncHandler<{
+	getAllByUserId = asyncHandler<{
 		params: { userId: string };
 		resBody: { data: Array<SelectReview> };
 	}>(async (req, res) => {
@@ -206,7 +206,7 @@ export class ReviewController implements IReviewController {
 		});
 	});
 
-	getById = strictAsyncHandler<{
+	getById = asyncHandler<{
 		params: { reviewId: string };
 		resBody: { data: SelectReview };
 	}>(async (req, res) => {
@@ -220,7 +220,7 @@ export class ReviewController implements IReviewController {
 		});
 	});
 
-	update = strictAsyncHandler<{
+	update = asyncHandler<{
 		params: { reviewId: string };
 		resBody: { data: SelectReview };
 	}>(async (req, res) => {

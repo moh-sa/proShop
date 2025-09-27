@@ -12,7 +12,7 @@ import type {
 import { HTTP_STATUS } from "../constants/index.js";
 import { insertProductSchema } from "../schemas/index.js";
 import { ProductService } from "../services/index.js";
-import { removeEmptyFieldsSchema, strictAsyncHandler } from "../utils/index.js";
+import { asyncHandler, removeEmptyFieldsSchema } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IProductController {
@@ -53,7 +53,7 @@ export interface IProductController {
 export class ProductController implements IProductController {
 	private readonly _service: IProductService;
 
-	create = strictAsyncHandler<{
+	create = asyncHandler<{
 		reqBody: InsertProduct;
 		resBody: { data: SelectProduct };
 	}>(async (req, res) => {
@@ -71,7 +71,7 @@ export class ProductController implements IProductController {
 		});
 	});
 
-	delete = strictAsyncHandler<{
+	delete = asyncHandler<{
 		params: { productId: string };
 		resBody: { data: null };
 	}>(async (req, res) => {
@@ -85,7 +85,7 @@ export class ProductController implements IProductController {
 		});
 	});
 
-	getAll = strictAsyncHandler<{
+	getAll = asyncHandler<{
 		query: {
 			currentPage: string;
 			keyword: string;
@@ -117,7 +117,7 @@ export class ProductController implements IProductController {
 		});
 	});
 
-	getById = strictAsyncHandler<{
+	getById = asyncHandler<{
 		params: { productId: string };
 		resBody: { data: SelectProduct };
 	}>(async (req, res) => {
@@ -131,7 +131,7 @@ export class ProductController implements IProductController {
 		});
 	});
 
-	getTopRated = strictAsyncHandler<{
+	getTopRated = asyncHandler<{
 		resBody: { data: Array<TopRatedProduct> };
 	}>(async (req, res) => {
 		const products = await this._service.getTopRated();
@@ -142,7 +142,7 @@ export class ProductController implements IProductController {
 		});
 	});
 
-	update = strictAsyncHandler<{
+	update = asyncHandler<{
 		params: { productId: string };
 		reqBody: Partial<InsertProduct>;
 		resBody: { data: SelectProduct };

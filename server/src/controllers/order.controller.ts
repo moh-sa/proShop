@@ -9,7 +9,7 @@ import type {
 import { HTTP_STATUS } from "../constants/index.js";
 import { insertOrderSchema } from "../schemas/index.js";
 import { OrderService } from "../services/index.js";
-import { strictAsyncHandler } from "../utils/index.js";
+import { asyncHandler } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IOrderController {
@@ -40,7 +40,7 @@ export interface IOrderController {
 export class OrderController implements IOrderController {
 	private readonly _service: IOrderService;
 
-	create = strictAsyncHandler<{
+	create = asyncHandler<{
 		reqBody: InsertOrder;
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {
@@ -57,7 +57,7 @@ export class OrderController implements IOrderController {
 		});
 	});
 
-	getAll = strictAsyncHandler<{
+	getAll = asyncHandler<{
 		resBody: { data: AllOrdersResponse };
 	}>(async (req, res) => {
 		const orders = await this._service.getAll();
@@ -68,7 +68,7 @@ export class OrderController implements IOrderController {
 		});
 	});
 
-	getAllByUserId = strictAsyncHandler<{
+	getAllByUserId = asyncHandler<{
 		params: { userId: string };
 		resBody: { data: AllOrdersResponse };
 	}>(async (req, res) => {
@@ -82,7 +82,7 @@ export class OrderController implements IOrderController {
 		});
 	});
 
-	getById = strictAsyncHandler<{
+	getById = asyncHandler<{
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {
@@ -96,7 +96,7 @@ export class OrderController implements IOrderController {
 		});
 	});
 
-	updateToDelivered = strictAsyncHandler<{
+	updateToDelivered = asyncHandler<{
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {
@@ -110,7 +110,7 @@ export class OrderController implements IOrderController {
 		});
 	});
 
-	updateToPaid = strictAsyncHandler<{
+	updateToPaid = asyncHandler<{
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {

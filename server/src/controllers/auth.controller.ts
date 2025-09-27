@@ -8,7 +8,7 @@ import type {
 import { HTTP_STATUS } from "../constants/index.js";
 import { insertUserSchema, selectUserSchema } from "../schemas/index.js";
 import { AuthService } from "../services/index.js";
-import { strictAsyncHandler } from "../utils/index.js";
+import { asyncHandler } from "../utils/index.js";
 
 export interface IAuthController {
 	signin: AsyncHandler<{
@@ -23,7 +23,7 @@ export interface IAuthController {
 export class AuthController implements IAuthController {
 	private readonly _service: IAuthService;
 
-	signin = strictAsyncHandler<{
+	signin = asyncHandler<{
 		reqBody: Pick<InsertUser, "email" | "password">;
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
@@ -41,7 +41,7 @@ export class AuthController implements IAuthController {
 		});
 	});
 
-	signup = strictAsyncHandler<{
+	signup = asyncHandler<{
 		reqBody: InsertUser;
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {

@@ -1,13 +1,13 @@
 import { AuthenticationError } from "../errors/index.js";
 import { UserRepository } from "../repositories/index.js";
-import { strictAsyncHandler } from "../utils/index.js";
+import { asyncHandler } from "../utils/index.js";
 
 const userRepository = new UserRepository();
 
 /**
  * Middleware to verify user existence by ID
  */
-export const checkUserIdExists = strictAsyncHandler(async (req, res, next) => {
+export const checkUserIdExists = asyncHandler(async (req, res, next) => {
 	const userId = res.locals.token._id;
 	const user = await userRepository.getById({ userId });
 	if (!user) {
