@@ -6,6 +6,9 @@ import Message from "../Components/Message";
 import Loader from "../Components/Loader";
 import { login } from "../Actions/userActions";
 import FormContainer from "../Components/FormContainer";
+import { ADMIN_DEMO, CUSTOMER_DEMO } from "../constants/userConstants";
+import HorizontalSeparator from "../Components/HorizontalSeparator";
+
 
 const LoginScreen = ({ location, history }) => {
   const [email, setEmail] = useState("");
@@ -26,11 +29,36 @@ const LoginScreen = ({ location, history }) => {
     dispatch(login(email, password));
   };
 
+  function signinAs(type) {
+    dispatch(login(type.email, type.password));
+  }
+
   return (
     <FormContainer>
       <h1>Sign In</h1>
       {error && <Message variant="danger">{error}</Message>}
       {loading && <Loader />}
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+        }}
+      >
+        <Button
+          variant='outline-primary'
+          onClick={() => signinAs(CUSTOMER_DEMO)}
+        >
+          Sign In as Customer
+        </Button>
+        <Button variant='outline-primary' onClick={() => signinAs(ADMIN_DEMO)}>
+          Sign In as Admin
+        </Button>
+      </div>
+
+      <HorizontalSeparator text='OR' />
+
       <Form onSubmit={submitHandler}>
         <Form.Group controlId="email">
           <Form.Label>Email Address</Form.Label>
