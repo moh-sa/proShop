@@ -1,15 +1,14 @@
 import { AuthorizationError } from "../errors/index.js";
 import { ReviewService } from "../services/index.js";
-import { asyncHandler } from "../utils/index.js";
+import { strictAsyncHandler } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 const reviewService = new ReviewService();
 
-export const verifyReviewOwnership = asyncHandler<
-	unknown,
-	unknown,
-	{ reviewId: string }
->(async (req, res, next) => {
+export const verifyReviewOwnership = strictAsyncHandler<{
+	params: { reviewId: string };
+	resBody: { data: null };
+}>(async (req, res, next) => {
 	const rawReviewId = req.params.reviewId;
 	const reviewId = objectIdValidator.parse(rawReviewId);
 
