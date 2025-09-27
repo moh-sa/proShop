@@ -1,5 +1,5 @@
 import type { IUserService } from "../services/index.js";
-import type { SafeSelectUser, StrictAsyncHandler } from "../types/index.js";
+import type { AsyncHandler, SafeSelectUser } from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
 import { NotFoundError } from "../errors/index.js";
@@ -9,18 +9,18 @@ import { removeEmptyFieldsSchema, strictAsyncHandler } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IUserController {
-	delete: StrictAsyncHandler<{
+	delete: AsyncHandler<{
 		params: { userId: string };
 		resBody: { data: null };
 	}>;
-	getAll: StrictAsyncHandler<{
+	getAll: AsyncHandler<{
 		resBody: { data: Array<SafeSelectUser> };
 	}>;
-	getById: StrictAsyncHandler<{
+	getById: AsyncHandler<{
 		params: { userId: string };
 		resBody: { data: SafeSelectUser };
 	}>;
-	update: StrictAsyncHandler<{
+	update: AsyncHandler<{
 		params: { userId: string };
 		resBody: { data: SafeSelectUser };
 	}>;

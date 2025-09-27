@@ -3,9 +3,9 @@ import { z } from "zod";
 import type { IProductService } from "../services/index.js";
 import type {
 	AllProducts,
+	AsyncHandler,
 	InsertProduct,
 	SelectProduct,
-	StrictAsyncHandler,
 	TopRatedProduct,
 } from "../types/index.js";
 
@@ -16,15 +16,15 @@ import { removeEmptyFieldsSchema, strictAsyncHandler } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IProductController {
-	create: StrictAsyncHandler<{
+	create: AsyncHandler<{
 		reqBody: InsertProduct;
 		resBody: { data: SelectProduct };
 	}>;
-	delete: StrictAsyncHandler<{
+	delete: AsyncHandler<{
 		params: { productId: string };
 		resBody: { data: null };
 	}>;
-	getAll: StrictAsyncHandler<{
+	getAll: AsyncHandler<{
 		query: {
 			currentPage: string;
 			keyword: string;
@@ -37,14 +37,14 @@ export interface IProductController {
 			};
 		};
 	}>;
-	getById: StrictAsyncHandler<{
+	getById: AsyncHandler<{
 		params: { productId: string };
 		resBody: { data: SelectProduct };
 	}>;
-	getTopRated: StrictAsyncHandler<{
+	getTopRated: AsyncHandler<{
 		resBody: { data: Array<TopRatedProduct> };
 	}>;
-	update: StrictAsyncHandler<{
+	update: AsyncHandler<{
 		params: { productId: string };
 		reqBody: Partial<InsertProduct>;
 		resBody: { data: SelectProduct };

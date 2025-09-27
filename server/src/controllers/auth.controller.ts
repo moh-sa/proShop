@@ -1,8 +1,8 @@
 import type { IAuthService } from "../services/index.js";
 import type {
+	AsyncHandler,
 	InsertUser,
 	SafeSelectUser,
-	StrictAsyncHandler,
 } from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
@@ -11,11 +11,11 @@ import { AuthService } from "../services/index.js";
 import { strictAsyncHandler } from "../utils/index.js";
 
 export interface IAuthController {
-	signin: StrictAsyncHandler<{
+	signin: AsyncHandler<{
 		reqBody: Pick<InsertUser, "email" | "password">;
 		resBody: { data: SafeSelectUser };
 	}>;
-	signup: StrictAsyncHandler<{
+	signup: AsyncHandler<{
 		reqBody: InsertUser;
 		resBody: { data: SafeSelectUser };
 	}>;

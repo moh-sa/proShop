@@ -1,6 +1,6 @@
 import type {
+	AsyncHandler,
 	AsyncHandlerGenerics,
-	StrictAsyncHandler,
 } from "../types/async-handler.type.js";
 
 /**
@@ -29,8 +29,8 @@ import type {
  * });
  */
 export function strictAsyncHandler<G extends AsyncHandlerGenerics>(
-	fn: StrictAsyncHandler<G>,
-): StrictAsyncHandler<G> {
+	fn: AsyncHandler<G>,
+): AsyncHandler<G> {
 	return async function asyncHandlerWrapper(req, res, next) {
 		try {
 			await fn(req, res, next);

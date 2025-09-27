@@ -46,7 +46,7 @@ type StrictResponse<
  * Express async request handler type.
  * Enforces proper request/response typing and async error handling
  */
-export type StrictAsyncHandler<
+export type AsyncHandler<
 	G extends AsyncHandlerGenerics = AsyncHandlerGenerics,
 > = (
 	req: Request<

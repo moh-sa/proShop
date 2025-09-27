@@ -3,10 +3,10 @@ import type { Request, Response } from "express";
 import type { IAuthManager } from "../managers/index.js";
 import type { ICookieService } from "../services/index.js";
 import type {
+	AsyncHandler,
 	InsertUser,
 	SafeSelectUser,
 	SelectSession,
-	StrictAsyncHandler,
 	TokenPair,
 } from "../types/index.js";
 
@@ -25,7 +25,7 @@ export interface IAuth2Controller {
 	/**
 	 * POST /auth/signup
 	 */
-	signUp: StrictAsyncHandler<{
+	signUp: AsyncHandler<{
 		reqBody: InsertUser;
 		resBody: { data: { user: SafeSelectUser } };
 	}>;
@@ -33,7 +33,7 @@ export interface IAuth2Controller {
 	/**
 	 * POST /auth/signin
 	 */
-	signIn: StrictAsyncHandler<{
+	signIn: AsyncHandler<{
 		reqBody: Pick<InsertUser, "email" | "password">;
 		resBody: { data: { user: SafeSelectUser } };
 	}>;
@@ -41,12 +41,12 @@ export interface IAuth2Controller {
 	/**
 	 * DELETE /auth/signout/current
 	 */
-	signOut: StrictAsyncHandler<{ resBody: { data: { message: string } } }>;
+	signOut: AsyncHandler<{ resBody: { data: { message: string } } }>;
 
 	/**
 	 * DELETE /auth/signout
 	 */
-	signOutAll: StrictAsyncHandler<{
+	signOutAll: AsyncHandler<{
 		resBody: {
 			data: { message: string };
 			meta: { removedCount: number };
@@ -57,7 +57,7 @@ export interface IAuth2Controller {
 	/**
 	 * POST /auth/token/refresh
 	 */
-	refreshAccessToken: StrictAsyncHandler<{
+	refreshAccessToken: AsyncHandler<{
 		resBody: { data: { message: string } };
 	}>;
 
@@ -65,19 +65,19 @@ export interface IAuth2Controller {
 	/**
 	 * GET /auth/sessions
 	 */
-	getUserSessions: StrictAsyncHandler<{
+	getUserSessions: AsyncHandler<{
 		resBody: { data: { sessions: Array<SelectSession> } };
 	}>;
 
 	/**
 	 * DELETE /auth/sessions/current
 	 */
-	revokeSession: StrictAsyncHandler<{ resBody: { data: { message: string } } }>;
+	revokeSession: AsyncHandler<{ resBody: { data: { message: string } } }>;
 
 	/**
 	 * DELETE /auth/sessions
 	 */
-	revokeAllSessions: StrictAsyncHandler<{
+	revokeAllSessions: AsyncHandler<{
 		resBody: { data: { message: string }; meta: { revokedCount: number } };
 	}>;
 }

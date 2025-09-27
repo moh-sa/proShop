@@ -2,9 +2,9 @@ import type { Types } from "mongoose";
 
 import type { IReviewService } from "../services/index.js";
 import type {
+	AsyncHandler,
 	InsertReview,
 	SelectReview,
-	StrictAsyncHandler,
 } from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
@@ -14,49 +14,49 @@ import { removeEmptyFieldsSchema, strictAsyncHandler } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IReviewController {
-	count: StrictAsyncHandler<{
+	count: AsyncHandler<{
 		resBody: { data: number };
 	}>;
-	countByProductId: StrictAsyncHandler<{
+	countByProductId: AsyncHandler<{
 		params: { productId: string };
 		resBody: { data: number };
 	}>;
-	countByUserId: StrictAsyncHandler<{
+	countByUserId: AsyncHandler<{
 		params: { userId: string };
 		resBody: { data: number };
 	}>;
-	create: StrictAsyncHandler<{
+	create: AsyncHandler<{
 		reqBody: InsertReview;
 		resBody: { data: SelectReview };
 	}>;
-	delete: StrictAsyncHandler<{
+	delete: AsyncHandler<{
 		params: { reviewId: string };
 		resBody: { data: null };
 	}>;
-	existsById: StrictAsyncHandler<{
+	existsById: AsyncHandler<{
 		params: { reviewId: string };
 		resBody: { data: { _id: Types.ObjectId } };
 	}>;
-	existsByUserIdAndProductId: StrictAsyncHandler<{
+	existsByUserIdAndProductId: AsyncHandler<{
 		params: { productId: string; userId: string };
 		resBody: { data: { _id: Types.ObjectId } };
 	}>;
-	getAll: StrictAsyncHandler<{
+	getAll: AsyncHandler<{
 		resBody: { data: Array<SelectReview> };
 	}>;
-	getAllByProductId: StrictAsyncHandler<{
+	getAllByProductId: AsyncHandler<{
 		params: { productId: string };
 		resBody: { data: Array<SelectReview> };
 	}>;
-	getAllByUserId: StrictAsyncHandler<{
+	getAllByUserId: AsyncHandler<{
 		params: { userId: string };
 		resBody: { data: Array<SelectReview> };
 	}>;
-	getById: StrictAsyncHandler<{
+	getById: AsyncHandler<{
 		params: { reviewId: string };
 		resBody: { data: SelectReview };
 	}>;
-	update: StrictAsyncHandler<{
+	update: AsyncHandler<{
 		params: { reviewId: string };
 		resBody: { data: SelectReview };
 	}>;

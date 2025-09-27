@@ -1,9 +1,9 @@
 import type { IOrderService } from "../services/index.js";
 import type {
 	AllOrdersResponse,
+	AsyncHandler,
 	InsertOrder,
 	SelectOrder,
-	StrictAsyncHandler,
 } from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
@@ -13,26 +13,26 @@ import { strictAsyncHandler } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IOrderController {
-	create: StrictAsyncHandler<{
+	create: AsyncHandler<{
 		reqBody: InsertOrder;
 		resBody: { data: SelectOrder };
 	}>;
-	getAll: StrictAsyncHandler<{
+	getAll: AsyncHandler<{
 		resBody: { data: AllOrdersResponse };
 	}>;
-	getAllByUserId: StrictAsyncHandler<{
+	getAllByUserId: AsyncHandler<{
 		params: { userId: string };
 		resBody: { data: AllOrdersResponse };
 	}>;
-	getById: StrictAsyncHandler<{
+	getById: AsyncHandler<{
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
 	}>;
-	updateToDelivered: StrictAsyncHandler<{
+	updateToDelivered: AsyncHandler<{
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
 	}>;
-	updateToPaid: StrictAsyncHandler<{
+	updateToPaid: AsyncHandler<{
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
 	}>;
