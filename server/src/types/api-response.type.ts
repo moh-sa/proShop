@@ -15,6 +15,7 @@ export interface ErrorResponse {
 }
 
 // Success response type
+/** @deprecated will be removed in the future */
 export interface SuccessResponse<
 	D = Record<string, unknown>,
 	M = Record<string, unknown>,
@@ -25,6 +26,7 @@ export interface SuccessResponse<
 }
 
 // Api response type
+/** @deprecated will be removed in the future */
 export type ApiResponse<
 	D = Record<string, unknown>,
 	M = Record<string, unknown>,
