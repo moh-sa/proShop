@@ -9,6 +9,7 @@ import {
   getOrderDetails,
   payOrder,
 } from "../Actions/orderActions";
+import HorizontalSeparator from "../Components/HorizontalSeparator";
 import Loader from "../Components/Loader";
 import Message from "../Components/Message";
 import {
@@ -198,17 +199,39 @@ const OrderScreen = ({ match, history }) => {
                 </Row>
               </ListGroup.Item>
 
-              {!order.isPaid && (
+              {userInfo && !order.isPaid && (
                 <ListGroup.Item>
                   {loadingPay && <Loader />}
-                  {!sdkReady ? (
-                    <Loader />
-                  ) : (
-                    <PayPalButton
-                      amount={order.totalPrice}
-                      onSuccess={successPaymentHandler}
-                    />
+
+                  {isDemoUser && (
+                    <>
+                      <Button
+                        type='button'
+                        className='btn btn-block mt-3'
+                        onClick={successPaymentHandler}
+                      >
+                        Mark as Paid
+                      </Button>
+                      <p style={{ color: "#757373", fontSize: "13px" }}>
+                        Only visible to demo users for testing
+                      </p>
+                    </>
                   )}
+
+                  {isDemoUser && <HorizontalSeparator text='OR' />}
+
+                  {
+                    <>
+                      {!sdkReady ? (
+                        <Loader />
+                      ) : (
+                        <PayPalButton
+                          amount={order.totalPrice}
+                          onSuccess={successPaymentHandler}
+                        />
+                      )}
+                    </>
+                  }
                 </ListGroup.Item>
               )}
 
