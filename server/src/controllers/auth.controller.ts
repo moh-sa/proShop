@@ -8,7 +8,7 @@ import type {
 import { HTTP_STATUS } from "../constants/index.js";
 import { insertUserSchema, selectUserSchema } from "../schemas/index.js";
 import { AuthService } from "../services/index.js";
-import { sendSuccessResponse, strictAsyncHandler } from "../utils/index.js";
+import { strictAsyncHandler } from "../utils/index.js";
 
 export interface IAuthController {
 	signin: StrictAsyncHandler<{
@@ -35,10 +35,9 @@ export class AuthController implements IAuthController {
 
 		const response = await this._service.signin(parsedData);
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: response,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -50,10 +49,9 @@ export class AuthController implements IAuthController {
 
 		const response = await this._service.signup(data);
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.CREATED).json({
 			data: response,
-			responseContext: res,
-			statusCode: HTTP_STATUS.CREATED,
+			success: true,
 		});
 	});
 

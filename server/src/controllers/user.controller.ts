@@ -5,11 +5,7 @@ import { HTTP_STATUS } from "../constants/index.js";
 import { NotFoundError } from "../errors/index.js";
 import { insertUserSchema } from "../schemas/index.js";
 import { UserService } from "../services/index.js";
-import {
-	removeEmptyFieldsSchema,
-	sendSuccessResponse,
-	strictAsyncHandler,
-} from "../utils/index.js";
+import { removeEmptyFieldsSchema, strictAsyncHandler } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IUserController {
@@ -45,10 +41,9 @@ export class UserController implements IUserController {
 			throw new NotFoundError("User");
 		}
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.NO_CONTENT).json({
 			data: null,
-			responseContext: res,
-			statusCode: HTTP_STATUS.NO_CONTENT,
+			success: true,
 		});
 	});
 
@@ -57,10 +52,9 @@ export class UserController implements IUserController {
 	}>(async (req, res) => {
 		const response = await this._service.getAll();
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: response,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -73,10 +67,9 @@ export class UserController implements IUserController {
 
 		const response = await this._service.getById({ userId });
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: response,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -96,10 +89,9 @@ export class UserController implements IUserController {
 			userId,
 		});
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: response,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 

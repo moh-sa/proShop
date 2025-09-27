@@ -9,7 +9,7 @@ import type {
 import { HTTP_STATUS } from "../constants/index.js";
 import { insertOrderSchema } from "../schemas/index.js";
 import { OrderService } from "../services/index.js";
-import { sendSuccessResponse, strictAsyncHandler } from "../utils/index.js";
+import { strictAsyncHandler } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IOrderController {
@@ -51,10 +51,9 @@ export class OrderController implements IOrderController {
 
 		const response = await this._service.create(data);
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.CREATED).json({
 			data: response,
-			responseContext: res,
-			statusCode: HTTP_STATUS.CREATED,
+			success: true,
 		});
 	});
 
@@ -63,10 +62,9 @@ export class OrderController implements IOrderController {
 	}>(async (req, res) => {
 		const orders = await this._service.getAll();
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: orders,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -78,10 +76,9 @@ export class OrderController implements IOrderController {
 
 		const orders = await this._service.getAllByUserId({ userId });
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: orders,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -93,10 +90,9 @@ export class OrderController implements IOrderController {
 
 		const order = await this._service.getById({ orderId });
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: order,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -108,10 +104,9 @@ export class OrderController implements IOrderController {
 
 		const order = await this._service.updateToDelivered({ orderId });
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: order,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -123,10 +118,9 @@ export class OrderController implements IOrderController {
 
 		const order = await this._service.updateToPaid({ orderId });
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: order,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 

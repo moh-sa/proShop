@@ -12,11 +12,7 @@ import type {
 import { HTTP_STATUS } from "../constants/index.js";
 import { insertProductSchema } from "../schemas/index.js";
 import { ProductService } from "../services/index.js";
-import {
-	removeEmptyFieldsSchema,
-	sendSuccessResponse,
-	strictAsyncHandler,
-} from "../utils/index.js";
+import { removeEmptyFieldsSchema, strictAsyncHandler } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IProductController {
@@ -69,10 +65,9 @@ export class ProductController implements IProductController {
 
 		const newProduct = await this._service.create(data);
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.CREATED).json({
 			data: newProduct,
-			responseContext: res,
-			statusCode: HTTP_STATUS.CREATED,
+			success: true,
 		});
 	});
 
@@ -84,10 +79,9 @@ export class ProductController implements IProductController {
 
 		await this._service.delete({ productId });
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.NO_CONTENT).json({
 			data: null,
-			responseContext: res,
-			statusCode: HTTP_STATUS.NO_CONTENT,
+			success: true,
 		});
 	});
 
@@ -113,14 +107,13 @@ export class ProductController implements IProductController {
 
 		const data = await this._service.getAll(query);
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: data.products,
 			meta: {
 				currentPage: data.currentPage,
 				numberOfPages: data.numberOfPages,
 			},
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -132,10 +125,9 @@ export class ProductController implements IProductController {
 
 		const product = await this._service.getById({ productId });
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: product,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -144,10 +136,9 @@ export class ProductController implements IProductController {
 	}>(async (req, res) => {
 		const products = await this._service.getTopRated();
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: products,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -167,10 +158,9 @@ export class ProductController implements IProductController {
 			productId,
 		});
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: updatedProduct,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 

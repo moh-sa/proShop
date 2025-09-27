@@ -10,11 +10,7 @@ import type {
 import { HTTP_STATUS } from "../constants/index.js";
 import { insertReviewSchema } from "../schemas/index.js";
 import { ReviewService } from "../services/index.js";
-import {
-	removeEmptyFieldsSchema,
-	sendSuccessResponse,
-	strictAsyncHandler,
-} from "../utils/index.js";
+import { removeEmptyFieldsSchema, strictAsyncHandler } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IReviewController {
@@ -73,10 +69,9 @@ export class ReviewController implements IReviewController {
 	}>(async (req, res) => {
 		const count = await this._service.count();
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: count,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -88,10 +83,9 @@ export class ReviewController implements IReviewController {
 
 		const count = await this._service.countByProductId({ productId });
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: count,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -103,10 +97,9 @@ export class ReviewController implements IReviewController {
 
 		const count = await this._service.countByUserId({ userId });
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: count,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -122,10 +115,9 @@ export class ReviewController implements IReviewController {
 
 		const newReview = await this._service.create(data);
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.CREATED).json({
 			data: newReview,
-			responseContext: res,
-			statusCode: HTTP_STATUS.CREATED,
+			success: true,
 		});
 	});
 
@@ -137,10 +129,9 @@ export class ReviewController implements IReviewController {
 
 		await this._service.delete({ reviewId });
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.NO_CONTENT).json({
 			data: null,
-			responseContext: res,
-			statusCode: HTTP_STATUS.NO_CONTENT,
+			success: true,
 		});
 	});
 
@@ -152,10 +143,9 @@ export class ReviewController implements IReviewController {
 
 		const exists = await this._service.existsById({ reviewId });
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: exists,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -171,10 +161,9 @@ export class ReviewController implements IReviewController {
 			userId,
 		});
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: exists,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -183,10 +172,9 @@ export class ReviewController implements IReviewController {
 	}>(async (req, res) => {
 		const reviews = await this._service.getAll();
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: reviews,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -198,10 +186,9 @@ export class ReviewController implements IReviewController {
 
 		const reviews = await this._service.getAllByProductId({ productId });
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: reviews,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -213,10 +200,9 @@ export class ReviewController implements IReviewController {
 
 		const reviews = await this._service.getAllByUserId({ userId });
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: reviews,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -228,10 +214,9 @@ export class ReviewController implements IReviewController {
 
 		const review = await this._service.getById({ reviewId });
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: review,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
@@ -249,10 +234,9 @@ export class ReviewController implements IReviewController {
 			reviewId,
 		});
 
-		return sendSuccessResponse({
+		res.status(HTTP_STATUS.OK).json({
 			data: updatedReview,
-			responseContext: res,
-			statusCode: HTTP_STATUS.OK,
+			success: true,
 		});
 	});
 
