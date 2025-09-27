@@ -49,3 +49,8 @@ export type StrictSuccessResponse<
 		: T extends { meta: infer M }
 			? { meta: M; success: true } // only meta
 			: never; // neither data nor meta provided - compile error
+
+// Strict Api Response Type
+export type StrictApiResponse<T extends { data?: unknown; meta?: unknown }> =
+	| ErrorResponse
+	| StrictSuccessResponse<T>;
