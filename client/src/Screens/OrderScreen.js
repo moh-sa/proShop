@@ -1,20 +1,21 @@
-import { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
-import { Row, Col, ListGroup, Image, Card, Button } from "react-bootstrap";
-import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import { Button, Card, Col, Image, ListGroup, Row } from "react-bootstrap";
 import { PayPalButton } from "react-paypal-button-v2";
-import Message from "../Components/Message";
-import Loader from "../Components/Loader";
+import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import {
+  deliverOrder,
   getOrderDetails,
   payOrder,
-  deliverOrder,
 } from "../Actions/orderActions";
+import Loader from "../Components/Loader";
+import Message from "../Components/Message";
 import {
-  ORDER_PAY_RESET,
   ORDER_DELIVER_RESET,
+  ORDER_PAY_RESET,
 } from "../constants/orderConstants";
+import { DEMO_EMAILS } from "../constants/userConstants";
 
 const OrderScreen = ({ match, history }) => {
   const [sdkReady, setSdkReady] = useState(false);
@@ -31,6 +32,7 @@ const OrderScreen = ({ match, history }) => {
 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
+  const isDemoUser = DEMO_EMAILS.includes(userInfo.email);
 
   const addPayPalScript = async () => {
     const baseUrl =
@@ -83,13 +85,13 @@ const OrderScreen = ({ match, history }) => {
   return loading ? (
     <Loader />
   ) : error ? (
-    <Message variant="danger">{error}</Message>
+    <Message variant='danger'>{error}</Message>
   ) : (
     <>
       <h1>Order {order._id}</h1>
       <Row>
         <Col md={8}>
-          <ListGroup variant="flush">
+          <ListGroup variant='flush'>
             <ListGroup.Item>
               <h2>Shipping</h2>
               <p>
@@ -106,11 +108,11 @@ const OrderScreen = ({ match, history }) => {
                 {order.shippingAddress.country}
               </p>
               {order.isDelivered ? (
-                <Message variant="success">
+                <Message variant='success'>
                   Delivered on {order.deliveredAt}
                 </Message>
               ) : (
-                <Message variant="danger">Not Delivered</Message>
+                <Message variant='danger'>Not Delivered</Message>
               )}
             </ListGroup.Item>
 
@@ -121,9 +123,9 @@ const OrderScreen = ({ match, history }) => {
                 {order.paymentMethod}
               </p>
               {order.isPaid ? (
-                <Message variant="success">Paid on {order.paidAt}</Message>
+                <Message variant='success'>Paid on {order.paidAt}</Message>
               ) : (
-                <Message variant="danger">Not Paid</Message>
+                <Message variant='danger'>Not Paid</Message>
               )}
             </ListGroup.Item>
 
@@ -132,7 +134,7 @@ const OrderScreen = ({ match, history }) => {
               {order.orderItems.length === 0 ? (
                 <Message>Order is empty</Message>
               ) : (
-                <ListGroup variant="flush">
+                <ListGroup variant='flush'>
                   {order.orderItems.map((item, index) => (
                     <ListGroup.Item key={index}>
                       <Row>
@@ -162,7 +164,7 @@ const OrderScreen = ({ match, history }) => {
         </Col>
         <Col md={4}>
           <Card>
-            <ListGroup variant="flush">
+            <ListGroup variant='flush'>
               <ListGroup.Item>
                 <h2>Order Summary</h2>
               </ListGroup.Item>
@@ -212,8 +214,8 @@ const OrderScreen = ({ match, history }) => {
                 !order.isDelivered && (
                   <ListGroup.Item>
                     <Button
-                      type="button"
-                      className="btn btn-block"
+                      type='button'
+                      className='btn btn-block'
                       onClick={deliverHandler}
                     >
                       Mark as Delivered
