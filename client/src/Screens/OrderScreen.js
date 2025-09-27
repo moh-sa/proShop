@@ -16,6 +16,7 @@ import {
   ORDER_PAY_RESET,
 } from "../constants/orderConstants";
 import { DEMO_EMAILS } from "../constants/userConstants";
+import { createDemoPaymentResult } from "../helpers";
 
 const OrderScreen = ({ match, history }) => {
   const [sdkReady, setSdkReady] = useState(false);
@@ -49,7 +50,11 @@ const OrderScreen = ({ match, history }) => {
     document.body.appendChild(script);
   };
 
-  const successPaymentHandler = (paymentResult) => {
+  const successPaymentHandler = (actualPaymentResult) => {
+    const paymentResult = isDemoUser
+      ? createDemoPaymentResult(orderId, userInfo)
+      : actualPaymentResult;
+
     dispatch(payOrder(orderId, paymentResult));
   };
 
