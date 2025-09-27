@@ -1,29 +1,28 @@
-main{
-    min-height: 80vh;
+main {
+  min-height: 80vh;
 }
 
-h1{
-    font-size: 1.8rem;
-    padding: 1rem 0
+h1 {
+  font-size: 1.8rem;
+  padding: 1rem 0;
 }
 
-h2{
-    font-size: 1.4rem;
-    padding: 0.5rem 0 
+h2 {
+  font-size: 1.4rem;
+  padding: 0.5rem 0;
 }
 
- h3{
-    padding: 1rem;
+h3 {
+  padding: 1rem;
 }
 
-.rating span{
-    margin: 0.1rem;
+.rating span {
+  margin: 0.1rem;
 }
 
 .btn-block {
-    width: 100%;
+  width: 100%;
 }
-
 
 /* carousel */
 .carousel-item-next,
@@ -56,4 +55,26 @@ h2{
   .carousel-caption h2 {
     font-size: 2.5vw;
   }
+}
+
+/* separator with text in the middle */
+.separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+}
+
+.separator::before,
+.separator::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #d2d2d2;
+}
+
+.separator:not(:empty)::before {
+  margin-right: 0.25em;
+}
+
+.separator:not(:empty)::after {
+  margin-left: 0.25em;
 }
