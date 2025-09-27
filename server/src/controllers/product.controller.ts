@@ -1,30 +1,66 @@
 import { z } from "zod";
 
 import type { IProductService } from "../services/index.js";
-import type { AsyncRequestHandler } from "../types/index.js";
+import type {
+	AllProducts,
+	InsertProduct,
+	SelectProduct,
+	StrictAsyncHandler,
+	TopRatedProduct,
+} from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
 import { insertProductSchema } from "../schemas/index.js";
 import { ProductService } from "../services/index.js";
 import {
-	asyncHandler,
 	removeEmptyFieldsSchema,
 	sendSuccessResponse,
+	strictAsyncHandler,
 } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IProductController {
-	create: AsyncRequestHandler;
-	delete: AsyncRequestHandler<unknown, unknown, { productId: string }>;
-	getAll: AsyncRequestHandler;
-	getById: AsyncRequestHandler<unknown, unknown, { productId: string }>;
-	getTopRated: AsyncRequestHandler;
-	update: AsyncRequestHandler<unknown, unknown, { productId: string }>;
+	create: StrictAsyncHandler<{
+		reqBody: InsertProduct;
+		resBody: { data: SelectProduct };
+	}>;
+	delete: StrictAsyncHandler<{
+		params: { productId: string };
+		resBody: { data: null };
+	}>;
+	getAll: StrictAsyncHandler<{
+		query: {
+			currentPage: string;
+			keyword: string;
+		};
+		resBody: {
+			data: Array<AllProducts>;
+			meta: {
+				currentPage: number;
+				numberOfPages: number;
+			};
+		};
+	}>;
+	getById: StrictAsyncHandler<{
+		params: { productId: string };
+		resBody: { data: SelectProduct };
+	}>;
+	getTopRated: StrictAsyncHandler<{
+		resBody: { data: Array<TopRatedProduct> };
+	}>;
+	update: StrictAsyncHandler<{
+		params: { productId: string };
+		reqBody: Partial<InsertProduct>;
+		resBody: { data: SelectProduct };
+	}>;
 }
 export class ProductController implements IProductController {
 	private readonly _service: IProductService;
 
-	create = asyncHandler(async (req, res) => {
+	create = strictAsyncHandler<{
+		reqBody: InsertProduct;
+		resBody: { data: SelectProduct };
+	}>(async (req, res) => {
 		const data = insertProductSchema.parse({
 			...req.body,
 			image: req.file,
@@ -40,21 +76,34 @@ export class ProductController implements IProductController {
 		});
 	});
 
-	delete = asyncHandler<unknown, unknown, { productId: string }>(
-		async (req, res) => {
-			const productId = objectIdValidator.parse(req.params.productId);
+	delete = strictAsyncHandler<{
+		params: { productId: string };
+		resBody: { data: null };
+	}>(async (req, res) => {
+		const productId = objectIdValidator.parse(req.params.productId);
 
-			await this._service.delete({ productId });
+		await this._service.delete({ productId });
 
-			return sendSuccessResponse({
-				data: null,
-				responseContext: res,
-				statusCode: HTTP_STATUS.NO_CONTENT,
-			});
-		},
-	);
+		return sendSuccessResponse({
+			data: null,
+			responseContext: res,
+			statusCode: HTTP_STATUS.NO_CONTENT,
+		});
+	});
 
-	getAll = asyncHandler(async (req, res) => {
+	getAll = strictAsyncHandler<{
+		query: {
+			currentPage: string;
+			keyword: string;
+		};
+		resBody: {
+			data: Array<AllProducts>;
+			meta: {
+				currentPage: number;
+				numberOfPages: number;
+			};
+		};
+	}>(async (req, res) => {
 		const query = z
 			.object({
 				currentPage: z.coerce.number().int().positive().default(1),
@@ -75,21 +124,24 @@ export class ProductController implements IProductController {
 		});
 	});
 
-	getById = asyncHandler<unknown, unknown, { productId: string }>(
-		async (req, res) => {
-			const productId = objectIdValidator.parse(req.params.productId);
+	getById = strictAsyncHandler<{
+		params: { productId: string };
+		resBody: { data: SelectProduct };
+	}>(async (req, res) => {
+		const productId = objectIdValidator.parse(req.params.productId);
 
-			const product = await this._service.getById({ productId });
+		const product = await this._service.getById({ productId });
 
-			return sendSuccessResponse({
-				data: product,
-				responseContext: res,
-				statusCode: HTTP_STATUS.OK,
-			});
-		},
-	);
+		return sendSuccessResponse({
+			data: product,
+			responseContext: res,
+			statusCode: HTTP_STATUS.OK,
+		});
+	});
 
-	getTopRated = asyncHandler(async (req, res) => {
+	getTopRated = strictAsyncHandler<{
+		resBody: { data: Array<TopRatedProduct> };
+	}>(async (req, res) => {
 		const products = await this._service.getTopRated();
 
 		return sendSuccessResponse({
@@ -99,28 +151,28 @@ export class ProductController implements IProductController {
 		});
 	});
 
-	update = asyncHandler<unknown, unknown, { productId: string }>(
-		async (req, res) => {
-			const productId = objectIdValidator.parse(req.params.productId);
-			const data = removeEmptyFieldsSchema(insertProductSchema.partial()).parse(
-				{
-					...req.body,
-					image: req.file,
-				},
-			);
+	update = strictAsyncHandler<{
+		params: { productId: string };
+		reqBody: Partial<InsertProduct>;
+		resBody: { data: SelectProduct };
+	}>(async (req, res) => {
+		const productId = objectIdValidator.parse(req.params.productId);
+		const data = removeEmptyFieldsSchema(insertProductSchema.partial()).parse({
+			...req.body,
+			image: req.file,
+		});
 
-			const updatedProduct = await this._service.update({
-				data,
-				productId,
-			});
+		const updatedProduct = await this._service.update({
+			data,
+			productId,
+		});
 
-			return sendSuccessResponse({
-				data: updatedProduct,
-				responseContext: res,
-				statusCode: HTTP_STATUS.OK,
-			});
-		},
-	);
+		return sendSuccessResponse({
+			data: updatedProduct,
+			responseContext: res,
+			statusCode: HTTP_STATUS.OK,
+		});
+	});
 
 	constructor(service: IProductService = new ProductService()) {
 		this._service = service;

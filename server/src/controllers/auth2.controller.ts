@@ -3,17 +3,17 @@ import type { Request, Response } from "express";
 import type { IAuthManager } from "../managers/index.js";
 import type { ICookieService } from "../services/index.js";
 import type {
-	AsyncRequestHandler,
 	InsertUser,
 	SafeSelectUser,
 	SelectSession,
+	StrictAsyncHandler,
 	TokenPair,
 } from "../types/index.js";
 
 import { CookieName, HTTP_STATUS } from "../constants/index.js";
 import { AuthManager } from "../managers/index.js";
 import { CookieService } from "../services/index.js";
-import { asyncHandler } from "../utils/index.js";
+import { strictAsyncHandler } from "../utils/index.js";
 import { jwtTokenValidator } from "../validators/index.js";
 
 /**
@@ -25,58 +25,61 @@ export interface IAuth2Controller {
 	/**
 	 * POST /auth/signup
 	 */
-	signUp: AsyncRequestHandler<InsertUser, { user: SafeSelectUser }>;
+	signUp: StrictAsyncHandler<{
+		reqBody: InsertUser;
+		resBody: { data: { user: SafeSelectUser } };
+	}>;
 
 	/**
 	 * POST /auth/signin
 	 */
-	signIn: AsyncRequestHandler<
-		Pick<InsertUser, "email" | "password">,
-		{ user: SafeSelectUser }
-	>;
+	signIn: StrictAsyncHandler<{
+		reqBody: Pick<InsertUser, "email" | "password">;
+		resBody: { data: { user: SafeSelectUser } };
+	}>;
 
 	/**
 	 * DELETE /auth/signout/current
 	 */
-	signOut: AsyncRequestHandler<unknown, { message: string }>;
+	signOut: StrictAsyncHandler<{ resBody: { data: { message: string } } }>;
 
 	/**
 	 * DELETE /auth/signout
 	 */
-	signOutAll: AsyncRequestHandler<
-		unknown,
-		{ message: string },
-		{ removedCount: number }
-	>;
+	signOutAll: StrictAsyncHandler<{
+		resBody: {
+			data: { message: string };
+			meta: { removedCount: number };
+		};
+	}>;
 
 	// Token Management
 	/**
 	 * POST /auth/token/refresh
 	 */
-	refreshAccessToken: AsyncRequestHandler<unknown, { message: string }>;
+	refreshAccessToken: StrictAsyncHandler<{
+		resBody: { data: { message: string } };
+	}>;
 
 	// Session Management
 	/**
 	 * GET /auth/sessions
 	 */
-	getUserSessions: AsyncRequestHandler<
-		unknown,
-		{ sessions: Array<SelectSession> }
-	>;
+	getUserSessions: StrictAsyncHandler<{
+		resBody: { data: { sessions: Array<SelectSession> } };
+	}>;
 
 	/**
 	 * DELETE /auth/sessions/current
 	 */
-	revokeSession: AsyncRequestHandler<unknown, { message: string }>;
+	revokeSession: StrictAsyncHandler<{ resBody: { data: { message: string } } }>;
 
 	/**
 	 * DELETE /auth/sessions
 	 */
-	revokeAllSessions: AsyncRequestHandler<
-		unknown,
-		{ message: string },
-		{ revokedCount: number }
-	>;
+	revokeAllSessions: StrictAsyncHandler<{
+		resBody: { data: { message: string }; meta: { revokedCount: number } };
+	}>;
 }
 
 /**
@@ -98,10 +101,10 @@ export class Auth2Controller implements IAuth2Controller {
 	/**
 	 * POST /auth/signin
 	 */
-	signIn = asyncHandler<
-		Pick<InsertUser, "email" | "password">,
-		{ user: SafeSelectUser }
-	>(async (req, res) => {
+	signIn = strictAsyncHandler<{
+		reqBody: Pick<InsertUser, "email" | "password">;
+		resBody: { data: { user: SafeSelectUser } };
+	}>(async (req, res) => {
 		console.info("[AUTH] Sign-in attempt for email: ", req.body.email);
 
 		// Create a session
@@ -118,7 +121,7 @@ export class Auth2Controller implements IAuth2Controller {
 
 		console.info(`[AUTH] Sign-in successful for email: ${req.body.email}`);
 
-		return res.status(HTTP_STATUS.OK).json({
+		res.status(HTTP_STATUS.OK).json({
 			data: {
 				user: result.data.user,
 			},
@@ -129,27 +132,61 @@ export class Auth2Controller implements IAuth2Controller {
 	/**
 	 * POST /auth/signup
 	 */
-	signUp = asyncHandler<InsertUser, { user: SafeSelectUser }>(
-		async (req, res) => {
-			console.info(`[AUTH] Sign-up attempt for email: ${req.body.email}`);
+	signUp = strictAsyncHandler<{
+		reqBody: InsertUser;
+		resBody: { data: { user: SafeSelectUser } };
+	}>(async (req, res) => {
+		console.info(`[AUTH] Sign-up attempt for email: ${req.body.email}`);
 
-			// Create a session
-			const result = await this._authManager.signUp(req.body);
+		// Create a session
+		const result = await this._authManager.signUp(req.body);
+		if (!result.success) {
+			console.error(
+				`[AUTH] Sign-up failed for email: ${req.body.email} - ${result.error.message}`,
+			);
+			throw result.error;
+		}
+
+		// Set access and refresh tokens in cookies
+		this._setAuthCookies(result.data.tokens, res);
+
+		console.info(`[AUTH] Sign-up successful for email: ${req.body.email}`);
+
+		res.status(HTTP_STATUS.CREATED).json({
+			data: {
+				user: result.data.user,
+			},
+			success: true,
+		});
+	});
+
+	/**
+	 * DELETE /auth/signout/current
+	 */
+	signOut = strictAsyncHandler<{ resBody: { data: { message: string } } }>(
+		async (req, res) => {
+			console.info(`[AUTH] Sign-out attempt`);
+
+			// Get refresh token from cookie
+			const refreshCookie = this._getRefreshTokenFromCookie(req);
+
+			// Delete the session
+			const result = await this._authManager.signOut({
+				refreshToken: refreshCookie,
+			});
 			if (!result.success) {
-				console.error(
-					`[AUTH] Sign-up failed for email: ${req.body.email} - ${result.error.message}`,
-				);
+				console.error(`[AUTH] Sign-out failed - ${result.error.message}`);
 				throw result.error;
 			}
 
-			// Set access and refresh tokens in cookies
-			this._setAuthCookies(result.data.tokens, res);
+			// Clear the access and refresh tokens cookies
+			this._clearAuthCookies(res);
 
-			console.info(`[AUTH] Sign-up successful for email: ${req.body.email}`);
+			console.info(`[AUTH] Sign-out successful`);
 
-			return res.status(HTTP_STATUS.CREATED).json({
+			res.status(HTTP_STATUS.OK).json({
 				data: {
-					user: result.data.user,
+					message: "Logged out successfully",
 				},
 				success: true,
 			});
@@ -157,44 +194,14 @@ export class Auth2Controller implements IAuth2Controller {
 	);
 
 	/**
-	 * DELETE /auth/signout/current
-	 */
-	signOut = asyncHandler<unknown, { message: string }>(async (req, res) => {
-		console.info(`[AUTH] Sign-out attempt`);
-
-		// Get refresh token from cookie
-		const refreshCookie = this._getRefreshTokenFromCookie(req);
-
-		// Delete the session
-		const result = await this._authManager.signOut({
-			refreshToken: refreshCookie,
-		});
-		if (!result.success) {
-			console.error(`[AUTH] Sign-out failed - ${result.error.message}`);
-			throw result.error;
-		}
-
-		// Clear the access and refresh tokens cookies
-		this._clearAuthCookies(res);
-
-		console.info(`[AUTH] Sign-out successful`);
-
-		res.status(HTTP_STATUS.OK).json({
-			data: {
-				message: "Logged out successfully",
-			},
-			success: true,
-		});
-	});
-
-	/**
 	 * DELETE /auth/signout
 	 */
-	signOutAll = asyncHandler<
-		unknown,
-		{ message: string },
-		{ removedCount: number }
-	>(async (req, res) => {
+	signOutAll = strictAsyncHandler<{
+		resBody: {
+			data: { message: string };
+			meta: { removedCount: number };
+		};
+	}>(async (req, res) => {
 		console.info(`[AUTH] Sign-out-all attempt`);
 
 		// Get refresh token from cookie
@@ -216,7 +223,7 @@ export class Auth2Controller implements IAuth2Controller {
 			`[AUTH] Sign-out-all successful - revoked ${result.data} sessions`,
 		);
 
-		return res.status(HTTP_STATUS.OK).json({
+		res.status(HTTP_STATUS.OK).json({
 			data: {
 				message: "Logged out from all devices",
 			},
@@ -230,117 +237,115 @@ export class Auth2Controller implements IAuth2Controller {
 	/**
 	 * POST /auth/token/refresh
 	 */
-	refreshAccessToken = asyncHandler<unknown, { message: string }>(
-		async (req, res) => {
-			console.info(`[AUTH] Access token refresh attempt`);
+	refreshAccessToken = strictAsyncHandler<{
+		resBody: { data: { message: string } };
+	}>(async (req, res) => {
+		console.info(`[AUTH] Access token refresh attempt`);
 
-			// Get refresh token from cookie
-			const refreshCookie = this._getRefreshTokenFromCookie(req);
+		// Get refresh token from cookie
+		const refreshCookie = this._getRefreshTokenFromCookie(req);
 
-			// Refresh access token
-			const accessTokenResult = await this._authManager.refreshAccessToken({
-				refreshToken: refreshCookie,
-			});
-			if (!accessTokenResult.success) {
-				console.error(
-					`[AUTH] Access token refresh failed - ${accessTokenResult.error.message}`,
-				);
-				throw accessTokenResult.error;
-			}
+		// Refresh access token
+		const accessTokenResult = await this._authManager.refreshAccessToken({
+			refreshToken: refreshCookie,
+		});
+		if (!accessTokenResult.success) {
+			console.error(
+				`[AUTH] Access token refresh failed - ${accessTokenResult.error.message}`,
+			);
+			throw accessTokenResult.error;
+		}
 
-			// Set the new access token in the cookie
-			this._setAccessTokenCookie({
-				expiresAt: accessTokenResult.data.expiresAt,
-				res,
-				token: accessTokenResult.data.token,
-			});
+		// Set the new access token in the cookie
+		this._setAccessTokenCookie({
+			expiresAt: accessTokenResult.data.expiresAt,
+			res,
+			token: accessTokenResult.data.token,
+		});
 
-			console.info(`[AUTH] Access token refresh successful`);
+		console.info(`[AUTH] Access token refresh successful`);
 
-			return res.status(HTTP_STATUS.OK).json({
-				data: {
-					message: "Access token refreshed successfully",
-				},
-				success: true,
-			});
-		},
-	);
+		res.status(HTTP_STATUS.OK).json({
+			data: {
+				message: "Access token refreshed successfully",
+			},
+			success: true,
+		});
+	});
 
 	/**
 	 * GET /auth/sessions
 	 */
-	getUserSessions = asyncHandler<unknown, { sessions: Array<SelectSession> }>(
-		async (req, res) => {
-			console.info(`[AUTH] Get user sessions attempt`);
+	getUserSessions = strictAsyncHandler<{
+		resBody: { data: { sessions: Array<SelectSession> } };
+	}>(async (req, res) => {
+		console.info(`[AUTH] Get user sessions attempt`);
 
-			// Get refresh token from cookie
-			const refreshCookie = this._getRefreshTokenFromCookie(req);
+		// Get refresh token from cookie
+		const refreshCookie = this._getRefreshTokenFromCookie(req);
 
-			// Get user sessions
-			const result = await this._authManager.getUserSessions({
-				refreshToken: refreshCookie,
-			});
-			if (!result.success) {
-				console.error(
-					`[AUTH] Get user sessions failed - ${result.error.message}`,
-				);
-				throw result.error;
-			}
-
-			console.info(
-				`[AUTH] Get user sessions successful - ${result.data.length} sessions found`,
+		// Get user sessions
+		const result = await this._authManager.getUserSessions({
+			refreshToken: refreshCookie,
+		});
+		if (!result.success) {
+			console.error(
+				`[AUTH] Get user sessions failed - ${result.error.message}`,
 			);
+			throw result.error;
+		}
 
-			return res.status(HTTP_STATUS.OK).json({
-				data: {
-					sessions: result.data,
-				},
-				success: true,
-			});
-		},
-	);
+		console.info(
+			`[AUTH] Get user sessions successful - ${result.data.length} sessions found`,
+		);
+
+		res.status(HTTP_STATUS.OK).json({
+			data: {
+				sessions: result.data,
+			},
+			success: true,
+		});
+	});
 
 	/**
 	 * DELETE /auth/sessions/current
 	 */
-	revokeSession = asyncHandler<unknown, { message: string }>(
-		async (req, res) => {
-			console.info(`[AUTH] Revoke session attempt`);
+	revokeSession = strictAsyncHandler<{
+		resBody: { data: { message: string } };
+	}>(async (req, res) => {
+		console.info(`[AUTH] Revoke session attempt`);
 
-			// Get refresh token from cookie
-			const refreshCookie = this._getRefreshTokenFromCookie(req);
+		// Get refresh token from cookie
+		const refreshCookie = this._getRefreshTokenFromCookie(req);
 
-			// Revoke session
-			const result = await this._authManager.revokeSession({
-				refreshToken: refreshCookie,
-			});
-			if (!result.success) {
-				console.error(`[AUTH] Revoke session failed - ${result.error.message}`);
-				throw result.error;
-			}
+		// Revoke session
+		const result = await this._authManager.revokeSession({
+			refreshToken: refreshCookie,
+		});
+		if (!result.success) {
+			console.error(`[AUTH] Revoke session failed - ${result.error.message}`);
+			throw result.error;
+		}
 
-			// Clear the access and refresh tokens cookies
-			this._clearAuthCookies(res);
+		// Clear the access and refresh tokens cookies
+		this._clearAuthCookies(res);
 
-			console.info(`[AUTH] Revoke session successful`);
+		console.info(`[AUTH] Revoke session successful`);
 
-			return res.status(HTTP_STATUS.OK).json({
-				data: {
-					message: "Session revoked successfully",
-				},
-				success: true,
-			});
-		},
-	);
+		res.status(HTTP_STATUS.OK).json({
+			data: {
+				message: "Session revoked successfully",
+			},
+			success: true,
+		});
+	});
 
 	/**
 	 * DELETE /auth/sessions
 	 */
-	revokeAllSessions = asyncHandler<
-		unknown,
-		{ message: string },
-		{ revokedCount: number }
-	>(async (req, res) => {
+	revokeAllSessions = strictAsyncHandler<{
+		resBody: { data: { message: string }; meta: { revokedCount: number } };
+	}>(async (req, res) => {
 		console.info(`[AUTH] Revoke all sessions attempt`);
 
 		// Get refresh token from cookie
@@ -364,7 +369,7 @@ export class Auth2Controller implements IAuth2Controller {
 			`[AUTH] Revoke all sessions successful - revoked ${result.data} sessions`,
 		);
 
-		return res.status(HTTP_STATUS.OK).json({
+		res.status(HTTP_STATUS.OK).json({
 			data: {
 				message: "All sessions revoked successfully",
 			},

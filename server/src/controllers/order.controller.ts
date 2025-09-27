@@ -1,24 +1,49 @@
 import type { IOrderService } from "../services/index.js";
-import type { AsyncRequestHandler } from "../types/index.js";
+import type {
+	AllOrdersResponse,
+	InsertOrder,
+	SelectOrder,
+	StrictAsyncHandler,
+} from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
 import { insertOrderSchema } from "../schemas/index.js";
 import { OrderService } from "../services/index.js";
-import { asyncHandler, sendSuccessResponse } from "../utils/index.js";
+import { sendSuccessResponse, strictAsyncHandler } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IOrderController {
-	create: AsyncRequestHandler;
-	getAll: AsyncRequestHandler;
-	getAllByUserId: AsyncRequestHandler<unknown, unknown, { userId: string }>;
-	getById: AsyncRequestHandler<unknown, unknown, { orderId: string }>;
-	updateToDelivered: AsyncRequestHandler<unknown, unknown, { orderId: string }>;
-	updateToPaid: AsyncRequestHandler<unknown, unknown, { orderId: string }>;
+	create: StrictAsyncHandler<{
+		reqBody: InsertOrder;
+		resBody: { data: SelectOrder };
+	}>;
+	getAll: StrictAsyncHandler<{
+		resBody: { data: AllOrdersResponse };
+	}>;
+	getAllByUserId: StrictAsyncHandler<{
+		params: { userId: string };
+		resBody: { data: AllOrdersResponse };
+	}>;
+	getById: StrictAsyncHandler<{
+		params: { orderId: string };
+		resBody: { data: SelectOrder };
+	}>;
+	updateToDelivered: StrictAsyncHandler<{
+		params: { orderId: string };
+		resBody: { data: SelectOrder };
+	}>;
+	updateToPaid: StrictAsyncHandler<{
+		params: { orderId: string };
+		resBody: { data: SelectOrder };
+	}>;
 }
 export class OrderController implements IOrderController {
 	private readonly _service: IOrderService;
 
-	create = asyncHandler(async (req, res) => {
+	create = strictAsyncHandler<{
+		reqBody: InsertOrder;
+		resBody: { data: SelectOrder };
+	}>(async (req, res) => {
 		const data = insertOrderSchema.parse({
 			...req.body,
 			user: res.locals.user._id,
@@ -33,7 +58,9 @@ export class OrderController implements IOrderController {
 		});
 	});
 
-	getAll = asyncHandler(async (req, res) => {
+	getAll = strictAsyncHandler<{
+		resBody: { data: AllOrdersResponse };
+	}>(async (req, res) => {
 		const orders = await this._service.getAll();
 
 		return sendSuccessResponse({
@@ -43,61 +70,65 @@ export class OrderController implements IOrderController {
 		});
 	});
 
-	getAllByUserId = asyncHandler<unknown, unknown, { userId: string }>(
-		async (req, res) => {
-			const userId = objectIdValidator.parse(req.params.userId);
+	getAllByUserId = strictAsyncHandler<{
+		params: { userId: string };
+		resBody: { data: AllOrdersResponse };
+	}>(async (req, res) => {
+		const userId = objectIdValidator.parse(req.params.userId);
 
-			const orders = await this._service.getAllByUserId({ userId });
+		const orders = await this._service.getAllByUserId({ userId });
 
-			return sendSuccessResponse({
-				data: orders,
-				responseContext: res,
-				statusCode: HTTP_STATUS.OK,
-			});
-		},
-	);
+		return sendSuccessResponse({
+			data: orders,
+			responseContext: res,
+			statusCode: HTTP_STATUS.OK,
+		});
+	});
 
-	getById = asyncHandler<unknown, unknown, { orderId: string }>(
-		async (req, res) => {
-			const orderId = objectIdValidator.parse(req.params.orderId);
+	getById = strictAsyncHandler<{
+		params: { orderId: string };
+		resBody: { data: SelectOrder };
+	}>(async (req, res) => {
+		const orderId = objectIdValidator.parse(req.params.orderId);
 
-			const order = await this._service.getById({ orderId });
+		const order = await this._service.getById({ orderId });
 
-			return sendSuccessResponse({
-				data: order,
-				responseContext: res,
-				statusCode: HTTP_STATUS.OK,
-			});
-		},
-	);
+		return sendSuccessResponse({
+			data: order,
+			responseContext: res,
+			statusCode: HTTP_STATUS.OK,
+		});
+	});
 
-	updateToDelivered = asyncHandler<unknown, unknown, { orderId: string }>(
-		async (req, res) => {
-			const orderId = objectIdValidator.parse(req.params.orderId);
+	updateToDelivered = strictAsyncHandler<{
+		params: { orderId: string };
+		resBody: { data: SelectOrder };
+	}>(async (req, res) => {
+		const orderId = objectIdValidator.parse(req.params.orderId);
 
-			const order = await this._service.updateToDelivered({ orderId });
+		const order = await this._service.updateToDelivered({ orderId });
 
-			return sendSuccessResponse({
-				data: order,
-				responseContext: res,
-				statusCode: HTTP_STATUS.OK,
-			});
-		},
-	);
+		return sendSuccessResponse({
+			data: order,
+			responseContext: res,
+			statusCode: HTTP_STATUS.OK,
+		});
+	});
 
-	updateToPaid = asyncHandler<unknown, unknown, { orderId: string }>(
-		async (req, res) => {
-			const orderId = objectIdValidator.parse(req.params.orderId);
+	updateToPaid = strictAsyncHandler<{
+		params: { orderId: string };
+		resBody: { data: SelectOrder };
+	}>(async (req, res) => {
+		const orderId = objectIdValidator.parse(req.params.orderId);
 
-			const order = await this._service.updateToPaid({ orderId });
+		const order = await this._service.updateToPaid({ orderId });
 
-			return sendSuccessResponse({
-				data: order,
-				responseContext: res,
-				statusCode: HTTP_STATUS.OK,
-			});
-		},
-	);
+		return sendSuccessResponse({
+			data: order,
+			responseContext: res,
+			statusCode: HTTP_STATUS.OK,
+		});
+	});
 
 	constructor(service: IOrderService = new OrderService()) {
 		this._service = service;

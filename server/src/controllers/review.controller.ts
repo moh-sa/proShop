@@ -1,46 +1,76 @@
+import type { Types } from "mongoose";
+
 import type { IReviewService } from "../services/index.js";
-import type { AsyncRequestHandler } from "../types/index.js";
+import type {
+	InsertReview,
+	SelectReview,
+	StrictAsyncHandler,
+} from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
 import { insertReviewSchema } from "../schemas/index.js";
 import { ReviewService } from "../services/index.js";
 import {
-	asyncHandler,
 	removeEmptyFieldsSchema,
 	sendSuccessResponse,
+	strictAsyncHandler,
 } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IReviewController {
-	count: AsyncRequestHandler;
-	countByProductId: AsyncRequestHandler<
-		unknown,
-		unknown,
-		{ productId: string }
-	>;
-	countByUserId: AsyncRequestHandler<unknown, unknown, { userId: string }>;
-	create: AsyncRequestHandler;
-	delete: AsyncRequestHandler<unknown, unknown, { reviewId: string }>;
-	existsById: AsyncRequestHandler<unknown, unknown, { reviewId: string }>;
-	existsByUserIdAndProductId: AsyncRequestHandler<
-		unknown,
-		unknown,
-		{ productId: string; userId: string }
-	>;
-	getAll: AsyncRequestHandler;
-	getAllByProductId: AsyncRequestHandler<
-		unknown,
-		unknown,
-		{ productId: string }
-	>;
-	getAllByUserId: AsyncRequestHandler<unknown, unknown, { userId: string }>;
-	getById: AsyncRequestHandler<unknown, unknown, { reviewId: string }>;
-	update: AsyncRequestHandler<unknown, unknown, { reviewId: string }>;
+	count: StrictAsyncHandler<{
+		resBody: { data: number };
+	}>;
+	countByProductId: StrictAsyncHandler<{
+		params: { productId: string };
+		resBody: { data: number };
+	}>;
+	countByUserId: StrictAsyncHandler<{
+		params: { userId: string };
+		resBody: { data: number };
+	}>;
+	create: StrictAsyncHandler<{
+		reqBody: InsertReview;
+		resBody: { data: SelectReview };
+	}>;
+	delete: StrictAsyncHandler<{
+		params: { reviewId: string };
+		resBody: { data: null };
+	}>;
+	existsById: StrictAsyncHandler<{
+		params: { reviewId: string };
+		resBody: { data: { _id: Types.ObjectId } };
+	}>;
+	existsByUserIdAndProductId: StrictAsyncHandler<{
+		params: { productId: string; userId: string };
+		resBody: { data: { _id: Types.ObjectId } };
+	}>;
+	getAll: StrictAsyncHandler<{
+		resBody: { data: Array<SelectReview> };
+	}>;
+	getAllByProductId: StrictAsyncHandler<{
+		params: { productId: string };
+		resBody: { data: Array<SelectReview> };
+	}>;
+	getAllByUserId: StrictAsyncHandler<{
+		params: { userId: string };
+		resBody: { data: Array<SelectReview> };
+	}>;
+	getById: StrictAsyncHandler<{
+		params: { reviewId: string };
+		resBody: { data: SelectReview };
+	}>;
+	update: StrictAsyncHandler<{
+		params: { reviewId: string };
+		resBody: { data: SelectReview };
+	}>;
 }
 export class ReviewController implements IReviewController {
 	private readonly _service: IReviewService;
 
-	count = asyncHandler(async (req, res) => {
+	count = strictAsyncHandler<{
+		resBody: { data: number };
+	}>(async (req, res) => {
 		const count = await this._service.count();
 
 		return sendSuccessResponse({
@@ -50,35 +80,40 @@ export class ReviewController implements IReviewController {
 		});
 	});
 
-	countByProductId = asyncHandler<unknown, unknown, { productId: string }>(
-		async (req, res) => {
-			const productId = objectIdValidator.parse(req.params.productId);
+	countByProductId = strictAsyncHandler<{
+		params: { productId: string };
+		resBody: { data: number };
+	}>(async (req, res) => {
+		const productId = objectIdValidator.parse(req.params.productId);
 
-			const count = await this._service.countByProductId({ productId });
+		const count = await this._service.countByProductId({ productId });
 
-			return sendSuccessResponse({
-				data: count,
-				responseContext: res,
-				statusCode: HTTP_STATUS.OK,
-			});
-		},
-	);
+		return sendSuccessResponse({
+			data: count,
+			responseContext: res,
+			statusCode: HTTP_STATUS.OK,
+		});
+	});
 
-	countByUserId = asyncHandler<unknown, unknown, { userId: string }>(
-		async (req, res) => {
-			const userId = objectIdValidator.parse(req.params.userId);
+	countByUserId = strictAsyncHandler<{
+		params: { userId: string };
+		resBody: { data: number };
+	}>(async (req, res) => {
+		const userId = objectIdValidator.parse(req.params.userId);
 
-			const count = await this._service.countByUserId({ userId });
+		const count = await this._service.countByUserId({ userId });
 
-			return sendSuccessResponse({
-				data: count,
-				responseContext: res,
-				statusCode: HTTP_STATUS.OK,
-			});
-		},
-	);
+		return sendSuccessResponse({
+			data: count,
+			responseContext: res,
+			statusCode: HTTP_STATUS.OK,
+		});
+	});
 
-	create = asyncHandler(async (req, res) => {
+	create = strictAsyncHandler<{
+		reqBody: InsertReview;
+		resBody: { data: SelectReview };
+	}>(async (req, res) => {
 		const data = insertReviewSchema.parse({
 			...req.body,
 			name: res.locals.user.name,
@@ -94,39 +129,40 @@ export class ReviewController implements IReviewController {
 		});
 	});
 
-	delete = asyncHandler<unknown, unknown, { reviewId: string }>(
-		async (req, res) => {
-			const reviewId = objectIdValidator.parse(req.params.reviewId);
+	delete = strictAsyncHandler<{
+		params: { reviewId: string };
+		resBody: { data: null };
+	}>(async (req, res) => {
+		const reviewId = objectIdValidator.parse(req.params.reviewId);
 
-			await this._service.delete({ reviewId });
+		await this._service.delete({ reviewId });
 
-			return sendSuccessResponse({
-				data: null,
-				responseContext: res,
-				statusCode: HTTP_STATUS.NO_CONTENT,
-			});
-		},
-	);
+		return sendSuccessResponse({
+			data: null,
+			responseContext: res,
+			statusCode: HTTP_STATUS.NO_CONTENT,
+		});
+	});
 
-	existsById = asyncHandler<unknown, unknown, { reviewId: string }>(
-		async (req, res) => {
-			const reviewId = objectIdValidator.parse(req.params.reviewId);
+	existsById = strictAsyncHandler<{
+		params: { reviewId: string };
+		resBody: { data: { _id: Types.ObjectId } };
+	}>(async (req, res) => {
+		const reviewId = objectIdValidator.parse(req.params.reviewId);
 
-			const exists = await this._service.existsById({ reviewId });
+		const exists = await this._service.existsById({ reviewId });
 
-			return sendSuccessResponse({
-				data: exists,
-				responseContext: res,
-				statusCode: HTTP_STATUS.OK,
-			});
-		},
-	);
+		return sendSuccessResponse({
+			data: exists,
+			responseContext: res,
+			statusCode: HTTP_STATUS.OK,
+		});
+	});
 
-	existsByUserIdAndProductId = asyncHandler<
-		unknown,
-		unknown,
-		{ productId: string; userId: string }
-	>(async (req, res) => {
+	existsByUserIdAndProductId = strictAsyncHandler<{
+		params: { productId: string; userId: string };
+		resBody: { data: { _id: Types.ObjectId } };
+	}>(async (req, res) => {
 		const userId = objectIdValidator.parse(req.params.userId);
 		const productId = objectIdValidator.parse(req.params.productId);
 
@@ -142,7 +178,9 @@ export class ReviewController implements IReviewController {
 		});
 	});
 
-	getAll = asyncHandler(async (req, res) => {
+	getAll = strictAsyncHandler<{
+		resBody: { data: Array<SelectReview> };
+	}>(async (req, res) => {
 		const reviews = await this._service.getAll();
 
 		return sendSuccessResponse({
@@ -152,67 +190,71 @@ export class ReviewController implements IReviewController {
 		});
 	});
 
-	getAllByProductId = asyncHandler<unknown, unknown, { productId: string }>(
-		async (req, res) => {
-			const productId = objectIdValidator.parse(req.params.productId);
+	getAllByProductId = strictAsyncHandler<{
+		params: { productId: string };
+		resBody: { data: Array<SelectReview> };
+	}>(async (req, res) => {
+		const productId = objectIdValidator.parse(req.params.productId);
 
-			const reviews = await this._service.getAllByProductId({ productId });
+		const reviews = await this._service.getAllByProductId({ productId });
 
-			return sendSuccessResponse({
-				data: reviews,
-				responseContext: res,
-				statusCode: HTTP_STATUS.OK,
-			});
-		},
-	);
+		return sendSuccessResponse({
+			data: reviews,
+			responseContext: res,
+			statusCode: HTTP_STATUS.OK,
+		});
+	});
 
-	getAllByUserId = asyncHandler<unknown, unknown, { userId: string }>(
-		async (req, res) => {
-			const userId = objectIdValidator.parse(req.params.userId);
+	getAllByUserId = strictAsyncHandler<{
+		params: { userId: string };
+		resBody: { data: Array<SelectReview> };
+	}>(async (req, res) => {
+		const userId = objectIdValidator.parse(req.params.userId);
 
-			const reviews = await this._service.getAllByUserId({ userId });
+		const reviews = await this._service.getAllByUserId({ userId });
 
-			return sendSuccessResponse({
-				data: reviews,
-				responseContext: res,
-				statusCode: HTTP_STATUS.OK,
-			});
-		},
-	);
+		return sendSuccessResponse({
+			data: reviews,
+			responseContext: res,
+			statusCode: HTTP_STATUS.OK,
+		});
+	});
 
-	getById = asyncHandler<unknown, unknown, { reviewId: string }>(
-		async (req, res) => {
-			const reviewId = objectIdValidator.parse(req.params.reviewId);
+	getById = strictAsyncHandler<{
+		params: { reviewId: string };
+		resBody: { data: SelectReview };
+	}>(async (req, res) => {
+		const reviewId = objectIdValidator.parse(req.params.reviewId);
 
-			const review = await this._service.getById({ reviewId });
+		const review = await this._service.getById({ reviewId });
 
-			return sendSuccessResponse({
-				data: review,
-				responseContext: res,
-				statusCode: HTTP_STATUS.OK,
-			});
-		},
-	);
+		return sendSuccessResponse({
+			data: review,
+			responseContext: res,
+			statusCode: HTTP_STATUS.OK,
+		});
+	});
 
-	update = asyncHandler<unknown, unknown, { reviewId: string }>(
-		async (req, res) => {
-			const reviewId = objectIdValidator.parse(req.params.reviewId);
-			const data = removeEmptyFieldsSchema(insertReviewSchema.partial()).parse(
-				req.body,
-			);
+	update = strictAsyncHandler<{
+		params: { reviewId: string };
+		resBody: { data: SelectReview };
+	}>(async (req, res) => {
+		const reviewId = objectIdValidator.parse(req.params.reviewId);
+		const data = removeEmptyFieldsSchema(insertReviewSchema.partial()).parse(
+			req.body,
+		);
 
-			const updatedReview = await this._service.update({
-				data,
-				reviewId,
-			});
+		const updatedReview = await this._service.update({
+			data,
+			reviewId,
+		});
 
-			return sendSuccessResponse({
-				data: updatedReview,
-				responseContext: res,
-				statusCode: HTTP_STATUS.OK,
-			});
-		},
-	);
+		return sendSuccessResponse({
+			data: updatedReview,
+			responseContext: res,
+			statusCode: HTTP_STATUS.OK,
+		});
+	});
 
 	constructor(service: IReviewService = new ReviewService()) {
 		this._service = service;

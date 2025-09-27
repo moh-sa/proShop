@@ -1,19 +1,32 @@
 import type { IAuthService } from "../services/index.js";
-import type { AsyncRequestHandler } from "../types/index.js";
+import type {
+	InsertUser,
+	SafeSelectUser,
+	StrictAsyncHandler,
+} from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
 import { insertUserSchema, selectUserSchema } from "../schemas/index.js";
 import { AuthService } from "../services/index.js";
-import { asyncHandler, sendSuccessResponse } from "../utils/index.js";
+import { sendSuccessResponse, strictAsyncHandler } from "../utils/index.js";
 
 export interface IAuthController {
-	signin: AsyncRequestHandler;
-	signup: AsyncRequestHandler;
+	signin: StrictAsyncHandler<{
+		reqBody: Pick<InsertUser, "email" | "password">;
+		resBody: { data: SafeSelectUser };
+	}>;
+	signup: StrictAsyncHandler<{
+		reqBody: InsertUser;
+		resBody: { data: SafeSelectUser };
+	}>;
 }
 export class AuthController implements IAuthController {
 	private readonly _service: IAuthService;
 
-	signin = asyncHandler(async (req, res) => {
+	signin = strictAsyncHandler<{
+		reqBody: Pick<InsertUser, "email" | "password">;
+		resBody: { data: SafeSelectUser };
+	}>(async (req, res) => {
 		const data = res.locals.user || req.body;
 
 		const parsedData = selectUserSchema
@@ -29,7 +42,10 @@ export class AuthController implements IAuthController {
 		});
 	});
 
-	signup = asyncHandler(async (req, res) => {
+	signup = strictAsyncHandler<{
+		reqBody: InsertUser;
+		resBody: { data: SafeSelectUser };
+	}>(async (req, res) => {
 		const data = insertUserSchema.parse(req.body);
 
 		const response = await this._service.signup(data);
