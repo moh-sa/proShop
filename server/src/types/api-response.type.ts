@@ -31,7 +31,7 @@ export type successResponse<T extends { data?: unknown; meta?: unknown }> =
 				? { meta: M; success: true } // only meta
 				: never; // neither data nor meta provided - compile error
 
-// Strict Api Response Type
-export type StrictApiResponse<T extends { data?: unknown; meta?: unknown }> =
+// Api Response Type
+export type ApiResponse<T extends { data?: unknown; meta?: unknown }> =
 	| ErrorResponse
 	| successResponse<T>;
