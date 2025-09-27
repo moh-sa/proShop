@@ -8,7 +8,7 @@ import type { InsertUser } from "../../types/index.js";
 
 import { UserController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
-import { createSuccessResponseObject } from "../../utils/index.js";
+import { createStrictSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockSelectUser,
 	generateMockSelectUsers,
@@ -156,7 +156,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockUser }),
+				createStrictSuccessResponseObject({ data: mockUser }),
 			);
 		});
 	});
@@ -220,7 +220,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockUsers }),
+				createStrictSuccessResponseObject({ data: mockUsers }),
 			);
 		});
 	});
@@ -366,7 +366,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockUser }),
+				createStrictSuccessResponseObject({ data: mockUser }),
 			);
 		});
 	});
@@ -505,7 +505,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: null }),
+				createStrictSuccessResponseObject({ data: null }),
 			);
 		});
 	});

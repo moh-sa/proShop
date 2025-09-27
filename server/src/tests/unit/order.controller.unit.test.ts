@@ -5,7 +5,7 @@ import test, { beforeEach, describe, suite } from "node:test";
 import { ZodError } from "zod";
 
 import { OrderController } from "../../controllers/index.js";
-import { createSuccessResponseObject } from "../../utils/index.js";
+import { createStrictSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockInsertOrder,
 	generateMockSelectOrder,
@@ -143,7 +143,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockSelectOrder }),
+				createStrictSuccessResponseObject({ data: mockSelectOrder }),
 			);
 		});
 	});
@@ -210,7 +210,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockOrders }),
+				createStrictSuccessResponseObject({ data: mockOrders }),
 			);
 		});
 	});
@@ -328,7 +328,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockOrders }),
+				createStrictSuccessResponseObject({ data: mockOrders }),
 			);
 		});
 	});
@@ -443,7 +443,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockOrder }),
+				createStrictSuccessResponseObject({ data: mockOrder }),
 			);
 		});
 	});
@@ -561,7 +561,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockOrder }),
+				createStrictSuccessResponseObject({ data: mockOrder }),
 			);
 		});
 	});
@@ -679,7 +679,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockOrder }),
+				createStrictSuccessResponseObject({ data: mockOrder }),
 			);
 		});
 	});
