@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 
 import type {
 	StrictApiResponse,
-	StrictSuccessResponse,
+	successResponse,
 } from "./api-response.type.js";
 
 /**
@@ -28,7 +28,7 @@ export type AsyncHandlerGenerics = {
  * Type-safe version of `res.json()` that enforces proper API response shape
  */
 type StrictResponseJson<Body extends ResponseBody> =
-	StrictSuccessResponse<Body> extends never
+	successResponse<Body> extends never
 		? never
 		: (body: StrictApiResponse<Body>) => Response;
 
