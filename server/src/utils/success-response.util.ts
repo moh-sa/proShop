@@ -3,25 +3,14 @@ import type { Response } from "express";
 import type { HTTP_STATUS } from "../constants/index.js";
 import type { SuccessResponse } from "../types/index.js";
 
-export function createStrictSuccessResponseObject<D, M>(
-	data: D,
-	meta?: M,
-): SuccessResponse<{ data: D }>;
-export function createStrictSuccessResponseObject<D, M>(
-	data: D,
-	meta: M,
-): SuccessResponse<{ data: D; meta: M }>;
-export function createStrictSuccessResponseObject<D, M>(data: D, meta: M) {
-	if (data && meta) {
-		return { data, meta, success: true };
-	}
-	if (data) {
-		return { data, success: true };
-	}
-
-	if (meta) {
-		return { meta, success: true };
-	}
+export function createStrictSuccessResponseObject<
+	D = unknown,
+	M = unknown,
+>(args: { data?: D; meta?: M }): SuccessResponse<{ data?: D; meta?: M }> {
+	return {
+		...args,
+		success: true,
+	};
 }
 
 export function sendStrictSuccessResponse<D, M = undefined>({
