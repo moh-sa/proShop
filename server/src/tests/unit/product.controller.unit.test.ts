@@ -7,7 +7,7 @@ import { ZodError } from "zod";
 import type { InsertProduct } from "../../types/index.js";
 
 import { ProductController } from "../../controllers/index.js";
-import { createStrictSuccessResponseObject } from "../../utils/index.js";
+import { createSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockInsertProductWithMulterImage,
 	generateMockObjectId,
@@ -516,7 +516,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: mockSelectProduct }),
+				createSuccessResponseObject({ data: mockSelectProduct }),
 			);
 		});
 	});
@@ -849,7 +849,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({
+				createSuccessResponseObject({
 					data: serviceResult.products,
 					meta: {
 						currentPage: serviceResult.currentPage,
@@ -923,7 +923,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({
+				createSuccessResponseObject({
 					data: serviceResult,
 				}),
 			);
@@ -1040,7 +1040,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: mockProduct }),
+				createSuccessResponseObject({ data: mockProduct }),
 			);
 		});
 	});
@@ -1175,7 +1175,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: mockProduct }),
+				createSuccessResponseObject({ data: mockProduct }),
 			);
 		});
 	});
@@ -1281,7 +1281,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: null }),
+				createSuccessResponseObject({ data: null }),
 			);
 		});
 	});

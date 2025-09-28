@@ -5,7 +5,7 @@ import test, { beforeEach, describe, suite } from "node:test";
 import { ZodError } from "zod";
 
 import { AuthController } from "../../controllers/index.js";
-import { createStrictSuccessResponseObject } from "../../utils/index.js";
+import { createSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockInsertUser,
 	generateMockSelectUser,
@@ -161,7 +161,7 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: mockSelectUser }),
+				createSuccessResponseObject({ data: mockSelectUser }),
 			);
 		});
 	});
@@ -324,7 +324,7 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: mockSelectUser }),
+				createSuccessResponseObject({ data: mockSelectUser }),
 			);
 		});
 	});

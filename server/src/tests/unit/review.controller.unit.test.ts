@@ -7,7 +7,7 @@ import { ZodError } from "zod";
 import type { InsertReview } from "../../types/index.js";
 
 import { ReviewController } from "../../controllers/index.js";
-import { createStrictSuccessResponseObject } from "../../utils/index.js";
+import { createSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockObjectId,
 	generateMockSelectReview,
@@ -300,7 +300,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: mockReview }),
+				createSuccessResponseObject({ data: mockReview }),
 			);
 		});
 	});
@@ -367,7 +367,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: mockReviews }),
+				createSuccessResponseObject({ data: mockReviews }),
 			);
 		});
 	});
@@ -485,7 +485,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: mockReviews }),
+				createSuccessResponseObject({ data: mockReviews }),
 			);
 		});
 	});
@@ -603,7 +603,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: mockReviews }),
+				createSuccessResponseObject({ data: mockReviews }),
 			);
 		});
 	});
@@ -718,7 +718,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: mockReview }),
+				createSuccessResponseObject({ data: mockReview }),
 			);
 		});
 	});
@@ -839,7 +839,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: mockReview }),
+				createSuccessResponseObject({ data: mockReview }),
 			);
 		});
 	});
@@ -954,7 +954,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: null }),
+				createSuccessResponseObject({ data: null }),
 			);
 		});
 	});
@@ -1018,7 +1018,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: mockCount }),
+				createSuccessResponseObject({ data: mockCount }),
 			);
 		});
 	});
@@ -1136,7 +1136,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: mockCount }),
+				createSuccessResponseObject({ data: mockCount }),
 			);
 		});
 	});
@@ -1254,7 +1254,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: mockCount }),
+				createSuccessResponseObject({ data: mockCount }),
 			);
 		});
 	});
@@ -1372,7 +1372,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: serviceResult }),
+				createSuccessResponseObject({ data: serviceResult }),
 			);
 		});
 	});
@@ -1550,7 +1550,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createStrictSuccessResponseObject({ data: serviceResult }),
+				createSuccessResponseObject({ data: serviceResult }),
 			);
 		});
 	});
