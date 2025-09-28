@@ -19,7 +19,7 @@ export interface ErrorResponse {
  * Success response structure that conditionally includes `data` and/or `meta`
  * This enforces that at least one of `data` or `meta` must be provided
  */
-export type successResponse<T extends { data?: unknown; meta?: unknown }> =
+export type SuccessResponse<T extends { data?: unknown; meta?: unknown }> =
 	T extends {
 		data: infer D;
 		meta: infer M;
@@ -34,4 +34,4 @@ export type successResponse<T extends { data?: unknown; meta?: unknown }> =
 // Api Response Type
 export type ApiResponse<T extends { data?: unknown; meta?: unknown }> =
 	| ErrorResponse
-	| successResponse<T>;
+	| SuccessResponse<T>;

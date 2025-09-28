@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 
-import type { ApiResponse, successResponse } from "./api-response.type.js";
+import type { ApiResponse, SuccessResponse } from "./api-response.type.js";
 
 /**
  * Enforces that at least one of `data` or `meta` is required
@@ -25,7 +25,7 @@ export type AsyncHandlerGenerics = {
  * Type-safe version of `res.json()` that enforces proper API response shape
  */
 type StrictResponseJson<Body extends ResponseBody> =
-	successResponse<Body> extends never
+	SuccessResponse<Body> extends never
 		? never
 		: (body: ApiResponse<Body>) => Response;
 
