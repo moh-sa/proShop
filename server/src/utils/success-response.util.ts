@@ -13,7 +13,7 @@ export function createSuccessResponseObject<D = unknown, M = unknown>(args: {
 	};
 }
 
-export function sendStrictSuccessResponse<D, M = undefined>({
+export function sendSuccessResponse<D, M = undefined>({
 	data,
 	meta,
 	responseContext,
