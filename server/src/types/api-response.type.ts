@@ -29,7 +29,7 @@ export type SuccessResponse<T extends { data?: unknown; meta?: unknown }> =
 			? { data: D; success: true } // only data
 			: T extends { meta: infer M }
 				? { meta: M; success: true } // only meta
-				: never; // neither data nor meta provided - compile error
+				: { success: true }; // neither data nor meta provided
 
 // Api Response Type
 export type ApiResponse<T extends { data?: unknown; meta?: unknown }> =
