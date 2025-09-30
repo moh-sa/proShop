@@ -25,7 +25,7 @@ const baseProductSchema = z.object({
 });
 
 export const insertProductSchema = baseProductSchema.extend({
-	[IMAGE_FIELD_NAME]: insertImageSchema,
+	[IMAGE_FIELD_NAME]: insertImageSchema.optional(),
 });
 
 export const selectProductSchema = baseProductSchema.extend({
