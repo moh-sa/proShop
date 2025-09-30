@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 import type { IProductService } from "../services/index.js";
 import type {
 	AllProducts,
@@ -10,10 +8,8 @@ import type {
 } from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
-import { insertProductSchema } from "../schemas/index.js";
 import { ProductService } from "../services/index.js";
-import { asyncHandler, removeEmptyFieldsSchema } from "../utils/index.js";
-import { objectIdValidator } from "../validators/index.js";
+import { asyncHandler } from "../utils/index.js";
 
 export interface IProductController {
 	create: AsyncHandler<{
@@ -57,11 +53,11 @@ export class ProductController implements IProductController {
 		reqBody: InsertProduct;
 		resBody: { data: SelectProduct };
 	}>(async (req, res) => {
-		const data = insertProductSchema.parse({
+		const data = {
 			...req.body,
 			image: req.file,
 			user: res.locals.user._id,
-		});
+		};
 
 		const newProduct = await this._service.create(data);
 
@@ -75,9 +71,7 @@ export class ProductController implements IProductController {
 		params: { productId: string };
 		resBody: { data: null };
 	}>(async (req, res) => {
-		const productId = objectIdValidator.parse(req.params.productId);
-
-		await this._service.delete({ productId });
+		await this._service.delete({ productId: req.params.productId });
 
 		res.status(HTTP_STATUS.NO_CONTENT).json({
 			data: null,
@@ -98,14 +92,7 @@ export class ProductController implements IProductController {
 			};
 		};
 	}>(async (req, res) => {
-		const query = z
-			.object({
-				currentPage: z.coerce.number().int().positive().default(1),
-				keyword: z.string().default(""),
-			})
-			.parse(req.query);
-
-		const data = await this._service.getAll(query);
+		const data = await this._service.getAll(req.query);
 
 		res.status(HTTP_STATUS.OK).json({
 			data: data.products,
@@ -121,9 +108,9 @@ export class ProductController implements IProductController {
 		params: { productId: string };
 		resBody: { data: SelectProduct };
 	}>(async (req, res) => {
-		const productId = objectIdValidator.parse(req.params.productId);
-
-		const product = await this._service.getById({ productId });
+		const product = await this._service.getById({
+			productId: req.params.productId,
+		});
 
 		res.status(HTTP_STATUS.OK).json({
 			data: product,
@@ -147,15 +134,14 @@ export class ProductController implements IProductController {
 		reqBody: Partial<InsertProduct>;
 		resBody: { data: SelectProduct };
 	}>(async (req, res) => {
-		const productId = objectIdValidator.parse(req.params.productId);
-		const data = removeEmptyFieldsSchema(insertProductSchema.partial()).parse({
+		const data = {
 			...req.body,
 			image: req.file,
-		});
+		};
 
 		const updatedProduct = await this._service.update({
 			data,
-			productId,
+			productId: req.params.productId,
 		});
 
 		res.status(HTTP_STATUS.OK).json({

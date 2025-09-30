@@ -1,12 +1,15 @@
-import { Types } from "mongoose";
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 
-import { DatabaseValidationError, NotFoundError } from "../../errors/index.js";
+import { NotFoundError, ValidationError } from "../../errors/index.js";
 import Product from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { CacheService, ProductService } from "../../services/index.js";
-import { mockImageStorage, mockMulterImageFile } from "../mocks/index.js";
+import {
+	generateMockObjectId,
+	mockImageStorage,
+	mockMulterImageFile,
+} from "../mocks/index.js";
 import {
 	generateMockInsertProductWithMulterImage,
 	generateMockSelectProduct,
@@ -88,7 +91,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			);
 		});
 
-		test("should throw 'DatabaseValidationError' when 'repo.create' is called with invalid data", async () => {
+		test("should throw 'ValidationError' when 'repo.create' is called with invalid data", async () => {
 			// Arrange
 			const invalidProduct = {
 				...generateMockInsertProductWithMulterImage(),
@@ -102,7 +105,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Act & Assert
 			await assert.rejects(
 				async () => await productService.create(invalidProduct),
-				DatabaseValidationError,
+				ValidationError,
 			);
 		});
 
@@ -123,6 +126,19 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 				},
 			);
 		});
+
+		test("Should throw 'ValidationError' when 'repo.create' is called without required fields", async () => {
+			// Arrange
+			const { name: _name, ...mockProduct } =
+				generateMockInsertProductWithMulterImage();
+
+			// Act & Assert
+			await assert.rejects(
+				// @ts-expect-error - test case
+				async () => await productService.create(mockProduct),
+				ValidationError,
+			);
+		});
 	});
 
 	describe("getAll", () => {
@@ -131,7 +147,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			await Product.insertMany(mockProducts);
 			const keyword = "";
-			const currentPage = 1;
+			const currentPage = "1";
 
 			// Act
 			const result = await productService.getAll({ currentPage, keyword });
@@ -148,7 +164,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			await Product.insertMany(mockProducts);
 			const keyword = mockProducts[0].name.substring(0, 3);
-			const currentPage = 1;
+			const currentPage = "1";
 
 			// Act
 			const result = await productService.getAll({ currentPage, keyword });
@@ -165,7 +181,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const mockProducts = generateMockSelectProducts({ count: 15 }); // Create enough products for multiple pages
 			await Product.insertMany(mockProducts);
 			const keyword = "";
-			const currentPage = 2;
+			const currentPage = "2";
 
 			// Act
 			const result = await productService.getAll({ currentPage, keyword });
@@ -176,7 +192,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 			// Get first page to compare
 			const firstPageResult = await productService.getAll({
-				currentPage: 1,
+				currentPage: "1",
 				keyword,
 			});
 			const firstPageIds = firstPageResult.products.map((p) =>
@@ -198,7 +214,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			await Product.insertMany(mockProducts);
 			const keyword = "nonexistentproduct";
-			const currentPage = 1;
+			const currentPage = "1";
 
 			// Act
 			const result = await productService.getAll({ currentPage, keyword });
@@ -214,13 +230,13 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			await Product.insertMany(mockProducts);
 			const keyword = "";
-			const currentPage = undefined as unknown as number;
+			const currentPage = undefined as unknown as string;
 
 			// Act
 			const result = await productService.getAll({ currentPage, keyword });
 
 			// Assert
-			assert.equal(result.currentPage, 1);
+			assert.equal(result.currentPage, "1");
 			assert.ok(result.products.length > 0);
 		});
 
@@ -229,7 +245,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const mockProducts = generateMockSelectProducts({ count: 25 }); // Create enough products for multiple pages
 			await Product.insertMany(mockProducts);
 			const keyword = "";
-			const currentPage = 1;
+			const currentPage = "1";
 			const productsPerPage = 10;
 
 			// Act
@@ -238,6 +254,18 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Assert
 			const expectedPages = Math.ceil(mockProducts.length / productsPerPage);
 			assert.equal(result.numberOfPages, expectedPages);
+		});
+
+		test("Should throw 'ValidationError' when 'service.getAll' is called with invalid 'currentPage' query", async () => {
+			// Arrange
+			const currentPage = "invalid-number";
+			const keyword = "";
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await productService.getAll({ currentPage, keyword }),
+				ValidationError,
+			);
 		});
 	});
 
@@ -313,16 +341,17 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 		test("should return product when 'repo.getById' is called with valid ID", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
+			const productId = mockProduct._id.toString();
 			await Product.create(mockProduct);
 
 			// Act
 			const product = await productService.getById({
-				productId: mockProduct._id,
+				productId,
 			});
 
 			// Assert
 			assert.ok(product);
-			assert.equal(product._id.toString(), mockProduct._id.toString());
+			assert.equal(product._id.toString(), productId);
 			assert.equal(product.name, mockProduct.name);
 			assert.equal(product.brand, mockProduct.brand);
 			assert.equal(product.category, mockProduct.category);
@@ -334,7 +363,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 		test("should throw 'NotFoundError' when 'repo.getById' is called with non-existent ID", async () => {
 			// Arrange
-			const nonExistentId = new Types.ObjectId();
+			const nonExistentId = generateMockObjectId().toString();
 
 			// Act & Assert
 			await assert.rejects(
@@ -343,14 +372,14 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			);
 		});
 
-		test("should throw 'DatabaseValidationError' when 'repo.getById' is called with invalid ObjectId", async () => {
+		test("should throw 'ValidationError' when 'repo.getById' is called with invalid 'productId'", async () => {
 			// Arrange
-			const invalidId = "invalid-id" as unknown as Types.ObjectId;
+			const productId = "invalid-product-id";
 
 			// Act & Assert
 			await assert.rejects(
-				async () => await productService.getById({ productId: invalidId }),
-				DatabaseValidationError,
+				async () => await productService.getById({ productId }),
+				ValidationError,
 			);
 		});
 	});
@@ -359,6 +388,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 		test("should update and persist product when 'repo.update' is called with valid data", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
+			const productId = mockProduct._id.toString();
 			await productRepository.create(mockProduct);
 			const updateData = {
 				name: "Updated Product Name",
@@ -368,7 +398,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Act
 			const updatedProduct = await productService.update({
 				data: updateData,
-				productId: mockProduct._id,
+				productId,
 			});
 
 			// Assert
@@ -384,6 +414,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 		test("should keep existing image when 'repo.update' is called without new image", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
+			const productId = mockProduct._id.toString();
 			await productRepository.create(mockProduct);
 			const updateData = {
 				name: "Updated Product Name",
@@ -392,7 +423,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Act
 			const updatedProduct = await productService.update({
 				data: updateData,
-				productId: mockProduct._id,
+				productId,
 			});
 
 			// Assert
@@ -403,6 +434,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 		test("should replace old image with new one in storage when updating product image", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
+			const productId = mockProduct._id.toString();
 			await Product.create(mockProduct);
 			const newImage = mockMulterImageFile();
 			const newImageUrl = "https://example.com/new-image.jpg";
@@ -417,7 +449,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Act
 			const updatedProduct = await productService.update({
 				data: updateData,
-				productId: mockProduct._id,
+				productId,
 			});
 
 			// Assert
@@ -431,7 +463,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 		test("should throw 'NotFoundError' when 'repo.update' is called with non-existent ID", async () => {
 			// Arrange
-			const nonExistentId = new Types.ObjectId();
+			const nonExistentId = generateMockObjectId().toString();
 			const updateData = { name: "Updated Product Name" };
 
 			// Act & Assert
@@ -445,9 +477,10 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			);
 		});
 
-		test("should throw 'DatabaseValidationError' when 'repo.update' is called with invalid data", async () => {
+		test("should throw 'ValidationError' when 'repo.update' is called with invalid data", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
+			const productId = mockProduct._id.toString();
 			await Product.create(mockProduct);
 			const invalidData = { price: "invalid-price" as unknown as number };
 
@@ -456,15 +489,16 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 				async () =>
 					await productService.update({
 						data: invalidData,
-						productId: mockProduct._id,
+						productId,
 					}),
-				DatabaseValidationError,
+				ValidationError,
 			);
 		});
 
 		test("should throw error when 'storage.replace' fails during product update", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
+			const productId = mockProduct._id.toString();
 			await Product.create(mockProduct);
 			const mockError = new Error("Replace failed");
 			const updateData = {
@@ -480,12 +514,25 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 				async () =>
 					await productService.update({
 						data: updateData,
-						productId: mockProduct._id,
+						productId,
 					}),
 				(error: Error) => {
 					assert.equal(error, mockError);
 					return true;
 				},
+			);
+		});
+
+		test("Should throw 'ValidationError' when 'repo.update' is called with invalid 'productId'", async () => {
+			// Arrange
+			const productId = "invalid-product-id";
+			const updateData = { name: "Updated Product Name" };
+
+			// Act & Assert
+			await assert.rejects(
+				async () =>
+					await productService.update({ data: updateData, productId }),
+				ValidationError,
 			);
 		});
 	});
@@ -494,11 +541,12 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 		test("should delete product when 'repo.delete' is called with valid ID", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
+			const productId = mockProduct._id.toString();
 			await productRepository.create(mockProduct);
 			imageStorageMock.delete.mock.mockImplementationOnce(async () => {});
 
 			// Act
-			await productService.delete({ productId: mockProduct._id });
+			await productService.delete({ productId });
 
 			// Assert
 			const deletedProduct = await Product.findById(mockProduct._id);
@@ -513,6 +561,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 		test("should verify image is actually deleted from storage", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
+			const productId = mockProduct._id.toString();
 			await productRepository.create(mockProduct);
 			let imageDeleted = false;
 			imageStorageMock.delete.mock.mockImplementationOnce(async () => {
@@ -520,7 +569,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			});
 
 			// Act
-			await productService.delete({ productId: mockProduct._id });
+			await productService.delete({ productId });
 
 			// Assert
 			assert.equal(imageDeleted, true);
@@ -530,6 +579,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 		test("should handle case where storage deletion fails but product was deleted", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
+			const productId = mockProduct._id.toString();
 			await productRepository.create(mockProduct);
 			const mockError = new Error("Delete failed");
 			imageStorageMock.delete.mock.mockImplementationOnce(async () => {
@@ -538,7 +588,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => await productService.delete({ productId: mockProduct._id }),
+				async () => await productService.delete({ productId }),
 				(error: Error) => {
 					assert.equal(error, mockError);
 					return true;
@@ -552,7 +602,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 		test("should throw 'NotFoundError' when 'repo.delete' is called with non-existent ID", async () => {
 			// Arrange
-			const nonExistentId = new Types.ObjectId();
+			const nonExistentId = generateMockObjectId().toString();
 
 			// Act & Assert
 			await assert.rejects(
@@ -561,20 +611,21 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			);
 		});
 
-		test("should throw 'DatabaseValidationError' when 'repo.delete' is called with invalid ObjectId", async () => {
+		test("should throw 'ValidationError' when 'repo.delete' is called with invalid 'productId'", async () => {
 			// Arrange
-			const invalidId = "invalid-id" as unknown as Types.ObjectId;
+			const productId = "invalid-product-id";
 
 			// Act & Assert
 			await assert.rejects(
-				async () => await productService.delete({ productId: invalidId }),
-				DatabaseValidationError,
+				async () => await productService.delete({ productId }),
+				ValidationError,
 			);
 		});
 
 		test("should throw error when 'storage.delete' fails during product deletion", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
+			const productId = mockProduct._id.toString();
 			await productRepository.create(mockProduct);
 			const mockError = new Error("Delete failed");
 			imageStorageMock.delete.mock.mockImplementationOnce(async () => {
@@ -583,7 +634,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => await productService.delete({ productId: mockProduct._id }),
+				async () => await productService.delete({ productId }),
 				mockError,
 			);
 		});

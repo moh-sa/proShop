@@ -1,34 +1,40 @@
 import type { Types } from "mongoose";
 
+import { z } from "zod";
+
 import type { IProductRepository } from "../repositories/index.js";
 import type { IImageStorageService } from "../services/index.js";
 import type {
 	AllProducts,
 	InsertProduct,
+	Result,
 	SelectProduct,
 	TopRatedProduct,
 } from "../types/index.js";
 
 import { MAX_TOP_RATED_PRODUCTS } from "../constants/index.js";
-import { NotFoundError } from "../errors/index.js";
+import { NotFoundError, ValidationError } from "../errors/index.js";
 import { ProductRepository } from "../repositories/index.js";
+import { insertProductSchema } from "../schemas/index.js";
 import { ImageStorageService } from "../services/index.js";
+import { objectIdValidator } from "../validators/index.js";
 
 export interface IProductService {
 	create(data: InsertProduct): Promise<SelectProduct>;
-	delete(data: { productId: Types.ObjectId }): Promise<void>;
-	getAll(data: { currentPage: number; keyword: string }): Promise<{
+	delete(data: { productId: string }): Promise<void>;
+	getAll(data: { currentPage: string; keyword: string }): Promise<{
 		currentPage: number;
 		numberOfPages: number;
 		products: Array<AllProducts>;
 	}>;
-	getById(data: { productId: Types.ObjectId }): Promise<SelectProduct>;
+	getById(data: { productId: string }): Promise<SelectProduct>;
 	getTopRated(): Promise<Array<TopRatedProduct>>;
 	update(data: {
 		data: Partial<InsertProduct>;
-		productId: Types.ObjectId;
+		productId: string;
 	}): Promise<SelectProduct>;
 }
+export type ProductResult<T> = Result<T>;
 
 export class ProductService implements IProductService {
 	private readonly _repository: IProductRepository;
@@ -43,14 +49,28 @@ export class ProductService implements IProductService {
 	}
 
 	async create(data: InsertProduct): Promise<SelectProduct> {
-		const image = await this._storage.upload({ file: data.image });
-		const dataWithImage = { ...data, image };
+		const validationResult = this._validateCreateData(data);
+		if (!validationResult.success) {
+			throw validationResult.error;
+		}
+
+		const image = await this._storage.upload({
+			file: validationResult.data.image,
+		});
+		const dataWithImage = { ...validationResult.data, image };
 		const createdProduct = await this._repository.create(dataWithImage);
 		return createdProduct;
 	}
 
-	async delete({ productId }: { productId: Types.ObjectId }): Promise<void> {
-		const deletedProduct = await this._repository.delete({ productId });
+	async delete({ productId }: { productId: string }): Promise<void> {
+		const validationResult = this._validateProductId(productId);
+		if (!validationResult.success) {
+			throw validationResult.error;
+		}
+
+		const deletedProduct = await this._repository.delete({
+			productId: validationResult.data,
+		});
 		if (!deletedProduct) {
 			throw new NotFoundError("Product");
 		}
@@ -58,16 +78,18 @@ export class ProductService implements IProductService {
 		await this._storage.delete({ url: deletedProduct.image });
 	}
 
-	async getAll(data: { currentPage: number; keyword: string }): Promise<{
+	async getAll(data: { currentPage: string; keyword: string }): Promise<{
 		currentPage: number;
 		numberOfPages: number;
 		products: Array<AllProducts>;
 	}> {
-		const currentPage = data.currentPage || 1;
+		const validationResult = this._validatePagination(data);
+		if (!validationResult.success) {
+			throw validationResult.error;
+		}
 
-		const query = data.keyword
-			? { name: { $options: "i", $regex: data.keyword } }
-			: {};
+		const currentPage = validationResult.data.currentPage;
+		const query = validationResult.data.keyword;
 
 		const numberOfProductsPerPage = 10;
 		const numberOfProducts = await this._repository.count(query);
@@ -87,12 +109,15 @@ export class ProductService implements IProductService {
 		};
 	}
 
-	async getById({
-		productId,
-	}: {
-		productId: Types.ObjectId;
-	}): Promise<SelectProduct> {
-		const product = await this._repository.getById({ productId });
+	async getById({ productId }: { productId: string }): Promise<SelectProduct> {
+		const validationResult = this._validateProductId(productId);
+		if (!validationResult.success) {
+			throw validationResult.error;
+		}
+
+		const product = await this._repository.getById({
+			productId: validationResult.data,
+		});
 		if (!product) {
 			throw new NotFoundError("Product");
 		}
@@ -105,24 +130,33 @@ export class ProductService implements IProductService {
 		return await this._repository.getTopRated({ limit });
 	}
 
-	async update({
-		data,
-		productId,
-	}: {
-		data: Partial<
-			Omit<InsertProduct, "image"> & { image: InsertProduct["image"] }
-		>;
-		productId: Types.ObjectId;
+	async update(args: {
+		data: Partial<InsertProduct>;
+		productId: string;
 	}): Promise<SelectProduct> {
-		const { image: _image, ...newData } = data;
+		const updateDataValidationResult = this._validateUpdateData(args.data);
+		if (!updateDataValidationResult.success) {
+			throw updateDataValidationResult.error;
+		}
+
+		const productIdValidationResult = this._validateProductId(args.productId);
+		if (!productIdValidationResult.success) {
+			throw productIdValidationResult.error;
+		}
+
+		const productId = productIdValidationResult.data;
+		const { image, ...newData } = updateDataValidationResult.data;
+
 		let updatedData;
 
-		if (!data.image) {
+		if (!image) {
 			updatedData = { ...newData };
 		} else {
-			const currentProduct = await this.getById({ productId });
+			const currentProduct = await this.getById({
+				productId: productId.toString(),
+			});
 			const newImageUrl = await this._storage.replace({
-				file: data.image,
+				file: image,
 				url: currentProduct.image,
 			});
 			updatedData = { ...newData, image: newImageUrl };
@@ -137,5 +171,81 @@ export class ProductService implements IProductService {
 		}
 
 		return updatedProduct;
+	}
+
+	private _validateCreateData(
+		data: InsertProduct,
+	): ProductResult<Required<InsertProduct>> {
+		const result = insertProductSchema.required().safeParse(data);
+		if (!result.success) {
+			return {
+				error: new ValidationError("Invalid product data", {
+					cause: result.error,
+				}),
+				success: false,
+			};
+		}
+
+		return {
+			data: result.data,
+			success: true,
+		};
+	}
+
+	private _validatePagination(data: {
+		currentPage: string;
+		keyword: string;
+	}): ProductResult<{ currentPage: number; keyword: Record<string, unknown> }> {
+		const result = z
+			.object({
+				currentPage: z.coerce.number().int().positive().default(1),
+				keyword: z
+					.string()
+					.trim()
+					.default("")
+					.transform((val) =>
+						val ? { name: { $options: "i", $regex: val } } : {},
+					),
+			})
+			.safeParse(data);
+
+		if (!result.success) {
+			return {
+				error: new ValidationError("Invalid pagination data", {
+					cause: result.error,
+				}),
+				success: false,
+			};
+		}
+
+		return { data: result.data, success: true };
+	}
+
+	private _validateProductId(productId: string): ProductResult<Types.ObjectId> {
+		const result = objectIdValidator.safeParse(productId);
+		if (!result.success) {
+			return {
+				error: new ValidationError("Invalid product id", {
+					cause: result.error,
+				}),
+				success: false,
+			};
+		}
+		return { data: result.data, success: true };
+	}
+
+	private _validateUpdateData(
+		data: Partial<InsertProduct>,
+	): ProductResult<Partial<InsertProduct>> {
+		const result = insertProductSchema.partial().safeParse(data);
+		if (!result.success) {
+			return {
+				error: new ValidationError("Invalid update data", {
+					cause: result.error,
+				}),
+				success: false,
+			};
+		}
+		return { data: result.data, success: true };
 	}
 }

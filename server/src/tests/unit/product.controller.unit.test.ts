@@ -2,7 +2,6 @@ import type { Request, Response } from "express";
 
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
-import { ZodError } from "zod";
 
 import type { InsertProduct } from "../../types/index.js";
 
@@ -55,389 +54,15 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'ZodError' if 'product.user' is invalid objectId", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					body: mockInsertProduct,
-					file: mockInsertProduct.image,
-				},
-				res: {
-					locals: { user: { _id: "invalid-user-id" } },
-				},
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.create(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' if 'product.name' is less than 1 char", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					body: { ...mockInsertProduct, name: "" },
-					file: mockInsertProduct.image,
-				},
-				res: {
-					locals: { user: { _id: mockInsertProduct.user.toString() } },
-				},
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.create(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(error.issues[0].message, "Name is required.");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' if 'product.name' is not a string", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					body: { ...mockInsertProduct, name: 123 },
-					file: mockInsertProduct.image,
-				},
-				res: {
-					locals: { user: { _id: mockInsertProduct.user.toString() } },
-				},
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.create(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Expected string, received number",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' if 'product.brand' is less than 1 char", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					body: { ...mockInsertProduct, brand: "" },
-					file: mockInsertProduct.image,
-				},
-				res: {
-					locals: { user: { _id: mockInsertProduct.user.toString() } },
-				},
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.create(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(error.issues[0].message, "Brand is required.");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' if 'product.brand' is not a string", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					body: { ...mockInsertProduct, brand: 123 },
-					file: mockInsertProduct.image,
-				},
-				res: {
-					locals: { user: { _id: mockInsertProduct.user.toString() } },
-				},
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.create(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Expected string, received number",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' if 'product.category' is less than 1 char", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					body: { ...mockInsertProduct, category: "" },
-					file: mockInsertProduct.image,
-				},
-				res: {
-					locals: { user: { _id: mockInsertProduct.user.toString() } },
-				},
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.create(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(error.issues[0].message, "Category is required.");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' if 'product.category' is not a string", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					body: { ...mockInsertProduct, category: 123 },
-					file: mockInsertProduct.image,
-				},
-				res: {
-					locals: { user: { _id: mockInsertProduct.user.toString() } },
-				},
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.create(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Expected string, received number",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' if 'product.description' is less than 1 char", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					body: { ...mockInsertProduct, description: "" },
-					file: mockInsertProduct.image,
-				},
-				res: {
-					locals: { user: { _id: mockInsertProduct.user.toString() } },
-				},
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.create(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Description is required.",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' if 'product.description' is not a string", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					body: { ...mockInsertProduct, description: 123 },
-					file: mockInsertProduct.image,
-				},
-				res: {
-					locals: { user: { _id: mockInsertProduct.user.toString() } },
-				},
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.create(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Expected string, received number",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should convert a negative 'product.price' to '0'", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					body: { ...mockInsertProduct, price: 0 },
-					file: mockInsertProduct.image,
-				},
-				res: {
-					locals: { user: { _id: mockInsertProduct.user.toString() } },
-				},
-				testContext: t,
-			});
-
-			await controller.create(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
-
-			assert.strictEqual(mockService.create.mock.callCount(), 1);
-			assert.deepStrictEqual(mockService.create.mock.calls[0].arguments[0], {
-				...mockInsertProduct,
-				price: 0,
-			});
-		});
-
-		test("Should throw 'ZodError' if 'product.price' is not a number", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					body: { ...mockInsertProduct, price: "invalid-price" },
-					file: mockInsertProduct.image,
-				},
-				res: {
-					locals: { user: { _id: mockInsertProduct.user.toString() } },
-				},
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.create(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Expected number, received nan",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should convert a negative 'product.countInStock' to '0'", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					body: { ...mockInsertProduct, countInStock: 0 },
-					file: mockInsertProduct.image,
-				},
-				res: {
-					locals: { user: { _id: mockInsertProduct.user.toString() } },
-				},
-				testContext: t,
-			});
-
-			await controller.create(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
-
-			assert.strictEqual(mockService.create.mock.callCount(), 1);
-			assert.deepStrictEqual(mockService.create.mock.calls[0].arguments[0], {
-				...mockInsertProduct,
-				countInStock: 0,
-			});
-		});
-
-		test("Should throw 'ZodError' if 'product.countInStock' is not a number", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					body: { ...mockInsertProduct, countInStock: "invalid-stock" },
-					file: mockInsertProduct.image,
-				},
-				res: {
-					locals: { user: { _id: mockInsertProduct.user.toString() } },
-				},
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.create(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Expected number, received nan",
-					);
-					return true;
-				},
-			);
-		});
-
 		test("Should call 'service.create' once with the correct 'product data'", async (t) => {
+			// Arrange
+			const mockInsertProduct = generateMockInsertProductWithMulterImage();
+			// @ts-expect-error - test case
+			mockInsertProduct.user = mockInsertProduct.user._id.toString();
+
+			const mockSelectProduct = generateMockSelectProduct();
+			mockSelectProduct.user = mockInsertProduct.user;
+
 			const { next, req, res } = mockExpressCall({
 				req: {
 					body: mockInsertProduct,
@@ -453,12 +78,14 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockSelectProduct),
 			);
 
+			// Act
 			await controller.create(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(mockService.create.mock.callCount(), 1);
 			assert.deepStrictEqual(mockService.create.mock.calls[0].arguments[0], {
 				...mockInsertProduct,
@@ -587,207 +214,16 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should parse undefined 'keyword' from 'req.query' and default to empty string ", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { query: {} },
-				testContext: t,
-			});
-
-			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
-			);
-
-			await assert.doesNotReject(
-				async () =>
-					await controller.getAll(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-			);
-
-			assert.strictEqual(
-				mockService.getAll.mock.calls[0].arguments[0].keyword.length,
-				0,
-			);
-		});
-
-		test("Should parse 'currentPage' from 'req.query'", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					query: {
-						currentPage: "1",
-					},
-				},
-				testContext: t,
-			});
-
-			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
-			);
-
-			await assert.doesNotReject(
-				async () =>
-					await controller.getAll(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-			);
-
-			assert.strictEqual(
-				mockService.getAll.mock.calls[0].arguments[0].currentPage,
-				1,
-			);
-		});
-
-		test("Should parse undefined 'currentPage' from 'req.query' and default to '1'", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { query: {} },
-				testContext: t,
-			});
-
-			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
-			);
-
-			await assert.doesNotReject(
-				async () =>
-					await controller.getAll(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-			);
-
-			assert.strictEqual(
-				mockService.getAll.mock.calls[0].arguments[0].currentPage,
-				1,
-			);
-		});
-
-		test("Should throw 'ZodError' if 'currentPage' is not a number", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					query: {
-						currentPage: "invalid-current-page",
-					},
-				},
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.getAll(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Expected number, received nan",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' if 'currentPage' is '0'", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					query: {
-						currentPage: "0",
-					},
-				},
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.getAll(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Number must be greater than 0",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' if 'currentPage' is a negative number", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					query: {
-						currentPage: "-1",
-					},
-				},
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.getAll(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Number must be greater than 0",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' if 'currentPage' is non-integer number", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					query: {
-						currentPage: "1.5",
-					},
-				},
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.getAll(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Expected integer, received float",
-					);
-					return true;
-				},
-			);
-		});
-
 		test("Should call 'service.getAll' once with the correct 'keyword' and 'currentPage'", async (t) => {
+			// Arrange
+			const currentPage = "1";
+			const keyword = mockProducts[0].name;
+
 			const { next, req, res } = mockExpressCall({
 				req: {
 					query: {
-						currentPage: "1",
-						keyword: mockProducts[0].name,
+						currentPage,
+						keyword,
 					},
 				},
 				testContext: t,
@@ -797,16 +233,18 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve(serviceResult),
 			);
 
+			// Act
 			await controller.getAll(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
 			assert.deepStrictEqual(mockService.getAll.mock.calls[0].arguments[0], {
-				currentPage: 1,
-				keyword: mockProducts[0].name,
+				currentPage,
+				keyword,
 			});
 		});
 
@@ -954,32 +392,8 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'ZodError' if 'productId' is invalid ObjectId", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: "invalid-product-id" } },
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.getById(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
 		test("Should call 'service.getById' once with the correct 'productId'", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { productId: productId.toString() } },
 				testContext: t,
@@ -989,15 +403,17 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockProduct),
 			);
 
+			// Act
 			await controller.getById(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(mockService.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(mockService.getById.mock.calls[0].arguments[0], {
-				productId,
+				productId: productId.toString(),
 			});
 		});
 
@@ -1076,34 +492,6 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'ZodError' if 'productId' is invalid ObjectId", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: {
-					body: updateData,
-					params: { productId: "invalid-product-id" },
-				},
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.update(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
 		test("Should call 'service.update' once with the correct 'productId'", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: {
@@ -1126,7 +514,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockService.update.mock.callCount(), 1);
 			assert.deepStrictEqual(mockService.update.mock.calls[0].arguments[0], {
 				data: updateData,
-				productId,
+				productId: productId.toString(),
 			});
 		});
 
@@ -1201,31 +589,6 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'ZodError' if 'productId' is invalid ObjectId", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: "invalid-product-id" } },
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.delete(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
 		test("Should call 'service.delete' once with the correct 'productId'", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { params: { productId: productId.toString() } },
@@ -1242,7 +605,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockService.delete.mock.callCount(), 1);
 			assert.deepStrictEqual(mockService.delete.mock.calls[0].arguments[0], {
-				productId,
+				productId: productId.toString(),
 			});
 		});
 
