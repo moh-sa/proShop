@@ -1,10 +1,11 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import { EmptyCartError, NotFoundError } from "../../errors/index.js";
+import { NotFoundError, ValidationError } from "../../errors/index.js";
 import { OrderService } from "../../services/index.js";
 import {
 	generateMockInsertOrder,
+	generateMockInsertProductWithStringImage,
 	generateMockSelectOrder,
 	generateMockSelectOrders,
 	mockOrderRepository,
@@ -38,13 +39,46 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'EmptyCartError' if 'data.orderItems' length is '0'", async () => {
-			const mockOrder = generateMockInsertOrder();
-			mockOrder.orderItems = [];
+		test("Should set 'PaymentMethod' to 'PayPal' if not provided when 'service.create' is called", async () => {
+			// Arrange
+			const mockInsertOrder = generateMockInsertOrder({
+				paymentMethod: undefined,
+			});
+			const mockSelectOrder = generateMockSelectOrder({
+				paymentMethod: "PayPal",
+			});
 
+			mockRepo.create.mock.mockImplementationOnce(() =>
+				Promise.resolve(mockSelectOrder),
+			);
+
+			// Act
+			const order = await service.create(mockInsertOrder);
+
+			// Assert
+			assert.strictEqual(order.paymentMethod, "PayPal");
+		});
+
+		test("Should throw 'ValidationError' if 'data.orderItems' length is '0'", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({ orderItems: [] });
+
+			// Act & Assert
 			await assert.rejects(
 				async () => await service.create(mockOrder),
-				EmptyCartError,
+				ValidationError,
+			);
+		});
+
+		test("Should throw 'ValidationError' if 'data' is invalid", async () => {
+			// Arrange
+			const mockInsertInvalidOrder = generateMockInsertProductWithStringImage();
+
+			// Act & Assert
+			await assert.rejects(
+				// @ts-expect-error - testing invalid order data
+				async () => await service.create(mockInsertInvalidOrder),
+				ValidationError,
 			);
 		});
 	});
@@ -85,7 +119,9 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockOrders),
 			);
 
-			const orders = await service.getAllByUserId({ userId });
+			const orders = await service.getAllByUserId({
+				userId: userId.toString(),
+			});
 
 			assert.ok(orders);
 			assert.deepStrictEqual(orders, mockOrders);
@@ -102,10 +138,23 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 				Promise.resolve([]),
 			);
 
-			const orders = await service.getAllByUserId({ userId });
+			const orders = await service.getAllByUserId({
+				userId: userId.toString(),
+			});
 
 			assert.ok(orders);
 			assert.strictEqual(orders.length, 0);
+		});
+
+		test("Should throw 'ValidationError' if 'userId' is invalid", async () => {
+			// Arrange
+			const invalidUserId = "invalid-user-id";
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.getAllByUserId({ userId: invalidUserId }),
+				ValidationError,
+			);
 		});
 	});
 
@@ -118,7 +167,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockOrder),
 			);
 
-			const order = await service.getById({ orderId });
+			const order = await service.getById({ orderId: orderId.toString() });
 
 			assert.ok(order);
 			assert.deepStrictEqual(order, mockOrder);
@@ -133,8 +182,19 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			mockRepo.getById.mock.mockImplementationOnce(() => Promise.resolve(null));
 
 			await assert.rejects(
-				async () => await service.getById({ orderId }),
+				async () => await service.getById({ orderId: orderId.toString() }),
 				NotFoundError,
+			);
+		});
+
+		test("Should throw 'ValidationError' if 'orderId' is invalid", async () => {
+			// Arrange
+			const invalidOrderId = "invalid-order-id";
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.getById({ orderId: invalidOrderId }),
+				ValidationError,
 			);
 		});
 	});
@@ -149,7 +209,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			);
 
 			const updatedOrder = await service.updateToPaid({
-				orderId,
+				orderId: orderId.toString(),
 			});
 
 			assert.ok(updatedOrder);
@@ -167,8 +227,19 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			);
 
 			await assert.rejects(
-				async () => await service.updateToPaid({ orderId }),
+				async () => await service.updateToPaid({ orderId: orderId.toString() }),
 				NotFoundError,
+			);
+		});
+
+		test("Should throw 'ValidationError' if 'orderId' is invalid", async () => {
+			// Arrange
+			const invalidOrderId = "invalid-order-id";
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.updateToPaid({ orderId: invalidOrderId }),
+				ValidationError,
 			);
 		});
 	});
@@ -182,7 +253,9 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockOrder),
 			);
 
-			const updatedOrder = await service.updateToDelivered({ orderId });
+			const updatedOrder = await service.updateToDelivered({
+				orderId: orderId.toString(),
+			});
 
 			assert.ok(updatedOrder);
 			assert.deepStrictEqual(updatedOrder, mockOrder);
@@ -200,8 +273,21 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			);
 
 			await assert.rejects(
-				async () => await service.updateToDelivered({ orderId }),
+				async () =>
+					await service.updateToDelivered({ orderId: orderId.toString() }),
 				NotFoundError,
+			);
+		});
+
+		test("Should throw 'ValidationError' if 'orderId' is invalid", async () => {
+			// Arrange
+			const invalidOrderId = "invalid-order-id";
+
+			// Act & Assert
+			await assert.rejects(
+				async () =>
+					await service.updateToDelivered({ orderId: invalidOrderId }),
+				ValidationError,
 			);
 		});
 	});

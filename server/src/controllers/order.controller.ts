@@ -7,10 +7,8 @@ import type {
 } from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
-import { insertOrderSchema } from "../schemas/index.js";
 import { OrderService } from "../services/index.js";
 import { asyncHandler } from "../utils/index.js";
-import { objectIdValidator } from "../validators/index.js";
 
 export interface IOrderController {
 	create: AsyncHandler<{
@@ -44,10 +42,10 @@ export class OrderController implements IOrderController {
 		reqBody: InsertOrder;
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {
-		const data = insertOrderSchema.parse({
+		const data = {
 			...req.body,
 			user: res.locals.user._id,
-		});
+		};
 
 		const response = await this._service.create(data);
 
@@ -72,9 +70,9 @@ export class OrderController implements IOrderController {
 		params: { userId: string };
 		resBody: { data: AllOrdersResponse };
 	}>(async (req, res) => {
-		const userId = objectIdValidator.parse(req.params.userId);
-
-		const orders = await this._service.getAllByUserId({ userId });
+		const orders = await this._service.getAllByUserId({
+			userId: req.params.userId,
+		});
 
 		res.status(HTTP_STATUS.OK).json({
 			data: orders,
@@ -86,9 +84,7 @@ export class OrderController implements IOrderController {
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {
-		const orderId = objectIdValidator.parse(req.params.orderId);
-
-		const order = await this._service.getById({ orderId });
+		const order = await this._service.getById({ orderId: req.params.orderId });
 
 		res.status(HTTP_STATUS.OK).json({
 			data: order,
@@ -100,9 +96,9 @@ export class OrderController implements IOrderController {
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {
-		const orderId = objectIdValidator.parse(req.params.orderId);
-
-		const order = await this._service.updateToDelivered({ orderId });
+		const order = await this._service.updateToDelivered({
+			orderId: req.params.orderId,
+		});
 
 		res.status(HTTP_STATUS.OK).json({
 			data: order,
@@ -114,9 +110,9 @@ export class OrderController implements IOrderController {
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {
-		const orderId = objectIdValidator.parse(req.params.orderId);
-
-		const order = await this._service.updateToPaid({ orderId });
+		const order = await this._service.updateToPaid({
+			orderId: req.params.orderId,
+		});
 
 		res.status(HTTP_STATUS.OK).json({
 			data: order,

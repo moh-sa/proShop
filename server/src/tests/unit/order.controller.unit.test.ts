@@ -2,7 +2,6 @@ import type { Request, Response } from "express";
 
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
-import { ZodError } from "zod";
 
 import { OrderController } from "../../controllers/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
@@ -50,38 +49,10 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'ZodError' if 'res.locals.user._id' is invalid ObjectId", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { body: mockInsertOrder },
-				res: { locals: { user: { _id: "invalid-user-id" } } },
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.create(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' if 'order.X' is invalid", { todo: true });
-
 		test("Should call 'service.create' once with the correct 'order data'", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
-				res: { locals: { user: { _id: userId.toString() } } },
+				res: { locals: { user: { _id: userId } } },
 				testContext: t,
 			});
 
@@ -239,31 +210,6 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'ZodError' if 'userId' is invalid ObjectId", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: "invalid-user-id" } },
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.getAllByUserId(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
 		test("Should call 'service.getAllByUserId' once with the correct 'userId'", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
@@ -284,7 +230,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(
 				mockService.getAllByUserId.mock.calls[0].arguments[0],
 				{
-					userId,
+					userId: userId.toString(),
 				},
 			);
 		});
@@ -357,31 +303,6 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'ZodError' if 'orderId' is invalid ObjectId", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: "invalid-order-id" } },
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.getById(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
 		test("Should call 'service.getById' once with the correct 'orderId'", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId: orderId.toString() } },
@@ -400,7 +321,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockService.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(mockService.getById.mock.calls[0].arguments[0], {
-				orderId,
+				orderId: orderId.toString(),
 			});
 		});
 
@@ -472,31 +393,6 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'ZodError' if 'orderId' is invalid ObjectId", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: "invalid-order-id" } },
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.updateToPaid(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
 		test("Should call 'service.updateToPaid' once with the correct 'orderId'", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId: orderId.toString() } },
@@ -517,7 +413,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(
 				mockService.updateToPaid.mock.calls[0].arguments[0],
 				{
-					orderId,
+					orderId: orderId.toString(),
 				},
 			);
 		});
@@ -590,31 +486,6 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'ZodError' if 'orderId' is invalid ObjectId", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: "invalid-order-id" } },
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.updateToDelivered(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
 		test("Should call 'service.updateToDelivered' once with the correct 'orderId'", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId: orderId.toString() } },
@@ -635,7 +506,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(
 				mockService.updateToDelivered.mock.calls[0].arguments[0],
 				{
-					orderId,
+					orderId: orderId.toString(),
 				},
 			);
 		});

@@ -2,11 +2,7 @@ import { Types } from "mongoose";
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 
-import {
-	DatabaseValidationError,
-	EmptyCartError,
-	NotFoundError,
-} from "../../errors/index.js";
+import { NotFoundError, ValidationError } from "../../errors/index.js";
 import Order from "../../models/order.model.js";
 import User from "../../models/user.model.js";
 import { OrderService } from "../../services/index.js";
@@ -61,7 +57,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.totalPrice, mockOrder.totalPrice);
 		});
 
-		test("Should throw 'EmptyCartError' when 'repo.create' is called with empty array of order items", async () => {
+		test("Should throw 'ValidationError' when 'repo.create' is called with empty array of order items", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder();
 			mockOrder.orderItems = [];
@@ -69,7 +65,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Act & Assert
 			await assert.rejects(
 				async () => await orderService.create(mockOrder),
-				EmptyCartError,
+				ValidationError,
 			);
 		});
 
@@ -183,6 +179,19 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.ok(result.createdAt >= beforeCreate);
 			assert.ok(result.createdAt <= new Date());
 		});
+
+		test("Should set 'PaymentMethod' to 'PayPal' if not provided when 'repo.create' is called", async () => {
+			// Arrange
+			const mockInsertOrder = generateMockInsertOrder();
+			// @ts-expect-error - test case
+			mockInsertOrder.paymentMethod = undefined;
+
+			// Act
+			const result = await orderService.create(mockInsertOrder);
+
+			// Assert
+			assert.strictEqual(result.paymentMethod, "PayPal");
+		});
 	});
 
 	describe("getById", async () => {
@@ -190,15 +199,16 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder();
 			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id;
 
 			// Act
 			const result = await orderService.getById({
-				orderId: createdOrder._id,
+				orderId: orderId.toString(),
 			});
 
 			// Assert
 			assert.ok(result);
-			assert.deepStrictEqual(result._id, createdOrder._id);
+			assert.deepStrictEqual(result._id, orderId);
 			assert.strictEqual(result.totalPrice, createdOrder.totalPrice);
 		});
 
@@ -207,10 +217,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const orderItemsCount = 3;
 			const mockOrder = generateMockInsertOrder({ orderItemsCount });
 			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
 
 			// Act
 			const result = await orderService.getById({
-				orderId: createdOrder._id,
+				orderId,
 			});
 
 			// Assert
@@ -226,10 +237,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder();
 			const createdOrder = (await Order.create(mockOrder)).toObject();
+			const orderId = createdOrder._id.toString();
 
 			// Act
 			const result = await orderService.getById({
-				orderId: createdOrder._id,
+				orderId,
 			});
 
 			// Assert
@@ -243,10 +255,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({ isPaid: true });
 			const createdOrder = (await Order.create(mockOrder)).toObject();
+			const orderId = createdOrder._id.toString();
 
 			// Act
 			const result = await orderService.getById({
-				orderId: createdOrder._id,
+				orderId,
 			});
 
 			// Assert
@@ -258,10 +271,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({ isDelivered: true });
 			const createdOrder = (await Order.create(mockOrder)).toObject();
+			const orderId = createdOrder._id.toString();
 
 			// Act
 			const result = await orderService.getById({
-				orderId: createdOrder._id,
+				orderId,
 			});
 
 			// Assert
@@ -273,10 +287,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({ isPaid: true });
 			const createdOrder = (await Order.create(mockOrder)).toObject();
+			const orderId = createdOrder._id.toString();
 
 			// Act
 			const result = await orderService.getById({
-				orderId: createdOrder._id,
+				orderId,
 			});
 
 			// Assert
@@ -288,10 +303,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder();
 			const createdOrder = (await Order.create(mockOrder)).toObject();
+			const orderId = createdOrder._id.toString();
 
 			// Act
 			const result = await orderService.getById({
-				orderId: createdOrder._id,
+				orderId,
 			});
 
 			// Assert
@@ -301,7 +317,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should throw 'NotFoundError' when 'repo.getById' is called with non-existent order ID", async () => {
 			// Arrange
-			const nonExistentId = generateMockObjectId();
+			const nonExistentId = generateMockObjectId().toString();
 
 			// Act & Assert
 			await assert.rejects(
@@ -310,14 +326,14 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			);
 		});
 
-		test("Should throw 'DatabaseValidationError' when 'repo.getById' is called with invalid format order ID", async () => {
+		test("Should throw 'ValidationError' when 'repo.getById' is called with invalid format order ID", async () => {
 			// Arrange
-			const invalidId = "invalid-id" as any;
+			const invalidId = "invalid-order-id";
 
 			// Act & Assert
 			await assert.rejects(
 				async () => await orderService.getById({ orderId: invalidId }),
-				DatabaseValidationError,
+				ValidationError,
 			);
 		});
 	});
@@ -387,7 +403,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 			// Act
 			const result = await orderService.getAllByUserId({
-				userId,
+				userId: userId.toString(),
 			});
 
 			// Assert
@@ -404,11 +420,12 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const isPaid = true;
 			const mockOrder = generateMockInsertOrder({ isPaid });
+			const userId = mockOrder.user.toString();
 			await Order.create(mockOrder);
 
 			// Act
 			const result = await orderService.getAllByUserId({
-				userId: mockOrder.user,
+				userId,
 			});
 
 			// Assert
@@ -421,11 +438,12 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const isDelivered = true;
 			const mockOrder = generateMockInsertOrder({ isDelivered });
+			const userId = mockOrder.user.toString();
 			await Order.create(mockOrder);
 
 			// Act
 			const result = await orderService.getAllByUserId({
-				userId: mockOrder.user,
+				userId,
 			});
 
 			// Assert
@@ -444,7 +462,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 			// Act
 			const result = await orderService.getAllByUserId({
-				userId: userId1,
+				userId: userId1.toString(),
 			});
 
 			// Assert
@@ -457,10 +475,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({ isPaid: false });
 			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
 
 			// Act
 			const updatedOrder = await orderService.updateToPaid({
-				orderId: createdOrder._id,
+				orderId,
 			});
 
 			// Assert
@@ -473,10 +492,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const mockOrder = generateMockInsertOrder({ isPaid: false });
 			const createdOrder = await Order.create(mockOrder);
 			const beforeUpdate = new Date();
+			const orderId = createdOrder._id.toString();
 
 			// Act
 			const updatedOrder = await orderService.updateToPaid({
-				orderId: createdOrder._id,
+				orderId,
 			});
 
 			// Assert
@@ -487,7 +507,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should throw 'NotFoundError' when 'repo.updateToPaid' is called with non-existent order ID", async () => {
 			// Arrange
-			const nonExistentId = generateMockObjectId();
+			const nonExistentId = generateMockObjectId().toString();
 
 			// Act & Assert
 			await assert.rejects(
@@ -502,10 +522,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({ isDelivered: false });
 			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
 
 			// Act
 			const updatedOrder = await orderService.updateToDelivered({
-				orderId: createdOrder._id,
+				orderId,
 			});
 
 			// Assert
@@ -518,10 +539,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const mockOrder = generateMockInsertOrder({ isDelivered: false });
 			const createdOrder = await Order.create(mockOrder);
 			const beforeUpdate = new Date();
+			const orderId = createdOrder._id.toString();
 
 			// Act
 			const updatedOrder = await orderService.updateToDelivered({
-				orderId: createdOrder._id,
+				orderId,
 			});
 
 			// Assert
@@ -532,7 +554,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should throw 'NotFoundError' when 'repo.updateToDelivered' is called with non-existent order ID", async () => {
 			// Arrange
-			const nonExistentId = generateMockObjectId();
+			const nonExistentId = generateMockObjectId().toString();
 
 			// Act & Assert
 			await assert.rejects(

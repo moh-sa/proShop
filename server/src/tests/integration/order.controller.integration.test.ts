@@ -1,6 +1,5 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
-import { ZodError } from "zod";
 
 import { OrderController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
@@ -116,100 +115,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response.data);
 			assert.strictEqual(response.data.user, mockUser._id.toString());
 		});
-
-		test("Should set 'PaymentMethod' to 'PayPal' if not provided when 'service.create' is called", async () => {
-			// Arrange
-			const mockUser = generateMockSelectUser();
-			const { paymentMethod: _paymentMethod, ...mockOrderData } =
-				generateMockInsertOrder();
-
-			const { next, req, res } = createMockExpressContext();
-			req.body = mockOrderData;
-			res.locals.user = mockUser;
-
-			// Act &
-			await controller.create(req, res, next);
-
-			// Assert
-			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.data);
-			assert.strictEqual(response.data.paymentMethod, "PayPal");
-		});
-
-		test("Should throw 'ZodError' when 'service.create' is called without orderItems", async () => {
-			// Arrange
-			const mockUser = generateMockSelectUser();
-			const { orderItems: _orderItems, ...mockOrderData } =
-				generateMockInsertOrder();
-
-			const { next, req, res } = createMockExpressContext();
-			req.body = mockOrderData;
-			res.locals.user = mockUser;
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.create(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(error.errors[0].path.length, 1);
-					assert.strictEqual(error.errors[0].path[0], "orderItems");
-					assert.strictEqual(error.errors[0].message, "Required");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'service.create' is called without shippingAddress", async () => {
-			// Arrange
-			const mockUser = generateMockSelectUser();
-			const { shippingAddress: _shippingAddress, ...mockOrderData } =
-				generateMockInsertOrder();
-
-			const { next, req, res } = createMockExpressContext();
-			req.body = mockOrderData;
-			res.locals.user = mockUser;
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.create(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(error.errors[0].path.length, 1);
-					assert.strictEqual(error.errors[0].path[0], "shippingAddress");
-					assert.strictEqual(error.errors[0].message, "Required");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'service.create' is called with empty orderItems array", async () => {
-			// Arrange
-			const mockUser = generateMockSelectUser();
-			const mockOrderData = generateMockInsertOrder({ orderItems: [] });
-
-			const { next, req, res } = createMockExpressContext();
-			req.body = mockOrderData;
-			res.locals.user = mockUser;
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.create(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(error.errors[0].path.length, 1);
-					assert.strictEqual(error.errors[0].path[0], "orderItems");
-					assert.strictEqual(
-						error.errors[0].message,
-						"Order items are required.",
-					);
-					return true;
-				},
-			);
-		});
 	});
 
 	describe("getById", () => {
@@ -301,25 +206,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 				(error: unknown) => {
 					assert.ok(error instanceof NotFoundError);
 					assert.strictEqual(error.message, "Order not found");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'service.getById' is called with invalid 'objectId' in params", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			req.params = { orderId: "invalid-id" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.getById(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
 					return true;
 				},
 			);
@@ -464,25 +350,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.data.length, 0);
 		});
 
-		test("Should throw 'ZodError' when 'service.getAllByUserId' is called with invalid 'objectId' in params", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: "invalid-id" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.getAllByUserId(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
 		test("Should not return orders from other users when 'service.getAllByUserId' is called", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
@@ -606,25 +473,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 				},
 			);
 		});
-
-		test("Should throw 'ZodError' when 'service.updateToPaid' is called with invalid 'objectId' in params", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			req.params = { orderId: "invalid-id" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.updateToPaid(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
 	});
 
 	describe("updateToDelivered", () => {
@@ -719,25 +567,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 				(error: unknown) => {
 					assert.ok(error instanceof NotFoundError);
 					assert.strictEqual(error.message, "Order not found");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'service.updateToDelivered' is called with invalid 'objectId' in params", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			req.params = { orderId: "invalid-id" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.updateToDelivered(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
 					return true;
 				},
 			);
