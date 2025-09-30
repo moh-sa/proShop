@@ -4,9 +4,11 @@ import { z } from "zod";
 import { IMAGE_SIZE_LIMIT, IMAGE_TYPE_LIMIT } from "../../constants/index.js";
 
 export const insertImageSchema = z.object({
-	buffer: z.instanceof(Buffer).refine((buffer) => buffer.length > 0, {
-		message: "File buffer must not be empty",
-	}),
+	buffer: z
+		.unknown()
+		.refine((val): val is Buffer => Buffer.isBuffer(val), {
+			message: "Invalid buffer",
+		}),
 	destination: z.string().min(1),
 	encoding: z.string().min(1),
 	fieldname: z.string().min(1),
