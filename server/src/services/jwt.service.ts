@@ -186,12 +186,13 @@ export class JwtService implements IJwtService {
 			return tokenTypeResult;
 		}
 
-		const secret = this._getSecretByTokenType(args.payload.type);
-		const expiresIn = this._getExpirationTimeByTokenType(args.payload.type);
+		const secret = this._getSecretByTokenType(tokenTypeResult.data);
+		const expiresIn = this._getExpirationTimeByTokenType(tokenTypeResult.data);
 		const tokenId = this._generateTokenId();
 		const payload = {
-			...args.payload,
 			tokenId,
+			type: tokenTypeResult.data,
+			userId: userIdResult.data,
 		};
 
 		try {
