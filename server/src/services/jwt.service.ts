@@ -16,7 +16,7 @@ import {
 	JwtInvalidPayloadError,
 	JwtInvalidTokenError,
 } from "../errors/index.js";
-import { JwtVerificationError } from "../errors/jwt/jwt-verification.error.js";
+import { tokenTypeSchema } from "../schemas/index.js";
 import { type JwtConfig, type Result, TokenType } from "../types/index.js";
 import { jwtTokenValidator } from "../validators/jwt-token.validator.js";
 
@@ -243,12 +243,7 @@ export class JwtService implements IJwtService {
 	}
 
 	private _validateExpectedType(expectedType: TokenType): JwtResult<TokenType> {
-		const result = z
-			.nativeEnum(TokenType, {
-				message: "Invalid token type",
-			})
-			.safeParse(expectedType);
-
+		const result = tokenTypeSchema.safeParse(expectedType);
 		if (!result.success) {
 			return {
 				error: new JwtInvalidPayloadError({
