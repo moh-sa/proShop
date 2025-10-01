@@ -18,7 +18,10 @@ import {
 } from "../errors/index.js";
 import { tokenDecodedSchema, tokenTypeSchema } from "../schemas/index.js";
 import { type JwtConfig, type Result, TokenType } from "../types/index.js";
-import { jwtTokenValidator } from "../validators/jwt-token.validator.js";
+import {
+	jwtTokenValidator,
+	objectIdStringValidator,
+} from "../validators/index.js";
 
 export interface IJwtService {
 	generateAccessToken(args: { userId: string }): JwtResult<TokenResult>;
@@ -285,12 +288,7 @@ export class JwtService implements IJwtService {
 	}
 
 	private _validateUserId(userId: string): JwtResult<string> {
-		const result = z
-			.string()
-			.trim()
-			.min(1, "User ID is required")
-			.safeParse(userId);
-
+		const result = objectIdStringValidator("User ID").safeParse(userId);
 		if (!result.success) {
 			return {
 				error: new JwtInvalidPayloadError({ cause: result.error }),
