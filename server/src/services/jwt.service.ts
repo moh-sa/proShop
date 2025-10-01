@@ -14,6 +14,7 @@ import {
 	JwtGenerationError,
 	JwtInvalidPayloadError,
 	JwtInvalidTokenError,
+	JwtVerificationError,
 } from "../errors/index.js";
 import { tokenDecodedSchema, tokenTypeSchema } from "../schemas/index.js";
 import { type JwtConfig, type Result, TokenType } from "../types/index.js";
