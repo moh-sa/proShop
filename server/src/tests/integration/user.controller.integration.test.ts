@@ -1,6 +1,5 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
-import { ZodError } from "zod";
 
 import { UserController } from "../../controllers/index.js";
 import User from "../../models/user.model.js";
@@ -232,28 +231,6 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			);
 			assert.equal(response.data.isAdmin, true);
 		});
-
-		test("Should throw 'ZodError' when called with invalid objectId format", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: "invalid-id" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => {
-					await controller.getById(req, res, next);
-				},
-				(error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
 	});
 
 	describe("update", () => {
@@ -331,25 +308,6 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'ZodError' when update data is invalid", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockSelectUser();
-			await User.insertMany([mockUser]);
-			req.params = { userId: mockUser._id.toString() };
-			req.body = { email: "invalid-email" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => {
-					await controller.update(req, res, next);
-				},
-				{
-					name: "ZodError",
-				},
-			);
-		});
-
 		test("Should return '200' status code when update is successful", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
@@ -381,23 +339,6 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			const response = res._getJSONData();
 			assert.equal(response.data.name, "Updated Name");
 			assert.equal(response.data.email, originalEmail.toLowerCase());
-		});
-
-		test("Should remove empty fields from update data", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockSelectUser();
-			await User.insertMany([mockUser]);
-			req.params = { userId: mockUser._id.toString() };
-			req.body = { email: "", name: "Updated Name" };
-
-			// Act
-			await controller.update(req, res, next);
-
-			// Assert
-			const response = res._getJSONData();
-			assert.equal(response.data.name, "Updated Name");
-			assert.equal(response.data.email, mockUser.email.toLowerCase());
 		});
 
 		test("Should exclude password field from response", async () => {
@@ -436,48 +377,6 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			assert.equal(response.data.name, "Updated Name");
 			assert.equal(response.data.email, originalData.email.toLowerCase());
 			assert.equal(response.data.isAdmin, originalData.isAdmin);
-		});
-
-		test("Should throw 'ZodError' when called with invalid objectId format", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: "invalid-id" };
-			req.body = { name: "Updated Name" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => {
-					await controller.update(req, res, next);
-				},
-				(error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when called with invalid password format", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockSelectUser();
-			await User.insertMany([mockUser]);
-			req.params = { userId: mockUser._id.toString() };
-			req.body = { password: "123" }; // Too short password
-
-			// Act & Assert
-			await assert.rejects(
-				async () => {
-					await controller.update(req, res, next);
-				},
-				{
-					name: "ZodError",
-				},
-			);
 		});
 	});
 
@@ -544,28 +443,6 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const deletedUser = await User.findById(mockUser._id);
 			assert.equal(deletedUser, null, "User should be removed from database");
-		});
-
-		test("Should throw 'ZodError' when called with invalid objectId format", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: "invalid-id" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => {
-					await controller.delete(req, res, next);
-				},
-				(error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
 		});
 	});
 });

@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 
-import { NotFoundError } from "../../errors/index.js";
+import { NotFoundError, ValidationError } from "../../errors/index.js";
 import User from "../../models/user.model.js";
 import { UserService } from "../../services/user.service.js";
 import {
@@ -32,7 +32,9 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			await User.create(mockUser);
 
 			// Act
-			const result = await userService.getById({ userId: mockUser._id });
+			const result = await userService.getById({
+				userId: mockUser._id.toString(),
+			});
 
 			// Assert
 			assert.strictEqual(result.name, mockUser.name);
@@ -42,12 +44,22 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'NotFoundError' when 'repo.getById' is called with a non-existent ID", async () => {
 			// Arrange
-			const nonExistentId = generateMockObjectId();
+			const nonExistentId = generateMockObjectId().toString();
 
 			// Act & Assert
 			await assert.rejects(async () => {
 				await userService.getById({ userId: nonExistentId });
 			}, NotFoundError);
+		});
+
+		test("Should throw 'ValidationError' when 'repo.getById' is called with invalid 'userId''", async () => {
+			// Arrange
+			const userId = "invalid-user-id";
+
+			// Act & Assert
+			await assert.rejects(async () => {
+				await userService.getById({ userId });
+			}, ValidationError);
 		});
 	});
 
@@ -108,7 +120,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			// Act
 			const result = await userService.updateById({
 				data: updateData,
-				userId: mockUser._id,
+				userId: mockUser._id.toString(),
 			});
 
 			// Assert
@@ -125,7 +137,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			// Act
 			const result = await userService.updateById({
 				data: updateData,
-				userId: mockUser._id,
+				userId: mockUser._id.toString(),
 			});
 
 			// Assert
@@ -142,7 +154,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			// Act
 			const result = await userService.updateById({
 				data: updateData,
-				userId: mockUser._id,
+				userId: mockUser._id.toString(),
 			});
 
 			// Assert
@@ -159,7 +171,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			// Act
 			const result = await userService.updateById({
 				data: updateData,
-				userId: mockUser._id,
+				userId: mockUser._id.toString(),
 			});
 
 			// Assert
@@ -169,7 +181,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'NotFoundError' when 'repo.updateById' is called with a non-existent ID", async () => {
 			// Arrange
-			const nonExistentId = generateMockObjectId();
+			const nonExistentId = generateMockObjectId().toString();
 			const updateData = { name: "Updated Name" };
 
 			// Act & Assert
@@ -180,6 +192,48 @@ suite("User Service 〖 Integration Tests 〗", () => {
 				});
 			}, NotFoundError);
 		});
+
+		test("Should throw 'ValidationError' when 'repo.updateById' is called with invalid update data", async () => {
+			// Arrange
+			const updateData = { email: "invalid-email" };
+			const userId = generateMockObjectId().toString();
+
+			// Act & Assert
+			await assert.rejects(async () => {
+				await userService.updateById({
+					data: updateData,
+					userId,
+				});
+			}, ValidationError);
+		});
+
+		test("Should throw 'ValidationError' when 'repo.updateById' is called with a short password", async () => {
+			// Arrange
+			const updateData = { password: "123" };
+			const userId = generateMockObjectId().toString();
+
+			// Act & Assert
+			await assert.rejects(async () => {
+				await userService.updateById({
+					data: updateData,
+					userId,
+				});
+			}, ValidationError);
+		});
+
+		test("Should throw 'ValidationError' when 'repo.updateById' is called with invalid 'userId'", async () => {
+			// Arrange
+			const updateData = { name: "Updated Name" };
+			const userId = "invalid-user-id";
+
+			// Act & Assert
+			await assert.rejects(async () => {
+				await userService.updateById({
+					data: updateData,
+					userId,
+				});
+			}, ValidationError);
+		});
 	});
 
 	describe("delete", () => {
@@ -188,7 +242,9 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			await User.create(mockUser);
 
 			// Act
-			const result = await userService.delete({ userId: mockUser._id });
+			const result = await userService.delete({
+				userId: mockUser._id.toString(),
+			});
 
 			// Assert
 			assert.strictEqual(result.name, mockUser.name);
@@ -196,18 +252,28 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
 			// Verify user is actually deleted
 			await assert.rejects(async () => {
-				await userService.getById({ userId: mockUser._id });
+				await userService.getById({ userId: mockUser._id.toString() });
 			}, NotFoundError);
 		});
 
 		test("Should throw 'NotFoundError' when 'repo.delete' is called with a non-existent ID", async () => {
 			// Arrange
-			const nonExistentId = generateMockObjectId();
+			const nonExistentId = generateMockObjectId().toString();
 
 			// Act & Assert
 			await assert.rejects(async () => {
 				await userService.delete({ userId: nonExistentId });
 			}, NotFoundError);
+		});
+
+		test("Should throw 'ValidationError' when 'repo.delete' is called with invalid 'userId'", async () => {
+			// Arrange
+			const userId = "invalid-user-id";
+
+			// Act & Assert
+			await assert.rejects(async () => {
+				await userService.delete({ userId });
+			}, ValidationError);
 		});
 	});
 });

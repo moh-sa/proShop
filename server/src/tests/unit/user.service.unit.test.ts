@@ -98,26 +98,32 @@ suite("User Service 〖 Unit Tests 〗", () => {
 		const { password: _, ...expectedUser } = mockUser;
 
 		test("Should return 'user object' when 'repo.getById' is called once with 'userId'", async () => {
+			// Arrange
 			mockRepo.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve(mockUser),
 			);
 
-			const user = await service.getById({ userId: mockUser._id });
+			// Act
+			const user = await service.getById({ userId: mockUser._id.toString() });
 
+			// Assert
 			assert.ok(user);
 			assert.deepStrictEqual(user, expectedUser);
 
 			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.getById.mock.calls[0].arguments[0], {
-				userId: expectedUser._id,
-			});
+			assert.deepStrictEqual(
+				mockRepo.getById.mock.calls[0].arguments[0].userId,
+				expectedUser._id,
+			);
 		});
 
 		test("Should throw 'NotFoundError' when 'repo.getById' returns 'null'", async () => {
+			// Arrange
 			mockRepo.getById.mock.mockImplementationOnce(() => Promise.resolve(null));
 
+			// Act & Assert
 			await assert.rejects(
-				async () => await service.getById({ userId }),
+				async () => await service.getById({ userId: userId.toString() }),
 				(error: Error) => {
 					assert.ok(error instanceof NotFoundError);
 					assert.strictEqual(error.message, "User not found");
@@ -194,7 +200,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("update", () => {
+	describe("updateById", () => {
 		const mockUser = generateMockSelectUser();
 		const userId = mockUser._id;
 
@@ -203,30 +209,43 @@ suite("User Service 〖 Unit Tests 〗", () => {
 		const { password: _, ...expectedUpdatedData } = updatedData;
 
 		test("Should return 'user object' without 'password' and 'token' when 'repo.update' is called once with 'userId' and 'updateData'", async () => {
+			// Arrange
 			mockRepo.update.mock.mockImplementationOnce(() =>
 				Promise.resolve(updatedData),
 			);
 
+			// Act
 			const updatedUser = await service.updateById({
 				data: updateData,
-				userId,
+				userId: userId.toString(),
 			});
 
+			// Assert
 			assert.ok(updatedUser);
 			assert.deepStrictEqual(updatedUser, expectedUpdatedData);
 
 			assert.strictEqual(mockRepo.update.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.update.mock.calls[0].arguments[0], {
-				data: updateData,
+			assert.deepStrictEqual(
+				mockRepo.update.mock.calls[0].arguments[0].userId,
 				userId,
-			});
+			);
+			assert.deepStrictEqual(
+				mockRepo.update.mock.calls[0].arguments[0].data,
+				updateData,
+			);
 		});
 
 		test("Should throw 'NotFoundError' when 'repo.update' returns 'null'", async () => {
+			// Arrange
 			mockRepo.update.mock.mockImplementationOnce(() => Promise.resolve(null));
 
+			// Act & Assert
 			await assert.rejects(
-				async () => await service.updateById({ data: updateData, userId }),
+				async () =>
+					await service.updateById({
+						data: updateData,
+						userId: userId.toString(),
+					}),
 				(error: Error) => {
 					assert.ok(error instanceof NotFoundError);
 					assert.strictEqual(error.type, "NOT_FOUND");
@@ -254,13 +273,17 @@ suite("User Service 〖 Unit Tests 〗", () => {
 		test("Should throw 'ValidationError' when update data is invalid", async () => {
 			// Arrange
 			const mockUpdateData = generateMockInsertUser({
-				email: "not-an-email",
+				email: "invalid-email",
 				name: "",
 			});
 
 			// Act & Assert
 			await assert.rejects(
-				async () => await service.updateById({ data: mockUpdateData, userId }),
+				async () =>
+					await service.updateById({
+						data: mockUpdateData,
+						userId: userId.toString(),
+					}),
 				ValidationError,
 			);
 
@@ -275,12 +298,15 @@ suite("User Service 〖 Unit Tests 〗", () => {
 		const userId = mockUser._id;
 
 		test("Should return 'user object' when 'repo.delete' is called once with 'userId'", async () => {
+			// Arrange
 			mockRepo.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve(mockUser),
 			);
 
-			const deletedUser = await service.delete({ userId });
+			// Act
+			const deletedUser = await service.delete({ userId: userId.toString() });
 
+			// Assert
 			assert.ok(deletedUser);
 			assert.deepStrictEqual(deletedUser, expectedUser);
 
@@ -291,10 +317,12 @@ suite("User Service 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should throw 'NotFoundError' when 'repo.delete' returns 'null'", async () => {
+			// Arrange
 			mockRepo.delete.mock.mockImplementationOnce(() => Promise.resolve(null));
 
+			// Act & Assert
 			await assert.rejects(
-				async () => await service.delete({ userId }),
+				async () => await service.delete({ userId: userId.toString() }),
 				NotFoundError,
 			);
 		});
@@ -491,7 +519,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const user = await service.getById_UNSAFE({ userId });
+			const user = await service.getById_UNSAFE({ userId: userId.toString() });
 
 			// Assert
 			assert.ok(user);
@@ -513,7 +541,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => await service.getById_UNSAFE({ userId }),
+				async () => await service.getById_UNSAFE({ userId: userId.toString() }),
 				NotFoundError,
 			);
 		});

@@ -20,17 +20,17 @@ import { emailValidator, objectIdValidator } from "../validators/index.js";
 
 export interface IUserService {
 	create: (data: InsertUser) => Promise<SafeSelectUser>;
-	delete: (data: { userId: Types.ObjectId }) => Promise<SafeSelectUser>;
+	delete: (data: { userId: string }) => Promise<SafeSelectUser>;
 	existsByEmail: (data: {
 		email: string;
 	}) => Promise<null | { _id: Types.ObjectId }>;
 	getAll: () => Promise<Array<SafeSelectUser>>;
 	getByEmail: (data: { email: string }) => Promise<SafeSelectUser>;
-	getById: (data: { userId: Types.ObjectId }) => Promise<SafeSelectUser>;
+	getById: (data: { userId: string }) => Promise<SafeSelectUser>;
 	sanitizeUser: (user: SelectUser) => SafeSelectUser;
 	updateById: (data: {
 		data: Partial<InsertUser>;
-		userId: Types.ObjectId;
+		userId: string;
 	}) => Promise<SafeSelectUser>;
 
 	// UNSAFE METHODS - returns full user object
@@ -39,9 +39,7 @@ export interface IUserService {
 	/****ONLY FOR INTERNAL USE***/
 	getByEmail_UNSAFE: (data: { email: string }) => Promise<UnSafeSelectUser>;
 	/****ONLY FOR INTERNAL USE***/
-	getById_UNSAFE: (data: {
-		userId: Types.ObjectId;
-	}) => Promise<UnSafeSelectUser>;
+	getById_UNSAFE: (data: { userId: string }) => Promise<UnSafeSelectUser>;
 }
 
 type UserResult<T> = Result<T>;
@@ -59,28 +57,26 @@ export class UserService implements IUserService {
 			throw validationResult.error;
 		}
 
-		const user = await this._repository.create(data);
+		const user = await this._repository.create(validationResult.data);
 		const sanitizedUser = this.sanitizeUser(user);
 
 		return sanitizedUser;
 	}
 
-	async delete({
-		userId,
-	}: {
-		userId: Types.ObjectId;
-	}): Promise<SafeSelectUser> {
+	async delete({ userId }: { userId: string }): Promise<SafeSelectUser> {
 		const validationResult = this._validateUserId(userId);
 		if (!validationResult.success) {
 			throw validationResult.error;
 		}
 
-		const user = await this._repository.delete({ userId });
+		const user = await this._repository.delete({
+			userId: validationResult.data,
+		});
 		if (!user) {
 			throw new NotFoundError("User");
 		}
-		const sanitizedUser = this.sanitizeUser(user);
 
+		const sanitizedUser = this.sanitizeUser(user);
 		return sanitizedUser;
 	}
 
@@ -94,13 +90,15 @@ export class UserService implements IUserService {
 			throw validationResult.error;
 		}
 
-		return await this._repository.existsByEmail({ email });
+		return await this._repository.existsByEmail({
+			email: validationResult.data,
+		});
 	}
 
 	async getAll(): Promise<Array<SafeSelectUser>> {
 		const users = await this._repository.getAll();
-		const sanitizedUsers = users.map((user) => this.sanitizeUser(user));
 
+		const sanitizedUsers = users.map((user) => this.sanitizeUser(user));
 		return sanitizedUsers;
 	}
 
@@ -110,26 +108,25 @@ export class UserService implements IUserService {
 			throw validationResult.error;
 		}
 
-		const user = await this._repository.getByEmail({ email });
+		const user = await this._repository.getByEmail({
+			email: validationResult.data,
+		});
 		if (!user) {
 			throw new NotFoundError("User");
 		}
 		const sanitizedUser = this.sanitizeUser(user);
-
 		return sanitizedUser;
 	}
 
-	async getById({
-		userId,
-	}: {
-		userId: Types.ObjectId;
-	}): Promise<SafeSelectUser> {
+	async getById({ userId }: { userId: string }): Promise<SafeSelectUser> {
 		const validationResult = this._validateUserId(userId);
 		if (!validationResult.success) {
 			throw validationResult.error;
 		}
 
-		const user = await this._repository.getById({ userId });
+		const user = await this._repository.getById({
+			userId: validationResult.data,
+		});
 		if (!user) {
 			throw new NotFoundError("User");
 		}
@@ -143,7 +140,7 @@ export class UserService implements IUserService {
 		userId,
 	}: {
 		data: Partial<InsertUser>;
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<SafeSelectUser> {
 		const userIdValidationResult = this._validateUserId(userId);
 		if (!userIdValidationResult.success) {
@@ -155,14 +152,14 @@ export class UserService implements IUserService {
 		}
 
 		const updatedUser = await this._repository.update({
-			data,
-			userId,
+			data: updateDataValidationResult.data,
+			userId: userIdValidationResult.data,
 		});
 		if (!updatedUser) {
 			throw new NotFoundError("User");
 		}
-		const sanitizedUser = this.sanitizeUser(updatedUser);
 
+		const sanitizedUser = this.sanitizeUser(updatedUser);
 		return sanitizedUser;
 	}
 
@@ -174,7 +171,7 @@ export class UserService implements IUserService {
 			throw validationResult.error;
 		}
 
-		const user = await this._repository.create(data);
+		const user = await this._repository.create(validationResult.data);
 
 		return user;
 	}
@@ -187,7 +184,9 @@ export class UserService implements IUserService {
 			throw validationResult.error;
 		}
 
-		const user = await this._repository.getByEmail({ email: args.email });
+		const user = await this._repository.getByEmail({
+			email: validationResult.data,
+		});
 		if (!user) {
 			throw new NotFoundError("User");
 		}
@@ -196,14 +195,16 @@ export class UserService implements IUserService {
 	}
 	/****ONLY FOR INTERNAL USE***/
 	public async getById_UNSAFE(args: {
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<UnSafeSelectUser> {
 		const validationResult = this._validateUserId(args.userId);
 		if (!validationResult.success) {
 			throw validationResult.error;
 		}
 
-		const user = await this._repository.getById({ userId: args.userId });
+		const user = await this._repository.getById({
+			userId: validationResult.data,
+		});
 		if (!user) {
 			throw new NotFoundError("User");
 		}
@@ -233,7 +234,7 @@ export class UserService implements IUserService {
 		}
 
 		return {
-			data,
+			data: result.data,
 			success: true,
 		};
 	}
@@ -248,7 +249,7 @@ export class UserService implements IUserService {
 		}
 
 		return {
-			data: email,
+			data: result.data,
 			success: true,
 		};
 	}
@@ -267,12 +268,12 @@ export class UserService implements IUserService {
 		}
 
 		return {
-			data,
+			data: result.data,
 			success: true,
 		};
 	}
 
-	private _validateUserId(userId: Types.ObjectId): UserResult<Types.ObjectId> {
+	private _validateUserId(userId: string): UserResult<Types.ObjectId> {
 		const result = objectIdValidator.safeParse(userId);
 		if (!result.success) {
 			return {
@@ -282,7 +283,7 @@ export class UserService implements IUserService {
 		}
 
 		return {
-			data: userId,
+			data: result.data,
 			success: true,
 		};
 	}

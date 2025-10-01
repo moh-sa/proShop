@@ -2,7 +2,6 @@ import type { Request, Response } from "express";
 
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
-import { ZodError } from "zod";
 
 import type { InsertUser } from "../../types/index.js";
 
@@ -28,74 +27,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		const mockUser = generateMockSelectUser();
 		const userId = mockUser._id;
 
-		test("Should parse 'userId' from 'req.params'", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
-				testContext: t,
-			});
-
-			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
-			);
-
-			await assert.doesNotReject(
-				async () =>
-					await controller.getById(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-			);
-		});
-
-		test("Should parse 'userId' from 'res.locals'", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				res: { locals: { user: { _id: userId } } },
-				testContext: t,
-			});
-
-			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
-			);
-
-			await assert.doesNotReject(
-				async () =>
-					await controller.getById(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-			);
-		});
-
-		test("Should throw 'ZodError' if 'userId' is invalid ObjectId", async (t) => {
-			const invalidUserId = "invalid-user-id";
-
-			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: invalidUserId } },
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.getById(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
 		test("Should call 'service.getById' once with the correct 'userId'", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
@@ -105,16 +38,19 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockUser),
 			);
 
+			// Act
 			await controller.getById(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(mockService.getById.mock.callCount(), 1);
-			assert.deepStrictEqual(mockService.getById.mock.calls[0].arguments[0], {
-				userId,
-			});
+			assert.deepStrictEqual(
+				mockService.getById.mock.calls[0].arguments[0].userId,
+				userId.toString(),
+			);
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching user data", async (t) => {
@@ -229,74 +165,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		const mockUser = generateMockSelectUser();
 		const userId = mockUser._id;
 
-		test("Should parse 'userId' from 'req.params'", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
-				testContext: t,
-			});
-
-			mockService.updateById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
-			);
-
-			await assert.doesNotReject(
-				async () =>
-					await controller.update(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-			);
-		});
-
-		test("Should parse 'userId' from 'res.locals'", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				res: { locals: { user: { _id: userId } } },
-				testContext: t,
-			});
-
-			mockService.updateById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
-			);
-
-			await assert.doesNotReject(
-				async () =>
-					await controller.update(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-			);
-		});
-
-		test("Should throw 'ZodError' if 'userId' is invalid ObjectId", async (t) => {
-			const invalidUserId = "invalid-user-id";
-
-			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: invalidUserId } },
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.update(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
 		test("Should call 'service.updateById' once with the correct 'userId'", async (t) => {
+			// Arrange
 			const updateData: Partial<InsertUser> = { name: "new-name" };
 
 			const { next, req, res } = mockExpressCall({
@@ -311,19 +181,22 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockUser),
 			);
 
+			// Act
 			await controller.update(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(mockService.updateById.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.updateById.mock.calls[0].arguments[0],
-				{
-					data: updateData,
-					userId,
-				},
+				mockService.updateById.mock.calls[0].arguments[0].userId,
+				userId.toString(),
+			);
+			assert.deepStrictEqual(
+				mockService.updateById.mock.calls[0].arguments[0].data,
+				updateData,
 			);
 		});
 
@@ -375,54 +248,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		const mockUser = generateMockSelectUser();
 		const userId = mockUser._id;
 
-		test("Should parse 'userId' from 'req.params'", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
-				testContext: t,
-			});
-
-			mockService.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
-			);
-
-			await assert.doesNotReject(
-				async () =>
-					await controller.delete(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-			);
-		});
-
-		test("Should throw 'ZodError' if 'userId' is invalid ObjectId", async (t) => {
-			const invalidUserId = "invalid-user-id";
-
-			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: invalidUserId } },
-				testContext: t,
-			});
-
-			await assert.rejects(
-				async () =>
-					await controller.delete(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.issues.length, 1);
-					assert.strictEqual(
-						error.issues[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
 		test("Should call 'service.delete' once with the correct 'userId'", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
@@ -432,16 +259,19 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockUser),
 			);
 
+			// Act
 			await controller.delete(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(mockService.delete.mock.callCount(), 1);
-			assert.deepStrictEqual(mockService.delete.mock.calls[0].arguments[0], {
-				userId,
-			});
+			assert.deepStrictEqual(
+				mockService.delete.mock.calls[0].arguments[0].userId,
+				userId.toString(),
+			);
 		});
 
 		test("Should throw 'NotFoundError' if 'service.delete' returns 'null'", async (t) => {

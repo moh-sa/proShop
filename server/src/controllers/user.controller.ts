@@ -1,12 +1,14 @@
 import type { IUserService } from "../services/index.js";
-import type { AsyncHandler, SafeSelectUser } from "../types/index.js";
+import type {
+	AsyncHandler,
+	InsertUser,
+	SafeSelectUser,
+} from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
 import { NotFoundError } from "../errors/index.js";
-import { insertUserSchema } from "../schemas/index.js";
 import { UserService } from "../services/index.js";
-import { asyncHandler, removeEmptyFieldsSchema } from "../utils/index.js";
-import { objectIdValidator } from "../validators/index.js";
+import { asyncHandler } from "../utils/index.js";
 
 export interface IUserController {
 	delete: AsyncHandler<{
@@ -22,6 +24,7 @@ export interface IUserController {
 	}>;
 	update: AsyncHandler<{
 		params: { userId: string };
+		reqBody: Partial<InsertUser>;
 		resBody: { data: SafeSelectUser };
 	}>;
 }
@@ -33,10 +36,7 @@ export class UserController implements IUserController {
 		params: { userId: string };
 		resBody: { data: null };
 	}>(async (req, res) => {
-		const idReq = req.params.userId;
-		const userId = objectIdValidator.parse(idReq);
-
-		const response = await this._service.delete({ userId });
+		const response = await this._service.delete({ userId: req.params.userId });
 		if (!response) {
 			throw new NotFoundError("User");
 		}
@@ -62,10 +62,9 @@ export class UserController implements IUserController {
 		params: { userId: string };
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
-		const idReq = req.params?.userId ?? res.locals.user?._id;
-		const userId = objectIdValidator.parse(idReq);
-
-		const response = await this._service.getById({ userId });
+		const response = await this._service.getById({
+			userId: req.params?.userId ?? res.locals.user?._id,
+		});
 
 		res.status(HTTP_STATUS.OK).json({
 			data: response,
@@ -75,18 +74,12 @@ export class UserController implements IUserController {
 
 	update = asyncHandler<{
 		params: { userId: string };
+		reqBody: Partial<InsertUser>;
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
-		const idReq = req.params?.userId ?? res.locals.user?._id;
-		const userId = objectIdValidator.parse(idReq);
-
-		const data = removeEmptyFieldsSchema(insertUserSchema.partial()).parse(
-			req.body,
-		);
-
 		const response = await this._service.updateById({
-			data,
-			userId,
+			data: req.body,
+			userId: req.params?.userId ?? res.locals.user?._id,
 		});
 
 		res.status(HTTP_STATUS.OK).json({
