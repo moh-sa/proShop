@@ -305,34 +305,18 @@ export class JwtService implements IJwtService {
 		try {
 			const decoded = this._provider.verify(token, secret);
 
-			if (typeof decoded === "string") {
+			const decodedValidationResult = tokenDecodedSchema.safeParse(decoded);
+			if (!decodedValidationResult.success) {
 				return {
-					error: new JwtInvalidTokenError({
-						expectedTokenType: "object",
-						receivedTokenType: "string",
-					}),
-					success: false,
-				};
-			}
-
-			if (
-				!("type" in decoded) ||
-				!("userId" in decoded) ||
-				!("exp" in decoded) ||
-				!("tokenId" in decoded) ||
-				!("iat" in decoded)
-			) {
-				return {
-					error: new JwtInvalidTokenError({
-						expected: ["type", "userId", "jti", "exp", "iat"],
-						received: Object.keys(decoded),
+					error: new JwtInvalidPayloadError({
+						cause: decodedValidationResult.error,
 					}),
 					success: false,
 				};
 			}
 
 			return {
-				data: decoded as TokenDecoded,
+				data: decodedValidationResult.data,
 				success: true,
 			};
 		} catch (error) {
