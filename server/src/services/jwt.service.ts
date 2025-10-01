@@ -16,7 +16,7 @@ import {
 	JwtInvalidPayloadError,
 	JwtInvalidTokenError,
 } from "../errors/index.js";
-import { tokenTypeSchema } from "../schemas/index.js";
+import { tokenDecodedSchema, tokenTypeSchema } from "../schemas/index.js";
 import { type JwtConfig, type Result, TokenType } from "../types/index.js";
 import { jwtTokenValidator } from "../validators/jwt-token.validator.js";
 
@@ -153,27 +153,19 @@ export class JwtService implements IJwtService {
 	private _extractExpirationDateFromToken(token: string): JwtResult<Date> {
 		const decoded = this._provider.decode(token);
 
-		if (!decoded || typeof decoded !== "object") {
+		const expirationDateResult = tokenDecodedSchema
+			.pick({ exp: true })
+			.transform((data) => new Date(data.exp * 1000))
+			.safeParse(decoded);
+		if (!expirationDateResult.success) {
 			return {
-				error: new JwtInvalidTokenError({
-					decodedTokenType: "string",
-					expectedType: "object",
-				}),
-				success: false,
-			};
-		}
-
-		if (!decoded.exp || typeof decoded.exp !== "number") {
-			return {
-				error: new JwtInvalidTokenError({
-					expected: "exp",
-				}),
+				error: new JwtInvalidTokenError({ cause: expirationDateResult.error }),
 				success: false,
 			};
 		}
 
 		return {
-			data: new Date(decoded.exp * 1000),
+			data: expirationDateResult.data,
 			success: true,
 		};
 	}
