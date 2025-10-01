@@ -7,6 +7,8 @@ import type { IImageStorageService } from "../services/index.js";
 import type {
 	AllProducts,
 	InsertProduct,
+	MethodParams,
+	MethodReturn,
 	Result,
 	SelectProduct,
 	TopRatedProduct,
@@ -48,7 +50,9 @@ export class ProductService implements IProductService {
 		this._storage = storage;
 	}
 
-	async create(data: InsertProduct): Promise<SelectProduct> {
+	async create(
+		data: MethodParams<IProductService, "create">,
+	): MethodReturn<IProductService, "create"> {
 		const validationResult = this._validateCreateData(data);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -62,7 +66,12 @@ export class ProductService implements IProductService {
 		return createdProduct;
 	}
 
-	async delete({ productId }: { productId: string }): Promise<void> {
+	async delete({
+		productId,
+	}: MethodParams<IProductService, "delete">): MethodReturn<
+		IProductService,
+		"delete"
+	> {
 		const validationResult = this._validateProductId(productId);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -78,11 +87,9 @@ export class ProductService implements IProductService {
 		await this._storage.delete({ url: deletedProduct.image });
 	}
 
-	async getAll(data: { currentPage: string; keyword: string }): Promise<{
-		currentPage: number;
-		numberOfPages: number;
-		products: Array<AllProducts>;
-	}> {
+	async getAll(
+		data: MethodParams<IProductService, "getAll">,
+	): MethodReturn<IProductService, "getAll"> {
 		const validationResult = this._validatePagination(data);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -109,7 +116,12 @@ export class ProductService implements IProductService {
 		};
 	}
 
-	async getById({ productId }: { productId: string }): Promise<SelectProduct> {
+	async getById({
+		productId,
+	}: MethodParams<IProductService, "getById">): MethodReturn<
+		IProductService,
+		"getById"
+	> {
 		const validationResult = this._validateProductId(productId);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -125,15 +137,14 @@ export class ProductService implements IProductService {
 		return product;
 	}
 
-	async getTopRated(): Promise<Array<TopRatedProduct>> {
+	async getTopRated(): MethodReturn<IProductService, "getTopRated"> {
 		const limit = MAX_TOP_RATED_PRODUCTS;
 		return await this._repository.getTopRated({ limit });
 	}
 
-	async update(args: {
-		data: Partial<InsertProduct>;
-		productId: string;
-	}): Promise<SelectProduct> {
+	async update(
+		args: MethodParams<IProductService, "update">,
+	): MethodReturn<IProductService, "update"> {
 		const updateDataValidationResult = this._validateUpdateData(args.data);
 		if (!updateDataValidationResult.success) {
 			throw updateDataValidationResult.error;

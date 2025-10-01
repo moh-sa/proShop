@@ -4,6 +4,8 @@ import type { IOrderRepository } from "../repositories/index.js";
 import type {
 	AllOrdersResponse,
 	InsertOrder,
+	MethodParams,
+	MethodReturn,
 	Result,
 	SelectOrder,
 } from "../types/index.js";
@@ -34,7 +36,9 @@ export class OrderService implements IOrderService {
 		this._repository = repository;
 	}
 
-	async create(data: InsertOrder): Promise<SelectOrder> {
+	async create(
+		data: MethodParams<IOrderService, "create">,
+	): MethodReturn<IOrderService, "create"> {
 		const validationResult = this._validateCreateData(data);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -50,15 +54,16 @@ export class OrderService implements IOrderService {
 		return await this._repository.create(validationResult.data);
 	}
 
-	async getAll(): Promise<AllOrdersResponse> {
+	async getAll(): MethodReturn<IOrderService, "getAll"> {
 		return await this._repository.getAll();
 	}
 
 	async getAllByUserId({
 		userId,
-	}: {
-		userId: string;
-	}): Promise<AllOrdersResponse> {
+	}: MethodParams<IOrderService, "getAllByUserId">): MethodReturn<
+		IOrderService,
+		"getAllByUserId"
+	> {
 		const validationResult = this._validateObjectId("userId", userId);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -69,7 +74,12 @@ export class OrderService implements IOrderService {
 		});
 	}
 
-	async getById({ orderId }: { orderId: string }): Promise<SelectOrder> {
+	async getById({
+		orderId,
+	}: MethodParams<IOrderService, "getById">): MethodReturn<
+		IOrderService,
+		"getById"
+	> {
 		const validationResult = this._validateObjectId("orderId", orderId);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -87,9 +97,10 @@ export class OrderService implements IOrderService {
 
 	async updateToDelivered({
 		orderId,
-	}: {
-		orderId: string;
-	}): Promise<SelectOrder> {
+	}: MethodParams<IOrderService, "updateToDelivered">): MethodReturn<
+		IOrderService,
+		"updateToDelivered"
+	> {
 		const validationResult = this._validateObjectId("orderId", orderId);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -105,7 +116,12 @@ export class OrderService implements IOrderService {
 		return updatedOrder;
 	}
 
-	async updateToPaid({ orderId }: { orderId: string }): Promise<SelectOrder> {
+	async updateToPaid({
+		orderId,
+	}: MethodParams<IOrderService, "updateToPaid">): MethodReturn<
+		IOrderService,
+		"updateToPaid"
+	> {
 		const validationResult = this._validateObjectId("orderId", orderId);
 		if (!validationResult.success) {
 			throw validationResult.error;

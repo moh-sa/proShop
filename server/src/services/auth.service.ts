@@ -1,5 +1,11 @@
 import type { IUserRepository } from "../repositories/index.js";
-import type { InsertUser, RequiredBy, SelectUser } from "../types/index.js";
+import type {
+	InsertUser,
+	MethodParams,
+	MethodReturn,
+	RequiredBy,
+	SelectUser,
+} from "../types/index.js";
 import type { IJwtService } from "./jwt.service.js";
 import type { IPasswordService } from "./password.service.js";
 
@@ -30,7 +36,9 @@ export class AuthService implements IAuthService {
 		this._jwtService = jwtService;
 	}
 
-	async signin(data: RequiredBy<SelectUser, "email" | "password">) {
+	async signin(
+		data: MethodParams<IAuthService, "signin">,
+	): MethodReturn<IAuthService, "signin"> {
 		const isUserExists = await this._repository.getByEmail({
 			email: data.email,
 		});
@@ -55,7 +63,9 @@ export class AuthService implements IAuthService {
 		return userWithoutPassword;
 	}
 
-	async signup(data: InsertUser) {
+	async signup(
+		data: MethodParams<IAuthService, "signup">,
+	): MethodReturn<IAuthService, "signup"> {
 		const isUserExists = await this._repository.existsByEmail({
 			email: data.email,
 		});

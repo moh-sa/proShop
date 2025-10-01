@@ -7,6 +7,8 @@ import type {
 	CookieConfig,
 	CookieItem,
 	CookieItemOptions,
+	MethodParams,
+	MethodReturn,
 	Result,
 } from "../types/index.js";
 
@@ -47,10 +49,9 @@ export class CookieService implements ICookieService {
 		this._config = config ?? DEFAULT_COOKIE_CONFIG;
 	}
 
-	public delete(args: {
-		name: CookieName;
-		response: Response;
-	}): CookieResult<undefined> {
+	public delete(
+		args: MethodParams<ICookieService, "delete">,
+	): MethodReturn<ICookieService, "delete"> {
 		const nameValidationResult = this._validateName(args.name);
 		if (!nameValidationResult.success) {
 			return nameValidationResult;
@@ -118,11 +119,9 @@ export class CookieService implements ICookieService {
 		return parsedCookieResult;
 	}
 
-	public set(args: {
-		item: CookieItem;
-		options?: CookieItemOptions;
-		response: Response;
-	}): CookieResult<undefined> {
+	public set(
+		args: MethodParams<ICookieService, "set">,
+	): MethodReturn<ICookieService, "set"> {
 		const nameValidationResult = this._validateName(args.item.name);
 		if (!nameValidationResult.success) {
 			return nameValidationResult;

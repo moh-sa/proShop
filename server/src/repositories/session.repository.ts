@@ -1,4 +1,9 @@
-import type { InsertSession, SelectSession } from "../types/index.js";
+import type {
+	InsertSession,
+	MethodParams,
+	MethodReturn,
+	SelectSession,
+} from "../types/index.js";
 
 import { Session } from "../models/session.model.js";
 import { handleDatabaseError } from "../utils/index.js";
@@ -45,7 +50,9 @@ export class SessionRepository implements ISessionRepository {
 		this._db = db ?? Session;
 	}
 
-	public async countActiveByUserId(args: { userId: string }): Promise<number> {
+	public async countActiveByUserId(
+		args: MethodParams<ISessionRepository, "countActiveByUserId">,
+	): MethodReturn<ISessionRepository, "countActiveByUserId"> {
 		try {
 			return await this._db.countDocuments({
 				expiresAt: { $gt: new Date() },
@@ -57,7 +64,9 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async create(args: InsertSession): Promise<SelectSession> {
+	public async create(
+		args: MethodParams<ISessionRepository, "create">,
+	): MethodReturn<ISessionRepository, "create"> {
 		try {
 			return (await this._db.create(args)).toObject();
 		} catch (error) {
@@ -65,7 +74,9 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async deleteAllByUserId(args: { userId: string }): Promise<number> {
+	public async deleteAllByUserId(
+		args: MethodParams<ISessionRepository, "deleteAllByUserId">,
+	): MethodReturn<ISessionRepository, "deleteAllByUserId"> {
 		try {
 			return (await this._db.deleteMany({ userId: args.userId }).lean())
 				.deletedCount;
@@ -74,10 +85,9 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async deleteByTokenIdAndUserId(args: {
-		tokenId: string;
-		userId: string;
-	}): Promise<null | SelectSession> {
+	public async deleteByTokenIdAndUserId(
+		args: MethodParams<ISessionRepository, "deleteByTokenIdAndUserId">,
+	): MethodReturn<ISessionRepository, "deleteByTokenIdAndUserId"> {
 		try {
 			return await this._db
 				.findOneAndDelete({ tokenId: args.tokenId, userId: args.userId })
@@ -87,10 +97,9 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async existsByTokenIdAndUserId(args: {
-		tokenId: string;
-		userId: string;
-	}): Promise<null | string> {
+	public async existsByTokenIdAndUserId(
+		args: MethodParams<ISessionRepository, "existsByTokenIdAndUserId">,
+	): MethodReturn<ISessionRepository, "existsByTokenIdAndUserId"> {
 		try {
 			return await this._db
 				.exists({ tokenId: args.tokenId, userId: args.userId })
@@ -100,7 +109,7 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async getAll(): Promise<Array<SelectSession>> {
+	public async getAll(): MethodReturn<ISessionRepository, "getAll"> {
 		try {
 			return await this._db.find({}).lean();
 		} catch (error) {
@@ -108,9 +117,9 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async getAllActiveByUserId(args: {
-		userId: string;
-	}): Promise<Array<SelectSession>> {
+	public async getAllActiveByUserId(
+		args: MethodParams<ISessionRepository, "getAllActiveByUserId">,
+	): MethodReturn<ISessionRepository, "getAllActiveByUserId"> {
 		try {
 			return await this._db
 				.find({
@@ -124,9 +133,9 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async getAllByUserId(args: {
-		userId: string;
-	}): Promise<Array<SelectSession>> {
+	public async getAllByUserId(
+		args: MethodParams<ISessionRepository, "getAllByUserId">,
+	): MethodReturn<ISessionRepository, "getAllByUserId"> {
 		try {
 			return await this._db.find({ userId: args.userId }).lean();
 		} catch (error) {
@@ -134,7 +143,10 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async getAllRevoked(): Promise<Array<SelectSession>> {
+	public async getAllRevoked(): MethodReturn<
+		ISessionRepository,
+		"getAllRevoked"
+	> {
 		try {
 			return await this._db.find({ revokedAt: { $ne: null } }).lean();
 		} catch (error) {
@@ -142,9 +154,9 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async getAllRevokedByUserId(args: {
-		userId: string;
-	}): Promise<Array<SelectSession>> {
+	public async getAllRevokedByUserId(
+		args: MethodParams<ISessionRepository, "getAllRevokedByUserId">,
+	): MethodReturn<ISessionRepository, "getAllRevokedByUserId"> {
 		try {
 			return await this._db
 				.find({ revokedAt: { $ne: null }, userId: args.userId })
@@ -154,10 +166,9 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async getByTokenIdAndUserId(args: {
-		tokenId: string;
-		userId: string;
-	}): Promise<null | SelectSession> {
+	public async getByTokenIdAndUserId(
+		args: MethodParams<ISessionRepository, "getByTokenIdAndUserId">,
+	): MethodReturn<ISessionRepository, "getByTokenIdAndUserId"> {
 		try {
 			return await this._db
 				.findOne({ tokenId: args.tokenId, userId: args.userId })
@@ -167,7 +178,9 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async revokeAllByUserId(args: { userId: string }): Promise<number> {
+	public async revokeAllByUserId(
+		args: MethodParams<ISessionRepository, "revokeAllByUserId">,
+	): MethodReturn<ISessionRepository, "revokeAllByUserId"> {
 		try {
 			return (
 				await this._db
@@ -179,10 +192,9 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async revokeByTokenIdAndUserId(args: {
-		tokenId: string;
-		userId: string;
-	}): Promise<null | SelectSession> {
+	public async revokeByTokenIdAndUserId(
+		args: MethodParams<ISessionRepository, "revokeByTokenIdAndUserId">,
+	): MethodReturn<ISessionRepository, "revokeByTokenIdAndUserId"> {
 		try {
 			return await this._db
 				.findOneAndUpdate(
@@ -195,11 +207,9 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async updateByTokenIdAndUserId(args: {
-		data: Partial<InsertSession>;
-		tokenId: string;
-		userId: string;
-	}): Promise<null | SelectSession> {
+	public async updateByTokenIdAndUserId(
+		args: MethodParams<ISessionRepository, "updateByTokenIdAndUserId">,
+	): MethodReturn<ISessionRepository, "updateByTokenIdAndUserId"> {
 		try {
 			return await this._db
 				.findOneAndUpdate(

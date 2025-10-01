@@ -1,6 +1,11 @@
 import type { UploadApiErrorResponse, UploadApiResponse } from "cloudinary";
 
-import type { InsertImage, SelectImage } from "../types/index.js";
+import type {
+	InsertImage,
+	MethodParams,
+	MethodReturn,
+	SelectImage,
+} from "../types/index.js";
 
 import cloudinary from "../config/cloudinary.config.js";
 
@@ -13,7 +18,12 @@ export interface IImageStorageService {
 export class ImageStorageService implements IImageStorageService {
 	private readonly provider = cloudinary;
 
-	async delete({ url }: { url: string }): Promise<void> {
+	async delete({
+		url,
+	}: MethodParams<IImageStorageService, "delete">): MethodReturn<
+		IImageStorageService,
+		"delete"
+	> {
 		try {
 			const publicId = this.extractPublicId({ url });
 			const res = await this.provider.uploader.destroy(`proShop/${publicId}`);
@@ -36,10 +46,10 @@ export class ImageStorageService implements IImageStorageService {
 	async replace({
 		file,
 		url,
-	}: {
-		file: InsertImage;
-		url: string;
-	}): Promise<SelectImage> {
+	}: MethodParams<IImageStorageService, "replace">): MethodReturn<
+		IImageStorageService,
+		"replace"
+	> {
 		const deleteImage = this.delete({ url });
 		const uploadImage = this.upload({ file });
 
@@ -47,7 +57,12 @@ export class ImageStorageService implements IImageStorageService {
 		return newImageURL;
 	}
 
-	async upload({ file }: { file: InsertImage }): Promise<string> {
+	async upload({
+		file,
+	}: MethodParams<IImageStorageService, "upload">): MethodReturn<
+		IImageStorageService,
+		"upload"
+	> {
 		return new Promise((resolve, reject) => {
 			this.provider.uploader
 				.upload_stream(

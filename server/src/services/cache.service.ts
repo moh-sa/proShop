@@ -10,6 +10,8 @@ import type {
 	CacheResult,
 	CacheStats,
 	CacheSuccessResult,
+	MethodParams,
+	MethodReturn,
 	Namespace,
 } from "../types/index.js";
 
@@ -54,7 +56,9 @@ export class CacheService implements ICacheService {
 		});
 	}
 
-	delete(args: { key: string }): CacheResult {
+	delete(
+		args: MethodParams<ICacheService, "delete">,
+	): MethodReturn<ICacheService, "delete"> {
 		const parsedKey = this._validateSchema({
 			data: args.key,
 			schema: cacheKeySchema,
@@ -76,7 +80,9 @@ export class CacheService implements ICacheService {
 		}
 	}
 
-	deleteMany(args: { keys: Array<string> }): Array<CacheResult> {
+	deleteMany(
+		args: MethodParams<ICacheService, "deleteMany">,
+	): MethodReturn<ICacheService, "deleteMany"> {
 		const parsedKeys = this._validateSchema({
 			data: args.keys,
 			schema: cacheKeysSchema,
@@ -100,7 +106,7 @@ export class CacheService implements ICacheService {
 		});
 	}
 
-	flush(): void {
+	flush(): MethodReturn<ICacheService, "flush"> {
 		try {
 			this._cache.flushAll();
 		} catch (error) {
@@ -109,11 +115,11 @@ export class CacheService implements ICacheService {
 		}
 	}
 
-	flushStats(): void {
+	flushStats(): MethodReturn<ICacheService, "flushStats"> {
 		this._cache.flushStats();
 	}
 
-	get<T>(args: { key: string }): CacheResult<T> {
+	get<T>(args: MethodParams<ICacheService, "get">): CacheResult<T> {
 		const parsedKey = this._validateSchema({
 			data: args.key,
 			schema: cacheKeySchema,
@@ -138,11 +144,13 @@ export class CacheService implements ICacheService {
 		}
 	}
 
-	getKeys(): Array<string> {
+	getKeys(): MethodReturn<ICacheService, "getKeys"> {
 		return this._cache.keys();
 	}
 
-	getMany<T>(args: { keys: Array<string> }): Array<CacheResult<T>> {
+	getMany<T>(
+		args: MethodParams<ICacheService, "getMany">,
+	): Array<CacheResult<T>> {
 		const parsedKeys = this._validateSchema({
 			data: args.keys,
 			schema: cacheKeysSchema,
@@ -166,7 +174,7 @@ export class CacheService implements ICacheService {
 		});
 	}
 
-	getStats(): CacheStats {
+	getStats(): MethodReturn<ICacheService, "getStats"> {
 		const stats = this._cache.getStats();
 		return {
 			hits: stats.hits,
@@ -178,7 +186,9 @@ export class CacheService implements ICacheService {
 		};
 	}
 
-	isKeyCached(args: { key: string }): CacheResult {
+	isKeyCached(
+		args: MethodParams<ICacheService, "isKeyCached">,
+	): MethodReturn<ICacheService, "isKeyCached"> {
 		const parsedKey = this._validateSchema({
 			data: args.key,
 			schema: cacheKeySchema,
@@ -201,7 +211,9 @@ export class CacheService implements ICacheService {
 		}
 	}
 
-	set(args: CacheItem): CacheResult {
+	set(
+		args: MethodParams<ICacheService, "set">,
+	): MethodReturn<ICacheService, "set"> {
 		const parsedArgs = this._validateSchema({
 			data: {
 				key: args.key,
@@ -232,7 +244,9 @@ export class CacheService implements ICacheService {
 		}
 	}
 
-	setMany(args: CacheItems): Array<CacheResult> {
+	setMany(
+		args: MethodParams<ICacheService, "setMany">,
+	): MethodReturn<ICacheService, "setMany"> {
 		this._validateMemoryCapacity(args.length);
 
 		const parsedArgs = this._validateSchema({
@@ -271,7 +285,7 @@ export class CacheService implements ICacheService {
 		});
 	}
 
-	take<T>(args: { key: string }): CacheResult<T> {
+	take<T>(args: MethodParams<ICacheService, "take">): CacheResult<T> {
 		const parsedKey = this._validateSchema({
 			data: args.key,
 			schema: cacheKeySchema,

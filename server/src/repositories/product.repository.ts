@@ -3,6 +3,8 @@ import type { Types } from "mongoose";
 import type {
 	AllProducts,
 	InsertProductWithStringImage,
+	MethodParams,
+	MethodReturn,
 	SelectProduct,
 	TopRatedProduct,
 } from "../types/index.js";
@@ -40,7 +42,9 @@ export class ProductRepository implements IProductRepository {
 		this._cache = cache;
 	}
 
-	async count(query: Record<string, unknown>): Promise<number> {
+	async count(
+		query: MethodParams<IProductRepository, "count">,
+	): MethodReturn<IProductRepository, "count"> {
 		try {
 			return await this._db.countDocuments({ ...query }).lean();
 		} catch (error) {
@@ -48,7 +52,9 @@ export class ProductRepository implements IProductRepository {
 		}
 	}
 
-	async create(data: InsertProductWithStringImage): Promise<SelectProduct> {
+	async create(
+		data: MethodParams<IProductRepository, "create">,
+	): MethodReturn<IProductRepository, "create"> {
 		try {
 			const product = (await this._db.create(data)).toObject();
 			const isSet = this._cache.set({
@@ -67,9 +73,10 @@ export class ProductRepository implements IProductRepository {
 
 	async delete({
 		productId,
-	}: {
-		productId: Types.ObjectId;
-	}): Promise<null | SelectProduct> {
+	}: MethodParams<IProductRepository, "delete">): MethodReturn<
+		IProductRepository,
+		"delete"
+	> {
 		try {
 			const deletedProduct = await this._db.findByIdAndDelete(productId).lean();
 			if (deletedProduct) {
@@ -82,11 +89,9 @@ export class ProductRepository implements IProductRepository {
 		}
 	}
 
-	async getAll(data: {
-		currentPage: number;
-		numberOfProductsPerPage: number;
-		query: Record<string, unknown>;
-	}): Promise<Array<AllProducts>> {
+	async getAll(
+		data: MethodParams<IProductRepository, "getAll">,
+	): MethodReturn<IProductRepository, "getAll"> {
 		const cachedProducts = this._cache.get<Array<AllProducts>>({
 			key: `all-${data.currentPage}`,
 		});
@@ -108,9 +113,10 @@ export class ProductRepository implements IProductRepository {
 
 	async getById({
 		productId,
-	}: {
-		productId: Types.ObjectId;
-	}): Promise<null | SelectProduct> {
+	}: MethodParams<IProductRepository, "getById">): MethodReturn<
+		IProductRepository,
+		"getById"
+	> {
 		const cacheId = productId.toString();
 		const cachedProduct = this._cache.get<SelectProduct>({
 			key: cacheId,
@@ -136,9 +142,10 @@ export class ProductRepository implements IProductRepository {
 
 	async getTopRated({
 		limit,
-	}: {
-		limit: number;
-	}): Promise<Array<TopRatedProduct>> {
+	}: MethodParams<IProductRepository, "getTopRated">): MethodReturn<
+		IProductRepository,
+		"getTopRated"
+	> {
 		const cacheKey = "top-rated";
 		const cachedProducts = this._cache.get<Array<TopRatedProduct>>({
 			key: cacheKey,
@@ -171,10 +178,10 @@ export class ProductRepository implements IProductRepository {
 	async update({
 		data,
 		productId,
-	}: {
-		data: Partial<InsertProductWithStringImage>;
-		productId: Types.ObjectId;
-	}): Promise<null | SelectProduct> {
+	}: MethodParams<IProductRepository, "update">): MethodReturn<
+		IProductRepository,
+		"update"
+	> {
 		try {
 			const product = await this._db
 				.findByIdAndUpdate(productId, data, {

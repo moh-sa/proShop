@@ -3,6 +3,8 @@ import type { Types } from "mongoose";
 import type { IUserRepository } from "../repositories/index.js";
 import type {
 	InsertUser,
+	MethodParams,
+	MethodReturn,
 	Result,
 	SafeSelectUser,
 	SelectUser,
@@ -51,7 +53,9 @@ export class UserService implements IUserService {
 		this._repository = repository;
 	}
 
-	async create(data: InsertUser): Promise<SafeSelectUser> {
+	async create(
+		data: MethodParams<IUserService, "create">,
+	): MethodReturn<IUserService, "create"> {
 		const validationResult = this._validateCreateData(data);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -63,7 +67,12 @@ export class UserService implements IUserService {
 		return sanitizedUser;
 	}
 
-	async delete({ userId }: { userId: string }): Promise<SafeSelectUser> {
+	async delete({
+		userId,
+	}: MethodParams<IUserService, "delete">): MethodReturn<
+		IUserService,
+		"delete"
+	> {
 		const validationResult = this._validateUserId(userId);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -82,9 +91,10 @@ export class UserService implements IUserService {
 
 	public async existsByEmail({
 		email,
-	}: {
-		email: string;
-	}): Promise<null | { _id: Types.ObjectId }> {
+	}: MethodParams<IUserService, "existsByEmail">): MethodReturn<
+		IUserService,
+		"existsByEmail"
+	> {
 		const validationResult = this._validateEmail(email);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -95,14 +105,19 @@ export class UserService implements IUserService {
 		});
 	}
 
-	async getAll(): Promise<Array<SafeSelectUser>> {
+	async getAll(): MethodReturn<IUserService, "getAll"> {
 		const users = await this._repository.getAll();
 
 		const sanitizedUsers = users.map((user) => this.sanitizeUser(user));
 		return sanitizedUsers;
 	}
 
-	async getByEmail({ email }: { email: string }): Promise<SafeSelectUser> {
+	async getByEmail({
+		email,
+	}: MethodParams<IUserService, "getByEmail">): MethodReturn<
+		IUserService,
+		"getByEmail"
+	> {
 		const validationResult = this._validateEmail(email);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -118,7 +133,12 @@ export class UserService implements IUserService {
 		return sanitizedUser;
 	}
 
-	async getById({ userId }: { userId: string }): Promise<SafeSelectUser> {
+	async getById({
+		userId,
+	}: MethodParams<IUserService, "getById">): MethodReturn<
+		IUserService,
+		"getById"
+	> {
 		const validationResult = this._validateUserId(userId);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -138,10 +158,10 @@ export class UserService implements IUserService {
 	async updateById({
 		data,
 		userId,
-	}: {
-		data: Partial<InsertUser>;
-		userId: string;
-	}): Promise<SafeSelectUser> {
+	}: MethodParams<IUserService, "updateById">): MethodReturn<
+		IUserService,
+		"updateById"
+	> {
 		const userIdValidationResult = this._validateUserId(userId);
 		if (!userIdValidationResult.success) {
 			throw userIdValidationResult.error;
@@ -165,7 +185,9 @@ export class UserService implements IUserService {
 
 	// UNSAFE METHODS - returns full user object
 	/****ONLY FOR INTERNAL USE***/
-	public async create_UNSAFE(data: InsertUser): Promise<UnSafeSelectUser> {
+	public async create_UNSAFE(
+		data: MethodParams<IUserService, "create_UNSAFE">,
+	): MethodReturn<IUserService, "create_UNSAFE"> {
 		const validationResult = this._validateCreateData(data);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -176,9 +198,9 @@ export class UserService implements IUserService {
 		return user;
 	}
 	/****ONLY FOR INTERNAL USE***/
-	public async getByEmail_UNSAFE(args: {
-		email: string;
-	}): Promise<UnSafeSelectUser> {
+	public async getByEmail_UNSAFE(
+		args: MethodParams<IUserService, "getByEmail_UNSAFE">,
+	): MethodReturn<IUserService, "getByEmail_UNSAFE"> {
 		const validationResult = this._validateEmail(args.email);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -194,9 +216,9 @@ export class UserService implements IUserService {
 		return user;
 	}
 	/****ONLY FOR INTERNAL USE***/
-	public async getById_UNSAFE(args: {
-		userId: string;
-	}): Promise<UnSafeSelectUser> {
+	public async getById_UNSAFE(
+		args: MethodParams<IUserService, "getById_UNSAFE">,
+	): MethodReturn<IUserService, "getById_UNSAFE"> {
 		const validationResult = this._validateUserId(args.userId);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -212,7 +234,9 @@ export class UserService implements IUserService {
 		return user;
 	}
 
-	public sanitizeUser(user: SelectUser): SafeSelectUser {
+	public sanitizeUser(
+		user: MethodParams<IUserService, "sanitizeUser">,
+	): MethodReturn<IUserService, "sanitizeUser"> {
 		const result = selectUserSchema.omit({ password: true }).safeParse(user);
 		if (!result.success) {
 			throw new InternalError("Invalid user data", { cause: result.error });

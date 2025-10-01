@@ -1,6 +1,11 @@
 import type { Types } from "mongoose";
 
-import type { InsertReview, SelectReview } from "../types/index.js";
+import type {
+	InsertReview,
+	MethodParams,
+	MethodReturn,
+	SelectReview,
+} from "../types/index.js";
 
 import Review from "../models/review.model.js";
 import { handleDatabaseError } from "../utils/index.js";
@@ -39,7 +44,7 @@ export class ReviewRepository implements IReviewRepository {
 		this._db = db;
 	}
 
-	async count(): Promise<number> {
+	async count(): MethodReturn<IReviewRepository, "count"> {
 		try {
 			return await this._db.countDocuments().lean();
 		} catch (error) {
@@ -49,9 +54,10 @@ export class ReviewRepository implements IReviewRepository {
 
 	async countByProductId({
 		productId,
-	}: {
-		productId: Types.ObjectId;
-	}): Promise<number> {
+	}: MethodParams<IReviewRepository, "countByProductId">): MethodReturn<
+		IReviewRepository,
+		"countByProductId"
+	> {
 		try {
 			return await this._db.countDocuments({ product: productId }).lean();
 		} catch (error) {
@@ -59,7 +65,12 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async countByUserId({ userId }: { userId: Types.ObjectId }): Promise<number> {
+	async countByUserId({
+		userId,
+	}: MethodParams<IReviewRepository, "countByUserId">): MethodReturn<
+		IReviewRepository,
+		"countByUserId"
+	> {
 		try {
 			return await this._db.countDocuments({ user: userId }).lean();
 		} catch (error) {
@@ -67,7 +78,9 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async create(data: InsertReview): Promise<SelectReview> {
+	async create(
+		data: MethodParams<IReviewRepository, "create">,
+	): MethodReturn<IReviewRepository, "create"> {
 		try {
 			return (await this._db.create(data)).toObject();
 		} catch (error) {
@@ -77,9 +90,10 @@ export class ReviewRepository implements IReviewRepository {
 
 	async delete({
 		reviewId,
-	}: {
-		reviewId: Types.ObjectId;
-	}): Promise<null | SelectReview> {
+	}: MethodParams<IReviewRepository, "delete">): MethodReturn<
+		IReviewRepository,
+		"delete"
+	> {
 		try {
 			return await this._db.findByIdAndDelete(reviewId).lean();
 		} catch (error) {
@@ -89,9 +103,10 @@ export class ReviewRepository implements IReviewRepository {
 
 	async existsById({
 		reviewId,
-	}: {
-		reviewId: Types.ObjectId;
-	}): Promise<null | { _id: Types.ObjectId }> {
+	}: MethodParams<IReviewRepository, "existsById">): MethodReturn<
+		IReviewRepository,
+		"existsById"
+	> {
 		try {
 			return await this._db
 				.exists({
@@ -106,10 +121,10 @@ export class ReviewRepository implements IReviewRepository {
 	async existsByUserIdAndProductId({
 		productId,
 		userId,
-	}: {
-		productId: Types.ObjectId;
-		userId: Types.ObjectId;
-	}): Promise<null | { _id: Types.ObjectId }> {
+	}: MethodParams<
+		IReviewRepository,
+		"existsByUserIdAndProductId"
+	>): MethodReturn<IReviewRepository, "existsByUserIdAndProductId"> {
 		try {
 			return await this._db
 				.exists({
@@ -122,7 +137,7 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async getAll(): Promise<Array<SelectReview>> {
+	async getAll(): MethodReturn<IReviewRepository, "getAll"> {
 		try {
 			return await this._db.find({}).lean();
 		} catch (error) {
@@ -132,9 +147,10 @@ export class ReviewRepository implements IReviewRepository {
 
 	async getAllByProductId({
 		productId,
-	}: {
-		productId: Types.ObjectId;
-	}): Promise<Array<SelectReview>> {
+	}: MethodParams<IReviewRepository, "getAllByProductId">): MethodReturn<
+		IReviewRepository,
+		"getAllByProductId"
+	> {
 		try {
 			return await this._db.find({ product: productId }).lean();
 		} catch (error) {
@@ -144,9 +160,10 @@ export class ReviewRepository implements IReviewRepository {
 
 	async getAllByUserId({
 		userId,
-	}: {
-		userId: Types.ObjectId;
-	}): Promise<Array<SelectReview>> {
+	}: MethodParams<IReviewRepository, "getAllByUserId">): MethodReturn<
+		IReviewRepository,
+		"getAllByUserId"
+	> {
 		try {
 			return await this._db.find({ user: userId }).lean();
 		} catch (error) {
@@ -156,9 +173,10 @@ export class ReviewRepository implements IReviewRepository {
 
 	async getById({
 		reviewId,
-	}: {
-		reviewId: Types.ObjectId;
-	}): Promise<null | SelectReview> {
+	}: MethodParams<IReviewRepository, "getById">): MethodReturn<
+		IReviewRepository,
+		"getById"
+	> {
 		try {
 			return await this._db.findById(reviewId).lean();
 		} catch (error) {
@@ -169,10 +187,10 @@ export class ReviewRepository implements IReviewRepository {
 	async update({
 		data,
 		reviewId,
-	}: {
-		data: Partial<InsertReview>;
-		reviewId: Types.ObjectId;
-	}): Promise<null | SelectReview> {
+	}: MethodParams<IReviewRepository, "update">): MethodReturn<
+		IReviewRepository,
+		"update"
+	> {
 		try {
 			return await this._db
 				.findByIdAndUpdate(reviewId, data, { new: true })

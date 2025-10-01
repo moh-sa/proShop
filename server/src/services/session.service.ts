@@ -4,6 +4,8 @@ import type { ISessionRepository } from "../repositories/session.repository.js";
 import type {
 	FailureResult,
 	InsertSession,
+	MethodParams,
+	MethodReturn,
 	Result,
 	SelectSession,
 } from "../types/index.js";
@@ -67,8 +69,8 @@ export class SessionService implements ISessionService {
 	}
 
 	public async create(
-		args: InsertSession,
-	): Promise<SessionResult<SelectSession>> {
+		args: MethodParams<ISessionService, "create">,
+	): MethodReturn<ISessionService, "create"> {
 		const argsValidationResult = this._validateCreateArgs(args);
 		if (!argsValidationResult.success) {
 			return argsValidationResult;
@@ -93,9 +95,9 @@ export class SessionService implements ISessionService {
 		}
 	}
 
-	public async deleteAllByUserId(args: {
-		userId: string;
-	}): Promise<SessionResult<number>> {
+	public async deleteAllByUserId(
+		args: MethodParams<ISessionService, "deleteAllByUserId">,
+	): MethodReturn<ISessionService, "deleteAllByUserId"> {
 		const argsValidationResult = this._validateUserId(args.userId);
 		if (!argsValidationResult.success) {
 			return argsValidationResult;
@@ -113,10 +115,9 @@ export class SessionService implements ISessionService {
 		}
 	}
 
-	public async deleteByTokenIdAndUserId(args: {
-		tokenId: string;
-		userId: string;
-	}): Promise<SessionResult<SelectSession>> {
+	public async deleteByTokenIdAndUserId(
+		args: MethodParams<ISessionService, "deleteByTokenIdAndUserId">,
+	): MethodReturn<ISessionService, "deleteByTokenIdAndUserId"> {
 		const argsValidationResult = this._validateTokenIdAndUserId(
 			args.tokenId,
 			args.userId,
@@ -143,9 +144,9 @@ export class SessionService implements ISessionService {
 		}
 	}
 
-	public async getActiveByUserId(args: {
-		userId: string;
-	}): Promise<SessionResult<Array<SelectSession>>> {
+	public async getActiveByUserId(
+		args: MethodParams<ISessionService, "getActiveByUserId">,
+	): MethodReturn<ISessionService, "getActiveByUserId"> {
 		const argsValidationResult = this._validateUserId(args.userId);
 		if (!argsValidationResult.success) {
 			return argsValidationResult;
@@ -165,10 +166,9 @@ export class SessionService implements ISessionService {
 		}
 	}
 
-	public async getByTokenIdAndUserId(args: {
-		tokenId: string;
-		userId: string;
-	}): Promise<SessionResult<SelectSession>> {
+	public async getByTokenIdAndUserId(
+		args: MethodParams<ISessionService, "getByTokenIdAndUserId">,
+	): MethodReturn<ISessionService, "getByTokenIdAndUserId"> {
 		const argsValidationResult = this._validateTokenIdAndUserId(
 			args.tokenId,
 			args.userId,
@@ -199,9 +199,9 @@ export class SessionService implements ISessionService {
 		}
 	}
 
-	public async revokeAllByUserId(args: {
-		userId: string;
-	}): Promise<SessionResult<number>> {
+	public async revokeAllByUserId(
+		args: MethodParams<ISessionService, "revokeAllByUserId">,
+	): MethodReturn<ISessionService, "revokeAllByUserId"> {
 		const argsValidationResult = this._validateUserId(args.userId);
 		if (!argsValidationResult.success) {
 			return argsValidationResult;
@@ -215,10 +215,9 @@ export class SessionService implements ISessionService {
 		}
 	}
 
-	public async revokeByTokenIdAndUserId(args: {
-		tokenId: string;
-		userId: string;
-	}): Promise<SessionResult<SelectSession>> {
+	public async revokeByTokenIdAndUserId(
+		args: MethodParams<ISessionService, "revokeByTokenIdAndUserId">,
+	): MethodReturn<ISessionService, "revokeByTokenIdAndUserId"> {
 		const argsValidationResult = this._validateTokenIdAndUserId(
 			args.tokenId,
 			args.userId,
@@ -250,10 +249,9 @@ export class SessionService implements ISessionService {
 	/**
 	 * Validates a session by checking if it exists, is not revoked, and is not expired.
 	 */
-	public async validate(args: {
-		tokenId: string;
-		userId: string;
-	}): Promise<SessionResult<SelectSession>> {
+	public async validate(
+		args: MethodParams<ISessionService, "validate">,
+	): MethodReturn<ISessionService, "validate"> {
 		const argsValidationResult = this._validateTokenIdAndUserId(
 			args.tokenId,
 			args.userId,

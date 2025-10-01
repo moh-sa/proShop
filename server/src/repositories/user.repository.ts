@@ -1,6 +1,11 @@
 import type { Types } from "mongoose";
 
-import type { InsertUser, SelectUser } from "../types/index.js";
+import type {
+	InsertUser,
+	MethodParams,
+	MethodReturn,
+	SelectUser,
+} from "../types/index.js";
 
 import User from "../models/user.model.js";
 import { handleDatabaseError } from "../utils/index.js";
@@ -27,7 +32,9 @@ export class UserRepository implements IUserRepository {
 		this._db = db;
 	}
 
-	async create(data: InsertUser): Promise<SelectUser> {
+	async create(
+		data: MethodParams<IUserRepository, "create">,
+	): MethodReturn<IUserRepository, "create"> {
 		try {
 			return (await this._db.create(data)).toObject();
 		} catch (error) {
@@ -37,9 +44,10 @@ export class UserRepository implements IUserRepository {
 
 	async delete({
 		userId,
-	}: {
-		userId: Types.ObjectId;
-	}): Promise<null | SelectUser> {
+	}: MethodParams<IUserRepository, "delete">): MethodReturn<
+		IUserRepository,
+		"delete"
+	> {
 		try {
 			return await this._db.findByIdAndDelete(userId).lean();
 		} catch (error) {
@@ -49,9 +57,10 @@ export class UserRepository implements IUserRepository {
 
 	async existsByEmail({
 		email,
-	}: {
-		email: string;
-	}): Promise<null | { _id: Types.ObjectId }> {
+	}: MethodParams<IUserRepository, "existsByEmail">): MethodReturn<
+		IUserRepository,
+		"existsByEmail"
+	> {
 		try {
 			return await this._db.exists({ email }).lean();
 		} catch (error) {
@@ -59,7 +68,7 @@ export class UserRepository implements IUserRepository {
 		}
 	}
 
-	async getAll(): Promise<Array<SelectUser>> {
+	async getAll(): MethodReturn<IUserRepository, "getAll"> {
 		try {
 			return await this._db.find({}).lean();
 		} catch (error) {
@@ -67,7 +76,12 @@ export class UserRepository implements IUserRepository {
 		}
 	}
 
-	async getByEmail({ email }: { email: string }): Promise<null | SelectUser> {
+	async getByEmail({
+		email,
+	}: MethodParams<IUserRepository, "getByEmail">): MethodReturn<
+		IUserRepository,
+		"getByEmail"
+	> {
 		try {
 			return await this._db.findOne({ email }).lean();
 		} catch (error) {
@@ -77,9 +91,10 @@ export class UserRepository implements IUserRepository {
 
 	async getById({
 		userId,
-	}: {
-		userId: Types.ObjectId;
-	}): Promise<null | SelectUser> {
+	}: MethodParams<IUserRepository, "getById">): MethodReturn<
+		IUserRepository,
+		"getById"
+	> {
 		try {
 			return await this._db.findById(userId).lean();
 		} catch (error) {
@@ -90,10 +105,10 @@ export class UserRepository implements IUserRepository {
 	async update({
 		data,
 		userId,
-	}: {
-		data: Partial<InsertUser>;
-		userId: Types.ObjectId;
-	}): Promise<null | SelectUser> {
+	}: MethodParams<IUserRepository, "update">): MethodReturn<
+		IUserRepository,
+		"update"
+	> {
 		try {
 			return await this._db
 				.findByIdAndUpdate(userId, data, { new: true })

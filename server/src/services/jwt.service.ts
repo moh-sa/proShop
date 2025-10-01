@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 
 import type {
+	MethodParams,
+	MethodReturn,
 	TokenDecoded,
 	TokenPair,
 	TokenPayload,
@@ -51,7 +53,9 @@ export class JwtService implements IJwtService {
 		this._provider = provider;
 	}
 
-	public generateAccessToken(args: { userId: string }): JwtResult<TokenResult> {
+	public generateAccessToken(
+		args: MethodParams<IJwtService, "generateAccessToken">,
+	): MethodReturn<IJwtService, "generateAccessToken"> {
 		return this._generateToken({
 			payload: {
 				type: TokenType.ACCESS,
@@ -60,9 +64,9 @@ export class JwtService implements IJwtService {
 		});
 	}
 
-	public generateRefreshToken(args: {
-		userId: string;
-	}): JwtResult<TokenResult> {
+	public generateRefreshToken(
+		args: MethodParams<IJwtService, "generateRefreshToken">,
+	): MethodReturn<IJwtService, "generateRefreshToken"> {
 		return this._generateToken({
 			payload: {
 				type: TokenType.REFRESH,
@@ -71,7 +75,9 @@ export class JwtService implements IJwtService {
 		});
 	}
 
-	public generateTokenPair(args: { userId: string }): JwtResult<TokenPair> {
+	public generateTokenPair(
+		args: MethodParams<IJwtService, "generateTokenPair">,
+	): MethodReturn<IJwtService, "generateTokenPair"> {
 		const accessTokenResult = this.generateAccessToken(args);
 		if (!accessTokenResult.success) {
 			return accessTokenResult;
@@ -91,10 +97,9 @@ export class JwtService implements IJwtService {
 		};
 	}
 
-	public refreshAccessToken(args: { refreshToken: string }): JwtResult<{
-		access: TokenResult;
-		decodedRefreshToken: TokenDecoded;
-	}> {
+	public refreshAccessToken(
+		args: MethodParams<IJwtService, "refreshAccessToken">,
+	): MethodReturn<IJwtService, "refreshAccessToken"> {
 		const refreshTokenResult = this.verify({
 			expectedType: TokenType.REFRESH,
 			token: args.refreshToken,
@@ -119,10 +124,9 @@ export class JwtService implements IJwtService {
 		};
 	}
 
-	public verify(args: {
-		expectedType: TokenType;
-		token: string;
-	}): JwtResult<TokenDecoded> {
+	public verify(
+		args: MethodParams<IJwtService, "verify">,
+	): MethodReturn<IJwtService, "verify"> {
 		const tokenValidationResult = this._validateToken(args.token);
 		if (!tokenValidationResult.success) {
 			return tokenValidationResult;

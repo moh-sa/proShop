@@ -1,7 +1,13 @@
 import type { Types } from "mongoose";
 
 import type { IReviewRepository } from "../repositories/index.js";
-import type { InsertReview, Result, SelectReview } from "../types/index.js";
+import type {
+	InsertReview,
+	MethodParams,
+	MethodReturn,
+	Result,
+	SelectReview,
+} from "../types/index.js";
 
 import { NotFoundError, ValidationError } from "../errors/index.js";
 import { ReviewRepository } from "../repositories/index.js";
@@ -40,15 +46,16 @@ export class ReviewService implements IReviewService {
 		this._repository = repository;
 	}
 
-	async count(): Promise<number> {
+	async count(): MethodReturn<IReviewService, "count"> {
 		return await this._repository.count();
 	}
 
 	async countByProductId({
 		productId,
-	}: {
-		productId: string;
-	}): Promise<number> {
+	}: MethodParams<IReviewService, "countByProductId">): MethodReturn<
+		IReviewService,
+		"countByProductId"
+	> {
 		const validationResult = this._validateObjectId("productId", productId);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -59,7 +66,12 @@ export class ReviewService implements IReviewService {
 		});
 	}
 
-	async countByUserId({ userId }: { userId: string }): Promise<number> {
+	async countByUserId({
+		userId,
+	}: MethodParams<IReviewService, "countByUserId">): MethodReturn<
+		IReviewService,
+		"countByUserId"
+	> {
 		const validationResult = this._validateObjectId("userId", userId);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -70,7 +82,9 @@ export class ReviewService implements IReviewService {
 		});
 	}
 
-	async create(data: InsertReview): Promise<SelectReview> {
+	async create(
+		data: MethodParams<IReviewService, "create">,
+	): MethodReturn<IReviewService, "create"> {
 		const validationResult = this._validateCreateData(data);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -79,7 +93,12 @@ export class ReviewService implements IReviewService {
 		return await this._repository.create(validationResult.data);
 	}
 
-	async delete({ reviewId }: { reviewId: string }): Promise<SelectReview> {
+	async delete({
+		reviewId,
+	}: MethodParams<IReviewService, "delete">): MethodReturn<
+		IReviewService,
+		"delete"
+	> {
 		const validationResult = this._validateObjectId("reviewId", reviewId);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -97,9 +116,10 @@ export class ReviewService implements IReviewService {
 
 	async existsById({
 		reviewId,
-	}: {
-		reviewId: string;
-	}): Promise<{ _id: Types.ObjectId }> {
+	}: MethodParams<IReviewService, "existsById">): MethodReturn<
+		IReviewService,
+		"existsById"
+	> {
 		const validationResult = this._validateObjectId("reviewId", reviewId);
 		if (!validationResult.success) {
 			throw validationResult.error;
@@ -118,10 +138,10 @@ export class ReviewService implements IReviewService {
 	async existsByUserIdAndProductId({
 		productId,
 		userId,
-	}: {
-		productId: string;
-		userId: string;
-	}): Promise<{ _id: Types.ObjectId }> {
+	}: MethodParams<IReviewService, "existsByUserIdAndProductId">): MethodReturn<
+		IReviewService,
+		"existsByUserIdAndProductId"
+	> {
 		const productIdValidationResult = this._validateObjectId(
 			"productId",
 			productId,
@@ -146,15 +166,16 @@ export class ReviewService implements IReviewService {
 		return exists;
 	}
 
-	async getAll(): Promise<Array<SelectReview>> {
+	async getAll(): MethodReturn<IReviewService, "getAll"> {
 		return await this._repository.getAll();
 	}
 
 	async getAllByProductId({
 		productId,
-	}: {
-		productId: string;
-	}): Promise<Array<SelectReview>> {
+	}: MethodParams<IReviewService, "getAllByProductId">): MethodReturn<
+		IReviewService,
+		"getAllByProductId"
+	> {
 		const productIdValidationResult = this._validateObjectId(
 			"productId",
 			productId,
@@ -170,9 +191,10 @@ export class ReviewService implements IReviewService {
 
 	async getAllByUserId({
 		userId,
-	}: {
-		userId: string;
-	}): Promise<Array<SelectReview>> {
+	}: MethodParams<IReviewService, "getAllByUserId">): MethodReturn<
+		IReviewService,
+		"getAllByUserId"
+	> {
 		const userIdValidationResult = this._validateObjectId("userId", userId);
 		if (!userIdValidationResult.success) {
 			throw userIdValidationResult.error;
@@ -183,7 +205,12 @@ export class ReviewService implements IReviewService {
 		});
 	}
 
-	async getById({ reviewId }: { reviewId: string }): Promise<SelectReview> {
+	async getById({
+		reviewId,
+	}: MethodParams<IReviewService, "getById">): MethodReturn<
+		IReviewService,
+		"getById"
+	> {
 		const reviewIdValidationResult = this._validateObjectId(
 			"reviewId",
 			reviewId,
@@ -205,10 +232,10 @@ export class ReviewService implements IReviewService {
 	async update({
 		data,
 		reviewId,
-	}: {
-		data: Partial<InsertReview>;
-		reviewId: string;
-	}): Promise<SelectReview> {
+	}: MethodParams<IReviewService, "update">): MethodReturn<
+		IReviewService,
+		"update"
+	> {
 		const reviewIdValidationResult = this._validateObjectId(
 			"reviewId",
 			reviewId,

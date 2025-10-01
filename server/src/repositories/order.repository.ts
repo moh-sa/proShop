@@ -3,6 +3,8 @@ import type { Types } from "mongoose";
 import type {
 	AllOrdersResponse,
 	InsertOrder,
+	MethodParams,
+	MethodReturn,
 	SelectOrder,
 } from "../types/index.js";
 
@@ -36,7 +38,9 @@ export class OrderRepository implements IOrderRepository {
 		this._db = db;
 	}
 
-	async create(data: InsertOrder): Promise<SelectOrder> {
+	async create(
+		data: MethodParams<IOrderRepository, "create">,
+	): MethodReturn<IOrderRepository, "create"> {
 		try {
 			return (await this._db.create(data)).toObject();
 		} catch (error) {
@@ -44,7 +48,7 @@ export class OrderRepository implements IOrderRepository {
 		}
 	}
 
-	async getAll(): Promise<AllOrdersResponse> {
+	async getAll(): MethodReturn<IOrderRepository, "getAll"> {
 		try {
 			return await this._db
 				.find({})
@@ -59,9 +63,10 @@ export class OrderRepository implements IOrderRepository {
 
 	async getAllByUserId({
 		userId,
-	}: {
-		userId: Types.ObjectId;
-	}): Promise<AllOrdersResponse> {
+	}: MethodParams<IOrderRepository, "getAllByUserId">): MethodReturn<
+		IOrderRepository,
+		"getAllByUserId"
+	> {
 		try {
 			return await this._db
 				.find({ user: userId })
@@ -76,9 +81,10 @@ export class OrderRepository implements IOrderRepository {
 
 	async getById({
 		orderId,
-	}: {
-		orderId: Types.ObjectId;
-	}): Promise<null | SelectOrder> {
+	}: MethodParams<IOrderRepository, "getById">): MethodReturn<
+		IOrderRepository,
+		"getById"
+	> {
 		try {
 			return await this._db
 				.findById(orderId)
@@ -91,9 +97,10 @@ export class OrderRepository implements IOrderRepository {
 
 	async updateToDelivered({
 		orderId,
-	}: {
-		orderId: Types.ObjectId;
-	}): Promise<null | SelectOrder> {
+	}: MethodParams<IOrderRepository, "getById">): MethodReturn<
+		IOrderRepository,
+		"getById"
+	> {
 		try {
 			return await this._db
 				.findByIdAndUpdate(
@@ -114,9 +121,10 @@ export class OrderRepository implements IOrderRepository {
 
 	async updateToPaid({
 		orderId,
-	}: {
-		orderId: Types.ObjectId;
-	}): Promise<null | SelectOrder> {
+	}: MethodParams<IOrderRepository, "updateToDelivered">): MethodReturn<
+		IOrderRepository,
+		"updateToDelivered"
+	> {
 		try {
 			return await this._db
 				.findByIdAndUpdate(
