@@ -3,9 +3,10 @@ import test, { beforeEach, describe, suite } from "node:test";
 
 import type { InsertReview } from "../../types/index.js";
 
-import { NotFoundError } from "../../errors/index.js";
+import { NotFoundError, ValidationError } from "../../errors/index.js";
 import { ReviewService } from "../../services/index.js";
 import {
+	generateMockInsertReview,
 	generateMockObjectId,
 	generateMockSelectReview,
 	generateMockSelectReviews,
@@ -19,22 +20,107 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 	beforeEach(() => mockRepo.reset());
 
 	describe("Create", () => {
-		const mockReview = generateMockSelectReview();
-
 		test("Should return 'review object' when 'repo.create' is called once with 'review data'", async () => {
+			// Arrange
+			const mockInsertReview = generateMockInsertReview();
+			const mockSelectReview = generateMockSelectReview(mockInsertReview);
+
 			mockRepo.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReview),
+				Promise.resolve(mockSelectReview),
 			);
 
-			const review = await service.create(mockReview);
+			// Act
+			const review = await service.create(mockInsertReview);
 
+			// Assert
 			assert.ok(review);
-			assert.deepStrictEqual(review, mockReview);
+			assert.deepStrictEqual(review, mockSelectReview);
 
 			assert.strictEqual(mockRepo.create.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockRepo.create.mock.calls[0].arguments[0],
-				mockReview,
+				mockInsertReview,
+			);
+		});
+
+		test("Should throw 'ValidationError' if 'review.user' is invalid objectId", async () => {
+			// Arrange
+			const mockInsertReview = generateMockInsertReview({
+				// @ts-expect-error - test case
+				user: "invalid-user-id",
+			});
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.create(mockInsertReview),
+				ValidationError,
+			);
+		});
+
+		test("Should throw 'ValidationError' if 'review.product' is invalid objectId", async () => {
+			// Arrange
+			const mockInsertReview = generateMockInsertReview({
+				// @ts-expect-error - test case
+				product: "invalid-product-id",
+			});
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.create(mockInsertReview),
+				ValidationError,
+			);
+		});
+
+		test("Should throw 'ValidationError' if 'review.rating' is less than 0", async () => {
+			// Arrange
+			const mockInsertReview = generateMockInsertReview({
+				rating: -1,
+			});
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.create(mockInsertReview),
+				ValidationError,
+			);
+		});
+
+		test("Should throw 'ValidationError' if 'review.rating' is greater than 5", async () => {
+			// Arrange
+			const mockInsertReview = generateMockInsertReview({
+				rating: 6,
+			});
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.create(mockInsertReview),
+				ValidationError,
+			);
+		});
+
+		test("Should throw 'ValidationError' if 'review.rating' is not a number", async () => {
+			// Arrange
+			const mockInsertReview = generateMockInsertReview({
+				// @ts-expect-error - test case
+				rating: "invalid-rating",
+			});
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.create(mockInsertReview),
+				ValidationError,
+			);
+		});
+
+		test("Should throw 'ValidationError' if 'review.comment' is empty string", async () => {
+			// Arrange
+			const mockInsertReview = generateMockInsertReview({
+				comment: "",
+			});
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.create(mockInsertReview),
+				ValidationError,
 			);
 		});
 	});
@@ -74,7 +160,9 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockReviews),
 			);
 
-			const reviews = await service.getAllByUserId({ userId });
+			const reviews = await service.getAllByUserId({
+				userId: userId.toString(),
+			});
 
 			assert.ok(reviews);
 			assert.deepStrictEqual(reviews, mockReviews);
@@ -91,9 +179,22 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 				Promise.resolve([]),
 			);
 
-			const reviews = await service.getAllByUserId({ userId });
+			const reviews = await service.getAllByUserId({
+				userId: userId.toString(),
+			});
 
 			assert.strictEqual(reviews.length, 0);
+		});
+
+		test("Should throw 'ValidationError' if 'userId' is invalid ObjectId", async () => {
+			// Arrange
+			const userId = "invalid-user-id";
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.getAllByUserId({ userId }),
+				ValidationError,
+			);
 		});
 	});
 
@@ -106,7 +207,9 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockReviews),
 			);
 
-			const reviews = await service.getAllByProductId({ productId });
+			const reviews = await service.getAllByProductId({
+				productId: productId.toString(),
+			});
 
 			assert.ok(reviews);
 			assert.deepEqual(reviews, mockReviews);
@@ -122,9 +225,22 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 				Promise.resolve([]),
 			);
 
-			const reviews = await service.getAllByProductId({ productId });
+			const reviews = await service.getAllByProductId({
+				productId: productId.toString(),
+			});
 
 			assert.strictEqual(reviews.length, 0);
+		});
+
+		test("Should throw 'ValidationError' if 'productId' is invalid ObjectId", async () => {
+			// Arrange
+			const productId = "invalid-product-id";
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.getAllByProductId({ productId }),
+				ValidationError,
+			);
 		});
 	});
 
@@ -137,7 +253,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockReview),
 			);
 
-			const review = await service.getById({ reviewId });
+			const review = await service.getById({ reviewId: reviewId.toString() });
 
 			assert.ok(review);
 			assert.deepStrictEqual(review, mockReview);
@@ -152,13 +268,24 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			mockRepo.getById.mock.mockImplementationOnce(() => Promise.resolve(null));
 
 			await assert.rejects(
-				async () => await service.getById({ reviewId }),
+				async () => await service.getById({ reviewId: reviewId.toString() }),
 				(error: Error) => {
 					assert.ok(error instanceof NotFoundError);
 					assert.strictEqual(error.message, "Review not found");
 					assert.strictEqual(error.statusCode, 404);
 					return true;
 				},
+			);
+		});
+
+		test("Should throw 'ValidationError' if 'reviewId' is invalid ObjectId", async () => {
+			// Arrange
+			const reviewId = "invalid-review-id";
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.getById({ reviewId }),
+				ValidationError,
 			);
 		});
 	});
@@ -176,7 +303,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 			const updatedReview = await service.update({
 				data: updateData,
-				reviewId,
+				reviewId: reviewId.toString(),
 			});
 
 			assert.ok(updatedReview);
@@ -193,13 +320,33 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			mockRepo.update.mock.mockImplementationOnce(() => Promise.resolve(null));
 
 			await assert.rejects(
-				async () => await service.update({ data: updateData, reviewId }),
+				async () =>
+					await service.update({
+						data: updateData,
+						reviewId: reviewId.toString(),
+					}),
 				(error: Error) => {
 					assert.ok(error instanceof NotFoundError);
 					assert.strictEqual(error.message, "Review not found");
 					assert.strictEqual(error.statusCode, 404);
 					return true;
 				},
+			);
+		});
+
+		test("Should throw 'ValidationError' if 'reviewId' is invalid ObjectId", async () => {
+			// Arrange
+			const updateData = { comment: "new-comment" };
+			const reviewId = "invalid-review-id";
+
+			// Act & Assert
+			await assert.rejects(
+				async () =>
+					await service.update({
+						data: updateData,
+						reviewId,
+					}),
+				ValidationError,
 			);
 		});
 	});
@@ -214,7 +361,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			);
 
 			const deletedReview = await service.delete({
-				reviewId,
+				reviewId: reviewId.toString(),
 			});
 
 			assert.ok(deletedReview);
@@ -230,13 +377,24 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			mockRepo.delete.mock.mockImplementationOnce(() => Promise.resolve(null));
 
 			await assert.rejects(
-				async () => await service.delete({ reviewId }),
+				async () => await service.delete({ reviewId: reviewId.toString() }),
 				(error: Error) => {
 					assert.ok(error instanceof NotFoundError);
 					assert.strictEqual(error.message, "Review not found");
 					assert.strictEqual(error.statusCode, 404);
 					return true;
 				},
+			);
+		});
+
+		test("Should throw 'ValidationError' if 'reviewId' is invalid ObjectId", async () => {
+			// Arrange
+			const reviewId = "invalid-review-id";
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.delete({ reviewId }),
+				ValidationError,
 			);
 		});
 	});
@@ -250,7 +408,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockCount),
 			);
 
-			const count = await service.countByUserId({ userId });
+			const count = await service.countByUserId({ userId: userId.toString() });
 
 			assert.ok(count);
 			assert.ok(typeof count === "number");
@@ -267,9 +425,20 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 				Promise.resolve(0),
 			);
 
-			const count = await service.countByUserId({ userId });
+			const count = await service.countByUserId({ userId: userId.toString() });
 
 			assert.strictEqual(count, 0);
+		});
+
+		test("Should throw 'ValidationError' if 'userId' is invalid ObjectId", async () => {
+			// Arrange
+			const userId = "invalid-user-id";
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.countByUserId({ userId }),
+				ValidationError,
+			);
 		});
 	});
 
@@ -282,7 +451,9 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockCount),
 			);
 
-			const count = await service.countByProductId({ productId });
+			const count = await service.countByProductId({
+				productId: productId.toString(),
+			});
 
 			assert.ok(count);
 			assert.ok(typeof count === "number");
@@ -299,9 +470,22 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 				Promise.resolve(0),
 			);
 
-			const count = await service.countByProductId({ productId });
+			const count = await service.countByProductId({
+				productId: productId.toString(),
+			});
 
 			assert.strictEqual(count, 0);
+		});
+
+		test("Should throw 'ValidationError' if 'productId' is invalid ObjectId", async () => {
+			// Arrange
+			const productId = "invalid-product-id";
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.countByProductId({ productId }),
+				ValidationError,
+			);
 		});
 	});
 
@@ -314,7 +498,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 				Promise.resolve(expectedResult),
 			);
 
-			const count = await service.existsById({ reviewId });
+			const count = await service.existsById({ reviewId: reviewId.toString() });
 
 			assert.ok(count);
 			assert.deepEqual(count, expectedResult);
@@ -331,13 +515,24 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			);
 
 			await assert.rejects(
-				async () => await service.existsById({ reviewId }),
+				async () => await service.existsById({ reviewId: reviewId.toString() }),
 				(error: Error) => {
 					assert.ok(error instanceof NotFoundError);
 					assert.strictEqual(error.message, "Review not found");
 					assert.strictEqual(error.statusCode, 404);
 					return true;
 				},
+			);
+		});
+
+		test("Should throw 'ValidationError' if 'reviewId' is invalid ObjectId", async () => {
+			// Arrange
+			const reviewId = "invalid-review-id";
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await service.existsById({ reviewId }),
+				ValidationError,
 			);
 		});
 	});
@@ -354,8 +549,8 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			);
 
 			const count = await service.existsByUserIdAndProductId({
-				productId,
-				userId,
+				productId: productId.toString(),
+				userId: userId.toString(),
 			});
 
 			assert.ok(count);
@@ -382,8 +577,8 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			await assert.rejects(
 				async () =>
 					await service.existsByUserIdAndProductId({
-						productId,
-						userId,
+						productId: productId.toString(),
+						userId: userId.toString(),
 					}),
 				(error: Error) => {
 					assert.ok(error instanceof NotFoundError);
@@ -391,6 +586,38 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 					assert.strictEqual(error.statusCode, 404);
 					return true;
 				},
+			);
+		});
+
+		test("Should throw 'ValidationError' if 'userId' is invalid ObjectId", async () => {
+			// Arrange
+			const userId = "invalid-user-id";
+			const productId = generateMockObjectId().toString();
+
+			// Act & Assert
+			await assert.rejects(
+				async () =>
+					await service.existsByUserIdAndProductId({
+						productId,
+						userId,
+					}),
+				ValidationError,
+			);
+		});
+
+		test("Should throw 'ValidationError' if 'productId' is invalid ObjectId", async () => {
+			// Arrange
+			const productId = "invalid-product-id";
+			const userId = generateMockObjectId().toString();
+
+			// Act & Assert
+			await assert.rejects(
+				async () =>
+					await service.existsByUserIdAndProductId({
+						productId,
+						userId,
+					}),
+				ValidationError,
 			);
 		});
 	});

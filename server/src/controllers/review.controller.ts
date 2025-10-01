@@ -8,10 +8,8 @@ import type {
 } from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
-import { insertReviewSchema } from "../schemas/index.js";
 import { ReviewService } from "../services/index.js";
-import { asyncHandler, removeEmptyFieldsSchema } from "../utils/index.js";
-import { objectIdValidator } from "../validators/index.js";
+import { asyncHandler } from "../utils/index.js";
 
 export interface IReviewController {
 	count: AsyncHandler<{
@@ -58,6 +56,7 @@ export interface IReviewController {
 	}>;
 	update: AsyncHandler<{
 		params: { reviewId: string };
+		reqBody: Partial<InsertReview>;
 		resBody: { data: SelectReview };
 	}>;
 }
@@ -79,9 +78,9 @@ export class ReviewController implements IReviewController {
 		params: { productId: string };
 		resBody: { data: number };
 	}>(async (req, res) => {
-		const productId = objectIdValidator.parse(req.params.productId);
-
-		const count = await this._service.countByProductId({ productId });
+		const count = await this._service.countByProductId({
+			productId: req.params.productId,
+		});
 
 		res.status(HTTP_STATUS.OK).json({
 			data: count,
@@ -93,9 +92,9 @@ export class ReviewController implements IReviewController {
 		params: { userId: string };
 		resBody: { data: number };
 	}>(async (req, res) => {
-		const userId = objectIdValidator.parse(req.params.userId);
-
-		const count = await this._service.countByUserId({ userId });
+		const count = await this._service.countByUserId({
+			userId: req.params.userId,
+		});
 
 		res.status(HTTP_STATUS.OK).json({
 			data: count,
@@ -107,11 +106,11 @@ export class ReviewController implements IReviewController {
 		reqBody: InsertReview;
 		resBody: { data: SelectReview };
 	}>(async (req, res) => {
-		const data = insertReviewSchema.parse({
+		const data = {
 			...req.body,
 			name: res.locals.user.name,
 			user: res.locals.user._id,
-		});
+		};
 
 		const newReview = await this._service.create(data);
 
@@ -125,9 +124,7 @@ export class ReviewController implements IReviewController {
 		params: { reviewId: string };
 		resBody: { data: null };
 	}>(async (req, res) => {
-		const reviewId = objectIdValidator.parse(req.params.reviewId);
-
-		await this._service.delete({ reviewId });
+		await this._service.delete({ reviewId: req.params.reviewId });
 
 		res.status(HTTP_STATUS.NO_CONTENT).json({
 			data: null,
@@ -139,9 +136,9 @@ export class ReviewController implements IReviewController {
 		params: { reviewId: string };
 		resBody: { data: { _id: Types.ObjectId } };
 	}>(async (req, res) => {
-		const reviewId = objectIdValidator.parse(req.params.reviewId);
-
-		const exists = await this._service.existsById({ reviewId });
+		const exists = await this._service.existsById({
+			reviewId: req.params.reviewId,
+		});
 
 		res.status(HTTP_STATUS.OK).json({
 			data: exists,
@@ -153,12 +150,9 @@ export class ReviewController implements IReviewController {
 		params: { productId: string; userId: string };
 		resBody: { data: { _id: Types.ObjectId } };
 	}>(async (req, res) => {
-		const userId = objectIdValidator.parse(req.params.userId);
-		const productId = objectIdValidator.parse(req.params.productId);
-
 		const exists = await this._service.existsByUserIdAndProductId({
-			productId,
-			userId,
+			productId: req.params.productId,
+			userId: req.params.userId,
 		});
 
 		res.status(HTTP_STATUS.OK).json({
@@ -182,9 +176,9 @@ export class ReviewController implements IReviewController {
 		params: { productId: string };
 		resBody: { data: Array<SelectReview> };
 	}>(async (req, res) => {
-		const productId = objectIdValidator.parse(req.params.productId);
-
-		const reviews = await this._service.getAllByProductId({ productId });
+		const reviews = await this._service.getAllByProductId({
+			productId: req.params.productId,
+		});
 
 		res.status(HTTP_STATUS.OK).json({
 			data: reviews,
@@ -196,9 +190,9 @@ export class ReviewController implements IReviewController {
 		params: { userId: string };
 		resBody: { data: Array<SelectReview> };
 	}>(async (req, res) => {
-		const userId = objectIdValidator.parse(req.params.userId);
-
-		const reviews = await this._service.getAllByUserId({ userId });
+		const reviews = await this._service.getAllByUserId({
+			userId: req.params.userId,
+		});
 
 		res.status(HTTP_STATUS.OK).json({
 			data: reviews,
@@ -210,9 +204,9 @@ export class ReviewController implements IReviewController {
 		params: { reviewId: string };
 		resBody: { data: SelectReview };
 	}>(async (req, res) => {
-		const reviewId = objectIdValidator.parse(req.params.reviewId);
-
-		const review = await this._service.getById({ reviewId });
+		const review = await this._service.getById({
+			reviewId: req.params.reviewId,
+		});
 
 		res.status(HTTP_STATUS.OK).json({
 			data: review,
@@ -222,16 +216,12 @@ export class ReviewController implements IReviewController {
 
 	update = asyncHandler<{
 		params: { reviewId: string };
+		reqBody: Partial<InsertReview>;
 		resBody: { data: SelectReview };
 	}>(async (req, res) => {
-		const reviewId = objectIdValidator.parse(req.params.reviewId);
-		const data = removeEmptyFieldsSchema(insertReviewSchema.partial()).parse(
-			req.body,
-		);
-
 		const updatedReview = await this._service.update({
-			data,
-			reviewId,
+			data: req.body,
+			reviewId: req.params.reviewId,
 		});
 
 		res.status(HTTP_STATUS.OK).json({

@@ -1,6 +1,5 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
-import { ZodError } from "zod";
 
 import { ReviewController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
@@ -91,148 +90,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.data.rating, mockReview.rating);
 			assert.strictEqual(response.data.comment, mockReview.comment);
 		});
-
-		test("Should throw 'ZodError' when 'service.create' is called without 'rating' required field", async () => {
-			// Arrange
-			const mockUser = generateMockSelectUser();
-			const { rating: _rating, ...mockReview } = generateMockInsertReview({
-				user: mockUser._id,
-			});
-
-			const { next, req, res } = createMockExpressContext();
-			req.body = mockReview;
-			res.locals.user = mockUser;
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.create(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(error.errors[0].path.length, 1);
-					assert.strictEqual(error.errors[0].path[0], "rating");
-					assert.strictEqual(
-						error.errors[0].message,
-						"Expected number, received nan",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'service.create' is called without 'comment' required field", async () => {
-			// Arrange
-			const mockUser = generateMockSelectUser();
-			const { comment: _comment, ...mockReview } = generateMockInsertReview({
-				user: mockUser._id,
-			});
-
-			const { next, req, res } = createMockExpressContext();
-			req.body = mockReview;
-			res.locals.user = mockUser;
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.create(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(error.errors[0].path.length, 1);
-					assert.strictEqual(error.errors[0].path[0], "comment");
-					assert.strictEqual(error.errors[0].message, "Required");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'service.create' is called without 'product' required field", async () => {
-			// Arrange
-			const mockUser = generateMockSelectUser();
-			const { product: _product, ...mockReviewData } = generateMockInsertReview(
-				{
-					user: mockUser._id,
-				},
-			);
-
-			const { next, req, res } = createMockExpressContext();
-			req.body = mockReviewData;
-			res.locals.user = mockUser;
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.create(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(error.errors[0].path.length, 1);
-					assert.strictEqual(error.errors[0].path[0], "product");
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'service.create' is called with out of range 'rating'", async () => {
-			// Arrange
-			const mockUser = generateMockSelectUser();
-			const mockReviewData = generateMockInsertReview({
-				rating: 6,
-				user: mockUser._id,
-			});
-
-			const { next, req, res } = createMockExpressContext();
-			req.body = mockReviewData;
-			res.locals.user = mockUser;
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.create(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(error.errors[0].path.length, 1);
-					assert.strictEqual(error.errors[0].path[0], "rating");
-					assert.strictEqual(
-						error.errors[0].message,
-						"Rating must be between 1 and 5.",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'service.create' is called with invalid 'product' format", async () => {
-			// Arrange
-			const mockUser = generateMockSelectUser();
-			const mockReviewData = generateMockInsertReview({
-				user: mockUser._id,
-				// @ts-expect-error - testing invalid product format
-				product: "invalid-product-id",
-			});
-
-			const { next, req, res } = createMockExpressContext();
-			req.body = mockReviewData;
-			res.locals.user = mockUser;
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.create(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(error.errors[0].path.length, 1);
-					assert.strictEqual(error.errors[0].path[0], "product");
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
 	});
 
 	describe("getById", () => {
@@ -304,26 +161,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				(error) => {
 					assert.ok(error instanceof NotFoundError);
 					assert.strictEqual(error.message, "Review not found");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'service.getById' is called with invalid 'reviewId' format", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: "invalid-id" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.getById(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
 					return true;
 				},
 			);
@@ -479,26 +316,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response.data);
 			assert.strictEqual(response.data.length, 0);
 		});
-
-		test("Should throw 'ZodError' when 'service.getAllByUserId' is called with invalid userId format", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: "invalid-id" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.getAllByUserId(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
 	});
 
 	describe("getAllByProductId", () => {
@@ -585,26 +402,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response);
 			assert.ok(response.data);
 			assert.strictEqual(response.data.length, 0);
-		});
-
-		test("Should throw 'ZodError' when 'service.getAllByProductId' is called with invalid productId format", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			req.params = { productId: "invalid-id" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.getAllByProductId(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
 		});
 	});
 
@@ -702,52 +499,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				},
 			);
 		});
-
-		test("Should throw 'ZodError' when 'service.update' is called with invalid 'objectId'", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: "invalid-id" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.update(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'service.update' is called with invalid rating value", async () => {
-			// Arrange
-			const mockReview = generateMockSelectReview();
-			await Review.insertMany([mockReview]);
-
-			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: mockReview._id.toString() };
-			req.body = { rating: 6 }; // Invalid rating (> 5)
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.update(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(error.errors[0].path.length, 1);
-					assert.strictEqual(error.errors[0].path[0], "rating");
-					assert.strictEqual(
-						error.errors[0].message,
-						"Rating must be between 1 and 5.",
-					);
-					return true;
-				},
-			);
-		});
 	});
 
 	describe("delete", () => {
@@ -816,26 +567,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				(error: unknown) => {
 					assert.ok(error instanceof NotFoundError);
 					assert.strictEqual(error.message, "Review not found");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'service.delete' is called with invalid 'objectId'", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: "invalid-id" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.delete(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
 					return true;
 				},
 			);
@@ -1012,26 +743,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response);
 			assert.strictEqual(response.data, 0);
 		});
-
-		test("Should throw 'ZodError' when 'service.countByUserId' is called with invalid 'objectId'", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: "invalid-id" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.countByUserId(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
 	});
 
 	describe("countByProductId", () => {
@@ -1125,26 +836,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response);
 			assert.strictEqual(response.data, 0);
 		});
-
-		test("Should throw 'ZodError' when 'service.countByProductId' is called with invalid 'objectId'", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			req.params = { productId: "invalid-id" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.countByProductId(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
 	});
 
 	describe("existsById", () => {
@@ -1215,26 +906,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				(error: unknown) => {
 					assert.ok(error instanceof NotFoundError);
 					assert.strictEqual(error.message, "Review not found");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'service.existsById' is called with invalid 'objectId'", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: "invalid-id" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.existsById(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
 					return true;
 				},
 			);
@@ -1324,48 +995,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				(error: unknown) => {
 					assert.ok(error instanceof NotFoundError);
 					assert.strictEqual(error.message, "Review not found");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'service.existsByUserIdAndProductId' is called with invalid 'userId'", async () => {
-			// Arrange
-			const productId = generateMockObjectId();
-			const { next, req, res } = createMockExpressContext();
-			req.params = { productId: productId.toString(), userId: "invalid-id" };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.existsByUserIdAndProductId(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'service.existsByUserIdAndProductId' is called with invalid productId format", async () => {
-			// Arrange
-			const userId = generateMockObjectId();
-			const { next, req, res } = createMockExpressContext();
-			req.params = { productId: "invalid-id", userId: userId.toString() };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.existsByUserIdAndProductId(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof ZodError);
-					assert.strictEqual(error.errors.length, 1);
-					assert.strictEqual(
-						error.errors[0].message,
-						"Invalid ObjectId format.",
-					);
 					return true;
 				},
 			);
