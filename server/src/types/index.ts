@@ -6,6 +6,7 @@ export * from "./deep-partial-type.js";
 export * from "./image.type.js";
 export * from "./jwt.type.js";
 export * from "./method-params.type.js";
+export * from "./method-return.type.js";
 export * from "./order.type.js";
 export * from "./partial-by.type.js";
 export * from "./product.type.js";
