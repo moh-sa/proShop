@@ -120,25 +120,24 @@ export class JwtService implements IJwtService {
 		expectedType: TokenType;
 		token: string;
 	}): JwtResult<TokenDecoded> {
-		const tokenResult = this._validateToken(args.token);
-		if (!tokenResult.success) {
-			return tokenResult;
+		const tokenValidationResult = this._validateToken(args.token);
+		if (!tokenValidationResult.success) {
+			return tokenValidationResult;
+		}
+		const typeValidationResult = this._validateExpectedType(args.expectedType);
+		if (!typeValidationResult.success) {
+			return typeValidationResult;
 		}
 
-		const expectedTypeResult = this._validateExpectedType(args.expectedType);
-		if (!expectedTypeResult.success) {
-			return expectedTypeResult;
-		}
+		const secret = this._getSecretByTokenType(typeValidationResult.data);
 
-		const secret = this._getSecretByTokenType(args.expectedType);
-
-		const decoded = this._verifyToken(args.token, secret);
+		const decoded = this._verifyToken(tokenValidationResult.data, secret);
 		if (!decoded.success) {
 			return decoded;
 		}
 
 		const expectedTokenTypeResult = this._validateTokenType(
-			args.expectedType,
+			typeValidationResult.data,
 			decoded.data,
 		);
 		if (!expectedTokenTypeResult.success) {
