@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-import { z } from "zod";
 
 import type {
 	TokenDecoded,
