@@ -6,6 +6,8 @@ import type {
 } from "../services/index.js";
 import type {
 	InsertUser,
+	MethodParams,
+	MethodReturn,
 	Result,
 	SafeSelectUser,
 	SelectSession,
@@ -28,8 +30,6 @@ import { TokenType } from "../types/index.js";
 
 // helpers types
 type AuthResult<T> = Result<T>;
-type Params<T extends keyof IAuthManager> = Parameters<IAuthManager[T]>[0];
-type Return<T extends keyof IAuthManager> = ReturnType<IAuthManager[T]>;
 
 // interfaces
 export interface IAuthManager {
@@ -91,8 +91,8 @@ export class AuthManager implements IAuthManager {
 	}
 
 	public async getUserSessions(
-		args: Params<"getUserSessions">,
-	): Return<"getUserSessions"> {
+		args: MethodParams<IAuthManager, "getUserSessions">,
+	): MethodReturn<IAuthManager, "getUserSessions"> {
 		if (!args?.refreshToken) {
 			return {
 				error: new ValidationError("Refresh token is required"),
@@ -124,8 +124,8 @@ export class AuthManager implements IAuthManager {
 	}
 
 	public async refreshAccessToken(
-		args: Params<"refreshAccessToken">,
-	): Return<"refreshAccessToken"> {
+		args: MethodParams<IAuthManager, "refreshAccessToken">,
+	): MethodReturn<IAuthManager, "refreshAccessToken"> {
 		if (!args?.refreshToken) {
 			return {
 				error: new ValidationError("Refresh token is required"),
@@ -197,8 +197,8 @@ export class AuthManager implements IAuthManager {
 	}
 
 	public async revokeSession(
-		args: Params<"revokeSession">,
-	): Return<"revokeSession"> {
+		args: MethodParams<IAuthManager, "revokeSession">,
+	): MethodReturn<IAuthManager, "revokeSession"> {
 		if (!args?.refreshToken) {
 			return {
 				error: new ValidationError("Refresh token is required"),
@@ -228,7 +228,9 @@ export class AuthManager implements IAuthManager {
 		};
 	}
 
-	public async signIn(args: Params<"signIn">): Return<"signIn"> {
+	public async signIn(
+		args: MethodParams<IAuthManager, "signIn">,
+	): MethodReturn<IAuthManager, "signIn"> {
 		if (!args?.email || !args?.password) {
 			return {
 				error: new ValidationError("Email and password are required"),
@@ -261,7 +263,9 @@ export class AuthManager implements IAuthManager {
 		return this._createAuthSession(sanitizedUser);
 	}
 
-	public async signOut(args: Params<"signOut">): Return<"signOut"> {
+	public async signOut(
+		args: MethodParams<IAuthManager, "signOut">,
+	): MethodReturn<IAuthManager, "signOut"> {
 		if (!args?.refreshToken) {
 			return {
 				error: new ValidationError("Refresh token is required"),
@@ -291,7 +295,9 @@ export class AuthManager implements IAuthManager {
 		};
 	}
 
-	public async signOutAll(args: Params<"signOutAll">): Return<"signOutAll"> {
+	public async signOutAll(
+		args: MethodParams<IAuthManager, "signOutAll">,
+	): MethodReturn<IAuthManager, "signOutAll"> {
 		if (!args?.refreshToken) {
 			return {
 				error: new ValidationError("Refresh token is required"),
@@ -322,7 +328,9 @@ export class AuthManager implements IAuthManager {
 		};
 	}
 
-	public async signUp(args: Params<"signUp">): Return<"signUp"> {
+	public async signUp(
+		args: MethodParams<IAuthManager, "signUp">,
+	): MethodReturn<IAuthManager, "signUp"> {
 		if (!args?.email || !args?.password || !args?.name) {
 			return {
 				error: new ValidationError("Email, password and name are required"),

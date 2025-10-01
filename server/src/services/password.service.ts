@@ -2,7 +2,12 @@ import * as argon from "argon2";
 import { z } from "zod";
 
 import type { PasswordBaseError } from "../errors/index.js";
-import type { FailureResult, Result } from "../types/index.js";
+import type {
+	FailureResult,
+	MethodParams,
+	MethodReturn,
+	Result,
+} from "../types/index.js";
 
 import {
 	PasswordHashError,
@@ -20,11 +25,7 @@ export interface IPasswordService {
 	}): Promise<PswResult<undefined>>;
 }
 
-type Params<T extends keyof IPasswordService> = Parameters<
-	IPasswordService[T]
->[0];
 type PswResult<T> = Result<T, PasswordBaseError>;
-type Return<T extends keyof IPasswordService> = ReturnType<IPasswordService[T]>;
 
 export class PasswordService implements IPasswordService {
 	private readonly _provider: typeof argon;
@@ -33,7 +34,9 @@ export class PasswordService implements IPasswordService {
 		this._provider = provider;
 	}
 
-	public async hash(args: Params<"hash">): Return<"hash"> {
+	public async hash(
+		args: MethodParams<IPasswordService, "hash">,
+	): MethodReturn<IPasswordService, "hash"> {
 		const validationResult = this._validateForHash(args.password);
 		if (!validationResult.success) {
 			return validationResult;
@@ -53,7 +56,9 @@ export class PasswordService implements IPasswordService {
 		}
 	}
 
-	public async verify(args: Params<"verify">): Return<"verify"> {
+	public async verify(
+		args: MethodParams<IPasswordService, "verify">,
+	): MethodReturn<IPasswordService, "verify"> {
 		const validationResult = this._validateForVerify(
 			args.hashedPassword,
 			args.password,
