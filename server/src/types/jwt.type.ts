@@ -1,37 +1,24 @@
+import type { z } from "zod";
+
+import type {
+	jwtConfigSchema,
+	tokenDecodedSchema,
+	tokenPairSchema,
+	tokenPayloadSchema,
+	tokenResultSchema,
+} from "../schemas/index.js";
+
 export enum TokenType {
 	ACCESS = "access",
 	REFRESH = "refresh",
 }
 
-export interface JwtConfig {
-	readonly accessTokenSecret: string;
-	readonly refreshTokenSecret: string;
-	/**
-	 * @description short lived token expressed in **`seconds`**
-	 */
-	readonly accessTokenExpiresIn: number;
-	/**
-	 * @description long lived token expressed in **`seconds`**
-	 */
-	readonly refreshTokenExpiresIn: number;
-}
+export type JwtConfig = z.infer<typeof jwtConfigSchema>;
 
-export interface TokenDecoded {
-	exp: number;
-	iat: number;
-	tokenId: string;
-	type: TokenType;
-	readonly userId: string;
-}
+export type TokenDecoded = z.infer<typeof tokenDecodedSchema>;
 
-export interface TokenPair {
-	readonly access: TokenResult;
-	readonly refresh: TokenResult;
-}
+export type TokenPair = z.infer<typeof tokenPairSchema>;
 
-export interface TokenPayload {
-	readonly type: TokenType;
-	readonly userId: string;
-}
+export type TokenPayload = z.infer<typeof tokenPayloadSchema>;
 
-export type TokenResult = { expiresAt: Date; token: string; tokenId: string };
+export type TokenResult = z.infer<typeof tokenResultSchema>;
