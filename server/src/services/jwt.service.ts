@@ -313,7 +313,7 @@ export class JwtService implements IJwtService {
 			const decodedValidationResult = tokenDecodedSchema.safeParse(decoded);
 			if (!decodedValidationResult.success) {
 				return {
-					error: new JwtInvalidPayloadError({
+					error: new JwtInvalidTokenError({
 						cause: decodedValidationResult.error,
 					}),
 					success: false,
