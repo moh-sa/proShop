@@ -1,34 +1,47 @@
 import type { Types } from "mongoose";
 
+import type { DatabaseBaseError } from "../errors/index.js";
 import type {
 	AllProducts,
+	FailureResult,
 	InsertProductWithStringImage,
 	MethodParams,
 	MethodReturn,
+	Result,
 	SelectProduct,
 	TopRatedProduct,
 } from "../types/index.js";
 
 import Product from "../models/product.model.js";
 import { CacheService } from "../services/index.js";
-import { handleDatabaseError } from "../utils/index.js";
+import { handleDatabaseErrorResult } from "../utils/index.js";
 
 export interface IProductRepository {
-	count(query: Record<string, unknown>): Promise<number>;
-	create(data: InsertProductWithStringImage): Promise<SelectProduct>;
-	delete(data: { productId: Types.ObjectId }): Promise<null | SelectProduct>;
+	count(query: Record<string, unknown>): Promise<ProductResult<number>>;
+	create(
+		data: InsertProductWithStringImage,
+	): Promise<ProductResult<SelectProduct>>;
+	delete(data: {
+		productId: Types.ObjectId;
+	}): Promise<ProductResult<null | SelectProduct>>;
 	getAll(data: {
 		currentPage: number;
 		numberOfProductsPerPage: number;
 		query: Record<string, unknown>;
-	}): Promise<Array<AllProducts>>;
-	getById(data: { productId: Types.ObjectId }): Promise<null | SelectProduct>;
-	getTopRated(data: { limit: number }): Promise<Array<TopRatedProduct>>;
+	}): Promise<ProductResult<Array<AllProducts>>>;
+	getById(data: {
+		productId: Types.ObjectId;
+	}): Promise<ProductResult<null | SelectProduct>>;
+	getTopRated(data: {
+		limit: number;
+	}): Promise<ProductResult<Array<TopRatedProduct>>>;
 	update(data: {
 		data: Partial<InsertProductWithStringImage>;
 		productId: Types.ObjectId;
-	}): Promise<null | SelectProduct>;
+	}): Promise<ProductResult<null | SelectProduct>>;
 }
+
+type ProductResult<T> = Result<T, DatabaseBaseError>;
 
 export class ProductRepository implements IProductRepository {
 	private _cache: CacheService;
@@ -46,9 +59,13 @@ export class ProductRepository implements IProductRepository {
 		query: MethodParams<IProductRepository, "count">,
 	): MethodReturn<IProductRepository, "count"> {
 		try {
-			return await this._db.countDocuments({ ...query }).lean();
+			const result = await this._db.countDocuments({ ...query }).lean();
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -65,9 +82,12 @@ export class ProductRepository implements IProductRepository {
 				console.error("Failed to set product cache", product._id.toString());
 			}
 
-			return product;
+			return {
+				data: product,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -83,9 +103,12 @@ export class ProductRepository implements IProductRepository {
 				this._invalidateProductCache({ id: productId.toString() });
 			}
 
-			return deletedProduct;
+			return {
+				data: deletedProduct,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -96,18 +119,26 @@ export class ProductRepository implements IProductRepository {
 			key: `all-${data.currentPage}`,
 		});
 		if (cachedProducts.success) {
-			return cachedProducts.data;
+			return {
+				data: cachedProducts.data,
+				success: true,
+			};
 		}
 
 		try {
-			return await this._db
+			const result = await this._db
 				.find({ ...data.query })
 				.select("id name brand category price rating numReviews image")
 				.limit(data.numberOfProductsPerPage)
 				.skip(data.numberOfProductsPerPage * (data.currentPage - 1))
 				.lean();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -122,7 +153,10 @@ export class ProductRepository implements IProductRepository {
 			key: cacheId,
 		});
 		if (cachedProduct.success) {
-			return cachedProduct.data;
+			return {
+				data: cachedProduct.data,
+				success: true,
+			};
 		}
 
 		try {
@@ -134,9 +168,12 @@ export class ProductRepository implements IProductRepository {
 				}
 			}
 
-			return product;
+			return {
+				data: product,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -151,7 +188,10 @@ export class ProductRepository implements IProductRepository {
 			key: cacheKey,
 		});
 		if (cachedProducts.success) {
-			return cachedProducts.data;
+			return {
+				data: cachedProducts.data,
+				success: true,
+			};
 		}
 
 		try {
@@ -169,9 +209,12 @@ export class ProductRepository implements IProductRepository {
 				}
 			}
 
-			return products;
+			return {
+				data: products,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -193,14 +236,17 @@ export class ProductRepository implements IProductRepository {
 				this._invalidateProductCache({ id: productId.toString() });
 			}
 
-			return product;
+			return {
+				data: product,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
-	private _errorHandler(error: unknown): never {
-		return handleDatabaseError(error);
+	private _errorHandler(error: unknown): FailureResult<DatabaseBaseError> {
+		return handleDatabaseErrorResult(error);
 	}
 
 	private _invalidateProductCache({ id }: { id: string }): void {

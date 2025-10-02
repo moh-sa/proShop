@@ -44,7 +44,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			);
 
 			mockRepo.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
+				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
 			const result = await service.create(mockInsertProduct);
@@ -65,7 +65,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			);
 
 			mockRepo.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
+				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
 			await service.create(mockInsertProduct);
@@ -244,11 +244,11 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			const keyword = "";
 
 			mockRepo.count.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
+				Promise.resolve({ data: mockCount, success: true }),
 			);
 
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
+				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
 			// Act
@@ -276,11 +276,11 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			const keyword = "test";
 
 			mockRepo.count.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
+				Promise.resolve({ data: mockCount, success: true }),
 			);
 
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
+				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
 			// Act
@@ -311,10 +311,10 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			const keyword = "";
 
 			mockRepo.count.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
+				Promise.resolve({ data: mockCount, success: true }),
 			);
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
+				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
 			// Act
@@ -390,7 +390,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 		test("Should return array of products when 'repo.getTopRated' is called once with no args", async () => {
 			mockRepo.getTopRated.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
+				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
 			const result = await service.getTopRated();
@@ -412,7 +412,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 		test("Should return product object when 'repo.getById' is called once with 'productId'", async () => {
 			mockRepo.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
+				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
 			const result = await service.getById({
@@ -429,7 +429,9 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should throw 'NotFoundError' if 'repo.getById' returns 'null'", async () => {
-			mockRepo.getById.mock.mockImplementationOnce(() => Promise.resolve(null));
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: null, success: true }),
+			);
 
 			await assert.rejects(
 				() => service.getById({ productId: productId.toString() }),
@@ -463,7 +465,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			const expectedResult = { ...mockProduct, ...mockUpdateData };
 
 			mockRepo.update.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
+				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
 			const result = await service.update({
@@ -489,7 +491,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			const mockUpdateData = { image: mockMulterImageFile() };
 
 			mockRepo.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockProduct),
+				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
 			mockStorage.replace.mock.mockImplementationOnce(() =>
@@ -497,7 +499,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			);
 
 			mockRepo.update.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockProduct),
+				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
 			const result = await service.update({
@@ -529,7 +531,9 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 		test("Should throw 'NotFoundError' if 'repo.update' returns 'null'", async () => {
 			const mockUpdateData = { name: "UPDATED NAME" };
 
-			mockRepo.update.mock.mockImplementationOnce(() => Promise.resolve(null));
+			mockRepo.update.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: null, success: true }),
+			);
 
 			await assert.rejects(
 				() =>
@@ -569,7 +573,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'undefined' when 'repo.delete' is called once with 'productId'", async () => {
 			mockRepo.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
+				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
 			const result = await service.delete({
@@ -585,7 +589,9 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should throw 'NotFoundError' if 'repo.delete' returns 'null'", async () => {
-			mockRepo.delete.mock.mockImplementationOnce(() => Promise.resolve(null));
+			mockRepo.delete.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: null, success: true }),
+			);
 
 			await assert.rejects(
 				async () => await service.delete({ productId: productId.toString() }),

@@ -44,16 +44,20 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		const cacheKey = productId.toString();
 
 		test("Should return product object when 'db.create' is called once with product data", async () => {
+			// Arrange
 			const mockCreate = mock.method(Product, "create", async () => ({
 				toObject: () => mockSelectProduct,
 			}));
 
 			mockSetCache({ cacheKey, instance: mockCache });
 
+			// Act
 			const product = await repo.create(mockInsertProduct);
 
+			// Assert
 			assert.ok(product);
-			assert.deepStrictEqual(product, mockSelectProduct);
+			assert.strictEqual(product.success, true);
+			assert.deepStrictEqual(product.data, mockSelectProduct);
 
 			assert.strictEqual(mockCreate.mock.callCount(), 1);
 			assert.deepStrictEqual(
@@ -63,14 +67,17 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should return product object when 'cache.get' is called once and returns 'true'", async () => {
+			// Arrange
 			mock.method(Product, "create", async () => ({
 				toObject: () => mockSelectProduct,
 			}));
 
 			mockSetCache({ cacheKey, instance: mockCache });
 
+			// Act
 			await repo.create(mockInsertProduct);
 
+			// Assert
 			assert.strictEqual(mockCache.set.mock.callCount(), 1);
 			assert.deepStrictEqual(mockCache.set.mock.calls[0].arguments[0], {
 				key: cacheKey,
@@ -78,20 +85,24 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			});
 		});
 
-		test("Should throw 'DatabaseValidationError' when 'db.create' throws 'ValidationError'", async (t) => {
+		test("Should return 'DatabaseValidationError' when 'db.create' throws 'ValidationError'", async (t) => {
+			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
 			t.mock.method(Product, "create", () => {
 				throw validationError;
 			});
 
-			await assert.rejects(
-				async () => await repo.create(mockInsertProduct),
-				DatabaseValidationError,
-			);
+			// Act
+			const result = await repo.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 
-		test("Should throw 'DatabaseTimeoutError' when 'db.create' throws 'MongoNetworkTimeoutError'", async (t) => {
+		test("Should return 'DatabaseTimeoutError' when 'db.create' throws 'MongoNetworkTimeoutError'", async (t) => {
+			// Arrange
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
@@ -100,49 +111,60 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw timeoutError;
 			});
 
-			await assert.rejects(
-				async () => await repo.create(mockInsertProduct),
-				DatabaseTimeoutError,
-			);
+			// Act
+			const result = await repo.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseTimeoutError);
 		});
 
-		test("Should throw 'DatabaseQueryError' when 'db.create' throws 'MongooseError'", async (t) => {
+		test("Should return 'DatabaseQueryError' when 'db.create' throws 'MongooseError'", async (t) => {
+			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
 			t.mock.method(Product, "create", () => {
 				throw queryError;
 			});
 
-			await assert.rejects(
-				async () => await repo.create(mockInsertProduct),
-				DatabaseQueryError,
-			);
+			// Act
+			const result = await repo.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseQueryError);
 		});
 
-		test("Should throw 'DatabaseNetworkError' when 'db.create' throws 'MongoError'", async (t) => {
+		test("Should return 'DatabaseNetworkError' when 'db.create' throws 'MongoError'", async (t) => {
+			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
 			t.mock.method(Product, "create", () => {
 				throw networkError;
 			});
 
-			await assert.rejects(
-				async () => await repo.create(mockInsertProduct),
-				DatabaseNetworkError,
-			);
+			// Act
+			const result = await repo.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseNetworkError);
 		});
 
-		test("Should throw 'GenericDatabaseError' when 'db.create' throws unknown error", async (t) => {
+		test("Should return 'GenericDatabaseError' when 'db.create' throws unknown error", async (t) => {
+			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
 			t.mock.method(Product, "create", () => {
 				throw unknownError;
 			});
 
-			await assert.rejects(
-				async () => await repo.create(mockInsertProduct),
-				GenericDatabaseError,
-			);
+			// Act
+			const result = await repo.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof GenericDatabaseError);
 		});
 	});
 
@@ -151,6 +173,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		const mockProducts = generateMockSelectProducts({ count: 8 });
 
 		test("Should return array of products when 'db.find' is called once with no args", async (t) => {
+			// Arrange
 			const mockFind = t.mock.method(Product, "find", () => ({
 				select: () => ({
 					limit: () => ({
@@ -166,20 +189,25 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				instance: mockCache,
 			});
 
+			// Act
 			const products = await repo.getAll({
 				currentPage: 1,
 				numberOfProductsPerPage: 10,
 				query: {},
 			});
 
-			assert.ok(products);
-			assert.deepStrictEqual(products, mockProducts);
+			// Assert
+			assert.strictEqual(products.success, true);
+			assert.ok(Array.isArray(products.data));
+			assert.strictEqual(products.data.length, mockProducts.length);
+			assert.deepStrictEqual(products.data, mockProducts);
 
 			assert.strictEqual(mockFind.mock.callCount(), 1);
 			assert.deepStrictEqual(mockFind.mock.calls[0].arguments[0], {});
 		});
 
 		test("Should return array of products when 'cache.get' is called once and returns 'undefined'", async (t) => {
+			// Arrange
 			mockCacheMiss({
 				cacheKey,
 				instance: mockCache,
@@ -195,12 +223,14 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				}),
 			}));
 
+			// Act
 			await repo.getAll({
 				currentPage: 1,
 				numberOfProductsPerPage: 10,
 				query: {},
 			});
 
+			// Assert
 			assert.strictEqual(mockCache.get.mock.callCount(), 1);
 			assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
 				key: cacheKey,
@@ -208,21 +238,25 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should return array of products when 'cache.get' is called once and returns value", async () => {
+			// Arrange
 			mockCacheHit({
 				cacheKey,
 				instance: mockCache,
 				returnValue: mockProducts,
 			});
 
+			// Act
 			const products = await repo.getAll({
 				currentPage: 1,
 				numberOfProductsPerPage: 10,
 				query: {},
 			});
 
-			assert.ok(products);
-
-			assert.deepStrictEqual(products, mockProducts);
+			// Assert
+			assert.strictEqual(products.success, true);
+			assert.ok(Array.isArray(products.data));
+			assert.strictEqual(products.data.length, mockProducts.length);
+			assert.deepStrictEqual(products.data, mockProducts);
 
 			assert.strictEqual(mockCache.get.mock.callCount(), 1);
 			assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
@@ -231,6 +265,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should return empty array when 'db.find' returns empty array", async (t) => {
+			// Arrange
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
 			t.mock.method(Product, "find", () => ({
@@ -243,17 +278,22 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				}),
 			}));
 
+			// Act
 			const products = await repo.getAll({
 				currentPage: 1,
 				numberOfProductsPerPage: 10,
 				query: {},
 			});
 
+			// Assert
 			assert.ok(products);
-			assert.strictEqual(products.length, 0);
+			assert.strictEqual(products.success, true);
+			assert.ok(Array.isArray(products.data));
+			assert.strictEqual(products.data.length, 0);
 		});
 
-		test("Should throw 'DatabaseValidationError' when 'db.find' throws 'ValidationError'", async (t) => {
+		test("Should return 'DatabaseValidationError' when 'db.find' throws 'ValidationError'", async (t) => {
+			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
 			t.mock.method(Product, "find", () => {
@@ -262,18 +302,20 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
-			await assert.rejects(
-				async () =>
-					await repo.getAll({
-						currentPage: 1,
-						numberOfProductsPerPage: 10,
-						query: {},
-					}),
-				DatabaseValidationError,
-			);
+			// Act
+			const result = await repo.getAll({
+				currentPage: 1,
+				numberOfProductsPerPage: 10,
+				query: {},
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 
-		test("Should throw 'DatabaseTimeoutError' when 'db.find' throws 'MongoNetworkTimeoutError'", async (t) => {
+		test("Should return 'DatabaseTimeoutError' when 'db.find' throws 'MongoNetworkTimeoutError'", async (t) => {
+			// Arrange
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
@@ -284,18 +326,20 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
-			await assert.rejects(
-				async () =>
-					await repo.getAll({
-						currentPage: 1,
-						numberOfProductsPerPage: 10,
-						query: {},
-					}),
-				DatabaseTimeoutError,
-			);
+			// Act
+			const result = await repo.getAll({
+				currentPage: 1,
+				numberOfProductsPerPage: 10,
+				query: {},
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseTimeoutError);
 		});
 
-		test("Should throw 'DatabaseQueryError' when 'db.find' throws 'MongooseError'", async (t) => {
+		test("Should return 'DatabaseQueryError' when 'db.find' throws 'MongooseError'", async (t) => {
+			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
 			t.mock.method(Product, "find", () => {
@@ -304,18 +348,20 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
-			await assert.rejects(
-				async () =>
-					await repo.getAll({
-						currentPage: 1,
-						numberOfProductsPerPage: 10,
-						query: {},
-					}),
-				DatabaseQueryError,
-			);
+			// Act
+			const result = await repo.getAll({
+				currentPage: 1,
+				numberOfProductsPerPage: 10,
+				query: {},
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseQueryError);
 		});
 
-		test("Should throw 'DatabaseNetworkError' when 'db.find' throws 'MongoError'", async (t) => {
+		test("Should return 'DatabaseNetworkError' when 'db.find' throws 'MongoError'", async (t) => {
+			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
 			t.mock.method(Product, "find", () => {
@@ -324,18 +370,20 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
-			await assert.rejects(
-				async () =>
-					await repo.getAll({
-						currentPage: 1,
-						numberOfProductsPerPage: 10,
-						query: {},
-					}),
-				DatabaseNetworkError,
-			);
+			// Act
+			const result = await repo.getAll({
+				currentPage: 1,
+				numberOfProductsPerPage: 10,
+				query: {},
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseNetworkError);
 		});
 
-		test("Should throw 'GenericDatabaseError' when 'db.find' throws unknown error", async (t) => {
+		test("Should return 'GenericDatabaseError' when 'db.find' throws unknown error", async (t) => {
+			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
 			t.mock.method(Product, "find", () => {
@@ -344,15 +392,16 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
-			await assert.rejects(
-				async () =>
-					await repo.getAll({
-						currentPage: 1,
-						numberOfProductsPerPage: 10,
-						query: {},
-					}),
-				GenericDatabaseError,
-			);
+			// Act
+			const result = await repo.getAll({
+				currentPage: 1,
+				numberOfProductsPerPage: 10,
+				query: {},
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof GenericDatabaseError);
 		});
 	});
 
@@ -362,6 +411,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		const cacheKey = productId.toString();
 
 		test("Should return product object when 'db.findById' is called once with 'productId'", async (t) => {
+			// Arrange
 			mockCacheMiss({
 				cacheKey,
 				instance: mockCache,
@@ -371,10 +421,13 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				lean: () => mockProduct,
 			}));
 
+			// Act
 			const product = await repo.getById({ productId: mockProduct._id });
 
-			assert.ok(product);
-			assert.deepStrictEqual(product, mockProduct);
+			// Assert
+			assert.strictEqual(product.success, true);
+			assert.ok(product.data);
+			assert.deepStrictEqual(product.data, mockProduct);
 
 			assert.strictEqual(mockFindById.mock.callCount(), 1);
 			assert.deepStrictEqual(
@@ -384,6 +437,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should return product object when 'cache.get' is called once and returns 'undefined'", async (t) => {
+			// Arrange
 			mockCacheMiss({
 				cacheKey,
 				instance: mockCache,
@@ -393,8 +447,10 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				lean: () => mockProduct,
 			}));
 
+			// Act
 			await repo.getById({ productId: mockProduct._id });
 
+			// Assert
 			assert.strictEqual(mockCache.get.mock.callCount(), 1);
 			assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
 				key: cacheKey,
@@ -402,16 +458,20 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should return product object when 'cache.get' is called once and returns value", async () => {
+			// Arrange
 			mockCacheHit({
 				cacheKey,
 				instance: mockCache,
 				returnValue: mockProduct,
 			});
 
+			// Act
 			const product = await repo.getById({ productId: mockProduct._id });
 
-			assert.ok(product);
-			assert.deepStrictEqual(product, mockProduct);
+			// Assert
+			assert.strictEqual(product.success, true);
+			assert.ok(product.data);
+			assert.deepStrictEqual(product.data, mockProduct);
 
 			assert.strictEqual(mockCache.get.mock.callCount(), 1);
 			assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
@@ -420,15 +480,19 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should return 'null' when 'db.findById' returns 'null'", async (t) => {
+			// Arrange
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
 			const mockFindById = t.mock.method(Product, "findById", () => ({
 				lean: () => null,
 			}));
 
+			// Act
 			const product = await repo.getById({ productId: mockProduct._id });
 
-			assert.strictEqual(product, null);
+			// Assert
+			assert.strictEqual(product.success, true);
+			assert.strictEqual(product.data, null);
 
 			assert.strictEqual(mockFindById.mock.callCount(), 1);
 			assert.deepStrictEqual(
@@ -437,7 +501,8 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'DatabaseValidationError' when 'db.findById' throws 'ValidationError'", async (t) => {
+		test("Should return 'DatabaseValidationError' when 'db.findById' throws 'ValidationError'", async (t) => {
+			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
 			t.mock.method(Product, "findById", () => {
@@ -446,13 +511,16 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
-			await assert.rejects(
-				async () => await repo.getById({ productId: mockProduct._id }),
-				DatabaseValidationError,
-			);
+			// Act
+			const product = await repo.getById({ productId: mockProduct._id });
+
+			// Assert
+			assert.strictEqual(product.success, false);
+			assert.ok(product.error instanceof DatabaseValidationError);
 		});
 
-		test("Should throw 'DatabaseTimeoutError' when 'db.findById' throws 'MongoNetworkTimeoutError'", async (t) => {
+		test("Should return 'DatabaseTimeoutError' when 'db.findById' throws 'MongoNetworkTimeoutError'", async (t) => {
+			// Arrange
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
@@ -463,13 +531,16 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
-			await assert.rejects(
-				async () => await repo.getById({ productId: mockProduct._id }),
-				DatabaseTimeoutError,
-			);
+			// Act
+			const product = await repo.getById({ productId: mockProduct._id });
+
+			// Assert
+			assert.strictEqual(product.success, false);
+			assert.ok(product.error instanceof DatabaseTimeoutError);
 		});
 
-		test("Should throw 'DatabaseQueryError' when 'db.findById' throws 'MongooseError'", async (t) => {
+		test("Should return 'DatabaseQueryError' when 'db.findById' throws 'MongooseError'", async (t) => {
+			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
 			t.mock.method(Product, "findById", () => {
@@ -478,13 +549,16 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
-			await assert.rejects(
-				async () => await repo.getById({ productId: mockProduct._id }),
-				DatabaseQueryError,
-			);
+			// Act
+			const product = await repo.getById({ productId: mockProduct._id });
+
+			// Assert
+			assert.strictEqual(product.success, false);
+			assert.ok(product.error instanceof DatabaseQueryError);
 		});
 
-		test("Should throw 'DatabaseNetworkError' when 'db.findById' throws 'MongoError'", async (t) => {
+		test("Should return 'DatabaseNetworkError' when 'db.findById' throws 'MongoError'", async (t) => {
+			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
 			t.mock.method(Product, "findById", () => {
@@ -493,13 +567,16 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
-			await assert.rejects(
-				async () => await repo.getById({ productId: mockProduct._id }),
-				DatabaseNetworkError,
-			);
+			// Act
+			const product = await repo.getById({ productId: mockProduct._id });
+
+			// Assert
+			assert.strictEqual(product.success, false);
+			assert.ok(product.error instanceof DatabaseNetworkError);
 		});
 
-		test("Should throw 'GenericDatabaseError' when 'db.findById' throws unknown error", async (t) => {
+		test("Should return 'GenericDatabaseError' when 'db.findById' throws unknown error", async (t) => {
+			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
 			t.mock.method(Product, "findById", () => {
@@ -508,10 +585,12 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
-			await assert.rejects(
-				async () => await repo.getById({ productId: mockProduct._id }),
-				GenericDatabaseError,
-			);
+			// Act
+			const product = await repo.getById({ productId: mockProduct._id });
+
+			// Assert
+			assert.strictEqual(product.success, false);
+			assert.ok(product.error instanceof GenericDatabaseError);
 		});
 	});
 
@@ -521,6 +600,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		const limit = 3;
 
 		test("Should return array of products when 'db.find' is called once with no args", async (t) => {
+			// Arrange
 			mockCacheMiss({
 				cacheKey,
 				instance: mockCache,
@@ -536,16 +616,21 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				}),
 			}));
 
+			// Act
 			const products = await repo.getTopRated({ limit });
 
-			assert.ok(products);
-			assert.deepStrictEqual(products, mockProducts);
+			// Assert
+			assert.strictEqual(products.success, true);
+			assert.ok(Array.isArray(products.data));
+			assert.strictEqual(products.data.length, mockProducts.length);
+			assert.deepStrictEqual(products.data, mockProducts);
 
 			assert.strictEqual(mockFind.mock.callCount(), 1);
 			assert.deepStrictEqual(mockFind.mock.calls[0].arguments[0], {});
 		});
 
 		test("Should return array of products when 'cache.get' is called once and returns 'undefined'", async (t) => {
+			// Arrange
 			mockCacheMiss({
 				cacheKey,
 				instance: mockCache,
@@ -561,8 +646,10 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				}),
 			}));
 
+			// Act
 			await repo.getTopRated({ limit });
 
+			// Assert
 			assert.strictEqual(mockCache.get.mock.callCount(), 1);
 			assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
 				key: cacheKey,
@@ -570,16 +657,21 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should return array of products when 'cache.get' is called once and returns value", async () => {
+			// Arrange
 			mockCacheHit({
 				cacheKey,
 				instance: mockCache,
 				returnValue: mockProducts,
 			});
 
+			// Act
 			const products = await repo.getTopRated({ limit });
 
-			assert.ok(products);
-			assert.deepStrictEqual(products, mockProducts);
+			// Assert
+			assert.strictEqual(products.success, true);
+			assert.ok(Array.isArray(products.data));
+			assert.strictEqual(products.data.length, mockProducts.length);
+			assert.deepStrictEqual(products.data, mockProducts);
 
 			assert.strictEqual(mockCache.get.mock.callCount(), 1);
 			assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
@@ -588,6 +680,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should return empty array when 'db.find' is called once and returns empty array", async (t) => {
+			// Arrange
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
 			t.mock.method(Product, "find", () => ({
@@ -600,13 +693,18 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				}),
 			}));
 
+			// Act
 			const products = await repo.getTopRated({ limit });
 
+			// Assert
 			assert.ok(products);
-			assert.strictEqual(products.length, 0);
+			assert.strictEqual(products.success, true);
+			assert.ok(Array.isArray(products.data));
+			assert.strictEqual(products.data.length, 0);
 		});
 
-		test("Should throw 'DatabaseValidationError' when 'db.find' throws 'ValidationError'", async (t) => {
+		test("Should return 'DatabaseValidationError' when 'db.find' throws 'ValidationError'", async (t) => {
+			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
 			t.mock.method(Product, "find", () => {
@@ -615,13 +713,16 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
-			await assert.rejects(
-				async () => await repo.getTopRated({ limit }),
-				DatabaseValidationError,
-			);
+			// Act
+			const products = await repo.getTopRated({ limit });
+
+			// Assert
+			assert.strictEqual(products.success, false);
+			assert.ok(products.error instanceof DatabaseValidationError);
 		});
 
-		test("Should throw 'DatabaseTimeoutError' when 'db.find' throws 'MongoNetworkTimeoutError'", async (t) => {
+		test("Should return 'DatabaseTimeoutError' when 'db.find' throws 'MongoNetworkTimeoutError'", async (t) => {
+			// Arrange
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
@@ -632,13 +733,16 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
-			await assert.rejects(
-				async () => await repo.getTopRated({ limit }),
-				DatabaseTimeoutError,
-			);
+			// Act
+			const products = await repo.getTopRated({ limit });
+
+			// Assert
+			assert.strictEqual(products.success, false);
+			assert.ok(products.error instanceof DatabaseTimeoutError);
 		});
 
-		test("Should throw 'DatabaseQueryError' when 'db.find' throws 'MongooseError'", async (t) => {
+		test("Should return 'DatabaseQueryError' when 'db.find' throws 'MongooseError'", async (t) => {
+			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
 			t.mock.method(Product, "find", () => {
@@ -647,13 +751,16 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
-			await assert.rejects(
-				async () => await repo.getTopRated({ limit }),
-				DatabaseQueryError,
-			);
+			// Act
+			const products = await repo.getTopRated({ limit });
+
+			// Assert
+			assert.strictEqual(products.success, false);
+			assert.ok(products.error instanceof DatabaseQueryError);
 		});
 
-		test("Should throw 'DatabaseNetworkError' when 'db.find' throws 'MongoError'", async (t) => {
+		test("Should return 'DatabaseNetworkError' when 'db.find' throws 'MongoError'", async (t) => {
+			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
 			t.mock.method(Product, "find", () => {
@@ -662,13 +769,16 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
-			await assert.rejects(
-				async () => await repo.getTopRated({ limit }),
-				DatabaseNetworkError,
-			);
+			// Act
+			const products = await repo.getTopRated({ limit });
+
+			// Assert
+			assert.strictEqual(products.success, false);
+			assert.ok(products.error instanceof DatabaseNetworkError);
 		});
 
-		test("Should throw 'GenericDatabaseError' when 'db.find' throws unknown error", async (t) => {
+		test("Should return 'GenericDatabaseError' when 'db.find' throws unknown error", async (t) => {
+			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
 			t.mock.method(Product, "find", () => {
@@ -677,10 +787,12 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 			mockCacheMiss({ cacheKey, instance: mockCache });
 
-			await assert.rejects(
-				async () => await repo.getTopRated({ limit }),
-				GenericDatabaseError,
-			);
+			// Act
+			const products = await repo.getTopRated({ limit });
+
+			// Assert
+			assert.strictEqual(products.success, false);
+			assert.ok(products.error instanceof GenericDatabaseError);
 		});
 	});
 
@@ -695,6 +807,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		const cacheKey = productId.toString();
 
 		test("Should return product object when 'db.findByIdAndUpdate' is called once  with 'productId' and 'data'", async (t) => {
+			// Arrange
 			mockCacheInvalidation({
 				cacheKey,
 				instance: mockCache,
@@ -708,13 +821,16 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				}),
 			);
 
+			// Act
 			const updatedProduct = await repo.update({
 				data: updateData,
 				productId: mockProduct._id,
 			});
 
-			assert.ok(updatedProduct);
-			assert.deepStrictEqual(updatedProduct, expectedResult);
+			// Assert
+			assert.strictEqual(updatedProduct.success, true);
+			assert.ok(updatedProduct.data);
+			assert.deepStrictEqual(updatedProduct.data, expectedResult);
 
 			assert.strictEqual(mockFindByIdAndUpdate.mock.callCount(), 1);
 			assert.deepStrictEqual(
@@ -728,6 +844,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'cache.delete' and 'cache.stats' once with the correct 'cacheKey'", async (t) => {
+			// Arrange
 			mockCacheInvalidation({
 				cacheKey,
 				instance: mockCache,
@@ -737,11 +854,13 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				lean: () => expectedResult,
 			}));
 
+			// Act
 			await repo.update({
 				data: updateData,
 				productId: mockProduct._id,
 			});
 
+			// Assert
 			assert.strictEqual(mockCache.delete.mock.callCount(), 1);
 			assert.deepStrictEqual(mockCache.delete.mock.calls[0].arguments[0], {
 				key: cacheKey,
@@ -752,36 +871,43 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should return 'null' when 'db.findByIdAndUpdate' returns 'null'", async (t) => {
+			// Arrange
 			t.mock.method(Product, "findByIdAndUpdate", () => ({
 				lean: () => null,
 			}));
 
+			// Act
 			const updatedProduct = await repo.update({
 				data: updateData,
 				productId,
 			});
 
-			assert.strictEqual(updatedProduct, null);
+			// Assert
+			assert.strictEqual(updatedProduct.success, true);
+			assert.strictEqual(updatedProduct.data, null);
 		});
 
-		test("Should throw 'DatabaseValidationError' when 'db.findByIdAndUpdate' throws 'ValidationError'", async (t) => {
+		test("Should return 'DatabaseValidationError' when 'db.findByIdAndUpdate' throws 'ValidationError'", async (t) => {
+			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
 			t.mock.method(Product, "findByIdAndUpdate", () => {
 				throw validationError;
 			});
 
-			await assert.rejects(
-				async () =>
-					await repo.update({
-						data: updateData,
-						productId,
-					}),
-				DatabaseValidationError,
-			);
+			// Act
+			const updatedProduct = await repo.update({
+				data: updateData,
+				productId,
+			});
+
+			// Assert
+			assert.strictEqual(updatedProduct.success, false);
+			assert.ok(updatedProduct.error instanceof DatabaseValidationError);
 		});
 
-		test("Should throw 'DatabaseTimeoutError' when 'db.findByIdAndUpdate' throws 'MongoNetworkTimeoutError'", async (t) => {
+		test("Should return 'DatabaseTimeoutError' when 'db.findByIdAndUpdate' throws 'MongoNetworkTimeoutError'", async (t) => {
+			// Arrange
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
@@ -790,65 +916,72 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw timeoutError;
 			});
 
-			await assert.rejects(
-				async () =>
-					await repo.update({
-						data: updateData,
-						productId,
-					}),
-				DatabaseTimeoutError,
-			);
+			// Act
+			const updatedProduct = await repo.update({
+				data: updateData,
+				productId,
+			});
+
+			// Assert
+			assert.strictEqual(updatedProduct.success, false);
+			assert.ok(updatedProduct.error instanceof DatabaseTimeoutError);
 		});
 
-		test("Should throw 'DatabaseQueryError' when 'db.findByIdAndUpdate' throws 'MongooseError'", async (t) => {
+		test("Should return 'DatabaseQueryError' when 'db.findByIdAndUpdate' throws 'MongooseError'", async (t) => {
+			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
 			t.mock.method(Product, "findByIdAndUpdate", () => {
 				throw queryError;
 			});
 
-			await assert.rejects(
-				async () =>
-					await repo.update({
-						data: updateData,
-						productId,
-					}),
-				DatabaseQueryError,
-			);
+			// Act
+			const updatedProduct = await repo.update({
+				data: updateData,
+				productId,
+			});
+
+			// Assert
+			assert.strictEqual(updatedProduct.success, false);
+			assert.ok(updatedProduct.error instanceof DatabaseQueryError);
 		});
 
-		test("Should throw 'DatabaseNetworkError' when 'db.findByIdAndUpdate' throws 'MongoError'", async (t) => {
+		test("Should return 'DatabaseNetworkError' when 'db.findByIdAndUpdate' throws 'MongoError'", async (t) => {
+			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
 			t.mock.method(Product, "findByIdAndUpdate", () => {
 				throw networkError;
 			});
 
-			await assert.rejects(
-				async () =>
-					await repo.update({
-						data: updateData,
-						productId,
-					}),
-				DatabaseNetworkError,
-			);
+			// Act
+			const updatedProduct = await repo.update({
+				data: updateData,
+				productId,
+			});
+
+			// Assert
+			assert.strictEqual(updatedProduct.success, false);
+			assert.ok(updatedProduct.error instanceof DatabaseNetworkError);
 		});
 
-		test("Should throw 'GenericDatabaseError' when 'db.findByIdAndUpdate' throws unknown error", async (t) => {
+		test("Should return 'GenericDatabaseError' when 'db.findByIdAndUpdate' throws unknown error", async (t) => {
+			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
 			t.mock.method(Product, "findByIdAndUpdate", () => {
 				throw unknownError;
 			});
 
-			await assert.rejects(
-				async () =>
-					await repo.update({
-						data: updateData,
-						productId,
-					}),
-				GenericDatabaseError,
-			);
+			// Act
+			const updatedProduct = await repo.update({
+				data: updateData,
+				productId,
+			});
+
+			// Assert
+			assert.strictEqual(updatedProduct.success, false);
+			assert.ok(updatedProduct.error instanceof GenericDatabaseError);
 		});
 	});
 
@@ -859,6 +992,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		const cacheKey = productId.toString();
 
 		test("Should return product object when 'db.findByIdAndDelete' is called once", async (t) => {
+			// Arrange
 			mockCacheInvalidation({
 				cacheKey,
 				instance: mockCache,
@@ -872,10 +1006,13 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				}),
 			);
 
+			// Act
 			const deletedProduct = await repo.delete({ productId });
 
-			assert.ok(deletedProduct);
-			assert.deepStrictEqual(deletedProduct, mockProduct);
+			// Assert
+			assert.strictEqual(deletedProduct.success, true);
+			assert.ok(deletedProduct.data);
+			assert.deepStrictEqual(deletedProduct.data, mockProduct);
 
 			assert.strictEqual(mockFindByIdAndDelete.mock.callCount(), 1);
 			assert.deepStrictEqual(
@@ -885,6 +1022,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'cache.delete' and 'cache.stats' once with the correct 'cacheKey'", async (t) => {
+			// Arrange
 			mockCacheInvalidation({
 				cacheKey,
 				instance: mockCache,
@@ -894,8 +1032,10 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				lean: () => mockProduct,
 			}));
 
+			// Act
 			await repo.delete({ productId });
 
+			// Assert
 			assert.strictEqual(mockCache.delete.mock.callCount(), 1);
 			assert.deepStrictEqual(mockCache.delete.mock.calls[0].arguments[0], {
 				key: cacheKey,
@@ -906,29 +1046,36 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should return 'null' when 'db.findByIdAndDelete' returns 'null'", async (t) => {
+			// Arrange
 			t.mock.method(Product, "findByIdAndDelete", () => ({
 				lean: async () => null,
 			}));
 
+			// Act
 			const deletedProduct = await repo.delete({ productId });
-
-			assert.strictEqual(deletedProduct, null);
+			// Assert
+			assert.strictEqual(deletedProduct.success, true);
+			assert.strictEqual(deletedProduct.data, null);
 		});
 
-		test("Should throw 'DatabaseValidationError' when 'db.findByIdAndDelete' throws 'ValidationError'", async (t) => {
+		test("Should return 'DatabaseValidationError' when 'db.findByIdAndDelete' throws 'ValidationError'", async (t) => {
+			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
 			t.mock.method(Product, "findByIdAndDelete", () => {
 				throw validationError;
 			});
 
-			await assert.rejects(
-				async () => await repo.delete({ productId }),
-				DatabaseValidationError,
-			);
+			// Act
+			const deletedProduct = await repo.delete({ productId });
+
+			// Assert
+			assert.strictEqual(deletedProduct.success, false);
+			assert.ok(deletedProduct.error instanceof DatabaseValidationError);
 		});
 
-		test("Should throw 'DatabaseTimeoutError' when 'db.findByIdAndDelete' throws 'MongoNetworkTimeoutError'", async (t) => {
+		test("Should return 'DatabaseTimeoutError' when 'db.findByIdAndDelete' throws 'MongoNetworkTimeoutError'", async (t) => {
+			// Arrange
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
@@ -937,58 +1084,66 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw timeoutError;
 			});
 
-			await assert.rejects(
-				async () => await repo.delete({ productId }),
-				DatabaseTimeoutError,
-			);
+			// Act
+			const deletedProduct = await repo.delete({ productId });
+
+			// Assert
+			assert.strictEqual(deletedProduct.success, false);
+			assert.ok(deletedProduct.error instanceof DatabaseTimeoutError);
 		});
 
-		test("Should throw 'DatabaseQueryError' when 'db.findByIdAndDelete' throws 'MongooseError'", async (t) => {
+		test("Should return 'DatabaseQueryError' when 'db.findByIdAndDelete' throws 'MongooseError'", async (t) => {
+			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
 			t.mock.method(Product, "findByIdAndDelete", () => {
 				throw queryError;
 			});
 
-			await assert.rejects(
-				async () => await repo.delete({ productId }),
-				DatabaseQueryError,
-			);
+			// Act
+			const deletedProduct = await repo.delete({ productId });
+
+			// Assert
+			assert.strictEqual(deletedProduct.success, false);
+			assert.ok(deletedProduct.error instanceof DatabaseQueryError);
 		});
 
-		test("Should throw 'DatabaseNetworkError' when 'db.findByIdAndDelete' throws 'MongoError'", async (t) => {
+		test("Should return 'DatabaseNetworkError' when 'db.findByIdAndDelete' throws 'MongoError'", async (t) => {
+			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
 			t.mock.method(Product, "findByIdAndDelete", () => {
 				throw networkError;
 			});
 
-			await assert.rejects(
-				async () => await repo.delete({ productId }),
-				DatabaseNetworkError,
-			);
+			// Act
+			const deletedProduct = await repo.delete({ productId });
+
+			// Assert
+			assert.strictEqual(deletedProduct.success, false);
+			assert.ok(deletedProduct.error instanceof DatabaseNetworkError);
 		});
 
-		test(
-			"Should throw 'GenericDatabaseError' when 'db.findByIdAndDelete' throws unknown error",
-			{ skip: true },
-			async (t) => {
-				const unknownError = new Error("Something unexpected happened");
+		test("Should return 'GenericDatabaseError' when 'db.findByIdAndDelete' throws unknown error", async (t) => {
+			// Arrange
+			const unknownError = new Error("Something unexpected happened");
 
-				t.mock.method(Product, "findByIdAndDelete", () => {
-					throw unknownError;
-				});
+			t.mock.method(Product, "findByIdAndDelete", () => {
+				throw unknownError;
+			});
 
-				await assert.rejects(
-					async () => await repo.delete({ productId }),
-					GenericDatabaseError,
-				);
-			},
-		);
+			// Act
+			const deletedProduct = await repo.delete({ productId });
+
+			// Assert
+			assert.strictEqual(deletedProduct.success, false);
+			assert.ok(deletedProduct.error instanceof GenericDatabaseError);
+		});
 	});
 
 	describe("count", () => {
 		test("Should return the count as a number when 'db.countDocuments' is called once with no args", async (t) => {
+			// Arrange
 			const mockCount = 10;
 
 			const mockCountDocuments = t.mock.method(
@@ -999,42 +1154,52 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				}),
 			);
 
+			// Act
 			const count = await repo.count({});
 
-			assert.ok(count);
-			assert.ok(typeof count === "number");
-			assert.strictEqual(count, mockCount);
+			// Assert
+			assert.strictEqual(count.success, true);
+			assert.ok(typeof count.data === "number");
+			assert.strictEqual(count.data, mockCount);
 
 			assert.strictEqual(mockCountDocuments.mock.callCount(), 1);
 			assert.deepStrictEqual(mockCountDocuments.mock.calls[0].arguments[0], {});
 		});
 
 		test("Should return '0' when 'db.countDocuments' returns '0'", async (t) => {
+			// Arrange
 			const mockCount = 0;
 
 			t.mock.method(Product, "countDocuments", () => ({
 				lean: () => mockCount,
 			}));
 
+			// Act
 			const count = await repo.count({});
 
-			assert.strictEqual(count, mockCount);
+			// Assert
+			assert.strictEqual(count.success, true);
+			assert.strictEqual(count.data, mockCount);
 		});
 
-		test("Should throw 'DatabaseValidationError' when 'db.countDocuments' throws 'ValidationError'", async (t) => {
+		test("Should return 'DatabaseValidationError' when 'db.countDocuments' throws 'ValidationError'", async (t) => {
+			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
 			t.mock.method(Product, "countDocuments", () => {
 				throw validationError;
 			});
 
-			await assert.rejects(
-				async () => await repo.count({}),
-				DatabaseValidationError,
-			);
+			// Act
+			const count = await repo.count({});
+
+			// Assert
+			assert.strictEqual(count.success, false);
+			assert.ok(count.error instanceof DatabaseValidationError);
 		});
 
-		test("Should throw 'DatabaseTimeoutError' when 'db.countDocuments' throws 'MongoNetworkTimeoutError'", async (t) => {
+		test("Should return 'DatabaseTimeoutError' when 'db.countDocuments' throws 'MongoNetworkTimeoutError'", async (t) => {
+			// Arrange
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
@@ -1043,49 +1208,60 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw timeoutError;
 			});
 
-			await assert.rejects(
-				async () => await repo.count({}),
-				DatabaseTimeoutError,
-			);
+			// Act
+			const result = await repo.count({});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseTimeoutError);
 		});
 
-		test("Should throw 'DatabaseQueryError' when 'db.countDocuments' throws 'MongooseError'", async (t) => {
+		test("Should return 'DatabaseQueryError' when 'db.countDocuments' throws 'MongooseError'", async (t) => {
+			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
 			t.mock.method(Product, "countDocuments", () => {
 				throw queryError;
 			});
 
-			await assert.rejects(
-				async () => await repo.count({}),
-				DatabaseQueryError,
-			);
+			// Act
+			const result = await repo.count({});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseQueryError);
 		});
 
-		test("Should throw 'DatabaseNetworkError' when 'db.countDocuments' throws 'MongoError'", async (t) => {
+		test("Should return 'DatabaseNetworkError' when 'db.countDocuments' throws 'MongoError'", async (t) => {
+			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
 			t.mock.method(Product, "countDocuments", () => {
 				throw networkError;
 			});
 
-			await assert.rejects(
-				async () => await repo.count({}),
-				DatabaseNetworkError,
-			);
+			// Act
+			const result = await repo.count({});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseNetworkError);
 		});
 
-		test("Should throw 'GenericDatabaseError' when 'db.countDocuments' throws unknown error", async (t) => {
+		test("Should return 'GenericDatabaseError' when 'db.countDocuments' throws unknown error", async (t) => {
+			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
 			t.mock.method(Product, "countDocuments", () => {
 				throw unknownError;
 			});
 
-			await assert.rejects(
-				async () => await repo.count({}),
-				GenericDatabaseError,
-			);
+			// Act
+			const result = await repo.count({});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof GenericDatabaseError);
 		});
 	});
 });

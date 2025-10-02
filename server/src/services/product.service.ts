@@ -63,7 +63,11 @@ export class ProductService implements IProductService {
 		});
 		const dataWithImage = { ...validationResult.data, image };
 		const createdProduct = await this._repository.create(dataWithImage);
-		return createdProduct;
+		if (!createdProduct.success) {
+			throw createdProduct.error;
+		}
+
+		return createdProduct.data;
 	}
 
 	async delete({
@@ -80,11 +84,14 @@ export class ProductService implements IProductService {
 		const deletedProduct = await this._repository.delete({
 			productId: validationResult.data,
 		});
-		if (!deletedProduct) {
+		if (!deletedProduct.success) {
+			throw deletedProduct.error;
+		}
+		if (!deletedProduct.data) {
 			throw new NotFoundError("Product");
 		}
 
-		await this._storage.delete({ url: deletedProduct.image });
+		await this._storage.delete({ url: deletedProduct.data.image });
 	}
 
 	async getAll(
@@ -100,19 +107,26 @@ export class ProductService implements IProductService {
 
 		const numberOfProductsPerPage = 10;
 		const numberOfProducts = await this._repository.count(query);
+		if (!numberOfProducts.success) {
+			throw numberOfProducts.error;
+		}
+
 		const numberOfPages =
-			Math.ceil(numberOfProducts / numberOfProductsPerPage) || 1;
+			Math.ceil(numberOfProducts.data / numberOfProductsPerPage) || 1;
 
 		const products = await this._repository.getAll({
 			currentPage,
 			numberOfProductsPerPage,
 			query,
 		});
+		if (!products.success) {
+			throw products.error;
+		}
 
 		return {
 			currentPage,
 			numberOfPages,
-			products,
+			products: products.data,
 		};
 	}
 
@@ -130,16 +144,24 @@ export class ProductService implements IProductService {
 		const product = await this._repository.getById({
 			productId: validationResult.data,
 		});
-		if (!product) {
+		if (!product.success) {
+			throw product.error;
+		}
+		if (!product.data) {
 			throw new NotFoundError("Product");
 		}
 
-		return product;
+		return product.data;
 	}
 
 	async getTopRated(): MethodReturn<IProductService, "getTopRated"> {
 		const limit = MAX_TOP_RATED_PRODUCTS;
-		return await this._repository.getTopRated({ limit });
+
+		const result = await this._repository.getTopRated({ limit });
+		if (!result.success) {
+			throw result.error;
+		}
+		return result.data;
 	}
 
 	async update(
@@ -177,11 +199,14 @@ export class ProductService implements IProductService {
 			data: updatedData,
 			productId,
 		});
-		if (!updatedProduct) {
+		if (!updatedProduct.success) {
+			throw updatedProduct.error;
+		}
+		if (!updatedProduct.data) {
 			throw new NotFoundError("Product");
 		}
 
-		return updatedProduct;
+		return updatedProduct.data;
 	}
 
 	private _validateCreateData(
