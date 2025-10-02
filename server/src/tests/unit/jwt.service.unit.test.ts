@@ -12,14 +12,14 @@ import {
 } from "../../errors/index.js";
 import { JwtService } from "../../services/index.js";
 import { TokenType } from "../../types/index.js";
-import { mockJwt } from "../mocks/index.js";
+import { generateMockObjectId, mockJwt } from "../mocks/index.js";
 
 suite("JWT Service〖 Unit Tests 〗", () => {
 	const mockJWT = mockJwt();
 	const service = new JwtService(DEFAULT_JWT_CONFIG, mockJWT as any);
 
-	const userId = "user-id";
-	const tokenId = "token-id";
+	const userId = generateMockObjectId().toString();
+	const tokenId = crypto.randomUUID();
 	const expiresAt = new Date(2025, 9, 20); // the date of the tokens creation
 	const invalidAccessToken = "invalid-access-token";
 	const invalidRefreshToken = "invalid-refresh-token";
@@ -418,9 +418,9 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 			const mockDecoded = {
 				exp: Math.floor(Date.now() / 1000) + 3600,
 				iat: Math.floor(Date.now() / 1000),
-				tokenId: "token-id",
+				tokenId,
 				type: expectedType,
-				userId: "user-id",
+				userId,
 			};
 
 			mockJWT.verify.mock.mockImplementation(() => mockDecoded);
@@ -493,7 +493,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(result.success, false);
-			assert(result.error instanceof JwtInvalidPayloadError);
+			assert(result.error instanceof JwtInvalidTokenError);
 		});
 
 		it("should fail when JWT provider throws TokenExpiredError", (t) => {
