@@ -26,7 +26,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			const mockSelectReview = generateMockSelectReview(mockInsertReview);
 
 			mockRepo.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectReview),
+				Promise.resolve({ data: mockSelectReview, success: true }),
 			);
 
 			// Act
@@ -130,7 +130,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'array of reviews' when 'repo.getAll' is called once with no arguments", async () => {
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReviews),
+				Promise.resolve({ data: mockReviews, success: true }),
 			);
 
 			const reviews = await service.getAll();
@@ -143,7 +143,9 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should return 'empty array' when 'repo.getAll' return 'empty array'", async () => {
-			mockRepo.getAll.mock.mockImplementationOnce(() => Promise.resolve([]));
+			mockRepo.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: [], success: true }),
+			);
 
 			const reviews = await service.getAll();
 
@@ -157,7 +159,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'array of reviews' when 'repo.getAllByUserId' is called once with 'userId'", async () => {
 			mockRepo.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReviews),
+				Promise.resolve({ data: mockReviews, success: true }),
 			);
 
 			const reviews = await service.getAllByUserId({
@@ -176,7 +178,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'empty array' when 'repo.getAllByUserId' return 'empty array'", async () => {
 			mockRepo.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve([]),
+				Promise.resolve({ data: [], success: true }),
 			);
 
 			const reviews = await service.getAllByUserId({
@@ -204,7 +206,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'array of reviews' when'repo.getAllByProductId' is called once with 'productId'", async () => {
 			mockRepo.getAllByProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReviews),
+				Promise.resolve({ data: mockReviews, success: true }),
 			);
 
 			const reviews = await service.getAllByProductId({
@@ -222,7 +224,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should return empty array if no reviews exist", async () => {
 			mockRepo.getAllByProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve([]),
+				Promise.resolve({ data: [], success: true }),
 			);
 
 			const reviews = await service.getAllByProductId({
@@ -250,7 +252,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'review object' when 'repo.getById' is called once with 'reviewId'", async () => {
 			mockRepo.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReview),
+				Promise.resolve({ data: mockReview, success: true }),
 			);
 
 			const review = await service.getById({ reviewId: reviewId.toString() });
@@ -265,7 +267,9 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should throw 'NotFoundError' if 'repo.getById' returns 'null'", async () => {
-			mockRepo.getById.mock.mockImplementationOnce(() => Promise.resolve(null));
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: null, success: true }),
+			);
 
 			await assert.rejects(
 				async () => await service.getById({ reviewId: reviewId.toString() }),
@@ -298,7 +302,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'review object' when 'repo.update' is called once with 'reviewId' and 'updateData'", async () => {
 			mockRepo.update.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
+				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
 			const updatedReview = await service.update({
@@ -317,7 +321,9 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should throw 'NotFoundError' when 'repo.update' returns 'null'", async () => {
-			mockRepo.update.mock.mockImplementationOnce(() => Promise.resolve(null));
+			mockRepo.update.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: null, success: true }),
+			);
 
 			await assert.rejects(
 				async () =>
@@ -357,7 +363,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'review object' when 'repo.delete' is called once with 'reviewId'", async () => {
 			mockRepo.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReview),
+				Promise.resolve({ data: mockReview, success: true }),
 			);
 
 			const deletedReview = await service.delete({
@@ -374,7 +380,9 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should throw 'NotFoundError' when 'repo.delete' returns 'null'", async () => {
-			mockRepo.delete.mock.mockImplementationOnce(() => Promise.resolve(null));
+			mockRepo.delete.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: null, success: true }),
+			);
 
 			await assert.rejects(
 				async () => await service.delete({ reviewId: reviewId.toString() }),
@@ -405,7 +413,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should return the count as number when 'repo.countByUserId' is called once with 'userId'", async () => {
 			mockRepo.countByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
+				Promise.resolve({ data: mockCount, success: true }),
 			);
 
 			const count = await service.countByUserId({ userId: userId.toString() });
@@ -422,7 +430,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should return '0' when 'repo.countByUserId' returns '0'", async () => {
 			mockRepo.countByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve(0),
+				Promise.resolve({ data: 0, success: true }),
 			);
 
 			const count = await service.countByUserId({ userId: userId.toString() });
@@ -448,7 +456,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should return the count as number when 'repo.countByProductId' is called once with 'productId'", async () => {
 			mockRepo.countByProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
+				Promise.resolve({ data: mockCount, success: true }),
 			);
 
 			const count = await service.countByProductId({
@@ -467,7 +475,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should return '0' when 'repo.countByProductId' returns '0'", async () => {
 			mockRepo.countByProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve(0),
+				Promise.resolve({ data: 0, success: true }),
 			);
 
 			const count = await service.countByProductId({
@@ -495,7 +503,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'reviewId' when 'repo.existsById' is called once with 'reviewId'", async () => {
 			mockRepo.existsById.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
+				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
 			const count = await service.existsById({ reviewId: reviewId.toString() });
@@ -511,7 +519,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should throw 'NotFoundError' when 'repo.existsById' returns 'null'", async () => {
 			mockRepo.existsById.mock.mockImplementationOnce(() =>
-				Promise.resolve(null),
+				Promise.resolve({ data: null, success: true }),
 			);
 
 			await assert.rejects(
@@ -545,7 +553,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'reviewId' when'repo.existsByUserIdAndProductId' is called once with 'userId' and 'productId'", async () => {
 			mockRepo.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve(existsResult),
+				Promise.resolve({ data: existsResult, success: true }),
 			);
 
 			const count = await service.existsByUserIdAndProductId({
@@ -571,7 +579,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should throw 'NotFoundError' when 'repo.existsByUserIdAndProductId' returns 'null'", async () => {
 			mockRepo.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve(null),
+				Promise.resolve({ data: null, success: true }),
 			);
 
 			await assert.rejects(

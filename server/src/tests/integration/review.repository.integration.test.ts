@@ -45,12 +45,14 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const createdReview = await reviewRepository.create(mockReview);
 
 			// Assert
-			assert.ok(createdReview._id, "Review should have an ID");
-			assert.equal(createdReview.name, mockReview.name);
-			assert.equal(createdReview.rating, mockReview.rating);
-			assert.equal(createdReview.comment, mockReview.comment);
-			assert.deepStrictEqual(createdReview.user, mockReview.user);
-			assert.deepStrictEqual(createdReview.product, mockReview.product);
+			assert.ok(createdReview.success);
+			assert.ok(createdReview.data);
+			assert.ok(createdReview.data._id, "Review should have an ID");
+			assert.equal(createdReview.data.name, mockReview.name);
+			assert.equal(createdReview.data.rating, mockReview.rating);
+			assert.equal(createdReview.data.comment, mockReview.comment);
+			assert.deepStrictEqual(createdReview.data.user, mockReview.user);
+			assert.deepStrictEqual(createdReview.data.product, mockReview.product);
 		});
 
 		test("should throw 'DatabaseDuplicateKeyError' when 'create' is called with duplicate user-product combination", async () => {
@@ -58,11 +60,12 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const mockReview = generateMockInsertReview();
 			await reviewRepository.create(mockReview);
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await reviewRepository.create(mockReview),
-				DatabaseDuplicateKeyError,
-			);
+			// Act
+			const result = await reviewRepository.create(mockReview);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseDuplicateKeyError);
 		});
 	});
 
@@ -71,19 +74,21 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockReview = generateMockInsertReview();
 			const createdReview = await reviewRepository.create(mockReview);
+			assert.ok(createdReview.success);
 
 			// Act
 			const retrievedReview = await reviewRepository.getById({
-				reviewId: createdReview._id,
+				reviewId: createdReview.data._id,
 			});
 
 			// Assert
-			assert.ok(retrievedReview);
-			assert.equal(retrievedReview.name, mockReview.name);
-			assert.equal(retrievedReview.rating, mockReview.rating);
-			assert.equal(retrievedReview.comment, mockReview.comment);
-			assert.deepStrictEqual(retrievedReview.user, mockReview.user);
-			assert.deepStrictEqual(retrievedReview.product, mockReview.product);
+			assert.ok(retrievedReview.success);
+			assert.ok(retrievedReview.data);
+			assert.equal(retrievedReview.data.name, mockReview.name);
+			assert.equal(retrievedReview.data.rating, mockReview.rating);
+			assert.equal(retrievedReview.data.comment, mockReview.comment);
+			assert.deepStrictEqual(retrievedReview.data.user, mockReview.user);
+			assert.deepStrictEqual(retrievedReview.data.product, mockReview.product);
 		});
 
 		test("should return null when 'getById' is called with non-existent review ID", async () => {
@@ -96,18 +101,20 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(review, null);
+			assert.strictEqual(review.success, true);
+			assert.strictEqual(review.data, null);
 		});
 
 		test("should throw 'DatabaseValidationError' when 'getById' is called with invalid ObjectId", async () => {
 			// Arrange
 			const invalidId = "invalid-id" as unknown as Types.ObjectId;
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await reviewRepository.getById({ reviewId: invalidId }),
-				DatabaseValidationError,
-			);
+			// Act
+			const result = await reviewRepository.getById({ reviewId: invalidId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 	});
 
@@ -117,7 +124,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const reviews = await reviewRepository.getAll();
 
 			// Assert
-			assert.deepStrictEqual(reviews, []);
+			assert.ok(reviews.success);
+			assert.deepStrictEqual(reviews.data, []);
 		});
 
 		test("should return all reviews when 'getAll' is called with multiple reviews in database", async () => {
@@ -129,8 +137,11 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const reviews = await reviewRepository.getAll();
 
 			// Assert
-			assert.equal(reviews.length, mockReviews.length);
-			reviews.forEach((review) => {
+			assert.ok(reviews.success);
+			assert.ok(Array.isArray(reviews.data));
+			assert.equal(reviews.data.length, mockReviews.length);
+
+			reviews.data.forEach((review) => {
 				const mockReview = mockReviews.find(
 					(mr) => mr._id.toString() === review._id.toString(),
 				);
@@ -157,8 +168,11 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const reviews = await reviewRepository.getAllByUserId({ userId });
 
 			// Assert
-			assert.equal(reviews.length, mockReviews.length);
-			reviews.forEach((review) => {
+			assert.ok(reviews.success);
+			assert.ok(Array.isArray(reviews.data));
+			assert.equal(reviews.data.length, mockReviews.length);
+
+			reviews.data.forEach((review) => {
 				assert.deepStrictEqual(
 					review.user,
 					userId,
@@ -177,19 +191,23 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const reviews = await reviewRepository.getAllByUserId({ userId });
 
 			// Assert
-			assert.deepStrictEqual(reviews, []);
+			assert.ok(reviews.success);
+			assert.ok(Array.isArray(reviews.data));
+			assert.deepStrictEqual(reviews.data, []);
 		});
 
 		test("should throw 'DatabaseValidationError' when 'getAllByUserId' is called with invalid ObjectId", async () => {
 			// Arrange
 			const invalidId = "invalid-id" as unknown as Types.ObjectId;
 
-			// Act & Assert
-			await assert.rejects(
-				async () =>
-					await reviewRepository.getAllByUserId({ userId: invalidId }),
-				DatabaseValidationError,
-			);
+			// Act
+			const result = await reviewRepository.getAllByUserId({
+				userId: invalidId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 	});
 
@@ -208,8 +226,10 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const reviews = await reviewRepository.getAllByProductId({ productId });
 
 			// Assert
-			assert.equal(reviews.length, mockReviews.length);
-			reviews.forEach((review) => {
+			assert.ok(reviews.success);
+			assert.ok(Array.isArray(reviews.data));
+			assert.equal(reviews.data.length, mockReviews.length);
+			reviews.data.forEach((review) => {
 				assert.deepStrictEqual(
 					review.product,
 					productId,
@@ -228,19 +248,23 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const reviews = await reviewRepository.getAllByProductId({ productId });
 
 			// Assert
-			assert.deepStrictEqual(reviews, []);
+			assert.ok(reviews.success);
+			assert.ok(Array.isArray(reviews.data));
+			assert.deepStrictEqual(reviews.data, []);
 		});
 
 		test("should throw 'DatabaseValidationError' when 'getAllByProductId' is called with invalid ObjectId", async () => {
 			// Arrange
 			const invalidId = "invalid-id" as unknown as Types.ObjectId;
 
-			// Act & Assert
-			await assert.rejects(
-				async () =>
-					await reviewRepository.getAllByProductId({ productId: invalidId }),
-				DatabaseValidationError,
-			);
+			// Act
+			const result = await reviewRepository.getAllByProductId({
+				productId: invalidId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 	});
 
@@ -249,6 +273,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockReview = generateMockInsertReview();
 			const createdReview = await reviewRepository.create(mockReview);
+			assert.ok(createdReview.success);
 			const updateData = {
 				comment: "Updated comment",
 				rating: 5,
@@ -257,17 +282,19 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Act
 			const updatedReview = await reviewRepository.update({
 				data: updateData,
-				reviewId: createdReview._id,
+				reviewId: createdReview.data._id,
 			});
 
 			// Assert
-			assert.ok(updatedReview);
-			assert.equal(updatedReview.rating, updateData.rating);
-			assert.equal(updatedReview.comment, updateData.comment);
+			assert.ok(updatedReview.success);
+			assert.ok(updatedReview.data);
+			assert.equal(updatedReview.data.rating, updateData.rating);
+			assert.equal(updatedReview.data.comment, updateData.comment);
+
 			// Verify other fields remain unchanged
-			assert.equal(updatedReview.name, mockReview.name);
-			assert.deepStrictEqual(updatedReview.user, mockReview.user);
-			assert.deepStrictEqual(updatedReview.product, mockReview.product);
+			assert.equal(updatedReview.data.name, mockReview.name);
+			assert.deepStrictEqual(updatedReview.data.user, mockReview.user);
+			assert.deepStrictEqual(updatedReview.data.product, mockReview.product);
 		});
 
 		test("should return null when 'update' is called with non-existent review ID", async () => {
@@ -282,7 +309,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(updatedReview, null);
+			assert.strictEqual(updatedReview.success, true);
+			assert.strictEqual(updatedReview.data, null);
 		});
 	});
 
@@ -291,20 +319,24 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockReview = generateMockInsertReview();
 			const createdReview = await reviewRepository.create(mockReview);
+			assert.ok(createdReview.success);
 
 			// Act
 			const deletedReview = await reviewRepository.delete({
-				reviewId: createdReview._id,
+				reviewId: createdReview.data._id,
 			});
 
 			// Assert
-			assert.ok(deletedReview);
-			assert.equal(deletedReview.name, mockReview.name);
-			assert.equal(deletedReview.rating, mockReview.rating);
-			assert.equal(deletedReview.comment, mockReview.comment);
-			assert.deepStrictEqual(deletedReview.user, mockReview.user);
-			assert.deepStrictEqual(deletedReview.product, mockReview.product);
-			const reviewInDb = await Review.findById(createdReview._id).lean();
+			assert.ok(deletedReview.success);
+			assert.ok(deletedReview.data);
+			assert.equal(deletedReview.data.name, mockReview.name);
+			assert.equal(deletedReview.data.rating, mockReview.rating);
+			assert.equal(deletedReview.data.comment, mockReview.comment);
+			assert.deepStrictEqual(deletedReview.data.user, mockReview.user);
+			assert.deepStrictEqual(deletedReview.data.product, mockReview.product);
+
+			// Verify review is actually deleted
+			const reviewInDb = await Review.findById(createdReview.data._id).lean();
 			assert.strictEqual(reviewInDb, null);
 		});
 
@@ -318,18 +350,20 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(deletedReview, null);
+			assert.strictEqual(deletedReview.success, true);
+			assert.strictEqual(deletedReview.data, null);
 		});
 
 		test("should throw 'DatabaseValidationError' when 'delete' is called with invalid ObjectId", async () => {
 			// Arrange
 			const invalidId = "invalid-id" as unknown as Types.ObjectId;
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await reviewRepository.delete({ reviewId: invalidId }),
-				DatabaseValidationError,
-			);
+			// Act
+			const result = await reviewRepository.delete({ reviewId: invalidId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 	});
 
@@ -343,7 +377,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const count = await reviewRepository.count();
 
 			// Assert
-			assert.equal(count, mockReviews.length);
+			assert.ok(count.success);
+			assert.equal(count.data, mockReviews.length);
 		});
 
 		test("should return zero when 'count' is called with empty database", async () => {
@@ -351,7 +386,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const count = await reviewRepository.count();
 
 			// Assert
-			assert.equal(count, 0);
+			assert.ok(count.success);
+			assert.equal(count.data, 0);
 		});
 	});
 
@@ -370,7 +406,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const count = await reviewRepository.countByUserId({ userId });
 
 			// Assert
-			assert.equal(count, mockReviews.length);
+			assert.ok(count.success);
+			assert.equal(count.data, mockReviews.length);
 		});
 
 		test("should return zero when 'countByUserId' is called with user having no reviews", async () => {
@@ -383,18 +420,22 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const count = await reviewRepository.countByUserId({ userId });
 
 			// Assert
-			assert.equal(count, 0);
+			assert.ok(count.success);
+			assert.equal(count.data, 0);
 		});
 
 		test("should throw 'DatabaseValidationError' when 'countByUserId' is called with invalid ObjectId", async () => {
 			// Arrange
 			const invalidId = "invalid-id" as unknown as Types.ObjectId;
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await reviewRepository.countByUserId({ userId: invalidId }),
-				DatabaseValidationError,
-			);
+			// Act
+			const result = await reviewRepository.countByUserId({
+				userId: invalidId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 	});
 
@@ -413,7 +454,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const count = await reviewRepository.countByProductId({ productId });
 
 			// Assert
-			assert.equal(count, mockReviews.length);
+			assert.ok(count.success);
+			assert.equal(count.data, mockReviews.length);
 		});
 
 		test("should return zero when 'countByProductId' is called with product having no reviews", async () => {
@@ -426,19 +468,22 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const count = await reviewRepository.countByProductId({ productId });
 
 			// Assert
-			assert.equal(count, 0);
+			assert.ok(count.success);
+			assert.equal(count.data, 0);
 		});
 
 		test("should throw 'DatabaseValidationError' when 'countByProductId' is called with invalid ObjectId", async () => {
 			// Arrange
 			const invalidId = "invalid-id" as unknown as Types.ObjectId;
 
-			// Act & Assert
-			await assert.rejects(
-				async () =>
-					await reviewRepository.countByProductId({ productId: invalidId }),
-				DatabaseValidationError,
-			);
+			// Act
+			const result = await reviewRepository.countByProductId({
+				productId: invalidId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 	});
 
@@ -447,15 +492,17 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockReview = generateMockInsertReview();
 			const createdReview = await reviewRepository.create(mockReview);
+			assert.ok(createdReview.success);
 
 			// Act
 			const result = await reviewRepository.existsById({
-				reviewId: createdReview._id,
+				reviewId: createdReview.data._id,
 			});
 
 			// Assert
-			assert.ok(result);
-			assert.deepStrictEqual(result._id, createdReview._id);
+			assert.ok(result.success);
+			assert.ok(result.data);
+			assert.deepStrictEqual(result.data._id, createdReview.data._id);
 		});
 
 		test("should return null when 'existsById' is called with non-existent review ID", async () => {
@@ -468,18 +515,20 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(result, null);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, null);
 		});
 
 		test("should throw 'DatabaseValidationError' when 'existsById' is called with invalid ObjectId", async () => {
 			// Arrange
 			const invalidId = "invalid-id" as unknown as Types.ObjectId;
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await reviewRepository.existsById({ reviewId: invalidId }),
-				DatabaseValidationError,
-			);
+			// Act
+			const result = await reviewRepository.existsById({ reviewId: invalidId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 	});
 
@@ -488,6 +537,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockReview = generateMockInsertReview();
 			const createdReview = await reviewRepository.create(mockReview);
+			assert.ok(createdReview.success);
 
 			// Act
 			const result = await reviewRepository.existsByUserIdAndProductId({
@@ -496,8 +546,9 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.ok(result);
-			assert.deepStrictEqual(result._id, createdReview._id);
+			assert.ok(result.success);
+			assert.ok(result.data);
+			assert.deepStrictEqual(result.data._id, createdReview.data._id);
 		});
 
 		test("should return null when 'existsByUserIdAndProductId' is called with non-existent combination", async () => {
@@ -512,31 +563,23 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(result, null);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, null);
 		});
 
 		test("should throw 'DatabaseValidationError' when 'existsByUserIdAndProductId' is called with invalid ObjectIds", async () => {
 			// Arrange
 			const invalidId = "invalid-id" as unknown as Types.ObjectId;
 
-			// Act & Assert
-			await assert.rejects(
-				async () =>
-					await reviewRepository.existsByUserIdAndProductId({
-						productId: generateMockObjectId(),
-						userId: invalidId,
-					}),
-				DatabaseValidationError,
-			);
+			// Act
+			const result = await reviewRepository.existsByUserIdAndProductId({
+				productId: generateMockObjectId(),
+				userId: invalidId,
+			});
 
-			await assert.rejects(
-				async () =>
-					await reviewRepository.existsByUserIdAndProductId({
-						productId: invalidId,
-						userId: generateMockObjectId(),
-					}),
-				DatabaseValidationError,
-			);
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 	});
 
@@ -581,6 +624,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			const updatedProduct = await Product.findById(productId).lean();
+
 			assert.ok(updatedProduct);
 			assert.equal(updatedProduct.rating, updateData.rating);
 			assert.equal(updatedProduct.numReviews, 1);
@@ -602,6 +646,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			const updatedProduct = await Product.findById(productId).lean();
+
 			assert.ok(updatedProduct);
 			assert.equal(updatedProduct.rating, 0);
 			assert.equal(updatedProduct.numReviews, 0);

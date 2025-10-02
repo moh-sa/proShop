@@ -1,41 +1,54 @@
 import type { Types } from "mongoose";
 
+import type { DatabaseBaseError } from "../errors/index.js";
 import type {
+	FailureResult,
 	InsertReview,
 	MethodParams,
 	MethodReturn,
+	Result,
 	SelectReview,
 } from "../types/index.js";
 
 import Review from "../models/review.model.js";
-import { handleDatabaseError } from "../utils/index.js";
+import { handleDatabaseErrorResult } from "../utils/index.js";
 
 export interface IReviewRepository {
-	count: () => Promise<number>;
-	countByProductId: (data: { productId: Types.ObjectId }) => Promise<number>;
-	countByUserId: (data: { userId: Types.ObjectId }) => Promise<number>;
-	create: (data: InsertReview) => Promise<SelectReview>;
-	delete: (data: { reviewId: Types.ObjectId }) => Promise<null | SelectReview>;
+	count: () => Promise<ReviewResult<number>>;
+	countByProductId: (data: {
+		productId: Types.ObjectId;
+	}) => Promise<ReviewResult<number>>;
+	countByUserId: (data: {
+		userId: Types.ObjectId;
+	}) => Promise<ReviewResult<number>>;
+	create: (data: InsertReview) => Promise<ReviewResult<SelectReview>>;
+	delete: (data: {
+		reviewId: Types.ObjectId;
+	}) => Promise<ReviewResult<null | SelectReview>>;
 	existsById: (data: {
 		reviewId: Types.ObjectId;
-	}) => Promise<null | { _id: Types.ObjectId }>;
+	}) => Promise<ReviewResult<null | { _id: Types.ObjectId }>>;
 	existsByUserIdAndProductId: (data: {
 		productId: Types.ObjectId;
 		userId: Types.ObjectId;
-	}) => Promise<null | { _id: Types.ObjectId }>;
-	getAll: () => Promise<Array<SelectReview>>;
+	}) => Promise<ReviewResult<null | { _id: Types.ObjectId }>>;
+	getAll: () => Promise<ReviewResult<Array<SelectReview>>>;
 	getAllByProductId: (data: {
 		productId: Types.ObjectId;
-	}) => Promise<Array<SelectReview>>;
+	}) => Promise<ReviewResult<Array<SelectReview>>>;
 	getAllByUserId: (data: {
 		userId: Types.ObjectId;
-	}) => Promise<Array<SelectReview>>;
-	getById: (data: { reviewId: Types.ObjectId }) => Promise<null | SelectReview>;
+	}) => Promise<ReviewResult<Array<SelectReview>>>;
+	getById: (data: {
+		reviewId: Types.ObjectId;
+	}) => Promise<ReviewResult<null | SelectReview>>;
 	update: (data: {
 		data: Partial<InsertReview>;
 		reviewId: Types.ObjectId;
-	}) => Promise<null | SelectReview>;
+	}) => Promise<ReviewResult<null | SelectReview>>;
 }
+
+type ReviewResult<T> = Result<T, DatabaseBaseError>;
 
 export class ReviewRepository implements IReviewRepository {
 	private readonly _db: typeof Review;
@@ -46,9 +59,14 @@ export class ReviewRepository implements IReviewRepository {
 
 	async count(): MethodReturn<IReviewRepository, "count"> {
 		try {
-			return await this._db.countDocuments().lean();
+			const result = await this._db.countDocuments().lean();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -59,9 +77,16 @@ export class ReviewRepository implements IReviewRepository {
 		"countByProductId"
 	> {
 		try {
-			return await this._db.countDocuments({ product: productId }).lean();
+			const result = await this._db
+				.countDocuments({ product: productId })
+				.lean();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -72,9 +97,14 @@ export class ReviewRepository implements IReviewRepository {
 		"countByUserId"
 	> {
 		try {
-			return await this._db.countDocuments({ user: userId }).lean();
+			const result = await this._db.countDocuments({ user: userId }).lean();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -82,9 +112,14 @@ export class ReviewRepository implements IReviewRepository {
 		data: MethodParams<IReviewRepository, "create">,
 	): MethodReturn<IReviewRepository, "create"> {
 		try {
-			return (await this._db.create(data)).toObject();
+			const result = (await this._db.create(data)).toObject();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -95,9 +130,14 @@ export class ReviewRepository implements IReviewRepository {
 		"delete"
 	> {
 		try {
-			return await this._db.findByIdAndDelete(reviewId).lean();
+			const result = await this._db.findByIdAndDelete(reviewId).lean();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -108,13 +148,18 @@ export class ReviewRepository implements IReviewRepository {
 		"existsById"
 	> {
 		try {
-			return await this._db
+			const result = await this._db
 				.exists({
 					_id: reviewId,
 				})
 				.lean();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -126,22 +171,32 @@ export class ReviewRepository implements IReviewRepository {
 		"existsByUserIdAndProductId"
 	>): MethodReturn<IReviewRepository, "existsByUserIdAndProductId"> {
 		try {
-			return await this._db
+			const result = await this._db
 				.exists({
 					product: productId,
 					user: userId,
 				})
 				.lean();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
 	async getAll(): MethodReturn<IReviewRepository, "getAll"> {
 		try {
-			return await this._db.find({}).lean();
+			const result = await this._db.find({}).lean();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -152,9 +207,14 @@ export class ReviewRepository implements IReviewRepository {
 		"getAllByProductId"
 	> {
 		try {
-			return await this._db.find({ product: productId }).lean();
+			const result = await this._db.find({ product: productId }).lean();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -165,9 +225,14 @@ export class ReviewRepository implements IReviewRepository {
 		"getAllByUserId"
 	> {
 		try {
-			return await this._db.find({ user: userId }).lean();
+			const result = await this._db.find({ user: userId }).lean();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -178,9 +243,14 @@ export class ReviewRepository implements IReviewRepository {
 		"getById"
 	> {
 		try {
-			return await this._db.findById(reviewId).lean();
+			const result = await this._db.findById(reviewId).lean();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -192,15 +262,20 @@ export class ReviewRepository implements IReviewRepository {
 		"update"
 	> {
 		try {
-			return await this._db
+			const result = await this._db
 				.findByIdAndUpdate(reviewId, data, { new: true })
 				.lean();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
-	private _errorHandler(error: unknown): never {
-		return handleDatabaseError(error);
+	private _errorHandler(error: unknown): FailureResult<DatabaseBaseError> {
+		return handleDatabaseErrorResult(error);
 	}
 }
