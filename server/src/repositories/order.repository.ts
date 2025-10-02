@@ -1,36 +1,44 @@
 import type { Types } from "mongoose";
 
+import type { DatabaseBaseError } from "../errors/index.js";
 import type {
 	AllOrdersResponse,
+	FailureResult,
 	InsertOrder,
 	MethodParams,
 	MethodReturn,
+	Result,
 	SelectOrder,
 } from "../types/index.js";
 
 import Order from "../models/order.model.js";
-import { handleDatabaseError } from "../utils/index.js";
+import { handleDatabaseErrorResult } from "../utils/index.js";
 
 export interface IOrderRepository {
-	create(data: InsertOrder): Promise<SelectOrder>;
-	getAll(): Promise<AllOrdersResponse>;
-	getAllByUserId(data: { userId: Types.ObjectId }): Promise<AllOrdersResponse>;
+	create(data: InsertOrder): Promise<OrderResult<SelectOrder>>;
+	getAll(): Promise<OrderResult<AllOrdersResponse>>;
+	getAllByUserId(data: {
+		userId: Types.ObjectId;
+	}): Promise<OrderResult<AllOrdersResponse>>;
 	getById({
 		orderId,
 	}: {
 		orderId: Types.ObjectId;
-	}): Promise<null | SelectOrder>;
+	}): Promise<OrderResult<null | SelectOrder>>;
 	updateToDelivered({
 		orderId,
 	}: {
 		orderId: Types.ObjectId;
-	}): Promise<null | SelectOrder>;
+	}): Promise<OrderResult<null | SelectOrder>>;
 	updateToPaid({
 		orderId,
 	}: {
 		orderId: Types.ObjectId;
-	}): Promise<null | SelectOrder>;
+	}): Promise<OrderResult<null | SelectOrder>>;
 }
+
+type OrderResult<T> = Result<T, DatabaseBaseError>;
+
 export class OrderRepository implements IOrderRepository {
 	private readonly _db: typeof Order;
 
@@ -42,22 +50,30 @@ export class OrderRepository implements IOrderRepository {
 		data: MethodParams<IOrderRepository, "create">,
 	): MethodReturn<IOrderRepository, "create"> {
 		try {
-			return (await this._db.create(data)).toObject();
+			const result = await this._db.create(data);
+			return {
+				data: result.toObject(),
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
 	async getAll(): MethodReturn<IOrderRepository, "getAll"> {
 		try {
-			return await this._db
+			const result = await this._db
 				.find({})
 				.select(
 					"_id createdAt isPaid paidAt isDelivered deliveredAt totalPrice user",
 				)
 				.lean();
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -68,14 +84,19 @@ export class OrderRepository implements IOrderRepository {
 		"getAllByUserId"
 	> {
 		try {
-			return await this._db
+			const result = await this._db
 				.find({ user: userId })
 				.select(
 					"_id createdAt isPaid paidAt isDelivered deliveredAt totalPrice user",
 				)
 				.lean();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -86,12 +107,17 @@ export class OrderRepository implements IOrderRepository {
 		"getById"
 	> {
 		try {
-			return await this._db
+			const result = await this._db
 				.findById(orderId)
 				.populate("user", "name email")
 				.lean();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -102,7 +128,7 @@ export class OrderRepository implements IOrderRepository {
 		"getById"
 	> {
 		try {
-			return await this._db
+			const result = await this._db
 				.findByIdAndUpdate(
 					orderId,
 					{
@@ -114,8 +140,13 @@ export class OrderRepository implements IOrderRepository {
 					{ new: true },
 				)
 				.lean();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
@@ -126,7 +157,7 @@ export class OrderRepository implements IOrderRepository {
 		"updateToDelivered"
 	> {
 		try {
-			return await this._db
+			const result = await this._db
 				.findByIdAndUpdate(
 					orderId,
 					{
@@ -140,12 +171,17 @@ export class OrderRepository implements IOrderRepository {
 					},
 				)
 				.lean();
+
+			return {
+				data: result,
+				success: true,
+			};
 		} catch (error) {
-			this._errorHandler(error);
+			return this._errorHandler(error);
 		}
 	}
 
-	private _errorHandler(error: unknown): never {
-		return handleDatabaseError(error);
+	private _errorHandler(error: unknown): FailureResult<DatabaseBaseError> {
+		return handleDatabaseErrorResult(error);
 	}
 }

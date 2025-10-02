@@ -38,20 +38,19 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.ok(createdOrder);
-			assert.ok(createdOrder._id);
+			assert.strictEqual(createdOrder.success, true);
+
+			const resData = createdOrder.data;
+			assert.strictEqual(resData.user.toString(), mockOrder.user.toString());
+			assert.strictEqual(resData.paymentMethod, mockOrder.paymentMethod);
+			assert.strictEqual(resData.itemsPrice, mockOrder.itemsPrice);
+			assert.strictEqual(resData.shippingPrice, mockOrder.shippingPrice);
+			assert.strictEqual(resData.taxPrice, mockOrder.taxPrice);
+			assert.strictEqual(resData.totalPrice, mockOrder.totalPrice);
+			assert.strictEqual(resData.isPaid, mockOrder.isPaid);
+			assert.strictEqual(resData.isDelivered, mockOrder.isDelivered);
 			assert.strictEqual(
-				createdOrder.user.toString(),
-				mockOrder.user.toString(),
-			);
-			assert.strictEqual(createdOrder.paymentMethod, mockOrder.paymentMethod);
-			assert.strictEqual(createdOrder.itemsPrice, mockOrder.itemsPrice);
-			assert.strictEqual(createdOrder.shippingPrice, mockOrder.shippingPrice);
-			assert.strictEqual(createdOrder.taxPrice, mockOrder.taxPrice);
-			assert.strictEqual(createdOrder.totalPrice, mockOrder.totalPrice);
-			assert.strictEqual(createdOrder.isPaid, mockOrder.isPaid);
-			assert.strictEqual(createdOrder.isDelivered, mockOrder.isDelivered);
-			assert.strictEqual(
-				createdOrder.orderItems.length,
+				resData.orderItems.length,
 				mockOrder.orderItems.length,
 			);
 		});
@@ -64,8 +63,9 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const createdOrder = await orderRepository.create(mockOrder);
 
 			// Assert
-			assert.ok(createdOrder.createdAt instanceof Date);
-			assert.ok(createdOrder.updatedAt instanceof Date);
+			assert.strictEqual(createdOrder.success, true);
+			assert.ok(createdOrder.data.createdAt instanceof Date);
+			assert.ok(createdOrder.data.updatedAt instanceof Date);
 		});
 
 		test("Should create order with multiple items when 'db.create' is called", async () => {
@@ -83,8 +83,9 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const createdOrder = await orderRepository.create(mockOrder);
 
 			// Assert
-			assert.strictEqual(createdOrder.orderItems.length, 5);
-			createdOrder.orderItems.forEach((item) => {
+			assert.strictEqual(createdOrder.success, true);
+			assert.strictEqual(createdOrder.data.orderItems.length, 5);
+			createdOrder.data.orderItems.forEach((item) => {
 				assert.ok(item.product);
 				assert.strictEqual(item.qty, 2);
 				assert.strictEqual(item.price, 10);
@@ -100,21 +101,24 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const createdOrder = await orderRepository.create(mockOrder);
 
 			// Assert
-			assert.strictEqual(createdOrder.orderItems.length, 0);
+			assert.strictEqual(createdOrder.success, true);
+			assert.strictEqual(createdOrder.data.orderItems.length, 0);
 		});
 
-		test("Should throw 'DatabaseValidationError' when 'db.create' is called without required fields", async () => {
+		test("Should return 'DatabaseValidationError' when 'db.create' is called without required fields", async () => {
 			// Arrange
 			const invalidOrder = {
 				user: generateMockObjectId(),
 				// Missing required fields
 			};
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await orderRepository.create(invalidOrder as any),
-				DatabaseValidationError,
-			);
+			// Act
+			// @ts-expect-error - test case
+			const result = await orderRepository.create(invalidOrder);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 
 		test("Should handle Unicode characters in shipping address when 'db.create' is called", async () => {
@@ -131,16 +135,19 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const createdOrder = await orderRepository.create(mockOrder);
 
 			// Assert
+			assert.strictEqual(createdOrder.success, true);
+
+			const resData = createdOrder.data;
 			assert.strictEqual(
-				createdOrder.shippingAddress.address,
+				resData.shippingAddress.address,
 				mockOrder.shippingAddress.address,
 			);
 			assert.strictEqual(
-				createdOrder.shippingAddress.city,
+				resData.shippingAddress.city,
 				mockOrder.shippingAddress.city,
 			);
 			assert.strictEqual(
-				createdOrder.shippingAddress.country,
+				resData.shippingAddress.country,
 				mockOrder.shippingAddress.country,
 			);
 		});
@@ -161,11 +168,13 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.ok(foundOrder);
+			assert.strictEqual(foundOrder.success, true);
+			assert.ok(foundOrder.data);
 			assert.strictEqual(
-				foundOrder.user._id.toString(),
+				foundOrder.data.user._id.toString(),
 				mockOrder.user.toString(),
 			);
-			assert.strictEqual(foundOrder.totalPrice, mockOrder.totalPrice);
+			assert.strictEqual(foundOrder.data.totalPrice, mockOrder.totalPrice);
 		});
 
 		test("Should return null when 'db.findById' is called with non-existent ID", async () => {
@@ -176,7 +185,8 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const order = await orderRepository.getById({ orderId: nonExistentId });
 
 			// Assert
-			assert.strictEqual(order, null);
+			assert.strictEqual(order.success, true);
+			assert.strictEqual(order.data, null);
 		});
 
 		test("Should populate user details when 'db.findById' is called", async () => {
@@ -193,18 +203,21 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.ok(foundOrder);
-			assert.ok(foundOrder.user);
+			assert.strictEqual(foundOrder.success, true);
+			assert.ok(foundOrder.data);
+			assert.ok(foundOrder.data.user);
 		});
 
-		test("Should throw 'DatabaseValidationError' when 'db.findById' is called with invalid ObjectId", async () => {
+		test("Should return 'DatabaseValidationError' when 'db.findById' is called with invalid ObjectId", async () => {
 			// Arrange
 			const invalidId = "invalid-id" as any;
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await orderRepository.getById({ orderId: invalidId }),
-				DatabaseValidationError,
-			);
+			// Act
+			const result = await orderRepository.getById({ orderId: invalidId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 
 		test("Should return complete order items when 'db.findById' is called", async () => {
@@ -226,8 +239,11 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.ok(foundOrder);
-			assert.strictEqual(foundOrder.orderItems.length, 3);
-			foundOrder.orderItems.forEach((item, i) => {
+			assert.strictEqual(foundOrder.success, true);
+			assert.ok(foundOrder.data);
+
+			assert.strictEqual(foundOrder.data.orderItems.length, 3);
+			foundOrder.data.orderItems.forEach((item, i) => {
 				assert.strictEqual(item.name, `Product ${i}`);
 				assert.strictEqual(item.qty, i + 1);
 				assert.strictEqual(item.price, (i + 1) * 10);
@@ -250,8 +266,10 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.ok(updatedOrder);
-			assert.ok(updatedOrder.deliveredAt instanceof Date);
-			assert.strictEqual(updatedOrder.isDelivered, true);
+			assert.strictEqual(updatedOrder.success, true);
+			assert.ok(updatedOrder.data);
+			assert.ok(updatedOrder.data.deliveredAt instanceof Date);
+			assert.strictEqual(updatedOrder.data.isDelivered, true);
 		});
 
 		test("Should return null when 'db.updateToDelivered' is called with non-existent ID", async () => {
@@ -264,7 +282,8 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(order, null);
+			assert.strictEqual(order.success, true);
+			assert.strictEqual(order.data, null);
 		});
 
 		test("Should update deliveredAt when 'db.updateToDelivered' is called on already delivered order", async () => {
@@ -281,19 +300,23 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.ok(updatedOrder);
-			assert.ok(updatedOrder.deliveredAt! > mockOrder.deliveredAt);
+			assert.strictEqual(updatedOrder.success, true);
+			assert.ok(updatedOrder.data);
+			assert.ok(updatedOrder.data.deliveredAt! > mockOrder.deliveredAt);
 		});
 
 		test("Should throw 'DatabaseValidationError' when 'db.updateToDelivered' is called with invalid ObjectId", async () => {
 			// Arrange
 			const invalidId = "invalid-id" as any;
 
-			// Act & Assert
-			await assert.rejects(
-				async () =>
-					await orderRepository.updateToDelivered({ orderId: invalidId }),
-				DatabaseValidationError,
-			);
+			// Act
+			const result = await orderRepository.updateToDelivered({
+				orderId: invalidId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 	});
 
@@ -312,8 +335,10 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.ok(updatedOrder);
-			assert.ok(updatedOrder.paidAt instanceof Date);
-			assert.strictEqual(updatedOrder.isPaid, true);
+			assert.strictEqual(updatedOrder.success, true);
+			assert.ok(updatedOrder.data);
+			assert.ok(updatedOrder.data.paidAt instanceof Date);
+			assert.strictEqual(updatedOrder.data.isPaid, true);
 		});
 
 		test("Should return null when 'db.updateToPaid' is called with non-existent ID", async () => {
@@ -326,7 +351,8 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(order, null);
+			assert.strictEqual(order.success, true);
+			assert.strictEqual(order.data, null);
 		});
 
 		test("Should update paidAt when 'db.updateToPaid' is called on already paid order", async () => {
@@ -343,18 +369,21 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.ok(updatedOrder);
-			assert.ok(updatedOrder.paidAt! > mockOrder.paidAt);
+			assert.strictEqual(updatedOrder.success, true);
+			assert.ok(updatedOrder.data);
+			assert.ok(updatedOrder.data.paidAt! > mockOrder.paidAt);
 		});
 
-		test("Should throw 'DatabaseValidationError' when 'db.updateToPaid' is called with invalid ObjectId", async () => {
+		test("Should return 'DatabaseValidationError' when 'db.updateToPaid' is called with invalid ObjectId", async () => {
 			// Arrange
 			const invalidId = "invalid-id" as any;
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await orderRepository.updateToPaid({ orderId: invalidId }),
-				DatabaseValidationError,
-			);
+			// Act
+			const result = await orderRepository.updateToPaid({ orderId: invalidId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 	});
 
@@ -368,9 +397,11 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const orders = await orderRepository.getAll();
 
 			// Assert
-			assert.ok(Array.isArray(orders));
-			assert.strictEqual(orders.length, mockOrders.length);
-			orders.forEach((order) => {
+			assert.ok(orders);
+			assert.strictEqual(orders.success, true);
+			assert.ok(Array.isArray(orders.data));
+			assert.strictEqual(orders.data.length, mockOrders.length);
+			orders.data.forEach((order) => {
 				assert.ok(order._id);
 				assert.ok(order.createdAt);
 				assert.ok("isPaid" in order);
@@ -384,7 +415,9 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const orders = await orderRepository.getAll();
 
 			// Assert
-			assert.strictEqual(orders.length, 0);
+			assert.strictEqual(orders.success, true);
+			assert.ok(Array.isArray(orders.data));
+			assert.strictEqual(orders.data.length, 0);
 		});
 
 		test("Should return orders sorted by createdAt when 'db.find' is called", async () => {
@@ -399,10 +432,11 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const orders = await orderRepository.getAll();
 
 			// Assert
-			assert.strictEqual(orders.length, 3);
-			orders.forEach((order, i) => {
+			assert.strictEqual(orders.success, true);
+			assert.strictEqual(orders.data.length, 3);
+			orders.data.forEach((order, i) => {
 				if (i > 0) {
-					assert.ok(order.createdAt >= orders[i - 1].createdAt);
+					assert.ok(order.createdAt >= orders.data[i - 1].createdAt);
 				}
 			});
 		});
@@ -414,9 +448,14 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 
 			// Act
 			const orders = await orderRepository.getAll();
-			const order = orders[0];
 
 			// Assert
+			assert.ok(orders);
+			assert.strictEqual(orders.success, true);
+			assert.ok(Array.isArray(orders.data));
+			assert.strictEqual(orders.data.length, 1);
+
+			const order = orders.data[0];
 			assert.ok(order._id);
 			assert.ok(order.createdAt);
 			assert.ok("isPaid" in order);
@@ -441,8 +480,12 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const orders = await orderRepository.getAllByUserId({ userId });
 
 			// Assert
-			assert.strictEqual(orders.length, mockOrders.length);
-			orders.forEach((order) => {
+			assert.ok(orders);
+			assert.strictEqual(orders.success, true);
+			assert.ok(Array.isArray(orders.data));
+
+			assert.strictEqual(orders.data.length, mockOrders.length);
+			orders.data.forEach((order) => {
 				assert.ok(order._id);
 				assert.ok(order.createdAt);
 				assert.ok("isPaid" in order);
@@ -459,19 +502,23 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const orders = await orderRepository.getAllByUserId({ userId });
 
 			// Assert
-			assert.strictEqual(orders.length, 0);
+			assert.strictEqual(orders.success, true);
+			assert.ok(Array.isArray(orders.data));
+			assert.strictEqual(orders.data.length, 0);
 		});
 
-		test("Should throw 'DatabaseValidationError' when 'db.find' is called with invalid user ID", async () => {
+		test("Should return 'DatabaseValidationError' when 'db.find' is called with invalid user ID", async () => {
 			// Arrange
 			const invalidUserId = "invalid-id" as any;
 
-			// Act & Assert
-			await assert.rejects(
-				async () =>
-					await orderRepository.getAllByUserId({ userId: invalidUserId }),
-				DatabaseValidationError,
-			);
+			// Act
+			const result = await orderRepository.getAllByUserId({
+				userId: invalidUserId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 
 		test("Should return orders sorted by createdAt when 'db.find' is called with user ID", async () => {
@@ -488,11 +535,14 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const orders = await orderRepository.getAllByUserId({ userId });
 
 			// Assert
-			assert.ok(Array.isArray(orders));
-			assert.strictEqual(orders.length, 3);
-			orders.forEach((order, i) => {
+			assert.ok(orders);
+			assert.strictEqual(orders.success, true);
+			assert.ok(Array.isArray(orders.data));
+
+			assert.strictEqual(orders.data.length, 3);
+			orders.data.forEach((order, i) => {
 				if (i > 0) {
-					assert.ok(order.createdAt >= orders[i - 1].createdAt);
+					assert.ok(order.createdAt >= orders.data[i - 1].createdAt);
 				}
 			});
 		});
@@ -506,9 +556,14 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 
 			// Act
 			const orders = await orderRepository.getAllByUserId({ userId });
-			const order = orders[0];
 
 			// Assert
+			assert.ok(orders);
+			assert.strictEqual(orders.success, true);
+			assert.ok(Array.isArray(orders.data));
+			assert.strictEqual(orders.data.length, 1);
+
+			const order = orders.data[0];
 			assert.ok(order);
 			assert.ok(order._id);
 			assert.ok(order.createdAt);

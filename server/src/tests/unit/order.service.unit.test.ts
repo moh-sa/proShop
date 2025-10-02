@@ -24,7 +24,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 		test("Should return the order object when 'repo.create' is called once with order data", async () => {
 			mockRepo.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectOrder),
+				Promise.resolve({ data: mockSelectOrder, success: true }),
 			);
 
 			const order = await service.create(mockInsertOrder);
@@ -49,7 +49,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			});
 
 			mockRepo.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectOrder),
+				Promise.resolve({ data: mockSelectOrder, success: true }),
 			);
 
 			// Act
@@ -88,7 +88,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 		test("Should return array of orders when 'repo.getAll' is called once with no args", async () => {
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrders),
+				Promise.resolve({ data: mockOrders, success: true }),
 			);
 
 			const orders = await service.getAll();
@@ -101,7 +101,9 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should return empty array if 'repo.getAll' returns empty array", async () => {
-			mockRepo.getAll.mock.mockImplementationOnce(() => Promise.resolve([]));
+			mockRepo.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: [], success: true }),
+			);
 
 			const orders = await service.getAll();
 
@@ -116,7 +118,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 		test("Should return array of orders when 'repo.getAllByUserId' is called once with 'userId'", async () => {
 			mockRepo.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrders),
+				Promise.resolve({ data: mockOrders, success: true }),
 			);
 
 			const orders = await service.getAllByUserId({
@@ -135,7 +137,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 		test("Should return empty array if 'repo.getAllByUserId' returns empty array", async () => {
 			mockRepo.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve([]),
+				Promise.resolve({ data: [], success: true }),
 			);
 
 			const orders = await service.getAllByUserId({
@@ -164,7 +166,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 		test("Should return order object when 'repo.getById' is called once with 'orderId'", async () => {
 			mockRepo.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrder),
+				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			const order = await service.getById({ orderId: orderId.toString() });
@@ -179,7 +181,9 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should throw 'NotFoundError' if 'repo.getById' returns 'null'", async () => {
-			mockRepo.getById.mock.mockImplementationOnce(() => Promise.resolve(null));
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: null, success: true }),
+			);
 
 			await assert.rejects(
 				async () => await service.getById({ orderId: orderId.toString() }),
@@ -205,7 +209,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 		test("Should return the order object when 'repo.updateToPaid' is called once with 'orderId'", async () => {
 			mockRepo.updateToPaid.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrder),
+				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			const updatedOrder = await service.updateToPaid({
@@ -223,7 +227,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 		test("Should throw 'NotFoundError' if 'repo.updateToPaid' returns 'null'", async () => {
 			mockRepo.updateToPaid.mock.mockImplementationOnce(() =>
-				Promise.resolve(null),
+				Promise.resolve({ data: null, success: true }),
 			);
 
 			await assert.rejects(
@@ -250,7 +254,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 		test("Should return the order object when 'repo.updateToDelivered' is called once with 'orderId", async () => {
 			mockRepo.updateToDelivered.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrder),
+				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			const updatedOrder = await service.updateToDelivered({
@@ -269,7 +273,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 		test("Should throw 'NotFoundError' if 'repo.updateToDelivered' returns 'null'", async () => {
 			mockRepo.updateToDelivered.mock.mockImplementationOnce(() =>
-				Promise.resolve(null),
+				Promise.resolve({ data: null, success: true }),
 			);
 
 			await assert.rejects(

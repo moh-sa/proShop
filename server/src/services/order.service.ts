@@ -51,11 +51,21 @@ export class OrderService implements IOrderService {
 			throw new EmptyCartError();
 		}
 
-		return await this._repository.create(validationResult.data);
+		const result = await this._repository.create(validationResult.data);
+		if (!result.success) {
+			throw result.error;
+		}
+
+		return result.data;
 	}
 
 	async getAll(): MethodReturn<IOrderService, "getAll"> {
-		return await this._repository.getAll();
+		const result = await this._repository.getAll();
+		if (!result.success) {
+			throw result.error;
+		}
+
+		return result.data;
 	}
 
 	async getAllByUserId({
@@ -69,9 +79,14 @@ export class OrderService implements IOrderService {
 			throw validationResult.error;
 		}
 
-		return await this._repository.getAllByUserId({
+		const result = await this._repository.getAllByUserId({
 			userId: validationResult.data,
 		});
+		if (!result.success) {
+			throw result.error;
+		}
+
+		return result.data;
 	}
 
 	async getById({
@@ -85,14 +100,18 @@ export class OrderService implements IOrderService {
 			throw validationResult.error;
 		}
 
-		const order = await this._repository.getById({
+		const result = await this._repository.getById({
 			orderId: validationResult.data,
 		});
-		if (!order) {
+		if (!result.success) {
+			throw result.error;
+		}
+
+		if (!result.data) {
 			throw new NotFoundError("Order");
 		}
 
-		return order;
+		return result.data;
 	}
 
 	async updateToDelivered({
@@ -106,14 +125,18 @@ export class OrderService implements IOrderService {
 			throw validationResult.error;
 		}
 
-		const updatedOrder = await this._repository.updateToDelivered({
+		const result = await this._repository.updateToDelivered({
 			orderId: validationResult.data,
 		});
-		if (!updatedOrder) {
+		if (!result.success) {
+			throw result.error;
+		}
+
+		if (!result.data) {
 			throw new NotFoundError("Order");
 		}
 
-		return updatedOrder;
+		return result.data;
 	}
 
 	async updateToPaid({
@@ -127,14 +150,18 @@ export class OrderService implements IOrderService {
 			throw validationResult.error;
 		}
 
-		const updatedOrder = await this._repository.updateToPaid({
+		const result = await this._repository.updateToPaid({
 			orderId: validationResult.data,
 		});
-		if (!updatedOrder) {
+		if (!result.success) {
+			throw result.error;
+		}
+
+		if (!result.data) {
 			throw new NotFoundError("Order");
 		}
 
-		return updatedOrder;
+		return result.data;
 	}
 
 	private _validateCreateData(data: InsertOrder): OrderResult<InsertOrder> {
