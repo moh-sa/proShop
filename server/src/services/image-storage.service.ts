@@ -8,7 +8,9 @@ import type {
 	SelectImage,
 } from "../types/index.js";
 
-import cloudinary from "../config/cloudinary.config.js";
+import cloudinary, {
+	DEFAULT_CLOUDINARY_UPLOAD_CONFIG,
+} from "../config/cloudinary.config.js";
 import { ValidationError } from "../errors/index.js";
 import { insertImageSchema, selectImageSchema } from "../schemas/index.js";
 
@@ -89,18 +91,7 @@ export class ImageStorageService implements IImageStorageService {
 		return new Promise((resolve, reject) => {
 			this.provider.uploader
 				.upload_stream(
-					{
-						folder: "proShop",
-						format: "avif",
-						resource_type: "image",
-						transformation: {
-							aspect_ratio: "16:9",
-							crop: "auto",
-							gravity: "auto",
-							height: 272,
-							width: 482,
-						},
-					},
+					DEFAULT_CLOUDINARY_UPLOAD_CONFIG,
 					(
 						error: undefined | UploadApiErrorResponse,
 						result?: UploadApiResponse,

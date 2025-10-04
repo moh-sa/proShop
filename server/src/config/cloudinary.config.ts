@@ -1,3 +1,5 @@
+import type { UploadApiOptions } from "cloudinary";
+
 import { v2 as cloudinary } from "cloudinary";
 
 import { env } from "./env.js";
@@ -9,3 +11,19 @@ cloudinary.config({
 });
 
 export default cloudinary;
+
+export const DEFAULT_CLOUDINARY_TRANSFORMATION: UploadApiOptions["transformation"] =
+	{
+		aspect_ratio: "16:9",
+		crop: "auto",
+		gravity: "auto",
+		height: 272,
+		width: 482,
+	};
+
+export const DEFAULT_CLOUDINARY_UPLOAD_CONFIG: UploadApiOptions = {
+	folder: "proShop",
+	format: "avif",
+	resource_type: "image",
+	transformation: DEFAULT_CLOUDINARY_TRANSFORMATION,
+};
