@@ -85,9 +85,10 @@ export class ImageStorageService implements IImageStorageService {
 			throw fileValidationResult.error;
 		}
 
-		return new Promise((resolve, reject) => {
-			this.provider.uploader
-				.upload_stream(DEFAULT_CLOUDINARY_UPLOAD_CONFIG, (error, result) => {
+		const promise = await new Promise<SelectImage>((resolve, reject) => {
+			const stream = this.provider.uploader.upload_stream(
+				DEFAULT_CLOUDINARY_UPLOAD_CONFIG,
+				(error, result) => {
 					if (error) {
 						return reject(
 							new InternalError("Image Upload to storage provider failed", {
@@ -103,9 +104,13 @@ export class ImageStorageService implements IImageStorageService {
 					}
 
 					return resolve(result.secure_url);
-				})
-				.end(fileValidationResult.data.buffer);
+				},
+			);
+
+			stream.end(fileValidationResult.data.buffer);
 		});
+
+		return promise;
 	}
 
 	private _extractPublicId({ url }: { url: string }): StorageResult<string> {
