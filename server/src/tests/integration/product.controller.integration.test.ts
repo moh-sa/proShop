@@ -49,7 +49,10 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			req.file = image;
 			res.locals.user = mockUser;
 			storage.upload.mock.mockImplementationOnce(() =>
-				Promise.resolve("http://example.com/image.jpg"),
+				Promise.resolve({
+					data: "http://example.com/image.jpg",
+					success: true,
+				}),
 			);
 
 			// Act
@@ -73,7 +76,10 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			req.file = image;
 			res.locals.user = mockUser;
 			storage.upload.mock.mockImplementationOnce(() =>
-				Promise.resolve("http://example.com/image.jpg"),
+				Promise.resolve({
+					data: "http://example.com/image.jpg",
+					success: true,
+				}),
 			);
 
 			// Act
@@ -94,7 +100,10 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			req.file = image;
 			res.locals.user = mockUser;
 			storage.upload.mock.mockImplementationOnce(() =>
-				Promise.resolve("http://example.com/image.jpg"),
+				Promise.resolve({
+					data: "http://example.com/image.jpg",
+					success: true,
+				}),
 			);
 
 			// Act

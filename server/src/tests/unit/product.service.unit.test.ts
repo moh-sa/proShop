@@ -40,7 +40,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 		test("Should return product object when 'repo.create' is called once with product data", async () => {
 			mockStorage.upload.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult.image),
+				Promise.resolve({ data: expectedResult.image, success: true }),
 			);
 
 			mockRepo.create.mock.mockImplementationOnce(() =>
@@ -60,24 +60,26 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should return a string when 'storage.upload' is called once with 'data.file'", async () => {
+			// Arrange
 			mockStorage.upload.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult.image),
+				Promise.resolve({ data: expectedResult.image, success: true }),
 			);
 
 			mockRepo.create.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
-			await service.create(mockInsertProduct);
+			// Act
+			const result = await service.create(mockInsertProduct);
+
+			// Assert
+			assert.ok(result);
+			assert.strictEqual(result.image, expectedResult.image);
 
 			assert.strictEqual(mockStorage.upload.mock.callCount(), 1);
 			assert.deepStrictEqual(mockStorage.upload.mock.calls[0].arguments[0], {
 				file: mockInsertProduct.image,
 			});
-			assert.strictEqual(
-				await mockStorage.upload.mock.calls[0].result,
-				expectedResult.image,
-			);
 		});
 
 		test("Should throw generic 'Error' if 'storage.upload' rejects", async () => {
@@ -495,7 +497,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			);
 
 			mockStorage.replace.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockProduct.image),
+				Promise.resolve({ data: mockProduct.image, success: true }),
 			);
 
 			mockRepo.update.mock.mockImplementationOnce(() =>

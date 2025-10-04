@@ -17,9 +17,12 @@ import {
 import { insertImageSchema, selectImageSchema } from "../schemas/index.js";
 
 export interface IImageStorageService {
-	delete(data: { url: string }): Promise<void>;
-	replace(data: { file: InsertImage; url: string }): Promise<SelectImage>;
-	upload(data: { file: InsertImage }): Promise<SelectImage>;
+	delete(data: { url: string }): Promise<StorageResult<void>>;
+	replace(data: {
+		file: InsertImage;
+		url: string;
+	}): Promise<StorageResult<SelectImage>>;
+	upload(data: { file: InsertImage }): Promise<StorageResult<SelectImage>>;
 }
 
 type StorageResult<T> = Result<T>;
@@ -36,14 +39,14 @@ export class ImageStorageService implements IImageStorageService {
 		try {
 			const urlValidationResult = this._validateImageUrl(url);
 			if (!urlValidationResult.success) {
-				throw urlValidationResult.error;
+				return urlValidationResult;
 			}
 
 			const publicIdResult = this._extractPublicId({
 				url: urlValidationResult.data,
 			});
 			if (!publicIdResult.success) {
-				throw publicIdResult.error;
+				return publicIdResult;
 			}
 
 			const res = await this._provider.uploader.destroy(
@@ -51,17 +54,36 @@ export class ImageStorageService implements IImageStorageService {
 			);
 
 			if (res.result === "not found") {
-				throw new NotFoundError("Image");
+				return {
+					error: new NotFoundError("Image"),
+					success: false,
+				};
 			} else if (res.result !== "ok") {
-				throw new InternalError("Failed to delete image from storage");
+				return {
+					error: new InternalError("Failed to delete image from storage"),
+					success: false,
+				};
 			}
+
+			return {
+				data: undefined,
+				success: true,
+			};
 		} catch (error) {
 			console.error(error);
-			throw new Error(
-				`Delete failed: ${
-					error instanceof Error ? error.message : "Unknown error"
-				}`,
-			);
+			if (error instanceof Error) {
+				return {
+					error,
+					success: false,
+				};
+			}
+
+			return {
+				error: new InternalError("Something unexpected happened", {
+					cause: String(error),
+				}),
+				success: false,
+			};
 		}
 	}
 
@@ -72,10 +94,20 @@ export class ImageStorageService implements IImageStorageService {
 		IImageStorageService,
 		"replace"
 	> {
-		const newImageURL = await this.upload({ file });
-		await this.delete({ url });
+		const uploadResult = await this.upload({ file });
+		if (!uploadResult.success) {
+			return uploadResult;
+		}
 
-		return newImageURL;
+		const deleteResult = await this.delete({ url });
+		if (!deleteResult.success) {
+			return deleteResult;
+		}
+
+		return {
+			data: uploadResult.data,
+			success: true,
+		};
 	}
 
 	async upload({
@@ -86,28 +118,38 @@ export class ImageStorageService implements IImageStorageService {
 	> {
 		const fileValidationResult = this._validateImageFile(file);
 		if (!fileValidationResult.success) {
-			throw fileValidationResult.error;
+			return fileValidationResult;
 		}
 
-		const promise = await new Promise<SelectImage>((resolve, reject) => {
+		const promise = await new Promise<StorageResult<SelectImage>>((resolve) => {
 			const stream = this._provider.uploader.upload_stream(
 				DEFAULT_CLOUDINARY_UPLOAD_CONFIG,
 				(error, result) => {
 					if (error) {
-						return reject(
-							new InternalError("Image Upload to storage provider failed", {
-								cause: error,
-							}),
-						);
+						return resolve({
+							error: new InternalError(
+								"Image Upload to storage provider failed",
+								{
+									cause: error,
+								},
+							),
+							success: false,
+						});
 					}
 
 					if (!result) {
-						return reject(
-							new InternalError("Storage provider did not return a result"),
-						);
+						return resolve({
+							error: new InternalError(
+								"Storage provider did not return a result",
+							),
+							success: false,
+						});
 					}
 
-					return resolve(result.secure_url);
+					return resolve({
+						data: result.secure_url,
+						success: true,
+					});
 				},
 			);
 

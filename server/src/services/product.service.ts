@@ -61,7 +61,10 @@ export class ProductService implements IProductService {
 		const image = await this._storage.upload({
 			file: validationResult.data.image,
 		});
-		const dataWithImage = { ...validationResult.data, image };
+		if (!image.success) {
+			throw image.error;
+		}
+		const dataWithImage = { ...validationResult.data, image: image.data };
 		const createdProduct = await this._repository.create(dataWithImage);
 		if (!createdProduct.success) {
 			throw createdProduct.error;
@@ -192,7 +195,10 @@ export class ProductService implements IProductService {
 				file: image,
 				url: currentProduct.image,
 			});
-			updatedData = { ...newData, image: newImageUrl };
+			if (!newImageUrl.success) {
+				throw newImageUrl.error;
+			}
+			updatedData = { ...newData, image: newImageUrl.data };
 		}
 
 		const updatedProduct = await this._repository.update({

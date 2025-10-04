@@ -1,16 +1,12 @@
-import { Readable } from "node:stream";
+import type { InsertImage } from "../../types/image.type.js";
 
-export function mockMulterImageFile(): Express.Multer.File {
+export function mockMulterImageFile(): InsertImage {
 	return {
 		buffer: Buffer.from("fake-image-content"),
-		destination: "uploads/",
 		encoding: "7bit",
 		fieldname: "image",
-		filename: "avatar.png",
 		mimetype: "image/png",
 		originalname: "avatar.png",
-		path: "uploads/avatar.png",
 		size: 1234,
-		stream: Readable.from("fake-image-content"),
 	};
 }

@@ -47,9 +47,10 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockProduct = generateMockInsertProductWithMulterImage();
 			const mockImageUrl = "https://example.com/image.jpg";
-			imageStorageMock.upload.mock.mockImplementationOnce(
-				async () => mockImageUrl,
-			);
+			imageStorageMock.upload.mock.mockImplementationOnce(async () => ({
+				data: mockImageUrl,
+				success: true,
+			}));
 
 			// Act
 			const createdProduct = await productService.create(mockProduct);
@@ -76,9 +77,10 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockProduct = generateMockInsertProductWithMulterImage();
 			const mockImageUrl = "https://example.com/image.jpg";
-			imageStorageMock.upload.mock.mockImplementationOnce(
-				async () => mockImageUrl,
-			);
+			imageStorageMock.upload.mock.mockImplementationOnce(async () => ({
+				data: mockImageUrl,
+				success: true,
+			}));
 
 			// Act
 			await productService.create(mockProduct);
@@ -98,9 +100,10 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 				price: "invalid-price" as unknown as number,
 			};
 			const mockImageUrl = "https://example.com/image.jpg";
-			imageStorageMock.upload.mock.mockImplementationOnce(
-				async () => mockImageUrl,
-			);
+			imageStorageMock.upload.mock.mockImplementationOnce(async () => ({
+				data: mockImageUrl,
+				success: true,
+			}));
 
 			// Act & Assert
 			await assert.rejects(
@@ -442,9 +445,10 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 				image: newImage,
 				name: "Updated Product Name",
 			};
-			imageStorageMock.replace.mock.mockImplementationOnce(
-				async () => newImageUrl,
-			);
+			imageStorageMock.replace.mock.mockImplementationOnce(async () => ({
+				data: newImageUrl,
+				success: true,
+			}));
 
 			// Act
 			const updatedProduct = await productService.update({
@@ -543,7 +547,10 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const mockProduct = generateMockSelectProduct();
 			const productId = mockProduct._id.toString();
 			await productRepository.create(mockProduct);
-			imageStorageMock.delete.mock.mockImplementationOnce(async () => {});
+			imageStorageMock.delete.mock.mockImplementationOnce(async () => ({
+				data: undefined,
+				success: true,
+			}));
 
 			// Act
 			await productService.delete({ productId });
@@ -566,6 +573,10 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			let imageDeleted = false;
 			imageStorageMock.delete.mock.mockImplementationOnce(async () => {
 				imageDeleted = true;
+				return {
+					data: undefined,
+					success: true,
+				};
 			});
 
 			// Act
