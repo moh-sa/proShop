@@ -10,7 +10,7 @@ import type {
 
 import cloudinary from "../config/cloudinary.config.js";
 import { ValidationError } from "../errors/index.js";
-import { selectImageSchema } from "../schemas/index.js";
+import { insertImageSchema, selectImageSchema } from "../schemas/index.js";
 
 export interface IImageStorageService {
 	delete(data: { url: string }): Promise<void>;
@@ -124,6 +124,23 @@ export class ImageStorageService implements IImageStorageService {
 
 		return {
 			data: publicId,
+			success: true,
+		};
+	}
+
+	private _validateImageFile(file: InsertImage): StorageResult<InsertImage> {
+		const result = insertImageSchema.safeParse(file);
+		if (!result.success) {
+			return {
+				error: new ValidationError("Invalid image file data", {
+					cause: result.error,
+				}),
+				success: false,
+			};
+		}
+
+		return {
+			data: result.data,
 			success: true,
 		};
 	}
