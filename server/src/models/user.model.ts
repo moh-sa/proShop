@@ -8,6 +8,7 @@ import {
 	MIN_NAME_LENGTH,
 	MIN_PASSWORD_LENGTH,
 } from "../constants/index.js";
+import { emailValidator } from "../validators/email.validator.js";
 
 const userSchema = new Schema<UserSchema>(
 	{
@@ -17,6 +18,12 @@ const userSchema = new Schema<UserSchema>(
 			trim: true,
 			type: String,
 			unique: true,
+			validate: {
+				message: "Invalid email format",
+				validator(value: string) {
+					return emailValidator.safeParse(value).success;
+				},
+			},
 		},
 		isAdmin: {
 			default: false,
