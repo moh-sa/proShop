@@ -19,7 +19,7 @@ import { insertImageSchema, selectImageSchema } from "../schemas/index.js";
 export interface IImageStorageService {
 	delete(data: { url: string }): Promise<void>;
 	replace(data: { file: InsertImage; url: string }): Promise<SelectImage>;
-	upload(data: { file: InsertImage }): Promise<string>;
+	upload(data: { file: InsertImage }): Promise<SelectImage>;
 }
 
 type StorageResult<T> = Result<T>;
