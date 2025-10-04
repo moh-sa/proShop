@@ -10,6 +10,7 @@ import type {
 
 import cloudinary from "../config/cloudinary.config.js";
 import { ValidationError } from "../errors/index.js";
+import { selectImageSchema } from "../schemas/index.js";
 
 export interface IImageStorageService {
 	delete(data: { url: string }): Promise<void>;
@@ -116,6 +117,23 @@ export class ImageStorageService implements IImageStorageService {
 
 		return {
 			data: publicId,
+			success: true,
+		};
+	}
+
+	private _validateImageUrl(url: string): StorageResult<string> {
+		const result = selectImageSchema.safeParse(url);
+		if (!result.success) {
+			return {
+				error: new ValidationError("Invalid Image URL", {
+					cause: result.error,
+				}),
+				success: false,
+			};
+		}
+
+		return {
+			data: result.data,
 			success: true,
 		};
 	}
