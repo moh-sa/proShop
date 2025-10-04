@@ -21,7 +21,7 @@ export interface IImageStorageService {
 type StorageResult<T> = Result<T>;
 
 export class ImageStorageService implements IImageStorageService {
-	private readonly provider = cloudinary;
+	private readonly _provider = cloudinary;
 
 	async delete({
 		url,
@@ -42,7 +42,7 @@ export class ImageStorageService implements IImageStorageService {
 				throw publicIdResult.error;
 			}
 
-			const res = await this.provider.uploader.destroy(
+			const res = await this._provider.uploader.destroy(
 				`proShop/${publicIdResult.data}`,
 			);
 
@@ -86,7 +86,7 @@ export class ImageStorageService implements IImageStorageService {
 		}
 
 		const promise = await new Promise<SelectImage>((resolve, reject) => {
-			const stream = this.provider.uploader.upload_stream(
+			const stream = this._provider.uploader.upload_stream(
 				DEFAULT_CLOUDINARY_UPLOAD_CONFIG,
 				(error, result) => {
 					if (error) {
