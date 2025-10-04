@@ -9,6 +9,7 @@ import type {
 } from "../types/index.js";
 
 import cloudinary from "../config/cloudinary.config.js";
+import { ValidationError } from "../errors/index.js";
 
 export interface IImageStorageService {
 	delete(data: { url: string }): Promise<void>;
@@ -28,8 +29,14 @@ export class ImageStorageService implements IImageStorageService {
 		"delete"
 	> {
 		try {
-			const publicId = this._extractPublicId({ url });
-			const res = await this.provider.uploader.destroy(`proShop/${publicId}`);
+			const publicIdResult = this._extractPublicId({ url });
+			if (!publicIdResult.success) {
+				throw publicIdResult.error;
+			}
+
+			const res = await this.provider.uploader.destroy(
+				`proShop/${publicIdResult.data}`,
+			);
 
 			if (res.result === "not found") {
 				throw new Error("File not found");
@@ -98,12 +105,18 @@ export class ImageStorageService implements IImageStorageService {
 		});
 	}
 
-	private _extractPublicId({ url }: { url: string }): string {
+	private _extractPublicId({ url }: { url: string }): StorageResult<string> {
 		const publicId = url.split("/").pop()?.split(".").shift();
 		if (!publicId) {
-			throw new Error("Invalid URL");
+			return {
+				error: new ValidationError("Invalid URL format"),
+				success: false,
+			};
 		}
 
-		return publicId;
+		return {
+			data: publicId,
+			success: true,
+		};
 	}
 }
