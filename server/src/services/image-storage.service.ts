@@ -30,7 +30,14 @@ export class ImageStorageService implements IImageStorageService {
 		"delete"
 	> {
 		try {
-			const publicIdResult = this._extractPublicId({ url });
+			const urlValidationResult = this._validateImageUrl(url);
+			if (!urlValidationResult.success) {
+				throw urlValidationResult.error;
+			}
+
+			const publicIdResult = this._extractPublicId({
+				url: urlValidationResult.data,
+			});
 			if (!publicIdResult.success) {
 				throw publicIdResult.error;
 			}
