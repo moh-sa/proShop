@@ -25,7 +25,7 @@ export class ImageStorageService implements IImageStorageService {
 		"delete"
 	> {
 		try {
-			const publicId = this.extractPublicId({ url });
+			const publicId = this._extractPublicId({ url });
 			const res = await this.provider.uploader.destroy(`proShop/${publicId}`);
 
 			if (res.result === "not found") {
@@ -95,7 +95,7 @@ export class ImageStorageService implements IImageStorageService {
 		});
 	}
 
-	private extractPublicId({ url }: { url: string }): string {
+	private _extractPublicId({ url }: { url: string }): string {
 		const publicId = url.split("/").pop()?.split(".").shift();
 		if (!publicId) {
 			throw new Error("Invalid URL");
