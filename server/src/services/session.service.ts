@@ -1,8 +1,8 @@
 import { z } from "zod";
 
+import type { SessionBaseError } from "../errors/index.js";
 import type { ISessionRepository } from "../repositories/session.repository.js";
 import type {
-	FailureResult,
 	InsertSession,
 	MethodParams,
 	MethodReturn,
@@ -11,11 +11,9 @@ import type {
 } from "../types/index.js";
 
 import {
-	BaseError,
 	DatabaseDuplicateKeyError,
 	SessionAlreadyExistsError,
 	SessionAlreadyRevokedError,
-	SessionBaseError,
 	SessionExpiredError,
 	SessionNotFoundError,
 	SessionValidationError,
@@ -76,23 +74,21 @@ export class SessionService implements ISessionService {
 			return argsValidationResult;
 		}
 
-		try {
-			const session = await this._repository.create(args);
-
-			return {
-				data: session,
-				success: true,
-			};
-		} catch (error) {
-			if (error instanceof DatabaseDuplicateKeyError) {
+		const session = await this._repository.create(args);
+		if (!session.success) {
+			if (session.error instanceof DatabaseDuplicateKeyError) {
 				return {
-					error: new SessionAlreadyExistsError(),
+					error: new SessionAlreadyExistsError({ cause: session.error }),
 					success: false,
 				};
 			}
-
-			return this._handleError(error);
+			return session;
 		}
+
+		return {
+			data: session.data,
+			success: true,
+		};
 	}
 
 	public async deleteAllByUserId(
@@ -103,16 +99,15 @@ export class SessionService implements ISessionService {
 			return argsValidationResult;
 		}
 
-		try {
-			const deletedCount = await this._repository.deleteAllByUserId(args);
-
-			return {
-				data: deletedCount,
-				success: true,
-			};
-		} catch (error) {
-			return this._handleError(error);
+		const deletedCount = await this._repository.deleteAllByUserId(args);
+		if (!deletedCount.success) {
+			return deletedCount;
 		}
+
+		return {
+			data: deletedCount.data,
+			success: true,
+		};
 	}
 
 	public async deleteByTokenIdAndUserId(
@@ -126,22 +121,22 @@ export class SessionService implements ISessionService {
 			return argsValidationResult;
 		}
 
-		try {
-			const session = await this._repository.deleteByTokenIdAndUserId(args);
-			if (!session) {
-				return {
-					error: new SessionNotFoundError(),
-					success: false,
-				};
-			}
-
-			return {
-				data: session,
-				success: true,
-			};
-		} catch (error) {
-			return this._handleError(error);
+		const session = await this._repository.deleteByTokenIdAndUserId(args);
+		if (!session.success) {
+			return session;
 		}
+
+		if (!session.data) {
+			return {
+				error: new SessionNotFoundError(),
+				success: false,
+			};
+		}
+
+		return {
+			data: session.data,
+			success: true,
+		};
 	}
 
 	public async getActiveByUserId(
@@ -152,18 +147,17 @@ export class SessionService implements ISessionService {
 			return argsValidationResult;
 		}
 
-		try {
-			const sessions = await this._repository.getAllActiveByUserId({
-				userId: args.userId,
-			});
-
-			return {
-				data: sessions,
-				success: true,
-			};
-		} catch (error) {
-			return this._handleError(error);
+		const sessions = await this._repository.getAllActiveByUserId({
+			userId: args.userId,
+		});
+		if (!sessions.success) {
+			return sessions;
 		}
+
+		return {
+			data: sessions.data,
+			success: true,
+		};
 	}
 
 	public async getByTokenIdAndUserId(
@@ -177,26 +171,25 @@ export class SessionService implements ISessionService {
 			return argsValidationResult;
 		}
 
-		try {
-			const session = await this._repository.getByTokenIdAndUserId({
-				tokenId: args.tokenId,
-				userId: args.userId,
-			});
-
-			if (!session) {
-				return {
-					error: new SessionNotFoundError(),
-					success: false,
-				};
-			}
-
-			return {
-				data: session,
-				success: true,
-			};
-		} catch (error) {
-			return this._handleError(error);
+		const session = await this._repository.getByTokenIdAndUserId({
+			tokenId: args.tokenId,
+			userId: args.userId,
+		});
+		if (!session.success) {
+			return session;
 		}
+
+		if (!session.data) {
+			return {
+				error: new SessionNotFoundError(),
+				success: false,
+			};
+		}
+
+		return {
+			data: session.data,
+			success: true,
+		};
 	}
 
 	public async revokeAllByUserId(
@@ -207,12 +200,12 @@ export class SessionService implements ISessionService {
 			return argsValidationResult;
 		}
 
-		try {
-			const revokedCount = await this._repository.revokeAllByUserId(args);
-			return { data: revokedCount, success: true };
-		} catch (error) {
-			return this._handleError(error);
+		const revokedCount = await this._repository.revokeAllByUserId(args);
+		if (!revokedCount.success) {
+			return revokedCount;
 		}
+
+		return { data: revokedCount.data, success: true };
 	}
 
 	public async revokeByTokenIdAndUserId(
@@ -226,24 +219,24 @@ export class SessionService implements ISessionService {
 			return argsValidationResult;
 		}
 
-		try {
-			const revokedSession =
-				await this._repository.revokeByTokenIdAndUserId(args);
+		const revokedSession =
+			await this._repository.revokeByTokenIdAndUserId(args);
 
-			if (!revokedSession) {
-				return {
-					error: new SessionNotFoundError(),
-					success: false,
-				};
-			}
-
-			return {
-				data: revokedSession,
-				success: true,
-			};
-		} catch (error) {
-			return this._handleError(error);
+		if (!revokedSession.success) {
+			return revokedSession;
 		}
+
+		if (!revokedSession.data) {
+			return {
+				error: new SessionNotFoundError(),
+				success: false,
+			};
+		}
+
+		return {
+			data: revokedSession.data,
+			success: true,
+		};
 	}
 
 	/**
@@ -260,56 +253,35 @@ export class SessionService implements ISessionService {
 			return argsValidationResult;
 		}
 
-		try {
-			const session = await this._repository.getByTokenIdAndUserId(args);
+		const session = await this._repository.getByTokenIdAndUserId(args);
+		if (!session.success) {
+			return session;
+		}
 
-			if (!session) {
-				return {
-					error: new SessionNotFoundError(),
-					success: false,
-				};
-			}
-
-			if (session.revokedAt) {
-				return {
-					error: new SessionAlreadyRevokedError(),
-					success: false,
-				};
-			}
-
-			if (session.expiresAt <= new Date()) {
-				return {
-					error: new SessionExpiredError(),
-					success: false,
-				};
-			}
-
+		if (!session.data) {
 			return {
-				data: session,
-				success: true,
+				error: new SessionNotFoundError(),
+				success: false,
 			};
-		} catch (error) {
-			return this._handleError(error);
-		}
-	}
-
-	private _handleError(error: unknown): FailureResult<SessionBaseError> {
-		if (error instanceof BaseError) {
-			return { error, success: false };
 		}
 
-		if (error instanceof Error) {
+		if (session.data.revokedAt) {
 			return {
-				error: new SessionBaseError(`Session operation failed: ${error}`),
+				error: new SessionAlreadyRevokedError(),
+				success: false,
+			};
+		}
+
+		if (session.data.expiresAt <= new Date()) {
+			return {
+				error: new SessionExpiredError(),
 				success: false,
 			};
 		}
 
 		return {
-			error: new SessionBaseError(
-				`Unexpected error occurred: ${String(error)}`,
-			),
-			success: false,
+			data: session.data,
+			success: true,
 		};
 	}
 
