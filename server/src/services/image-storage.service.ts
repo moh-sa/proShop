@@ -68,10 +68,9 @@ export class ImageStorageService implements IImageStorageService {
 		IImageStorageService,
 		"replace"
 	> {
-		const deleteImage = this.delete({ url });
-		const uploadImage = this.upload({ file });
+		const newImageURL = await this.upload({ file });
+		await this.delete({ url });
 
-		const [_, newImageURL] = await Promise.all([deleteImage, uploadImage]);
 		return newImageURL;
 	}
 
