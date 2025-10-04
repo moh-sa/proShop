@@ -9,7 +9,11 @@ import type {
 import cloudinary, {
 	DEFAULT_CLOUDINARY_UPLOAD_CONFIG,
 } from "../config/cloudinary.config.js";
-import { InternalError, ValidationError } from "../errors/index.js";
+import {
+	InternalError,
+	NotFoundError,
+	ValidationError,
+} from "../errors/index.js";
 import { insertImageSchema, selectImageSchema } from "../schemas/index.js";
 
 export interface IImageStorageService {
@@ -47,9 +51,9 @@ export class ImageStorageService implements IImageStorageService {
 			);
 
 			if (res.result === "not found") {
-				throw new Error("File not found");
+				throw new NotFoundError("Image");
 			} else if (res.result !== "ok") {
-				throw new Error("Error while deleting file");
+				throw new InternalError("Failed to delete image from storage");
 			}
 		} catch (error) {
 			console.error(error);
