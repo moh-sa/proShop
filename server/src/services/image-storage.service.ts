@@ -119,7 +119,10 @@ export class ImageStorageService implements IImageStorageService {
 	}
 
 	private _extractPublicId({ url }: { url: string }): StorageResult<string> {
-		const publicId = url.split("/").pop()?.split(".").shift();
+		// Extracts the public ID from a URL
+		const regex = /\/([^/]+)\.(avif)(?:\?|#|$)/i;
+		const match = url.match(regex);
+		const publicId = match ? match[1] : null;
 		if (!publicId) {
 			return {
 				error: new ValidationError("Invalid URL format"),
