@@ -1,23 +1,27 @@
 import { z } from "zod";
 
 import { IMAGE_SIZE_LIMIT, IMAGE_TYPE_LIMIT } from "../../constants/index.js";
+import { nonEmptyStringValidator } from "../../validators/non-empty-string.validator.js";
 
 export const insertImageSchema = z.object({
 	buffer: z.unknown().refine((val): val is Buffer => Buffer.isBuffer(val), {
 		message: "Invalid buffer",
 	}),
 
-	encoding: z.string().min(1),
+	encoding: nonEmptyStringValidator("encoding"),
 
-	fieldname: z.string().min(1),
+	fieldname: nonEmptyStringValidator("fieldname"),
 
-	mimetype: z.string().refine((val) => IMAGE_TYPE_LIMIT.includes(val), {
-		message: `Invalid image type. Allowed types: ${IMAGE_TYPE_LIMIT.map((val) =>
-			val.replace("image/", ""),
-		).join(", ")}`,
-	}),
+	mimetype: nonEmptyStringValidator("mimetype").refine(
+		(val) => IMAGE_TYPE_LIMIT.includes(val),
+		{
+			message: `Invalid image type. Allowed types: ${IMAGE_TYPE_LIMIT.map(
+				(val) => val.replace("image/", ""),
+			).join(", ")}`,
+		},
+	),
 
-	originalname: z.string().min(1),
+	originalname: nonEmptyStringValidator("originalname"),
 
 	size: z
 		.number()
@@ -25,7 +29,6 @@ export const insertImageSchema = z.object({
 		.max(IMAGE_SIZE_LIMIT, { message: "Image size should not exceed 5MB" }),
 });
 
-export const selectImageSchema = z
-	.string()
-	.min(1, { message: "Image is required" })
-	.url({ message: "Invalid image URL" });
+export const selectImageSchema = nonEmptyStringValidator("image").url({
+	message: "Invalid image URL",
+});
