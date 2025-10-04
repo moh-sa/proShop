@@ -1,5 +1,3 @@
-import type { UploadApiErrorResponse, UploadApiResponse } from "cloudinary";
-
 import type {
 	InsertImage,
 	MethodParams,
@@ -11,7 +9,7 @@ import type {
 import cloudinary, {
 	DEFAULT_CLOUDINARY_UPLOAD_CONFIG,
 } from "../config/cloudinary.config.js";
-import { ValidationError } from "../errors/index.js";
+import { InternalError, ValidationError } from "../errors/index.js";
 import { insertImageSchema, selectImageSchema } from "../schemas/index.js";
 
 export interface IImageStorageService {
@@ -90,21 +88,23 @@ export class ImageStorageService implements IImageStorageService {
 
 		return new Promise((resolve, reject) => {
 			this.provider.uploader
-				.upload_stream(
-					DEFAULT_CLOUDINARY_UPLOAD_CONFIG,
-					(
-						error: undefined | UploadApiErrorResponse,
-						result?: UploadApiResponse,
-					) => {
-						if (error) {
-							reject(new Error(`Upload failed: ${error.message}`));
-						} else if (!result?.secure_url) {
-							reject(new Error("No secure URL returned"));
-						} else {
-							resolve(result.secure_url);
-						}
-					},
-				)
+				.upload_stream(DEFAULT_CLOUDINARY_UPLOAD_CONFIG, (error, result) => {
+					if (error) {
+						return reject(
+							new InternalError("Image Upload to storage provider failed", {
+								cause: error,
+							}),
+						);
+					}
+
+					if (!result) {
+						return reject(
+							new InternalError("Storage provider did not return a result"),
+						);
+					}
+
+					return resolve(result.secure_url);
+				})
 				.end(fileValidationResult.data.buffer);
 		});
 	}
