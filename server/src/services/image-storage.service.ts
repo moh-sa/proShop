@@ -4,6 +4,7 @@ import type {
 	InsertImage,
 	MethodParams,
 	MethodReturn,
+	Result,
 	SelectImage,
 } from "../types/index.js";
 
@@ -14,6 +15,8 @@ export interface IImageStorageService {
 	replace(data: { file: InsertImage; url: string }): Promise<SelectImage>;
 	upload(data: { file: InsertImage }): Promise<string>;
 }
+
+type StorageResult<T> = Result<T>;
 
 export class ImageStorageService implements IImageStorageService {
 	private readonly provider = cloudinary;
