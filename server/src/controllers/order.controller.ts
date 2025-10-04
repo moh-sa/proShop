@@ -47,10 +47,13 @@ export class OrderController implements IOrderController {
 			user: res.locals.user._id,
 		};
 
-		const response = await this._service.create(data);
+		const result = await this._service.create(data);
+		if (!result.success) {
+			throw result.error;
+		}
 
 		res.status(HTTP_STATUS.CREATED).json({
-			data: response,
+			data: result.data,
 			success: true,
 		});
 	});
@@ -58,10 +61,13 @@ export class OrderController implements IOrderController {
 	getAll = asyncHandler<{
 		resBody: { data: AllOrdersResponse };
 	}>(async (req, res) => {
-		const orders = await this._service.getAll();
+		const result = await this._service.getAll();
+		if (!result.success) {
+			throw result.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: orders,
+			data: result.data,
 			success: true,
 		});
 	});
@@ -70,12 +76,15 @@ export class OrderController implements IOrderController {
 		params: { userId: string };
 		resBody: { data: AllOrdersResponse };
 	}>(async (req, res) => {
-		const orders = await this._service.getAllByUserId({
+		const result = await this._service.getAllByUserId({
 			userId: req.params.userId,
 		});
+		if (!result.success) {
+			throw result.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: orders,
+			data: result.data,
 			success: true,
 		});
 	});
@@ -84,10 +93,13 @@ export class OrderController implements IOrderController {
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {
-		const order = await this._service.getById({ orderId: req.params.orderId });
+		const result = await this._service.getById({ orderId: req.params.orderId });
+		if (!result.success) {
+			throw result.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: order,
+			data: result.data,
 			success: true,
 		});
 	});
@@ -96,12 +108,15 @@ export class OrderController implements IOrderController {
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {
-		const order = await this._service.updateToDelivered({
+		const result = await this._service.updateToDelivered({
 			orderId: req.params.orderId,
 		});
+		if (!result.success) {
+			throw result.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: order,
+			data: result.data,
 			success: true,
 		});
 	});
@@ -110,12 +125,15 @@ export class OrderController implements IOrderController {
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {
-		const order = await this._service.updateToPaid({
+		const result = await this._service.updateToPaid({
 			orderId: req.params.orderId,
 		});
+		if (!result.success) {
+			throw result.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: order,
+			data: result.data,
 			success: true,
 		});
 	});

@@ -36,7 +36,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectOrder),
+				Promise.resolve({ data: mockSelectOrder, success: true }),
 			);
 
 			await assert.doesNotReject(
@@ -57,7 +57,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectOrder),
+				Promise.resolve({ data: mockSelectOrder, success: true }),
 			);
 
 			await controller.create(
@@ -81,7 +81,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectOrder),
+				Promise.resolve({ data: mockSelectOrder, success: true }),
 			);
 
 			await controller.create(
@@ -102,7 +102,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectOrder),
+				Promise.resolve({ data: mockSelectOrder, success: true }),
 			);
 
 			await controller.create(
@@ -128,7 +128,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrders),
+				Promise.resolve({ data: mockOrders, success: true }),
 			);
 
 			await assert.doesNotReject(
@@ -150,7 +150,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrders),
+				Promise.resolve({ data: mockOrders, success: true }),
 			);
 
 			await controller.getAll(
@@ -169,7 +169,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrders),
+				Promise.resolve({ data: mockOrders, success: true }),
 			);
 
 			await controller.getAll(
@@ -197,7 +197,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrders),
+				Promise.resolve({ data: mockOrders, success: true }),
 			);
 
 			await assert.doesNotReject(
@@ -217,7 +217,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrders),
+				Promise.resolve({ data: mockOrders, success: true }),
 			);
 
 			await controller.getAllByUserId(
@@ -242,7 +242,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrders),
+				Promise.resolve({ data: mockOrders, success: true }),
 			);
 
 			await controller.getAllByUserId(
@@ -262,7 +262,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrders),
+				Promise.resolve({ data: mockOrders, success: true }),
 			);
 
 			await controller.getAllByUserId(
@@ -290,7 +290,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrder),
+				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			await assert.doesNotReject(
@@ -310,7 +310,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrder),
+				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			await controller.getById(
@@ -332,7 +332,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrder),
+				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			await controller.getById(
@@ -352,7 +352,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrder),
+				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			await controller.getById(
@@ -380,7 +380,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.updateToPaid.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrder),
+				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			await assert.doesNotReject(
@@ -400,7 +400,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.updateToPaid.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrder),
+				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			await controller.updateToPaid(
@@ -425,7 +425,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.updateToPaid.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrder),
+				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			await controller.updateToPaid(
@@ -445,7 +445,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.updateToPaid.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrder),
+				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			await controller.updateToPaid(
@@ -473,7 +473,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.updateToDelivered.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrder),
+				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			await assert.doesNotReject(
@@ -493,7 +493,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.updateToDelivered.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrder),
+				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			await controller.updateToDelivered(
@@ -518,7 +518,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.updateToDelivered.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrder),
+				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			await controller.updateToDelivered(
@@ -538,7 +538,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.updateToDelivered.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockOrder),
+				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			await controller.updateToDelivered(

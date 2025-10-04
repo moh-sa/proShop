@@ -38,9 +38,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const result = await orderService.create(mockOrder);
 
 			// Assert
-			assert.ok(result);
-			assert.strictEqual(result.orderItems.length, orderItemsCount);
-			assert.strictEqual(result.totalPrice, mockOrder.totalPrice);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.orderItems.length, orderItemsCount);
+			assert.strictEqual(result.data.totalPrice, mockOrder.totalPrice);
 		});
 
 		test("Should create and return order object when 'repo.create' is called with '3' order items", async () => {
@@ -52,21 +52,21 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const result = await orderService.create(mockOrder);
 
 			// Assert
-			assert.ok(result);
-			assert.strictEqual(result.orderItems.length, orderItemsCount);
-			assert.strictEqual(result.totalPrice, mockOrder.totalPrice);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.orderItems.length, orderItemsCount);
+			assert.strictEqual(result.data.totalPrice, mockOrder.totalPrice);
 		});
 
 		test("Should throw 'ValidationError' when 'repo.create' is called with empty array of order items", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder();
-			mockOrder.orderItems = [];
+			const mockOrder = generateMockInsertOrder({ orderItems: [] });
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await orderService.create(mockOrder),
-				ValidationError,
-			);
+			// Act
+			const result = await orderService.create(mockOrder);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
 		test("Should create and return order object when 'repo.create' is called with shipping address", async () => {
@@ -78,7 +78,8 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const result = await orderService.create(mockOrder);
 
 			// Assert
-			assert.deepStrictEqual(result.shippingAddress, expectedAddress);
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data.shippingAddress, expectedAddress);
 		});
 
 		test("Should create and return order object when 'repo.create' is called with payment method", async () => {
@@ -90,7 +91,8 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const result = await orderService.create(mockOrder);
 
 			// Assert
-			assert.strictEqual(result.paymentMethod, paymentMethod);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.paymentMethod, paymentMethod);
 		});
 
 		test("Should create and return order object when 'repo.create' is called with tax price", async () => {
@@ -102,7 +104,8 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const result = await orderService.create(mockOrder);
 
 			// Assert
-			assert.strictEqual(result.taxPrice, taxPrice);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.taxPrice, taxPrice);
 		});
 
 		test("Should create and return order object when 'repo.create' is called with shipping price", async () => {
@@ -114,7 +117,8 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const result = await orderService.create(mockOrder);
 
 			// Assert
-			assert.strictEqual(result.shippingPrice, shippingPrice);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.shippingPrice, shippingPrice);
 		});
 
 		test("Should create and return order object when 'repo.create' is called with total price", async () => {
@@ -134,10 +138,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const result = await orderService.create(mockOrder);
 
 			// Assert
-			assert.strictEqual(result.itemsPrice, itemsPrice);
-			assert.strictEqual(result.taxPrice, taxPrice);
-			assert.strictEqual(result.shippingPrice, shippingPrice);
-			assert.strictEqual(result.totalPrice, totalPrice);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.itemsPrice, itemsPrice);
+			assert.strictEqual(result.data.taxPrice, taxPrice);
+			assert.strictEqual(result.data.shippingPrice, shippingPrice);
+			assert.strictEqual(result.data.totalPrice, totalPrice);
 		});
 
 		test("Should create and return order object when 'repo.create' is called with isPaid false by default", async () => {
@@ -149,8 +154,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const result = await orderService.create(mockOrder);
 
 			// Assert
-			assert.strictEqual(result.isPaid, isPaid);
-			assert.strictEqual(result.paidAt, undefined);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.isPaid, isPaid);
+			assert.strictEqual(result.data.paidAt, undefined);
 		});
 
 		test("Should create and return order object when 'repo.create' is called with isDelivered false by default", async () => {
@@ -162,8 +168,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const result = await orderService.create(mockOrder);
 
 			// Assert
-			assert.strictEqual(result.isDelivered, isDelivered);
-			assert.strictEqual(result.deliveredAt, undefined);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.isDelivered, isDelivered);
+			assert.strictEqual(result.data.deliveredAt, undefined);
 		});
 
 		test("Should create and return order object when 'repo.create' is called with current timestamp as createdAt", async () => {
@@ -175,9 +182,10 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const result = await orderService.create(mockOrder);
 
 			// Assert
-			assert.ok(result.createdAt instanceof Date);
-			assert.ok(result.createdAt >= beforeCreate);
-			assert.ok(result.createdAt <= new Date());
+			assert.strictEqual(result.success, true);
+			assert.ok(result.data.createdAt instanceof Date);
+			assert.ok(result.data.createdAt >= beforeCreate);
+			assert.ok(result.data.createdAt <= new Date());
 		});
 
 		test("Should set 'PaymentMethod' to 'PayPal' if not provided when 'repo.create' is called", async () => {
@@ -190,7 +198,8 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const result = await orderService.create(mockInsertOrder);
 
 			// Assert
-			assert.strictEqual(result.paymentMethod, "PayPal");
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.paymentMethod, "PayPal");
 		});
 	});
 
@@ -207,9 +216,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.ok(result);
-			assert.deepStrictEqual(result._id, orderId);
-			assert.strictEqual(result.totalPrice, createdOrder.totalPrice);
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data._id, orderId);
+			assert.strictEqual(result.data.totalPrice, createdOrder.totalPrice);
 		});
 
 		test("Should return order object with 3 order items when 'repo.getById' is called with existing order ID", async () => {
@@ -225,8 +234,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.orderItems.length, orderItemsCount);
-			result.orderItems.forEach((item, index) => {
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.orderItems.length, orderItemsCount);
+			result.data.orderItems.forEach((item, index) => {
 				assert.strictEqual(item.price, createdOrder.orderItems[index].price);
 				assert.strictEqual(item.qty, createdOrder.orderItems[index].qty);
 				assert.strictEqual(item.name, createdOrder.orderItems[index].name);
@@ -245,8 +255,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
+			assert.strictEqual(result.success, true);
 			assert.deepStrictEqual(
-				result.shippingAddress,
+				result.data.shippingAddress,
 				createdOrder.shippingAddress,
 			);
 		});
@@ -263,8 +274,12 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.isPaid, true);
-			assert.deepStrictEqual(result.paymentResult, createdOrder.paymentResult);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.isPaid, true);
+			assert.deepStrictEqual(
+				result.data.paymentResult,
+				createdOrder.paymentResult,
+			);
 		});
 
 		test("Should return order object with delivery status when 'repo.getById' is called with existing order ID", async () => {
@@ -279,8 +294,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.isDelivered, true);
-			assert.ok(result.deliveredAt instanceof Date);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.isDelivered, true);
+			assert.ok(result.data.deliveredAt instanceof Date);
 		});
 
 		test("Should return order object with payment status when 'repo.getById' is called with existing order ID", async () => {
@@ -295,8 +311,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.isPaid, true);
-			assert.ok(result.paidAt instanceof Date);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.isPaid, true);
+			assert.ok(result.data.paidAt instanceof Date);
 		});
 
 		test("Should return order object with timestamps when 'repo.getById' is called with existing order ID", async () => {
@@ -311,30 +328,33 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.ok(result.createdAt instanceof Date);
-			assert.ok(result.updatedAt instanceof Date);
+			assert.strictEqual(result.success, true);
+			assert.ok(result.data.createdAt instanceof Date);
+			assert.ok(result.data.updatedAt instanceof Date);
 		});
 
 		test("Should throw 'NotFoundError' when 'repo.getById' is called with non-existent order ID", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId().toString();
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await orderService.getById({ orderId: nonExistentId }),
-				NotFoundError,
-			);
+			// Act
+			const result = await orderService.getById({ orderId: nonExistentId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
 		test("Should throw 'ValidationError' when 'repo.getById' is called with invalid format order ID", async () => {
 			// Arrange
 			const invalidId = "invalid-order-id";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await orderService.getById({ orderId: invalidId }),
-				ValidationError,
-			);
+			// Act
+			const result = await orderService.getById({ orderId: invalidId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
@@ -349,9 +369,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const result = await orderService.getAll();
 
 			// Assert
-			assert.ok(result);
-			assert.ok(Array.isArray(result));
-			assert.strictEqual(result.length, ordersCount);
+			assert.strictEqual(result.success, true);
+			assert.ok(Array.isArray(result.data));
+			assert.strictEqual(result.data.length, ordersCount);
 		});
 
 		test("Should return orders array when 'repo.getAll' is called with 'isPaid' true", async () => {
@@ -364,8 +384,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const result = await orderService.getAll();
 
 			// Assert
-			assert.strictEqual(result[0].isPaid, isPaid);
-			assert.ok(result[0].paidAt instanceof Date);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data[0].isPaid, isPaid);
+			assert.ok(result.data[0].paidAt instanceof Date);
 		});
 
 		test("Should return orders array when 'repo.getAll' is called with 'isDelivered' true", async () => {
@@ -378,8 +399,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const result = await orderService.getAll();
 
 			// Assert
-			assert.strictEqual(result[0].isDelivered, isDelivered);
-			assert.ok(result[0].deliveredAt instanceof Date);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data[0].isDelivered, isDelivered);
+			assert.ok(result.data[0].deliveredAt instanceof Date);
 		});
 
 		test("Should return empty array when 'repo.getAll' is called with no orders exist", async () => {
@@ -387,7 +409,8 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const result = await orderService.getAll();
 
 			// Assert
-			assert.strictEqual(result.length, 0);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.length, 0);
 		});
 	});
 
@@ -407,8 +430,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.length, ordersCount);
-			result.forEach((order) => {
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.length, ordersCount);
+			result.data.forEach((order) => {
 				assert.ok(order._id instanceof Types.ObjectId);
 				assert.strictEqual(typeof order.totalPrice, "number");
 				assert.strictEqual(typeof order.isPaid, "boolean");
@@ -429,9 +453,10 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.length, 1);
-			assert.strictEqual(result[0].isPaid, isPaid);
-			assert.ok(result[0].paidAt instanceof Date);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.length, 1);
+			assert.strictEqual(result.data[0].isPaid, isPaid);
+			assert.ok(result.data[0].paidAt instanceof Date);
 		});
 
 		test("Should return orders array for specific user when 'repo.getAllByUserId' is called with 'isDelivered' true", async () => {
@@ -447,9 +472,10 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.length, 1);
-			assert.strictEqual(result[0].isDelivered, isDelivered);
-			assert.ok(result[0].deliveredAt instanceof Date);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.length, 1);
+			assert.strictEqual(result.data[0].isDelivered, isDelivered);
+			assert.ok(result.data[0].deliveredAt instanceof Date);
 		});
 
 		test("Should return orders array ONLY for the specific user when 'repo.getAllByUserId' is called", async () => {
@@ -466,7 +492,8 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.length, 2);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.length, 2);
 		});
 	});
 
@@ -483,8 +510,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(updatedOrder.isPaid, true);
-			assert.ok(updatedOrder.paidAt instanceof Date);
+			assert.strictEqual(updatedOrder.success, true);
+			assert.strictEqual(updatedOrder.data.isPaid, true);
+			assert.ok(updatedOrder.data.paidAt instanceof Date);
 		});
 
 		test("Should update 'paidAt' timestamp when 'repo.updateToPaid' is called with order ID", async () => {
@@ -500,20 +528,24 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.ok(updatedOrder.paidAt instanceof Date);
-			assert.ok(updatedOrder.paidAt >= beforeUpdate);
-			assert.ok(updatedOrder.paidAt <= new Date());
+			assert.strictEqual(updatedOrder.success, true);
+			assert.ok(updatedOrder.data.paidAt instanceof Date);
+			assert.ok(updatedOrder.data.paidAt >= beforeUpdate);
+			assert.ok(updatedOrder.data.paidAt <= new Date());
 		});
 
 		test("Should throw 'NotFoundError' when 'repo.updateToPaid' is called with non-existent order ID", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId().toString();
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await orderService.updateToPaid({ orderId: nonExistentId }),
-				NotFoundError,
-			);
+			// Act
+			const updatedOrder = await orderService.updateToPaid({
+				orderId: nonExistentId,
+			});
+
+			// Assert
+			assert.strictEqual(updatedOrder.success, false);
+			assert.ok(updatedOrder.error instanceof NotFoundError);
 		});
 	});
 
@@ -530,8 +562,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(updatedOrder.isDelivered, true);
-			assert.ok(updatedOrder.deliveredAt instanceof Date);
+			assert.strictEqual(updatedOrder.success, true);
+			assert.strictEqual(updatedOrder.data.isDelivered, true);
+			assert.ok(updatedOrder.data.deliveredAt instanceof Date);
 		});
 
 		test("Should update 'deliveredAt' timestamp when 'repo.updateToDelivered' is called with order ID", async () => {
@@ -547,21 +580,24 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.ok(updatedOrder.deliveredAt instanceof Date);
-			assert.ok(updatedOrder.deliveredAt >= beforeUpdate);
-			assert.ok(updatedOrder.deliveredAt <= new Date());
+			assert.strictEqual(updatedOrder.success, true);
+			assert.ok(updatedOrder.data.deliveredAt instanceof Date);
+			assert.ok(updatedOrder.data.deliveredAt >= beforeUpdate);
+			assert.ok(updatedOrder.data.deliveredAt <= new Date());
 		});
 
 		test("Should throw 'NotFoundError' when 'repo.updateToDelivered' is called with non-existent order ID", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId().toString();
 
-			// Act & Assert
-			await assert.rejects(
-				async () =>
-					await orderService.updateToDelivered({ orderId: nonExistentId }),
-				NotFoundError,
-			);
+			// Act
+			const updatedOrder = await orderService.updateToDelivered({
+				orderId: nonExistentId,
+			});
+
+			// Assert
+			assert.strictEqual(updatedOrder.success, false);
+			assert.ok(updatedOrder.error instanceof NotFoundError);
 		});
 	});
 });

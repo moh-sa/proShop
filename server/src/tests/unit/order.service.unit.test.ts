@@ -23,14 +23,17 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 		mockSelectOrder.user._id = mockInsertOrder.user;
 
 		test("Should return the order object when 'repo.create' is called once with order data", async () => {
+			// Arrange
 			mockRepo.create.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSelectOrder, success: true }),
 			);
 
+			// Act
 			const order = await service.create(mockInsertOrder);
 
-			assert.ok(order);
-			assert.deepStrictEqual(order, mockSelectOrder);
+			// Assert
+			assert.strictEqual(order.success, true);
+			assert.deepStrictEqual(order.data, mockSelectOrder);
 
 			assert.strictEqual(mockRepo.create.mock.callCount(), 1);
 			assert.deepStrictEqual(
@@ -56,30 +59,33 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			const order = await service.create(mockInsertOrder);
 
 			// Assert
-			assert.strictEqual(order.paymentMethod, "PayPal");
+			assert.strictEqual(order.success, true);
+			assert.strictEqual(order.data.paymentMethod, "PayPal");
 		});
 
-		test("Should throw 'ValidationError' if 'data.orderItems' length is '0'", async () => {
+		test("Should return 'ValidationError' if 'data.orderItems' length is '0'", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({ orderItems: [] });
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.create(mockOrder),
-				ValidationError,
-			);
+			// Act
+			const result = await service.create(mockOrder);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' if 'data' is invalid", async () => {
+		test("Should return 'ValidationError' if 'data' is invalid", async () => {
 			// Arrange
 			const mockInsertInvalidOrder = generateMockInsertProductWithStringImage();
 
-			// Act & Assert
-			await assert.rejects(
-				// @ts-expect-error - testing invalid order data
-				async () => await service.create(mockInsertInvalidOrder),
-				ValidationError,
-			);
+			// Act
+			// @ts-expect-error - test case
+			const result = await service.create(mockInsertInvalidOrder);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
@@ -87,28 +93,34 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 		const mockOrders = generateMockSelectOrders(4);
 
 		test("Should return array of orders when 'repo.getAll' is called once with no args", async () => {
+			// Arrange
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrders, success: true }),
 			);
 
+			// Act
 			const orders = await service.getAll();
 
-			assert.ok(orders);
-			assert.deepStrictEqual(orders, mockOrders);
+			// Assert
+			assert.strictEqual(orders.success, true);
+			assert.deepStrictEqual(orders.data, mockOrders);
 
 			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
 			assert.strictEqual(mockRepo.getAll.mock.calls[0].arguments.length, 0);
 		});
 
 		test("Should return empty array if 'repo.getAll' returns empty array", async () => {
+			// Arrange
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: [], success: true }),
 			);
 
+			// Act
 			const orders = await service.getAll();
 
-			assert.ok(orders);
-			assert.strictEqual(orders.length, 0);
+			// Assert
+			assert.strictEqual(orders.success, true);
+			assert.strictEqual(orders.data.length, 0);
 		});
 	});
 
@@ -117,16 +129,19 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 		const userId = mockOrders[0].user._id;
 
 		test("Should return array of orders when 'repo.getAllByUserId' is called once with 'userId'", async () => {
+			// Arrange
 			mockRepo.getAllByUserId.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrders, success: true }),
 			);
 
+			// Act
 			const orders = await service.getAllByUserId({
 				userId: userId.toString(),
 			});
 
-			assert.ok(orders);
-			assert.deepStrictEqual(orders, mockOrders);
+			// Assert
+			assert.strictEqual(orders.success, true);
+			assert.deepStrictEqual(orders.data, mockOrders);
 
 			assert.strictEqual(mockRepo.getAllByUserId.mock.callCount(), 1);
 			assert.deepStrictEqual(
@@ -136,27 +151,33 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should return empty array if 'repo.getAllByUserId' returns empty array", async () => {
+			// Arrange
 			mockRepo.getAllByUserId.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: [], success: true }),
 			);
 
+			// Act
 			const orders = await service.getAllByUserId({
 				userId: userId.toString(),
 			});
 
-			assert.ok(orders);
-			assert.strictEqual(orders.length, 0);
+			// Assert
+			assert.strictEqual(orders.success, true);
+			assert.strictEqual(orders.data.length, 0);
 		});
 
-		test("Should throw 'ValidationError' if 'userId' is invalid", async () => {
+		test("Should return 'ValidationError' if 'userId' is invalid", async () => {
 			// Arrange
 			const invalidUserId = "invalid-user-id";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.getAllByUserId({ userId: invalidUserId }),
-				ValidationError,
-			);
+			// Act
+			const result = await service.getAllByUserId({ userId: invalidUserId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+
+			assert.strictEqual(mockRepo.getAllByUserId.mock.callCount(), 0);
 		});
 	});
 
@@ -165,41 +186,51 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 		const orderId = mockOrder._id;
 
 		test("Should return order object when 'repo.getById' is called once with 'orderId'", async () => {
+			// Arrange
 			mockRepo.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
+			// Act
 			const order = await service.getById({ orderId: orderId.toString() });
 
-			assert.ok(order);
-			assert.deepStrictEqual(order, mockOrder);
+			// Assert
+			assert.strictEqual(order.success, true);
+			assert.deepStrictEqual(order.data, mockOrder);
 
 			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.getById.mock.calls[0].arguments[0], {
+			assert.deepStrictEqual(
+				mockRepo.getById.mock.calls[0].arguments[0].orderId,
 				orderId,
-			});
+			);
 		});
 
-		test("Should throw 'NotFoundError' if 'repo.getById' returns 'null'", async () => {
+		test("Should return 'NotFoundError' if 'repo.getById' returns 'null'", async () => {
+			// Arrange
 			mockRepo.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: null, success: true }),
 			);
 
-			await assert.rejects(
-				async () => await service.getById({ orderId: orderId.toString() }),
-				NotFoundError,
-			);
+			// Act
+			const order = await service.getById({ orderId: orderId.toString() });
+
+			// Assert
+			assert.strictEqual(order.success, false);
+			assert.ok(order.error instanceof NotFoundError);
 		});
 
-		test("Should throw 'ValidationError' if 'orderId' is invalid", async () => {
+		test("Should return 'ValidationError' if 'orderId' is invalid", async () => {
 			// Arrange
 			const invalidOrderId = "invalid-order-id";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.getById({ orderId: invalidOrderId }),
-				ValidationError,
-			);
+			// Act
+			const order = await service.getById({ orderId: invalidOrderId });
+
+			// Assert
+			assert.strictEqual(order.success, false);
+			assert.ok(order.error instanceof ValidationError);
+
+			assert.strictEqual(mockRepo.getById.mock.callCount(), 0);
 		});
 	});
 
@@ -208,43 +239,57 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 		const orderId = mockOrder._id;
 
 		test("Should return the order object when 'repo.updateToPaid' is called once with 'orderId'", async () => {
+			// Arrange
 			mockRepo.updateToPaid.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
+			// Act
 			const updatedOrder = await service.updateToPaid({
 				orderId: orderId.toString(),
 			});
 
-			assert.ok(updatedOrder);
-			assert.deepStrictEqual(updatedOrder, mockOrder);
+			// Assert
+			assert.strictEqual(updatedOrder.success, true);
+			assert.deepStrictEqual(updatedOrder.data, mockOrder);
 
 			assert.strictEqual(mockRepo.updateToPaid.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.updateToPaid.mock.calls[0].arguments[0], {
+			assert.deepStrictEqual(
+				mockRepo.updateToPaid.mock.calls[0].arguments[0].orderId,
 				orderId,
-			});
+			);
 		});
 
-		test("Should throw 'NotFoundError' if 'repo.updateToPaid' returns 'null'", async () => {
+		test("Should return 'NotFoundError' if 'repo.updateToPaid' returns 'null'", async () => {
+			// Arrange
 			mockRepo.updateToPaid.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: null, success: true }),
 			);
 
-			await assert.rejects(
-				async () => await service.updateToPaid({ orderId: orderId.toString() }),
-				NotFoundError,
-			);
+			// Act
+			const updatedOrder = await service.updateToPaid({
+				orderId: orderId.toString(),
+			});
+
+			// Assert
+			assert.strictEqual(updatedOrder.success, false);
+			assert.ok(updatedOrder.error instanceof NotFoundError);
 		});
 
-		test("Should throw 'ValidationError' if 'orderId' is invalid", async () => {
+		test("Should return 'ValidationError' if 'orderId' is invalid", async () => {
 			// Arrange
 			const invalidOrderId = "invalid-order-id";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.updateToPaid({ orderId: invalidOrderId }),
-				ValidationError,
-			);
+			// Act
+			const updatedOrder = await service.updateToPaid({
+				orderId: invalidOrderId,
+			});
+
+			// Assert
+			assert.strictEqual(updatedOrder.success, false);
+			assert.ok(updatedOrder.error instanceof ValidationError);
+
+			assert.strictEqual(mockRepo.updateToPaid.mock.callCount(), 0);
 		});
 	});
 
@@ -253,46 +298,57 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 		const orderId = mockOrder._id;
 
 		test("Should return the order object when 'repo.updateToDelivered' is called once with 'orderId", async () => {
+			// Arrange
 			mockRepo.updateToDelivered.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
+			// Act
 			const updatedOrder = await service.updateToDelivered({
 				orderId: orderId.toString(),
 			});
 
-			assert.ok(updatedOrder);
-			assert.deepStrictEqual(updatedOrder, mockOrder);
+			// Assert
+			assert.strictEqual(updatedOrder.success, true);
+			assert.deepStrictEqual(updatedOrder.data, mockOrder);
 
 			assert.strictEqual(mockRepo.updateToDelivered.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockRepo.updateToDelivered.mock.calls[0].arguments[0],
-				{ orderId },
+				mockRepo.updateToDelivered.mock.calls[0].arguments[0].orderId,
+				orderId,
 			);
 		});
 
-		test("Should throw 'NotFoundError' if 'repo.updateToDelivered' returns 'null'", async () => {
+		test("Should return 'NotFoundError' if 'repo.updateToDelivered' returns 'null'", async () => {
+			// Arrange
 			mockRepo.updateToDelivered.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: null, success: true }),
 			);
 
-			await assert.rejects(
-				async () =>
-					await service.updateToDelivered({ orderId: orderId.toString() }),
-				NotFoundError,
-			);
+			// Act
+			const updatedOrder = await service.updateToDelivered({
+				orderId: orderId.toString(),
+			});
+
+			// Assert
+			assert.strictEqual(updatedOrder.success, false);
+			assert.ok(updatedOrder.error instanceof NotFoundError);
 		});
 
-		test("Should throw 'ValidationError' if 'orderId' is invalid", async () => {
+		test("Should return 'ValidationError' if 'orderId' is invalid", async () => {
 			// Arrange
 			const invalidOrderId = "invalid-order-id";
 
 			// Act & Assert
-			await assert.rejects(
-				async () =>
-					await service.updateToDelivered({ orderId: invalidOrderId }),
-				ValidationError,
-			);
+			const updatedOrder = await service.updateToDelivered({
+				orderId: invalidOrderId,
+			});
+
+			// Assert
+			assert.strictEqual(updatedOrder.success, false);
+			assert.ok(updatedOrder.error instanceof ValidationError);
+
+			assert.strictEqual(mockRepo.updateToDelivered.mock.callCount(), 0);
 		});
 	});
 });
