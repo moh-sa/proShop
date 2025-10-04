@@ -81,6 +81,11 @@ export class ImageStorageService implements IImageStorageService {
 		IImageStorageService,
 		"upload"
 	> {
+		const fileValidationResult = this._validateImageFile(file);
+		if (!fileValidationResult.success) {
+			throw fileValidationResult.error;
+		}
+
 		return new Promise((resolve, reject) => {
 			this.provider.uploader
 				.upload_stream(
@@ -109,7 +114,7 @@ export class ImageStorageService implements IImageStorageService {
 						}
 					},
 				)
-				.end(file.buffer);
+				.end(fileValidationResult.data.buffer);
 		});
 	}
 
