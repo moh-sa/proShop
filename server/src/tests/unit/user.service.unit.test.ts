@@ -29,7 +29,10 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'user object' when 'repo.create' is called once with 'user data'", async () => {
 			mockRepo.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectUser),
+				Promise.resolve({
+					data: mockSelectUser,
+					success: true,
+				}),
 			);
 
 			const user = await service.create(mockInsertUser);
@@ -71,7 +74,10 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'array of users' when 'repo.getAll' is called once with no args", async () => {
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUsers),
+				Promise.resolve({
+					data: mockUsers,
+					success: true,
+				}),
 			);
 
 			const users = await service.getAll();
@@ -84,7 +90,12 @@ suite("User Service 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should return 'empty array' when 'repo.getAll' returns 'empty array'", async () => {
-			mockRepo.getAll.mock.mockImplementationOnce(() => Promise.resolve([]));
+			mockRepo.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: [],
+					success: true,
+				}),
+			);
 
 			const users = await service.getAll();
 
@@ -100,7 +111,10 @@ suite("User Service 〖 Unit Tests 〗", () => {
 		test("Should return 'user object' when 'repo.getById' is called once with 'userId'", async () => {
 			// Arrange
 			mockRepo.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve({
+					data: mockUser,
+					success: true,
+				}),
 			);
 
 			// Act
@@ -119,7 +133,12 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should throw 'NotFoundError' when 'repo.getById' returns 'null'", async () => {
 			// Arrange
-			mockRepo.getById.mock.mockImplementationOnce(() => Promise.resolve(null));
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: null,
+					success: true,
+				}),
+			);
 
 			// Act & Assert
 			await assert.rejects(
@@ -155,7 +174,10 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'user object' when 'repo.getByEmail' is called once with 'email'", async () => {
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve({
+					data: mockUser,
+					success: true,
+				}),
 			);
 
 			const user = await service.getByEmail({ email });
@@ -171,7 +193,10 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should throw 'NotFoundError' when 'repo.getByEmail' returns 'null'", async () => {
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
-				Promise.resolve(null),
+				Promise.resolve({
+					data: null,
+					success: true,
+				}),
 			);
 
 			await assert.rejects(
@@ -211,7 +236,10 @@ suite("User Service 〖 Unit Tests 〗", () => {
 		test("Should return 'user object' without 'password' and 'token' when 'repo.update' is called once with 'userId' and 'updateData'", async () => {
 			// Arrange
 			mockRepo.update.mock.mockImplementationOnce(() =>
-				Promise.resolve(updatedData),
+				Promise.resolve({
+					data: updatedData,
+					success: true,
+				}),
 			);
 
 			// Act
@@ -237,7 +265,12 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should throw 'NotFoundError' when 'repo.update' returns 'null'", async () => {
 			// Arrange
-			mockRepo.update.mock.mockImplementationOnce(() => Promise.resolve(null));
+			mockRepo.update.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: null,
+					success: true,
+				}),
+			);
 
 			// Act & Assert
 			await assert.rejects(
@@ -300,7 +333,10 @@ suite("User Service 〖 Unit Tests 〗", () => {
 		test("Should return 'user object' when 'repo.delete' is called once with 'userId'", async () => {
 			// Arrange
 			mockRepo.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve({
+					data: mockUser,
+					success: true,
+				}),
 			);
 
 			// Act
@@ -318,7 +354,12 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should throw 'NotFoundError' when 'repo.delete' returns 'null'", async () => {
 			// Arrange
-			mockRepo.delete.mock.mockImplementationOnce(() => Promise.resolve(null));
+			mockRepo.delete.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: null,
+					success: true,
+				}),
+			);
 
 			// Act & Assert
 			await assert.rejects(
@@ -349,7 +390,10 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			const expectedResult = { _id: userId };
 
 			mockRepo.existsByEmail.mock.mockImplementationOnce(() =>
-				Promise.resolve(expectedResult),
+				Promise.resolve({
+					data: expectedResult,
+					success: true,
+				}),
 			);
 
 			// Act
@@ -369,7 +413,10 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			const { email } = generateMockSelectUser();
 
 			mockRepo.existsByEmail.mock.mockImplementationOnce(() =>
-				Promise.resolve(null),
+				Promise.resolve({
+					data: null,
+					success: true,
+				}),
 			);
 
 			// Act
@@ -423,7 +470,10 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			const mockSelectUser = generateMockSelectUser({ ...mockInsertUser });
 
 			mockRepo.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectUser),
+				Promise.resolve({
+					data: mockSelectUser,
+					success: true,
+				}),
 			);
 
 			// Act
@@ -463,7 +513,10 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			const email = mockUser.email;
 
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve({
+					data: mockUser,
+					success: true,
+				}),
 			);
 
 			// Act
@@ -486,7 +539,10 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			const { email } = generateMockSelectUser();
 
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
-				Promise.resolve(null),
+				Promise.resolve({
+					data: null,
+					success: true,
+				}),
 			);
 
 			// Act & Assert
@@ -515,7 +571,10 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			const userId = mockUser._id;
 
 			mockRepo.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve({
+					data: mockUser,
+					success: true,
+				}),
 			);
 
 			// Act
@@ -537,7 +596,12 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { _id: userId } = generateMockSelectUser();
 
-			mockRepo.getById.mock.mockImplementationOnce(() => Promise.resolve(null));
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: null,
+					success: true,
+				}),
+			);
 
 			// Act & Assert
 			await assert.rejects(

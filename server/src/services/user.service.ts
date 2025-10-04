@@ -62,7 +62,11 @@ export class UserService implements IUserService {
 		}
 
 		const user = await this._repository.create(validationResult.data);
-		const sanitizedUser = this.sanitizeUser(user);
+		if (!user.success) {
+			throw user.error;
+		}
+
+		const sanitizedUser = this.sanitizeUser(user.data);
 
 		return sanitizedUser;
 	}
@@ -81,11 +85,14 @@ export class UserService implements IUserService {
 		const user = await this._repository.delete({
 			userId: validationResult.data,
 		});
-		if (!user) {
+		if (!user.success) {
+			throw user.error;
+		}
+		if (!user.data) {
 			throw new NotFoundError("User");
 		}
 
-		const sanitizedUser = this.sanitizeUser(user);
+		const sanitizedUser = this.sanitizeUser(user.data);
 		return sanitizedUser;
 	}
 
@@ -100,15 +107,23 @@ export class UserService implements IUserService {
 			throw validationResult.error;
 		}
 
-		return await this._repository.existsByEmail({
+		const result = await this._repository.existsByEmail({
 			email: validationResult.data,
 		});
+		if (!result.success) {
+			throw result.error;
+		}
+
+		return result.data;
 	}
 
 	async getAll(): MethodReturn<IUserService, "getAll"> {
 		const users = await this._repository.getAll();
+		if (!users.success) {
+			throw users.error;
+		}
 
-		const sanitizedUsers = users.map((user) => this.sanitizeUser(user));
+		const sanitizedUsers = users.data.map((user) => this.sanitizeUser(user));
 		return sanitizedUsers;
 	}
 
@@ -126,10 +141,13 @@ export class UserService implements IUserService {
 		const user = await this._repository.getByEmail({
 			email: validationResult.data,
 		});
-		if (!user) {
+		if (!user.success) {
+			throw user.error;
+		}
+		if (!user.data) {
 			throw new NotFoundError("User");
 		}
-		const sanitizedUser = this.sanitizeUser(user);
+		const sanitizedUser = this.sanitizeUser(user.data);
 		return sanitizedUser;
 	}
 
@@ -147,10 +165,13 @@ export class UserService implements IUserService {
 		const user = await this._repository.getById({
 			userId: validationResult.data,
 		});
-		if (!user) {
+		if (!user.success) {
+			throw user.error;
+		}
+		if (!user.data) {
 			throw new NotFoundError("User");
 		}
-		const sanitizedUser = this.sanitizeUser(user);
+		const sanitizedUser = this.sanitizeUser(user.data);
 
 		return sanitizedUser;
 	}
@@ -175,11 +196,14 @@ export class UserService implements IUserService {
 			data: updateDataValidationResult.data,
 			userId: userIdValidationResult.data,
 		});
-		if (!updatedUser) {
+		if (!updatedUser.success) {
+			throw updatedUser.error;
+		}
+		if (!updatedUser.data) {
 			throw new NotFoundError("User");
 		}
 
-		const sanitizedUser = this.sanitizeUser(updatedUser);
+		const sanitizedUser = this.sanitizeUser(updatedUser.data);
 		return sanitizedUser;
 	}
 
@@ -194,8 +218,11 @@ export class UserService implements IUserService {
 		}
 
 		const user = await this._repository.create(validationResult.data);
+		if (!user.success) {
+			throw user.error;
+		}
 
-		return user;
+		return user.data;
 	}
 	/****ONLY FOR INTERNAL USE***/
 	public async getByEmail_UNSAFE(
@@ -209,11 +236,14 @@ export class UserService implements IUserService {
 		const user = await this._repository.getByEmail({
 			email: validationResult.data,
 		});
-		if (!user) {
+		if (!user.success) {
+			throw user.error;
+		}
+		if (!user.data) {
 			throw new NotFoundError("User");
 		}
 
-		return user;
+		return user.data;
 	}
 	/****ONLY FOR INTERNAL USE***/
 	public async getById_UNSAFE(
@@ -227,11 +257,14 @@ export class UserService implements IUserService {
 		const user = await this._repository.getById({
 			userId: validationResult.data,
 		});
-		if (!user) {
+		if (!user.success) {
+			throw user.error;
+		}
+		if (!user.data) {
 			throw new NotFoundError("User");
 		}
 
-		return user;
+		return user.data;
 	}
 
 	public sanitizeUser(

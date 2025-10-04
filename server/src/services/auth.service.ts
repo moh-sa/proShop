@@ -42,20 +42,23 @@ export class AuthService implements IAuthService {
 		const isUserExists = await this._repository.getByEmail({
 			email: data.email,
 		});
+		if (!isUserExists.success) {
+			throw isUserExists.error;
+		}
 
-		if (!isUserExists) {
+		if (!isUserExists.data) {
 			throw new AuthenticationError("Invalid email or password.");
 		}
 
 		const isPasswordValid = await this._passwordService.verify({
-			hashedPassword: isUserExists.password,
+			hashedPassword: isUserExists.data.password,
 			password: data.password,
 		});
 		if (!isPasswordValid.success) {
 			throw new AuthenticationError("Invalid email or password.");
 		}
 
-		const user = isUserExists;
+		const user = isUserExists.data;
 		const token = generateJwtToken({ id: user._id });
 		const userWithToken = Object.assign(user, { token });
 		const userWithoutPassword = removeObjectFields(userWithToken, ["password"]);
@@ -69,7 +72,10 @@ export class AuthService implements IAuthService {
 		const isUserExists = await this._repository.existsByEmail({
 			email: data.email,
 		});
-		if (isUserExists) {
+		if (!isUserExists.success) {
+			throw isUserExists.error;
+		}
+		if (isUserExists.data) {
 			throw new AuthenticationError(
 				"An account with this email already exists.",
 			);
@@ -85,8 +91,11 @@ export class AuthService implements IAuthService {
 			...data,
 			password: hashedPasswordResult.data,
 		});
-		const token = generateJwtToken({ id: createdUser._id });
-		const userWithToken = Object.assign(createdUser, { token });
+		if (!createdUser.success) {
+			throw createdUser.error;
+		}
+		const token = generateJwtToken({ id: createdUser.data._id });
+		const userWithToken = Object.assign(createdUser.data, { token });
 		const userWithoutPassword = removeObjectFields(userWithToken, ["password"]);
 
 		return userWithoutPassword;

@@ -26,11 +26,17 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 
 		test("Should return user object including token and no password. Call 'repo.existsByEmail' and 'repo.create' once with correct data", async () => {
 			mockRepo.existsByEmail.mock.mockImplementationOnce(() =>
-				Promise.resolve(null),
+				Promise.resolve({
+					data: null,
+					success: true,
+				}),
 			);
 
 			mockRepo.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectUser),
+				Promise.resolve({
+					data: mockSelectUser,
+					success: true,
+				}),
 			);
 
 			mockPswService.hash.mock.mockImplementationOnce(async () =>
@@ -63,7 +69,10 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 
 		test("Should throw 'AuthenticationError' if 'repo.existsByEmail' returns a value", async () => {
 			mockRepo.existsByEmail.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectUser),
+				Promise.resolve({
+					data: mockSelectUser,
+					success: true,
+				}),
 			);
 
 			await assert.rejects(async () => {
@@ -78,7 +87,10 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 
 		test("Should return user object including  token and no password. Call 'repo.getByEmail' and 'compare' once with correct data", async () => {
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectUser),
+				Promise.resolve({
+					data: mockSelectUser,
+					success: true,
+				}),
 			);
 
 			mockPswService.verify.mock.mockImplementationOnce(() =>
@@ -115,7 +127,10 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 
 		test("Should throw 'AuthenticationError' if 'repo.getByEmail' returns 'null'", async () => {
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
-				Promise.resolve(null),
+				Promise.resolve({
+					data: null,
+					success: true,
+				}),
 			);
 
 			await assert.rejects(
@@ -126,7 +141,10 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 
 		test("Should throw 'AuthenticationError' if 'passwordService.verify' returns 'false'", async () => {
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectUser),
+				Promise.resolve({
+					data: mockSelectUser,
+					success: true,
+				}),
 			);
 
 			mockPswService.verify.mock.mockImplementationOnce(() =>

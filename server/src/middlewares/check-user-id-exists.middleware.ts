@@ -10,12 +10,15 @@ const userRepository = new UserRepository();
 export const checkUserIdExists = asyncHandler(async (req, res, next) => {
 	const userId = res.locals.token._id;
 	const user = await userRepository.getById({ userId });
-	if (!user) {
+	if (!user.success) {
+		throw user.error;
+	}
+	if (!user.data) {
 		throw new AuthenticationError();
 	}
 
 	// eslint-disable-next-line require-atomic-updates
-	res.locals.user = user;
+	res.locals.user = user.data;
 
 	next();
 });
