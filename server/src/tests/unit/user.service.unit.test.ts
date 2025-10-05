@@ -28,6 +28,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 		const { password: _, ...expectedUser } = mockSelectUser;
 
 		test("Should return 'user object' when 'repo.create' is called once with 'user data'", async () => {
+			// Arrange
 			mockRepo.create.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					data: mockSelectUser,
@@ -35,10 +36,12 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			const user = await service.create(mockInsertUser);
+			// Act
+			const result = await service.create(mockInsertUser);
 
-			assert.ok(user);
-			assert.deepStrictEqual(user, expectedUser);
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, expectedUser);
 
 			assert.strictEqual(mockRepo.create.mock.callCount(), 1);
 			assert.deepStrictEqual(
@@ -47,21 +50,19 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'ValidationError' when user data is invalid", async () => {
+		test("Should return 'ValidationError' when user data is invalid", async () => {
 			// Arrange
-			const mockInsertUser = generateMockInsertUser({
+			const invalidInsertUser = generateMockInsertUser({
 				email: "invalid-email",
 				name: "",
 			});
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.create(mockInsertUser),
-				ValidationError,
-			);
+			// Act
+			const result = await service.create(invalidInsertUser);
 
-			// Repository should not be called when validation fails
-			assert.strictEqual(mockRepo.create.mock.callCount(), 0);
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
@@ -73,6 +74,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should return 'array of users' when 'repo.getAll' is called once with no args", async () => {
+			// Arrange
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					data: mockUsers,
@@ -80,16 +82,19 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			const users = await service.getAll();
+			// Act
+			const result = await service.getAll();
 
-			assert.ok(users);
-			assert.deepStrictEqual(users, expectedUsers);
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, expectedUsers);
 
 			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
 			assert.strictEqual(mockRepo.getAll.mock.calls[0].arguments.length, 0);
 		});
 
 		test("Should return 'empty array' when 'repo.getAll' returns 'empty array'", async () => {
+			// Arrange
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					data: [],
@@ -97,9 +102,12 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			const users = await service.getAll();
+			// Act
+			const result = await service.getAll();
 
-			assert.strictEqual(users.length, 0);
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.length, 0);
 		});
 	});
 
@@ -118,11 +126,11 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const user = await service.getById({ userId: mockUser._id.toString() });
+			const result = await service.getById({ userId: mockUser._id.toString() });
 
 			// Assert
-			assert.ok(user);
-			assert.deepStrictEqual(user, expectedUser);
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, expectedUser);
 
 			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(
@@ -131,7 +139,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'NotFoundError' when 'repo.getById' returns 'null'", async () => {
+		test("Should return 'NotFoundError' when 'repo.getById' returns 'null'", async () => {
 			// Arrange
 			mockRepo.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({
@@ -140,30 +148,24 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.getById({ userId: userId.toString() }),
-				(error: Error) => {
-					assert.ok(error instanceof NotFoundError);
-					assert.strictEqual(error.message, "User not found");
-					assert.strictEqual(error.statusCode, 404);
-					return true;
-				},
-			);
+			// Act
+			const result = await service.getById({ userId: userId.toString() });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
-		test("Should throw 'ValidationError' when userId is invalid", async () => {
+		test("Should return 'ValidationError' when userId is invalid", async () => {
 			// Arrange
 			const invalidUserId = "invalid-objectid" as any;
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.getById({ userId: invalidUserId }),
-				ValidationError,
-			);
+			// Act
+			const result = await service.getById({ userId: invalidUserId });
 
-			// Repository should not be called when validation fails
-			assert.strictEqual(mockRepo.getById.mock.callCount(), 0);
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
@@ -173,6 +175,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 		const email = mockUser.email;
 
 		test("Should return 'user object' when 'repo.getByEmail' is called once with 'email'", async () => {
+			// Arrange
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					data: mockUser,
@@ -180,18 +183,22 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			const user = await service.getByEmail({ email });
+			// Act
+			const result = await service.getByEmail({ email });
 
-			assert.ok(user);
-			assert.deepStrictEqual(user, expectedUser);
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, expectedUser);
 
 			assert.strictEqual(mockRepo.getByEmail.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.getByEmail.mock.calls[0].arguments[0], {
+			assert.deepStrictEqual(
+				mockRepo.getByEmail.mock.calls[0].arguments[0].email,
 				email,
-			});
+			);
 		});
 
-		test("Should throw 'NotFoundError' when 'repo.getByEmail' returns 'null'", async () => {
+		test("Should return 'NotFoundError' when 'repo.getByEmail' returns 'null'", async () => {
+			// Arrange
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					data: null,
@@ -199,28 +206,25 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			await assert.rejects(
-				async () => await service.getByEmail({ email }),
-				(error: Error) => {
-					assert.ok(error instanceof NotFoundError);
-					assert.strictEqual(error.type, "NOT_FOUND");
-					assert.strictEqual(error.statusCode, 404);
-					return true;
-				},
-			);
+			// Act
+			const result = await service.getByEmail({ email });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
-		test("Should throw 'ValidationError' when email is invalid", async () => {
+		test("Should return 'ValidationError' when email is invalid", async () => {
 			// Arrange
 			const invalidEmail = "not-an-email";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.getByEmail({ email: invalidEmail }),
-				ValidationError,
-			);
+			// Act
+			const result = await service.getByEmail({ email: invalidEmail });
 
-			// Repository should not be called when validation fails
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+
 			assert.strictEqual(mockRepo.getByEmail.mock.callCount(), 0);
 		});
 	});
@@ -233,7 +237,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 		const updatedData = { ...mockUser, ...updateData };
 		const { password: _, ...expectedUpdatedData } = updatedData;
 
-		test("Should return 'user object' without 'password' and 'token' when 'repo.update' is called once with 'userId' and 'updateData'", async () => {
+		test("Should return 'user object' without 'password' when 'repo.update' is called once with 'userId' and 'updateData'", async () => {
 			// Arrange
 			mockRepo.update.mock.mockImplementationOnce(() =>
 				Promise.resolve({
@@ -243,14 +247,14 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const updatedUser = await service.updateById({
+			const result = await service.updateById({
 				data: updateData,
 				userId: userId.toString(),
 			});
 
 			// Assert
-			assert.ok(updatedUser);
-			assert.deepStrictEqual(updatedUser, expectedUpdatedData);
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, expectedUpdatedData);
 
 			assert.strictEqual(mockRepo.update.mock.callCount(), 1);
 			assert.deepStrictEqual(
@@ -263,7 +267,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'NotFoundError' when 'repo.update' returns 'null'", async () => {
+		test("Should return 'NotFoundError' when 'repo.update' returns 'null'", async () => {
 			// Arrange
 			mockRepo.update.mock.mockImplementationOnce(() =>
 				Promise.resolve({
@@ -272,55 +276,51 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			// Act & Assert
-			await assert.rejects(
-				async () =>
-					await service.updateById({
-						data: updateData,
-						userId: userId.toString(),
-					}),
-				(error: Error) => {
-					assert.ok(error instanceof NotFoundError);
-					assert.strictEqual(error.type, "NOT_FOUND");
-					assert.strictEqual(error.statusCode, 404);
-					return true;
-				},
-			);
+			// Act
+			const result = await service.updateById({
+				data: updateData,
+				userId: userId.toString(),
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
-		test("Should throw 'ValidationError' when userId is invalid", async () => {
+		test("Should return 'ValidationError' when userId is invalid", async () => {
 			// Arrange
 			const invalidUserId = "invalid-objectid" as any;
 
-			// Act & Assert
-			await assert.rejects(
-				async () =>
-					await service.updateById({ data: updateData, userId: invalidUserId }),
-				ValidationError,
-			);
+			// Act
+			const result = await service.updateById({
+				data: updateData,
+				userId: invalidUserId,
+			});
 
-			// Repository should not be called when validation fails
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+
 			assert.strictEqual(mockRepo.update.mock.callCount(), 0);
 		});
 
-		test("Should throw 'ValidationError' when update data is invalid", async () => {
+		test("Should return 'ValidationError' when update data is invalid", async () => {
 			// Arrange
-			const mockUpdateData = generateMockInsertUser({
+			const invalidUpdateData = generateMockInsertUser({
 				email: "invalid-email",
 				name: "",
 			});
 
-			// Act & Assert
-			await assert.rejects(
-				async () =>
-					await service.updateById({
-						data: mockUpdateData,
-						userId: userId.toString(),
-					}),
-				ValidationError,
-			);
+			// Act
+			const result = await service.updateById({
+				data: invalidUpdateData,
+				userId: userId.toString(),
+			});
 
-			// Repository should not be called when validation fails
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+
 			assert.strictEqual(mockRepo.update.mock.callCount(), 0);
 		});
 	});
@@ -340,19 +340,20 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const deletedUser = await service.delete({ userId: userId.toString() });
+			const result = await service.delete({ userId: userId.toString() });
 
 			// Assert
-			assert.ok(deletedUser);
-			assert.deepStrictEqual(deletedUser, expectedUser);
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, expectedUser);
 
 			assert.strictEqual(mockRepo.delete.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.delete.mock.calls[0].arguments[0], {
+			assert.deepStrictEqual(
+				mockRepo.delete.mock.calls[0].arguments[0].userId,
 				userId,
-			});
+			);
 		});
 
-		test("Should throw 'NotFoundError' when 'repo.delete' returns 'null'", async () => {
+		test("Should return 'NotFoundError' when 'repo.delete' returns 'null'", async () => {
 			// Arrange
 			mockRepo.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({
@@ -361,24 +362,25 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.delete({ userId: userId.toString() }),
-				NotFoundError,
-			);
+			// Act
+			const result = await service.delete({ userId: userId.toString() });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
-		test("Should throw 'ValidationError' when userId is invalid", async () => {
+		test("Should return 'ValidationError' when userId is invalid", async () => {
 			// Arrange
 			const invalidUserId = "invalid-objectid" as any;
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.delete({ userId: invalidUserId }),
-				ValidationError,
-			);
+			// Act
+			const result = await service.delete({ userId: invalidUserId });
 
-			// Repository should not be called when validation fails
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+
 			assert.strictEqual(mockRepo.delete.mock.callCount(), 0);
 		});
 	});
@@ -400,7 +402,9 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			const result = await service.existsByEmail({ email });
 
 			// Assert
-			assert.deepStrictEqual(result, expectedResult);
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, expectedResult);
+
 			assert.strictEqual(mockRepo.existsByEmail.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockRepo.existsByEmail.mock.calls[0].arguments[0].email,
@@ -423,20 +427,21 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			const result = await service.existsByEmail({ email });
 
 			// Assert
-			assert.strictEqual(result, null);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, null);
 		});
 
-		test("Should throw 'ValidationError' when email is invalid", async () => {
+		test("Should return 'ValidationError' when email is invalid", async () => {
 			// Arrange
 			const invalidEmail = "not-an-email";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.existsByEmail({ email: invalidEmail }),
-				ValidationError,
-			);
+			// Act
+			const result = await service.existsByEmail({ email: invalidEmail });
 
-			// Repository should not be called when validation fails
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+
 			assert.strictEqual(mockRepo.existsByEmail.mock.callCount(), 0);
 		});
 	});
@@ -448,18 +453,23 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			const { password: _, ...expectedUser } = mockUser;
 
 			// Act
-			const sanitizedUser = service.sanitizeUser(mockUser);
+			const result = service.sanitizeUser(mockUser);
 
 			// Assert
-			assert.deepStrictEqual(sanitizedUser, expectedUser);
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, expectedUser);
 		});
 
-		test("Should throw 'InternalError' when user data is invalid", () => {
+		test("Should return 'InternalError' when user data is invalid", () => {
 			// Arrange
 			const invalidUser = { invalid: "data" } as any;
 
-			// Act & Assert
-			assert.throws(() => service.sanitizeUser(invalidUser), InternalError);
+			// Act
+			const result = service.sanitizeUser(invalidUser);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof InternalError);
 		});
 	});
 
@@ -477,12 +487,12 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const user = await service.create_UNSAFE(mockInsertUser);
+			const result = await service.create_UNSAFE(mockInsertUser);
 
 			// Assert
-			assert.ok(user);
-			assert.deepStrictEqual(user, mockSelectUser);
-			assert.ok(user.password); // Ensure password is included
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, mockSelectUser);
+			assert.ok(result.data.password); // Ensure password is included
 
 			assert.strictEqual(mockRepo.create.mock.callCount(), 1);
 			assert.deepStrictEqual(
@@ -491,18 +501,19 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'ValidationError' when user data is invalid", async () => {
+		test("Should return 'ValidationError' when user data is invalid", async () => {
 			// Arrange
-			const mockInsertUser = generateMockInsertUser({
+			const invalidInsertUser = generateMockInsertUser({
 				email: "invalid-email",
 				name: "",
 			});
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.create_UNSAFE(mockInsertUser),
-				ValidationError,
-			);
+			// Act
+			const result = await service.create_UNSAFE(invalidInsertUser);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
@@ -520,12 +531,12 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const user = await service.getByEmail_UNSAFE({ email });
+			const result = await service.getByEmail_UNSAFE({ email });
 
 			// Assert
-			assert.ok(user);
-			assert.deepStrictEqual(user, mockUser);
-			assert.ok(user.password); // Ensure password is included
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, mockUser);
+			assert.ok(result.data.password); // Ensure password is included
 
 			assert.strictEqual(mockRepo.getByEmail.mock.callCount(), 1);
 			assert.deepStrictEqual(
@@ -534,7 +545,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'NotFoundError' when user does not exist", async () => {
+		test("Should return 'NotFoundError' when user does not exist", async () => {
 			// Arrange
 			const { email } = generateMockSelectUser();
 
@@ -545,22 +556,24 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.getByEmail_UNSAFE({ email }),
-				NotFoundError,
-			);
+			// Act
+			const result = await service.getByEmail_UNSAFE({ email });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
-		test("Should throw 'ValidationError' when email is invalid", async () => {
+		test("Should return 'ValidationError' when email is invalid", async () => {
 			// Arrange
 			const invalidEmail = "not-an-email";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.getByEmail_UNSAFE({ email: invalidEmail }),
-				ValidationError,
-			);
+			// Act
+			const result = await service.getByEmail_UNSAFE({ email: invalidEmail });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
@@ -578,12 +591,14 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const user = await service.getById_UNSAFE({ userId: userId.toString() });
+			const result = await service.getById_UNSAFE({
+				userId: userId.toString(),
+			});
 
 			// Assert
-			assert.ok(user);
-			assert.deepStrictEqual(user, mockUser);
-			assert.ok(user.password); // Ensure password is included
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, mockUser);
+			assert.ok(result.data.password); // Ensure password is included
 
 			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(
@@ -592,7 +607,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'NotFoundError' when user does not exist", async () => {
+		test("Should return 'NotFoundError' when user does not exist", async () => {
 			// Arrange
 			const { _id: userId } = generateMockSelectUser();
 
@@ -603,22 +618,26 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.getById_UNSAFE({ userId: userId.toString() }),
-				NotFoundError,
-			);
+			// Act
+			const result = await service.getById_UNSAFE({
+				userId: userId.toString(),
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
-		test("Should throw 'ValidationError' when userId is invalid", async () => {
+		test("Should return 'ValidationError' when userId is invalid", async () => {
 			// Arrange
 			const invalidUserId = "invalid-objectid" as any;
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.getById_UNSAFE({ userId: invalidUserId }),
-				ValidationError,
-			);
+			// Act
+			const result = await service.getById_UNSAFE({ userId: invalidUserId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 });

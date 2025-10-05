@@ -509,7 +509,7 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 			mockUser.getByEmail_UNSAFE.mock.mockImplementation(
 				// @ts-expect-error - mock implementation
-				async () => null,
+				() => Promise.resolve({ success: false }),
 			);
 
 			// Act
@@ -531,8 +531,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 			const mockSelectUser = generateMockSelectUser(mockInsertUser);
 			const error = new ValidationError("invalid-password");
 
-			mockUser.getByEmail_UNSAFE.mock.mockImplementation(
-				async () => mockSelectUser,
+			mockUser.getByEmail_UNSAFE.mock.mockImplementation(() =>
+				Promise.resolve({ data: mockSelectUser, success: true }),
 			);
 			mockPassword.verify.mock.mockImplementation(async () => ({
 				error,
@@ -562,16 +562,20 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 				userId: mockSelectUser._id,
 			});
 
-			mockUser.getByEmail_UNSAFE.mock.mockImplementation(
-				async () => mockSelectUser,
-			);
+			mockUser.getByEmail_UNSAFE.mock.mockImplementation(async () => ({
+				data: mockSelectUser,
+				success: true,
+			}));
 
 			mockPassword.verify.mock.mockImplementation(async () => ({
 				data: undefined,
 				success: true,
 			}));
 
-			mockUser.sanitizeUser.mock.mockImplementationOnce(() => mockSelectUser);
+			mockUser.sanitizeUser.mock.mockImplementationOnce(() => ({
+				data: mockSelectUser,
+				success: true,
+			}));
 
 			mockJwt.generateTokenPair.mock.mockImplementation(() => ({
 				data: mockTokenPair,
@@ -843,9 +847,12 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 			const mockInsertUser = generateMockInsertUser();
 			const mockSelectUser = generateMockSelectUser(mockInsertUser);
 
-			mockUser.existsByEmail.mock.mockImplementation(async () => ({
-				_id: mockSelectUser._id,
-			}));
+			mockUser.existsByEmail.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: mockSelectUser,
+					success: true,
+				}),
+			);
 
 			// Act
 			const result = await manager.signUp(mockInsertUser);
@@ -862,11 +869,18 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 			const mockInsertUser = generateMockInsertUser();
 			const error = new ValidationError("hash");
 
-			mockUser.existsByEmail.mock.mockImplementation(async () => null);
-			mockPassword.hash.mock.mockImplementation(async () => ({
-				error,
-				success: false,
-			}));
+			mockUser.existsByEmail.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: null,
+					success: true,
+				}),
+			);
+			mockPassword.hash.mock.mockImplementation(() =>
+				Promise.resolve({
+					error,
+					success: false,
+				}),
+			);
 
 			// Act
 			const result = await manager.signUp(mockInsertUser);
@@ -888,23 +902,37 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 				userId: mockSelectUser._id,
 			});
 
-			mockUser.existsByEmail.mock.mockImplementation(async () => null);
-			mockUser.create.mock.mockImplementation(async () => mockSelectUser);
+			mockUser.existsByEmail.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: null,
+					success: true,
+				}),
+			);
+			mockUser.create.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: mockSelectUser,
+					success: true,
+				}),
+			);
 
-			mockPassword.hash.mock.mockImplementation(async () => ({
-				data: mockInsertUser.password,
-				success: true,
-			}));
+			mockPassword.hash.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: mockInsertUser.password,
+					success: true,
+				}),
+			);
 
 			mockJwt.generateTokenPair.mock.mockImplementation(() => ({
 				data: mockTokenPair,
 				success: true,
 			}));
 
-			mockSession.create.mock.mockImplementation(async () => ({
-				data: session,
-				success: true,
-			}));
+			mockSession.create.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: session,
+					success: true,
+				}),
+			);
 
 			// Act
 			const result = await manager.signUp(mockInsertUser);
@@ -939,22 +967,33 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 			const mockInsertUser = generateMockInsertUser();
 			const error = new ValidationError("user creation failed");
 
-			mockUser.existsByEmail.mock.mockImplementation(async () => null);
-
-			mockPassword.hash.mock.mockImplementation(async () => ({
-				data: mockInsertUser.password,
-				success: true,
-			}));
-
-			mockUser.create.mock.mockImplementation(async () => {
-				throw error;
-			});
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await manager.signUp(mockInsertUser),
-				ValidationError,
+			mockUser.existsByEmail.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: null,
+					success: true,
+				}),
 			);
+
+			mockPassword.hash.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: mockInsertUser.password,
+					success: true,
+				}),
+			);
+
+			mockUser.create.mock.mockImplementation(() =>
+				Promise.resolve({
+					error,
+					success: false,
+				}),
+			);
+
+			// Act
+			const result = await manager.signUp(mockInsertUser);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, error);
 		});
 	});
 });

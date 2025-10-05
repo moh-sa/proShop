@@ -21,27 +21,31 @@ import { insertUserSchema, selectUserSchema } from "../schemas/index.js";
 import { emailValidator, objectIdValidator } from "../validators/index.js";
 
 export interface IUserService {
-	create: (data: InsertUser) => Promise<SafeSelectUser>;
-	delete: (data: { userId: string }) => Promise<SafeSelectUser>;
+	create: (data: InsertUser) => Promise<UserResult<SafeSelectUser>>;
+	delete: (data: { userId: string }) => Promise<UserResult<SafeSelectUser>>;
 	existsByEmail: (data: {
 		email: string;
-	}) => Promise<null | { _id: Types.ObjectId }>;
-	getAll: () => Promise<Array<SafeSelectUser>>;
-	getByEmail: (data: { email: string }) => Promise<SafeSelectUser>;
-	getById: (data: { userId: string }) => Promise<SafeSelectUser>;
-	sanitizeUser: (user: SelectUser) => SafeSelectUser;
+	}) => Promise<UserResult<null | { _id: Types.ObjectId }>>;
+	getAll: () => Promise<UserResult<Array<SafeSelectUser>>>;
+	getByEmail: (data: { email: string }) => Promise<UserResult<SafeSelectUser>>;
+	getById: (data: { userId: string }) => Promise<UserResult<SafeSelectUser>>;
+	sanitizeUser: (user: SelectUser) => UserResult<SafeSelectUser>;
 	updateById: (data: {
 		data: Partial<InsertUser>;
 		userId: string;
-	}) => Promise<SafeSelectUser>;
+	}) => Promise<UserResult<SafeSelectUser>>;
 
 	// UNSAFE METHODS - returns full user object
 	/****ONLY FOR INTERNAL USE***/
-	create_UNSAFE: (data: InsertUser) => Promise<UnSafeSelectUser>;
+	create_UNSAFE: (data: InsertUser) => Promise<UserResult<UnSafeSelectUser>>;
 	/****ONLY FOR INTERNAL USE***/
-	getByEmail_UNSAFE: (data: { email: string }) => Promise<UnSafeSelectUser>;
+	getByEmail_UNSAFE: (data: {
+		email: string;
+	}) => Promise<UserResult<UnSafeSelectUser>>;
 	/****ONLY FOR INTERNAL USE***/
-	getById_UNSAFE: (data: { userId: string }) => Promise<UnSafeSelectUser>;
+	getById_UNSAFE: (data: {
+		userId: string;
+	}) => Promise<UserResult<UnSafeSelectUser>>;
 }
 
 type UserResult<T> = Result<T>;
@@ -58,17 +62,23 @@ export class UserService implements IUserService {
 	): MethodReturn<IUserService, "create"> {
 		const validationResult = this._validateCreateData(data);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
-		const user = await this._repository.create(validationResult.data);
-		if (!user.success) {
-			throw user.error;
+		const createdResult = await this._repository.create(validationResult.data);
+		if (!createdResult.success) {
+			return createdResult;
 		}
 
-		const sanitizedUser = this.sanitizeUser(user.data);
+		const sanitizeResult = this.sanitizeUser(createdResult.data);
+		if (!sanitizeResult.success) {
+			return sanitizeResult;
+		}
 
-		return sanitizedUser;
+		return {
+			data: sanitizeResult.data,
+			success: true,
+		};
 	}
 
 	async delete({
@@ -79,21 +89,31 @@ export class UserService implements IUserService {
 	> {
 		const validationResult = this._validateUserId(userId);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
-		const user = await this._repository.delete({
+		const deleteResult = await this._repository.delete({
 			userId: validationResult.data,
 		});
-		if (!user.success) {
-			throw user.error;
+		if (!deleteResult.success) {
+			return deleteResult;
 		}
-		if (!user.data) {
-			throw new NotFoundError("User");
+		if (!deleteResult.data) {
+			return {
+				error: new NotFoundError("User"),
+				success: false,
+			};
 		}
 
-		const sanitizedUser = this.sanitizeUser(user.data);
-		return sanitizedUser;
+		const sanitizeResult = this.sanitizeUser(deleteResult.data);
+		if (!sanitizeResult.success) {
+			return sanitizeResult;
+		}
+
+		return {
+			data: sanitizeResult.data,
+			success: true,
+		};
 	}
 
 	public async existsByEmail({
@@ -104,27 +124,42 @@ export class UserService implements IUserService {
 	> {
 		const validationResult = this._validateEmail(email);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
-		const result = await this._repository.existsByEmail({
+		const existsResult = await this._repository.existsByEmail({
 			email: validationResult.data,
 		});
-		if (!result.success) {
-			throw result.error;
+		if (!existsResult.success) {
+			return existsResult;
 		}
 
-		return result.data;
+		return {
+			data: existsResult.data,
+			success: true,
+		};
 	}
 
 	async getAll(): MethodReturn<IUserService, "getAll"> {
-		const users = await this._repository.getAll();
-		if (!users.success) {
-			throw users.error;
+		const getAllResult = await this._repository.getAll();
+		if (!getAllResult.success) {
+			return getAllResult;
 		}
 
-		const sanitizedUsers = users.data.map((user) => this.sanitizeUser(user));
-		return sanitizedUsers;
+		const sanitizedUsers: Array<SafeSelectUser> = [];
+		for (const user of getAllResult.data) {
+			const sanitizeResult = this.sanitizeUser(user);
+			if (!sanitizeResult.success) {
+				return sanitizeResult;
+			}
+
+			sanitizedUsers.push(sanitizeResult.data);
+		}
+
+		return {
+			data: sanitizedUsers,
+			success: true,
+		};
 	}
 
 	async getByEmail({
@@ -135,20 +170,30 @@ export class UserService implements IUserService {
 	> {
 		const validationResult = this._validateEmail(email);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
-		const user = await this._repository.getByEmail({
+		const getByEmailResult = await this._repository.getByEmail({
 			email: validationResult.data,
 		});
-		if (!user.success) {
-			throw user.error;
+		if (!getByEmailResult.success) {
+			return getByEmailResult;
 		}
-		if (!user.data) {
-			throw new NotFoundError("User");
+		if (!getByEmailResult.data) {
+			return {
+				error: new NotFoundError("User"),
+				success: false,
+			};
 		}
-		const sanitizedUser = this.sanitizeUser(user.data);
-		return sanitizedUser;
+		const sanitizeResult = this.sanitizeUser(getByEmailResult.data);
+		if (!sanitizeResult.success) {
+			return sanitizeResult;
+		}
+
+		return {
+			data: sanitizeResult.data,
+			success: true,
+		};
 	}
 
 	async getById({
@@ -159,21 +204,30 @@ export class UserService implements IUserService {
 	> {
 		const validationResult = this._validateUserId(userId);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
-		const user = await this._repository.getById({
+		const getByIdResult = await this._repository.getById({
 			userId: validationResult.data,
 		});
-		if (!user.success) {
-			throw user.error;
+		if (!getByIdResult.success) {
+			return getByIdResult;
 		}
-		if (!user.data) {
-			throw new NotFoundError("User");
+		if (!getByIdResult.data) {
+			return {
+				error: new NotFoundError("User"),
+				success: false,
+			};
 		}
-		const sanitizedUser = this.sanitizeUser(user.data);
+		const sanitizeResult = this.sanitizeUser(getByIdResult.data);
+		if (!sanitizeResult.success) {
+			return sanitizeResult;
+		}
 
-		return sanitizedUser;
+		return {
+			data: sanitizeResult.data,
+			success: true,
+		};
 	}
 
 	async updateById({
@@ -185,26 +239,36 @@ export class UserService implements IUserService {
 	> {
 		const userIdValidationResult = this._validateUserId(userId);
 		if (!userIdValidationResult.success) {
-			throw userIdValidationResult.error;
+			return userIdValidationResult;
 		}
 		const updateDataValidationResult = this._validateUpdateData(data);
 		if (!updateDataValidationResult.success) {
-			throw updateDataValidationResult.error;
+			return updateDataValidationResult;
 		}
 
-		const updatedUser = await this._repository.update({
+		const updateResult = await this._repository.update({
 			data: updateDataValidationResult.data,
 			userId: userIdValidationResult.data,
 		});
-		if (!updatedUser.success) {
-			throw updatedUser.error;
+		if (!updateResult.success) {
+			return updateResult;
 		}
-		if (!updatedUser.data) {
-			throw new NotFoundError("User");
+		if (!updateResult.data) {
+			return {
+				error: new NotFoundError("User"),
+				success: false,
+			};
 		}
 
-		const sanitizedUser = this.sanitizeUser(updatedUser.data);
-		return sanitizedUser;
+		const sanitizeResult = this.sanitizeUser(updateResult.data);
+		if (!sanitizeResult.success) {
+			return sanitizeResult;
+		}
+
+		return {
+			data: sanitizeResult.data,
+			success: true,
+		};
 	}
 
 	// UNSAFE METHODS - returns full user object
@@ -214,15 +278,18 @@ export class UserService implements IUserService {
 	): MethodReturn<IUserService, "create_UNSAFE"> {
 		const validationResult = this._validateCreateData(data);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
-		const user = await this._repository.create(validationResult.data);
-		if (!user.success) {
-			throw user.error;
+		const createResult = await this._repository.create(validationResult.data);
+		if (!createResult.success) {
+			return createResult;
 		}
 
-		return user.data;
+		return {
+			data: createResult.data,
+			success: true,
+		};
 	}
 	/****ONLY FOR INTERNAL USE***/
 	public async getByEmail_UNSAFE(
@@ -230,20 +297,26 @@ export class UserService implements IUserService {
 	): MethodReturn<IUserService, "getByEmail_UNSAFE"> {
 		const validationResult = this._validateEmail(args.email);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
-		const user = await this._repository.getByEmail({
+		const getByEmailResult = await this._repository.getByEmail({
 			email: validationResult.data,
 		});
-		if (!user.success) {
-			throw user.error;
+		if (!getByEmailResult.success) {
+			return getByEmailResult;
 		}
-		if (!user.data) {
-			throw new NotFoundError("User");
+		if (!getByEmailResult.data) {
+			return {
+				error: new NotFoundError("User"),
+				success: false,
+			};
 		}
 
-		return user.data;
+		return {
+			data: getByEmailResult.data,
+			success: true,
+		};
 	}
 	/****ONLY FOR INTERNAL USE***/
 	public async getById_UNSAFE(
@@ -251,20 +324,26 @@ export class UserService implements IUserService {
 	): MethodReturn<IUserService, "getById_UNSAFE"> {
 		const validationResult = this._validateUserId(args.userId);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
-		const user = await this._repository.getById({
+		const getByIdResult = await this._repository.getById({
 			userId: validationResult.data,
 		});
-		if (!user.success) {
-			throw user.error;
+		if (!getByIdResult.success) {
+			return getByIdResult;
 		}
-		if (!user.data) {
-			throw new NotFoundError("User");
+		if (!getByIdResult.data) {
+			return {
+				error: new NotFoundError("User"),
+				success: false,
+			};
 		}
 
-		return user.data;
+		return {
+			data: getByIdResult.data,
+			success: true,
+		};
 	}
 
 	public sanitizeUser(
@@ -272,10 +351,16 @@ export class UserService implements IUserService {
 	): MethodReturn<IUserService, "sanitizeUser"> {
 		const result = selectUserSchema.omit({ password: true }).safeParse(user);
 		if (!result.success) {
-			throw new InternalError("Invalid user data", { cause: result.error });
+			return {
+				error: new InternalError("Invalid user data", { cause: result.error }),
+				success: false,
+			};
 		}
 
-		return result.data;
+		return {
+			data: result.data,
+			success: true,
+		};
 	}
 
 	// Validation Methods

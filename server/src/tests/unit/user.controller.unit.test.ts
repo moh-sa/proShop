@@ -35,7 +35,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve({ data: mockUser, success: true }),
 			);
 
 			// Act
@@ -54,41 +54,47 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching user data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
 			});
 
 			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve({ data: mockUser, success: true }),
 			);
 
+			// Act
 			await controller.getById(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing user data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
 			});
 
 			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve({ data: mockUser, success: true }),
 			);
 
+			// Act
 			await controller.getById(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -101,58 +107,67 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		const mockUsers = generateMockSelectUsers({ count: 5 });
 
 		test("Should call 'service.getAll' once without args", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				testContext: t,
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUsers),
+				Promise.resolve({ data: mockUsers, success: true }),
 			);
 
+			// Act
 			await controller.getAll(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
 			assert.strictEqual(mockService.getAll.mock.calls[0].arguments.length, 0);
 		});
 
-		test("Should call'res.status' once with '200' after successfully fetching all users", async (t) => {
+		test("Should call 'res.status' once with '200' after successfully fetching all users", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				testContext: t,
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUsers),
+				Promise.resolve({ data: mockUsers, success: true }),
 			);
 
+			// Act
 			await controller.getAll(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing all users", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				testContext: t,
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUsers),
+				Promise.resolve({ data: mockUsers, success: true }),
 			);
 
+			// Act
 			await controller.getAll(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -178,7 +193,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.updateById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve({ data: mockUser, success: true }),
 			);
 
 			// Act
@@ -201,41 +216,47 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '200' after successfully updating user data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
 			});
 
 			mockService.updateById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve({ data: mockUser, success: true }),
 			);
 
+			// Act
 			await controller.update(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing user data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
 			});
 
 			mockService.updateById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve({ data: mockUser, success: true }),
 			);
 
+			// Act
 			await controller.update(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -256,7 +277,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve({ data: mockUser, success: true }),
 			);
 
 			// Act
@@ -274,17 +295,21 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should throw 'NotFoundError' if 'service.delete' returns 'null'", async (t) => {
+		test("Should throw 'NotFoundError' if 'service.delete' returns failure result", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
 			});
 
 			mockService.delete.mock.mockImplementationOnce(() =>
-				// @ts-expect-error - test case
-				Promise.resolve(null),
+				Promise.resolve({
+					error: new NotFoundError("User"),
+					success: false,
+				}),
 			);
 
+			// Act & Assert
 			await assert.rejects(
 				async () =>
 					await controller.delete(
@@ -297,41 +322,47 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '204' after successfully deleting user data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
 			});
 
 			mockService.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve({ data: mockUser, success: true }),
 			);
 
+			// Act
 			await controller.delete(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 204);
 		});
 
-		test("Should call 'res.json' once with the success response object containing user data", async (t) => {
+		test("Should call 'res.json' once with the success response object containing null data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
 			});
 
 			mockService.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockUser),
+				Promise.resolve({ data: mockUser, success: true }),
 			);
 
+			// Act
 			await controller.delete(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],

@@ -6,7 +6,6 @@ import type {
 } from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
-import { NotFoundError } from "../errors/index.js";
 import { UserService } from "../services/index.js";
 import { asyncHandler } from "../utils/index.js";
 
@@ -36,9 +35,9 @@ export class UserController implements IUserController {
 		params: { userId: string };
 		resBody: { data: null };
 	}>(async (req, res) => {
-		const response = await this._service.delete({ userId: req.params.userId });
-		if (!response) {
-			throw new NotFoundError("User");
+		const result = await this._service.delete({ userId: req.params.userId });
+		if (!result.success) {
+			throw result.error;
 		}
 
 		res.status(HTTP_STATUS.NO_CONTENT).json({
@@ -50,10 +49,13 @@ export class UserController implements IUserController {
 	getAll = asyncHandler<{
 		resBody: { data: Array<SafeSelectUser> };
 	}>(async (req, res) => {
-		const response = await this._service.getAll();
+		const result = await this._service.getAll();
+		if (!result.success) {
+			throw result.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: response,
+			data: result.data,
 			success: true,
 		});
 	});
@@ -62,12 +64,15 @@ export class UserController implements IUserController {
 		params: { userId: string };
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
-		const response = await this._service.getById({
+		const result = await this._service.getById({
 			userId: req.params?.userId ?? res.locals.user?._id,
 		});
+		if (!result.success) {
+			throw result.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: response,
+			data: result.data,
 			success: true,
 		});
 	});
@@ -77,13 +82,16 @@ export class UserController implements IUserController {
 		reqBody: Partial<InsertUser>;
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
-		const response = await this._service.updateById({
+		const result = await this._service.updateById({
 			data: req.body,
 			userId: req.params?.userId ?? res.locals.user?._id,
 		});
+		if (!result.success) {
+			throw result.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: response,
+			data: result.data,
 			success: true,
 		});
 	});

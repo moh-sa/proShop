@@ -37,29 +37,34 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.name, mockUser.name);
-			assert.strictEqual(result.email, mockUser.email.toLowerCase());
-			assert.strictEqual(result.isAdmin, mockUser.isAdmin);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.name, mockUser.name);
+			assert.strictEqual(result.data.email, mockUser.email.toLowerCase());
+			assert.strictEqual(result.data.isAdmin, mockUser.isAdmin);
 		});
 
-		test("Should throw 'NotFoundError' when 'repo.getById' is called with a non-existent ID", async () => {
+		test("Should return 'NotFoundError' when 'repo.getById' is called with a non-existent ID", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId().toString();
 
-			// Act & Assert
-			await assert.rejects(async () => {
-				await userService.getById({ userId: nonExistentId });
-			}, NotFoundError);
+			// Act
+			const result = await userService.getById({ userId: nonExistentId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
-		test("Should throw 'ValidationError' when 'repo.getById' is called with invalid 'userId''", async () => {
+		test("Should return 'ValidationError' when 'repo.getById' is called with invalid 'userId'", async () => {
 			// Arrange
 			const userId = "invalid-user-id";
 
-			// Act & Assert
-			await assert.rejects(async () => {
-				await userService.getById({ userId });
-			}, ValidationError);
+			// Act
+			const result = await userService.getById({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
@@ -72,19 +77,22 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			const result = await userService.getByEmail({ email: mockUser.email });
 
 			// Assert
-			assert.strictEqual(result.name, mockUser.name);
-			assert.strictEqual(result.email, mockUser.email.toLowerCase());
-			assert.strictEqual(result.isAdmin, mockUser.isAdmin);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.name, mockUser.name);
+			assert.strictEqual(result.data.email, mockUser.email.toLowerCase());
+			assert.strictEqual(result.data.isAdmin, mockUser.isAdmin);
 		});
 
-		test("Should throw 'NotFoundError' when 'repo.getByEmail' is called with a non-existent email", async () => {
+		test("Should return 'NotFoundError' when 'repo.getByEmail' is called with a non-existent email", async () => {
 			// Arrange
 			const nonExistentEmail = "nonexistent@example.com";
 
-			// Act & Assert
-			await assert.rejects(async () => {
-				await userService.getByEmail({ email: nonExistentEmail });
-			}, NotFoundError);
+			// Act
+			const result = await userService.getByEmail({ email: nonExistentEmail });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 	});
 
@@ -94,12 +102,13 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			await User.insertMany(mockUsers);
 
 			// Act
-			const results = await userService.getAll();
+			const result = await userService.getAll();
 
 			// Assert
-			assert(Array.isArray(results));
-			assert(results.length > 0);
-			const foundUser = results.find(
+			assert.strictEqual(result.success, true);
+			assert(Array.isArray(result.data));
+			assert(result.data.length > 0);
+			const foundUser = result.data.find(
 				(user) => user.email === mockUsers[0].email.toLowerCase(),
 			);
 			assert(foundUser);
@@ -124,9 +133,10 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.name, updateData.name);
-			assert.strictEqual(result.email, updateData.email);
-			assert.strictEqual(result.isAdmin, mockUser.isAdmin);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.name, updateData.name);
+			assert.strictEqual(result.data.email, updateData.email);
+			assert.strictEqual(result.data.isAdmin, mockUser.isAdmin);
 		});
 
 		test("Should update admin status when 'repo.updateById' is called with isAdmin field", async () => {
@@ -141,9 +151,10 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.isAdmin, true);
-			assert.strictEqual(result.name, mockUser.name);
-			assert.strictEqual(result.email, mockUser.email.toLowerCase());
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.isAdmin, true);
+			assert.strictEqual(result.data.name, mockUser.name);
+			assert.strictEqual(result.data.email, mockUser.email.toLowerCase());
 		});
 
 		test("Should not update fields when 'repo.updateById' is called with empty object", async () => {
@@ -158,9 +169,10 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.name, mockUser.name);
-			assert.strictEqual(result.email, mockUser.email.toLowerCase());
-			assert.strictEqual(result.isAdmin, mockUser.isAdmin);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.name, mockUser.name);
+			assert.strictEqual(result.data.email, mockUser.email.toLowerCase());
+			assert.strictEqual(result.data.isAdmin, mockUser.isAdmin);
 		});
 
 		test("Should not update fields when 'repo.updateById' is called with undefined values", async () => {
@@ -175,64 +187,73 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.name, mockUser.name); // Name should not be changed
-			assert.strictEqual(result.email, "new@example.com"); // Email should update
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.name, mockUser.name); // Name should not be changed
+			assert.strictEqual(result.data.email, "new@example.com"); // Email should update
 		});
 
-		test("Should throw 'NotFoundError' when 'repo.updateById' is called with a non-existent ID", async () => {
+		test("Should return 'NotFoundError' when 'repo.updateById' is called with a non-existent ID", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId().toString();
 			const updateData = { name: "Updated Name" };
 
-			// Act & Assert
-			await assert.rejects(async () => {
-				await userService.updateById({
-					data: updateData,
-					userId: nonExistentId,
-				});
-			}, NotFoundError);
+			// Act
+			const result = await userService.updateById({
+				data: updateData,
+				userId: nonExistentId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
-		test("Should throw 'ValidationError' when 'repo.updateById' is called with invalid update data", async () => {
+		test("Should return 'ValidationError' when 'repo.updateById' is called with invalid update data", async () => {
 			// Arrange
 			const updateData = { email: "invalid-email" };
 			const userId = generateMockObjectId().toString();
 
-			// Act & Assert
-			await assert.rejects(async () => {
-				await userService.updateById({
-					data: updateData,
-					userId,
-				});
-			}, ValidationError);
+			// Act
+			const result = await userService.updateById({
+				data: updateData,
+				userId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' when 'repo.updateById' is called with a short password", async () => {
+		test("Should return 'ValidationError' when 'repo.updateById' is called with a short password", async () => {
 			// Arrange
 			const updateData = { password: "123" };
 			const userId = generateMockObjectId().toString();
 
-			// Act & Assert
-			await assert.rejects(async () => {
-				await userService.updateById({
-					data: updateData,
-					userId,
-				});
-			}, ValidationError);
+			// Act
+			const result = await userService.updateById({
+				data: updateData,
+				userId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' when 'repo.updateById' is called with invalid 'userId'", async () => {
+		test("Should return 'ValidationError' when 'repo.updateById' is called with invalid 'userId'", async () => {
 			// Arrange
 			const updateData = { name: "Updated Name" };
 			const userId = "invalid-user-id";
 
-			// Act & Assert
-			await assert.rejects(async () => {
-				await userService.updateById({
-					data: updateData,
-					userId,
-				});
-			}, ValidationError);
+			// Act
+			const result = await userService.updateById({
+				data: updateData,
+				userId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
@@ -247,33 +268,40 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.name, mockUser.name);
-			assert.strictEqual(result.email, mockUser.email.toLowerCase());
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.name, mockUser.name);
+			assert.strictEqual(result.data.email, mockUser.email.toLowerCase());
 
 			// Verify user is actually deleted
-			await assert.rejects(async () => {
-				await userService.getById({ userId: mockUser._id.toString() });
-			}, NotFoundError);
+			const getResult = await userService.getById({
+				userId: mockUser._id.toString(),
+			});
+			assert.strictEqual(getResult.success, false);
+			assert.ok(getResult.error instanceof NotFoundError);
 		});
 
-		test("Should throw 'NotFoundError' when 'repo.delete' is called with a non-existent ID", async () => {
+		test("Should return 'NotFoundError' when 'repo.delete' is called with a non-existent ID", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId().toString();
 
-			// Act & Assert
-			await assert.rejects(async () => {
-				await userService.delete({ userId: nonExistentId });
-			}, NotFoundError);
+			// Act
+			const result = await userService.delete({ userId: nonExistentId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
-		test("Should throw 'ValidationError' when 'repo.delete' is called with invalid 'userId'", async () => {
+		test("Should return 'ValidationError' when 'repo.delete' is called with invalid 'userId'", async () => {
 			// Arrange
 			const userId = "invalid-user-id";
 
-			// Act & Assert
-			await assert.rejects(async () => {
-				await userService.delete({ userId });
-			}, ValidationError);
+			// Act
+			const result = await userService.delete({ userId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 });

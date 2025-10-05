@@ -238,8 +238,10 @@ export class AuthManager implements IAuthManager {
 			};
 		}
 
-		const user = await this._user.getByEmail_UNSAFE({ email: args.email });
-		if (!user) {
+		const userResult = await this._user.getByEmail_UNSAFE({
+			email: args.email,
+		});
+		if (!userResult.success) {
 			return {
 				error: new InvalidCredentialsError("Invalid email or password"),
 				success: false,
@@ -247,7 +249,7 @@ export class AuthManager implements IAuthManager {
 		}
 
 		const isPasswordValid = await this._password.verify({
-			hashedPassword: user.password,
+			hashedPassword: userResult.data.password,
 			password: args.password,
 		});
 		if (!isPasswordValid.success) {
@@ -259,8 +261,12 @@ export class AuthManager implements IAuthManager {
 			};
 		}
 
-		const sanitizedUser = this._user.sanitizeUser(user);
-		return this._createAuthSession(sanitizedUser);
+		const sanitizeResult = this._user.sanitizeUser(userResult.data);
+		if (!sanitizeResult.success) {
+			return sanitizeResult;
+		}
+
+		return this._createAuthSession(sanitizeResult.data);
 	}
 
 	public async signOut(
@@ -338,8 +344,13 @@ export class AuthManager implements IAuthManager {
 			};
 		}
 
-		const isUserExists = await this._user.existsByEmail({ email: args.email });
-		if (isUserExists) {
+		const userExistsResult = await this._user.existsByEmail({
+			email: args.email,
+		});
+		if (!userExistsResult.success) {
+			return userExistsResult;
+		}
+		if (userExistsResult.data) {
 			return {
 				error: new ConflictError("An account with this email already exists"),
 				success: false,
@@ -353,12 +364,15 @@ export class AuthManager implements IAuthManager {
 			return hashedPasswordResult;
 		}
 
-		const createdUser = await this._user.create({
+		const createUserResult = await this._user.create({
 			...args,
 			password: hashedPasswordResult.data,
 		});
+		if (!createUserResult.success) {
+			return createUserResult;
+		}
 
-		return this._createAuthSession(createdUser);
+		return this._createAuthSession(createUserResult.data);
 	}
 
 	private async _createAuthSession(
