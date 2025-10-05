@@ -39,6 +39,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 		};
 
 		test("Should return product object when 'repo.create' is called once with product data", async () => {
+			// Arrange
 			mockStorage.upload.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: expectedResult.image, success: true }),
 			);
@@ -47,10 +48,12 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
+			// Act
 			const result = await service.create(mockInsertProduct);
 
-			assert.ok(result);
-			assert.deepEqual(result, expectedResult);
+			// Assert
+			assert.ok(result.success);
+			assert.deepEqual(result.data, expectedResult);
 
 			assert.strictEqual(mockRepo.create.mock.callCount(), 1);
 			assert.deepStrictEqual(mockRepo.create.mock.calls[0].arguments[0], {
@@ -73,162 +76,157 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			const result = await service.create(mockInsertProduct);
 
 			// Assert
-			assert.ok(result);
-			assert.strictEqual(result.image, expectedResult.image);
+			assert.ok(result.success);
+			assert.strictEqual(result.data.image, expectedResult.image);
 
 			assert.strictEqual(mockStorage.upload.mock.callCount(), 1);
-			assert.deepStrictEqual(mockStorage.upload.mock.calls[0].arguments[0], {
-				file: mockInsertProduct.image,
-			});
-		});
-
-		test("Should throw generic 'Error' if 'storage.upload' rejects", async () => {
-			const mockError = new Error("Upload failed");
-
-			mockStorage.upload.mock.mockImplementationOnce(() =>
-				Promise.reject(mockError),
-			);
-
-			await assert.rejects(
-				() => service.create(mockInsertProduct),
-				(error: Error) => {
-					assert.ok(error instanceof Error);
-					assert.strictEqual(error.message, mockError.message);
-					return true;
-				},
+			assert.deepStrictEqual(
+				mockStorage.upload.mock.calls[0].arguments[0].file,
+				mockInsertProduct.image,
 			);
 		});
 
-		test("Should throw 'ValidationError' if 'product.user' is invalid objectId", async () => {
+		test("Should return validation error if 'product.user' is invalid objectId", async () => {
 			// Arrange
 			const mockInsertProduct = generateMockInsertProductWithMulterImage();
 			mockInsertProduct.user = "invalid-user-id" as unknown as Types.ObjectId;
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.create(mockInsertProduct),
-				ValidationError,
-			);
+			// Act
+			const result = await service.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' if 'product.name' is empty", async () => {
+		test("Should return validation error if 'product.name' is empty", async () => {
 			// Arrange
 			const mockInsertProduct = generateMockInsertProductWithMulterImage();
 			mockInsertProduct.name = "";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.create(mockInsertProduct),
-				ValidationError,
-			);
+			// Act
+			const result = await service.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' if 'product.name' is not a string", async () => {
+		test("Should return validation error if 'product.name' is not a string", async () => {
 			// Arrange
 			const mockInsertProduct = generateMockInsertProductWithMulterImage();
 			mockInsertProduct.name = 123 as unknown as string;
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.create(mockInsertProduct),
-				ValidationError,
-			);
+			// Act
+			const result = await service.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' if 'product.brand' is empty", async () => {
+		test("Should return validation error if 'product.brand' is empty", async () => {
 			// Arrange
 			const mockInsertProduct = generateMockInsertProductWithMulterImage();
 			mockInsertProduct.brand = "";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.create(mockInsertProduct),
-				ValidationError,
-			);
+			// Act
+			const result = await service.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' if 'product.brand' is not a string", async () => {
+		test("Should return validation error if 'product.brand' is not a string", async () => {
 			// Arrange
 			const mockInsertProduct = generateMockInsertProductWithMulterImage();
 			mockInsertProduct.brand = 123 as unknown as string;
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.create(mockInsertProduct),
-				ValidationError,
-			);
+			// Act
+			const result = await service.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' if 'product.category' is empty", async () => {
+		test("Should return validation error if 'product.category' is empty", async () => {
 			// Arrange
 			const mockInsertProduct = generateMockInsertProductWithMulterImage();
 			mockInsertProduct.category = "";
 
-			await assert.rejects(
-				async () => await service.create(mockInsertProduct),
+			// Act
+			const result = await service.create(mockInsertProduct);
 
-				ValidationError,
-			);
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' if 'product.category' is not a string", async () => {
+		test("Should return validation error if 'product.category' is not a string", async () => {
 			// Arrange
 			const mockInsertProduct = generateMockInsertProductWithMulterImage();
 			mockInsertProduct.category = 123 as unknown as string;
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.create(mockInsertProduct),
-				ValidationError,
-			);
+			// Act
+			const result = await service.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' if 'product.description' is empty", async () => {
+		test("Should return validation error if 'product.description' is empty", async () => {
 			// Arrange
 			const mockInsertProduct = generateMockInsertProductWithMulterImage();
 			mockInsertProduct.description = "";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.create(mockInsertProduct),
-				ValidationError,
-			);
+			// Act
+			const result = await service.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' if 'product.description' is not a string", async () => {
+		test("Should return validation error if 'product.description' is not a string", async () => {
 			// Arrange
 			const mockInsertProduct = generateMockInsertProductWithMulterImage();
 			mockInsertProduct.description = 123 as unknown as string;
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.create(mockInsertProduct),
-				ValidationError,
-			);
+			// Act
+			const result = await service.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' if 'product.price' is not a number", async () => {
+		test("Should return validation error if 'product.price' is not a number", async () => {
 			// Arrange
 			const mockInsertProduct = generateMockInsertProductWithMulterImage();
 			mockInsertProduct.price = "invalid-price" as unknown as number;
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.create(mockInsertProduct),
-				ValidationError,
-			);
+			// Act
+			const result = await service.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' if 'product.countInStock' is not a number", async () => {
+		test("Should return validation error if 'product.countInStock' is not a number", async () => {
 			// Arrange
 			const mockInsertProduct = generateMockInsertProductWithMulterImage();
 			mockInsertProduct.countInStock = "invalid-stock" as unknown as number;
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.create(mockInsertProduct),
-				ValidationError,
-			);
+			// Act
+			const result = await service.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
@@ -257,19 +255,26 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			const result = await service.getAll({ currentPage, keyword });
 
 			// Assert
-			assert.ok(result);
-			assert.strictEqual(result.products.length, expectedResult.length);
-			assert.deepStrictEqual(result.products, expectedResult);
+			assert.ok(result.success);
+			assert.strictEqual(result.data.products.length, expectedResult.length);
+			assert.deepStrictEqual(result.data.products, expectedResult);
 
 			assert.strictEqual(mockRepo.count.mock.callCount(), 1);
 			assert.deepStrictEqual(mockRepo.count.mock.calls[0].arguments[0], {});
 
 			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0], {
-				currentPage: Number(currentPage),
-				numberOfProductsPerPage: 10,
-				query: {},
-			});
+			assert.deepStrictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].currentPage,
+				Number(currentPage),
+			);
+			assert.deepStrictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].numberOfProductsPerPage,
+				10,
+			);
+			assert.deepStrictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].query,
+				{},
+			);
 		});
 
 		test("Should return array of products when both 'repo.count' and 'repo.getAll' are called once with 'keyword''", async () => {
@@ -289,9 +294,9 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			const result = await service.getAll({ currentPage, keyword });
 
 			// Assert
-			assert.ok(result);
-			assert.strictEqual(result.products.length, expectedResult.length);
-			assert.deepStrictEqual(result.products, expectedResult);
+			assert.ok(result.success);
+			assert.strictEqual(result.data.products.length, expectedResult.length);
+			assert.deepStrictEqual(result.data.products, expectedResult);
 
 			assert.strictEqual(mockRepo.count.mock.callCount(), 1);
 			assert.deepStrictEqual(
@@ -300,11 +305,18 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			);
 
 			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0], {
-				currentPage: Number(currentPage),
-				numberOfProductsPerPage: 10,
-				query: createRegexQuery(keyword),
-			});
+			assert.deepStrictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].currentPage,
+				Number(currentPage),
+			);
+			assert.deepStrictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].numberOfProductsPerPage,
+				10,
+			);
+			assert.deepStrictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].query,
+				createRegexQuery(keyword),
+			);
 		});
 
 		test("Should return array of products when both 'repo.count' and 'repo.getAll' are called once with 'currentPage'", async () => {
@@ -323,67 +335,78 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			const result = await service.getAll({ currentPage, keyword });
 
 			// Assert
-			assert.ok(result);
-			assert.strictEqual(result.products.length, expectedResult.length);
-			assert.deepStrictEqual(result.products, expectedResult);
+			assert.ok(result.success);
+			assert.strictEqual(result.data.products.length, expectedResult.length);
+			assert.deepStrictEqual(result.data.products, expectedResult);
 
 			assert.strictEqual(mockRepo.count.mock.callCount(), 1);
 			assert.deepStrictEqual(mockRepo.count.mock.calls[0].arguments[0], {});
 
 			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0], {
-				currentPage: Number(currentPage),
-				numberOfProductsPerPage: 10,
-				query: {},
-			});
+			assert.deepStrictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].currentPage,
+				Number(currentPage),
+			);
+			assert.deepStrictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].numberOfProductsPerPage,
+				10,
+			);
+			assert.deepStrictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].query,
+				{},
+			);
 		});
 
-		test("Should throw 'ValidationError' if 'currentPage' is not a number", async () => {
+		test("Should return validation error if 'currentPage' is not a number", async () => {
 			// Arrange
 			const currentPage = "invalid-number";
 			const keyword = "";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.getAll({ currentPage, keyword }),
-				ValidationError,
-			);
+			// Act
+			const result = await service.getAll({ currentPage, keyword });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' if 'currentPage' is '0'", async () => {
+		test("Should return validation error if 'currentPage' is '0'", async () => {
 			// Arrange
 			const currentPage = "0";
 			const keyword = "";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.getAll({ currentPage, keyword }),
-				ValidationError,
-			);
+			// Act
+			const result = await service.getAll({ currentPage, keyword });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' if 'currentPage' is a negative number", async () => {
+		test("Should return validation error if 'currentPage' is a negative number", async () => {
 			// Arrange
 			const currentPage = "-1";
 			const keyword = "";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.getAll({ currentPage, keyword }),
-				ValidationError,
-			);
+			// Act
+			const result = await service.getAll({ currentPage, keyword });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' if 'currentPage' is non-integer number", async () => {
+		test("Should return validation error if 'currentPage' is non-integer number", async () => {
 			// Arrange
 			const currentPage = "1.5";
 			const keyword = "";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.getAll({ currentPage, keyword }),
-				ValidationError,
-			);
+			// Act
+			const result = await service.getAll({ currentPage, keyword });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
@@ -391,20 +414,24 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 		const expectedResult = generateMockSelectProducts({ count: 3 });
 
 		test("Should return array of products when 'repo.getTopRated' is called once with no args", async () => {
+			// Arrange
 			mockRepo.getTopRated.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
+			// Act
 			const result = await service.getTopRated();
 
-			assert.ok(result);
-			assert.strictEqual(result.length, expectedResult.length);
-			assert.deepStrictEqual(result, expectedResult);
+			// Assert
+			assert.ok(result.success);
+			assert.strictEqual(result.data.length, expectedResult.length);
+			assert.deepStrictEqual(result.data, expectedResult);
 
 			assert.strictEqual(mockRepo.getTopRated.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.getTopRated.mock.calls[0].arguments[0], {
-				limit: 3,
-			});
+			assert.deepStrictEqual(
+				mockRepo.getTopRated.mock.calls[0].arguments[0].limit,
+				3,
+			);
 		});
 	});
 
@@ -413,48 +440,53 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 		const productId = expectedResult._id;
 
 		test("Should return product object when 'repo.getById' is called once with 'productId'", async () => {
+			// Arrange
 			mockRepo.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
+			// Act
 			const result = await service.getById({
 				productId: productId.toString(),
 			});
 
-			assert.ok(result);
-			assert.deepStrictEqual(result, expectedResult);
+			// Assert
+			assert.ok(result.success);
+			assert.deepStrictEqual(result.data, expectedResult);
 
 			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.getById.mock.calls[0].arguments[0], {
+			assert.deepStrictEqual(
+				mockRepo.getById.mock.calls[0].arguments[0].productId,
 				productId,
-			});
+			);
 		});
 
-		test("Should throw 'NotFoundError' if 'repo.getById' returns 'null'", async () => {
+		test("Should return not found error if 'repo.getById' returns 'null'", async () => {
+			// Arrange
 			mockRepo.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: null, success: true }),
 			);
 
-			await assert.rejects(
-				() => service.getById({ productId: productId.toString() }),
-				(error: Error) => {
-					assert.ok(error instanceof NotFoundError);
-					assert.strictEqual(error.message, "Product not found");
-					assert.strictEqual(error.statusCode, 404);
-					return true;
-				},
-			);
+			// Act
+			const result = await service.getById({
+				productId: productId.toString(),
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
-		test("Should throw 'ValidationError' if 'productId' is invalid ObjectId", async () => {
+		test("Should return validation error if 'productId' is invalid ObjectId", async () => {
 			// Arrange
 			const invalidProductId = "invalid-product-id";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.getById({ productId: invalidProductId }),
-				ValidationError,
-			);
+			// Act
+			const result = await service.getById({ productId: invalidProductId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
@@ -463,6 +495,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 		const productId = mockProduct._id;
 
 		test("Should return product object when 'repo.update' is called once with 'productId' and 'data'", async () => {
+			// Arrange
 			const mockUpdateData = { name: "UPDATED NAME" };
 			const expectedResult = { ...mockProduct, ...mockUpdateData };
 
@@ -470,26 +503,33 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
+			// Act
 			const result = await service.update({
 				data: mockUpdateData,
 				productId: productId.toString(),
 			});
 
-			assert.ok(result);
-			assert.deepStrictEqual(result, expectedResult);
+			// Assert
+			assert.ok(result.success);
+			assert.deepStrictEqual(result.data, expectedResult);
 
 			assert.strictEqual(mockRepo.update.mock.callCount(), 1);
 
-			assert.deepStrictEqual(mockRepo.update.mock.calls[0].arguments[0], {
-				data: mockUpdateData,
+			assert.deepStrictEqual(
+				mockRepo.update.mock.calls[0].arguments[0].productId,
 				productId,
-			});
+			);
+			assert.deepStrictEqual(
+				mockRepo.update.mock.calls[0].arguments[0].data,
+				mockUpdateData,
+			);
 
 			// Ensure that 'repo.getById' wasn't called
 			assert.strictEqual(mockRepo.getById.mock.callCount(), 0);
 		});
 
 		test("Should return product object when 'repo.getById' is called once with 'productId', and 'storage.replace' is called once with 'url' and 'file'", async () => {
+			// Arrange
 			const mockUpdateData = { image: mockMulterImageFile() };
 
 			mockRepo.getById.mock.mockImplementationOnce(() =>
@@ -504,68 +544,75 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
+			// Act
 			const result = await service.update({
 				data: mockUpdateData,
 				productId: productId.toString(),
 			});
 
-			assert.ok(result);
-			assert.deepStrictEqual(result, mockProduct);
+			// Assert
+			assert.ok(result.success);
+			assert.deepStrictEqual(result.data, mockProduct);
 
 			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.getById.mock.calls[0].arguments[0], {
+			assert.deepStrictEqual(
+				mockRepo.getById.mock.calls[0].arguments[0].productId,
 				productId,
-			});
+			);
 
 			assert.strictEqual(mockStorage.replace.mock.callCount(), 1);
-			assert.deepStrictEqual(mockStorage.replace.mock.calls[0].arguments[0], {
-				file: mockUpdateData.image,
-				url: mockProduct.image,
-			});
+			assert.deepStrictEqual(
+				mockStorage.replace.mock.calls[0].arguments[0].file,
+				mockUpdateData.image,
+			);
+			assert.deepStrictEqual(
+				mockStorage.replace.mock.calls[0].arguments[0].url,
+				mockProduct.image,
+			);
 
 			assert.strictEqual(mockRepo.update.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.update.mock.calls[0].arguments[0], {
-				data: { image: mockProduct.image },
+			assert.deepStrictEqual(
+				mockRepo.update.mock.calls[0].arguments[0].productId,
 				productId,
+			);
+			assert.deepStrictEqual(mockRepo.update.mock.calls[0].arguments[0].data, {
+				image: mockProduct.image,
 			});
 		});
 
-		test("Should throw 'NotFoundError' if 'repo.update' returns 'null'", async () => {
+		test("Should return not found error if 'repo.update' returns 'null'", async () => {
+			// Arrange
 			const mockUpdateData = { name: "UPDATED NAME" };
 
 			mockRepo.update.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: null, success: true }),
 			);
 
-			await assert.rejects(
-				() =>
-					service.update({
-						data: mockUpdateData,
-						productId: productId.toString(),
-					}),
-				(error: Error) => {
-					assert.ok(error instanceof NotFoundError);
-					assert.strictEqual(error.message, "Product not found");
-					assert.strictEqual(error.statusCode, 404);
-					return true;
-				},
-			);
+			// Act
+			const result = await service.update({
+				data: mockUpdateData,
+				productId: productId.toString(),
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
-		test("Should throw 'ValidationError' if 'productId' is invalid ObjectId", async () => {
+		test("Should return validation error if 'productId' is invalid ObjectId", async () => {
 			// Arrange
 			const invalidProductId = "invalid-product-id";
 			const updateData = { name: "UPDATED NAME" };
 
-			// Act & Assert
-			await assert.rejects(
-				async () =>
-					await service.update({
-						data: updateData,
-						productId: invalidProductId,
-					}),
-				ValidationError,
-			);
+			// Act
+			const result = await service.update({
+				data: updateData,
+				productId: invalidProductId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
@@ -574,47 +621,57 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 		const productId = expectedResult._id;
 
 		test("Should return 'undefined' when 'repo.delete' is called once with 'productId'", async () => {
+			// Arrange
 			mockRepo.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: expectedResult, success: true }),
 			);
 
+			mockStorage.delete.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: undefined, success: true }),
+			);
+
+			// Act
 			const result = await service.delete({
 				productId: productId.toString(),
 			});
 
-			assert.strictEqual(result, undefined);
+			// Assert
+			assert.ok(result.success);
+			assert.strictEqual(result.data, undefined);
 
 			assert.strictEqual(mockRepo.delete.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.delete.mock.calls[0].arguments[0], {
+			assert.deepStrictEqual(
+				mockRepo.delete.mock.calls[0].arguments[0].productId,
 				productId,
-			});
+			);
 		});
 
-		test("Should throw 'NotFoundError' if 'repo.delete' returns 'null'", async () => {
+		test("Should return not found error if 'repo.delete' returns 'null'", async () => {
+			// Arrange
 			mockRepo.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: null, success: true }),
 			);
 
-			await assert.rejects(
-				async () => await service.delete({ productId: productId.toString() }),
-				(error: Error) => {
-					assert.ok(error instanceof NotFoundError);
-					assert.strictEqual(error.message, "Product not found");
-					assert.strictEqual(error.statusCode, 404);
-					return true;
-				},
-			);
+			// Act
+			const result = await service.delete({
+				productId: productId.toString(),
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
-		test("Should throw 'ValidationError' if 'productId' is invalid ObjectId", async () => {
+		test("Should return validation error if 'productId' is invalid ObjectId", async () => {
 			// Arrange
 			const invalidProductId = "invalid-product-id";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await service.delete({ productId: invalidProductId }),
-				ValidationError,
-			);
+			// Act
+			const result = await service.delete({ productId: invalidProductId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 });

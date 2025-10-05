@@ -32,6 +32,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			const { next, req, res } = mockExpressCall({
 				req: {
 					body: mockInsertProduct,
+					// @ts-expect-error - `file` expect the to be diskStorage
 					file: mockInsertProduct.image,
 				},
 				res: {
@@ -41,7 +42,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectProduct),
+				Promise.resolve({ data: mockSelectProduct, success: true }),
 			);
 
 			await assert.doesNotReject(
@@ -66,6 +67,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			const { next, req, res } = mockExpressCall({
 				req: {
 					body: mockInsertProduct,
+					// @ts-expect-error - `file` expect the to be diskStorage
 					file: mockInsertProduct.image,
 				},
 				res: {
@@ -75,7 +77,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectProduct),
+				Promise.resolve({ data: mockSelectProduct, success: true }),
 			);
 
 			// Act
@@ -96,6 +98,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			const { next, req, res } = mockExpressCall({
 				req: {
 					body: mockInsertProduct,
+					// @ts-expect-error - `file` expect the to be diskStorage
 					file: mockInsertProduct.image,
 				},
 				res: {
@@ -105,7 +108,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectProduct),
+				Promise.resolve({ data: mockSelectProduct, success: true }),
 			);
 
 			await controller.create(
@@ -122,6 +125,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			const { next, req, res } = mockExpressCall({
 				req: {
 					body: mockInsertProduct,
+					// @ts-expect-error - `file` expect the to be diskStorage
 					file: mockInsertProduct.image,
 				},
 				res: {
@@ -131,7 +135,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockSelectProduct),
+				Promise.resolve({ data: mockSelectProduct, success: true }),
 			);
 
 			await controller.create(
@@ -167,7 +171,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
+				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
 			await assert.doesNotReject(
@@ -196,7 +200,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
+				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
 			await assert.doesNotReject(
@@ -230,7 +234,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
+				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
 			// Act
@@ -255,7 +259,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
+				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
 			await controller.getAll(
@@ -275,7 +279,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
+				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
 			await controller.getAll(
@@ -308,7 +312,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getTopRated.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
+				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
 			await controller.getTopRated(
@@ -330,7 +334,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getTopRated.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
+				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
 			await controller.getTopRated(
@@ -349,7 +353,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getTopRated.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
+				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
 			await controller.getTopRated(
@@ -379,7 +383,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockProduct),
+				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
 			await assert.doesNotReject(
@@ -400,7 +404,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockProduct),
+				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
 			// Act
@@ -424,7 +428,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockProduct),
+				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
 			await controller.getById(
@@ -444,7 +448,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockProduct),
+				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
 			await controller.getById(
@@ -479,7 +483,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.update.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockProduct),
+				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
 			await assert.doesNotReject(
@@ -502,7 +506,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.update.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockProduct),
+				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
 			await controller.update(
@@ -528,7 +532,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.update.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockProduct),
+				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
 			await controller.update(
@@ -551,7 +555,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.update.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockProduct),
+				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
 			await controller.update(
@@ -577,7 +581,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.delete.mock.mockImplementationOnce(() => Promise.resolve());
+			mockService.delete.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: undefined, success: true }),
+			);
 
 			await assert.doesNotReject(
 				async () =>
@@ -595,7 +601,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.delete.mock.mockImplementationOnce(() => Promise.resolve());
+			mockService.delete.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: undefined, success: true }),
+			);
 
 			await controller.delete(
 				req as unknown as Request,
@@ -615,7 +623,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.delete.mock.mockImplementationOnce(() => Promise.resolve());
+			mockService.delete.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: undefined, success: true }),
+			);
 
 			await controller.delete(
 				req as unknown as Request,
@@ -633,7 +643,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.delete.mock.mockImplementationOnce(() => Promise.resolve());
+			mockService.delete.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: undefined, success: true }),
+			);
 
 			await controller.delete(
 				req as unknown as Request,

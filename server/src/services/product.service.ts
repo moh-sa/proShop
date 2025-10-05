@@ -22,19 +22,21 @@ import { ImageStorageService } from "../services/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IProductService {
-	create(data: InsertProduct): Promise<SelectProduct>;
-	delete(data: { productId: string }): Promise<void>;
-	getAll(data: { currentPage: string; keyword: string }): Promise<{
-		currentPage: number;
-		numberOfPages: number;
-		products: Array<AllProducts>;
-	}>;
-	getById(data: { productId: string }): Promise<SelectProduct>;
-	getTopRated(): Promise<Array<TopRatedProduct>>;
+	create(data: InsertProduct): Promise<ProductResult<SelectProduct>>;
+	delete(data: { productId: string }): Promise<ProductResult<void>>;
+	getAll(data: { currentPage: string; keyword: string }): Promise<
+		ProductResult<{
+			currentPage: number;
+			numberOfPages: number;
+			products: Array<AllProducts>;
+		}>
+	>;
+	getById(data: { productId: string }): Promise<ProductResult<SelectProduct>>;
+	getTopRated(): Promise<ProductResult<Array<TopRatedProduct>>>;
 	update(data: {
 		data: Partial<InsertProduct>;
 		productId: string;
-	}): Promise<SelectProduct>;
+	}): Promise<ProductResult<SelectProduct>>;
 }
 export type ProductResult<T> = Result<T>;
 
@@ -55,22 +57,25 @@ export class ProductService implements IProductService {
 	): MethodReturn<IProductService, "create"> {
 		const validationResult = this._validateCreateData(data);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
 		const image = await this._storage.upload({
 			file: validationResult.data.image,
 		});
 		if (!image.success) {
-			throw image.error;
+			return image;
 		}
 		const dataWithImage = { ...validationResult.data, image: image.data };
 		const createdProduct = await this._repository.create(dataWithImage);
 		if (!createdProduct.success) {
-			throw createdProduct.error;
+			return createdProduct;
 		}
 
-		return createdProduct.data;
+		return {
+			data: createdProduct.data,
+			success: true,
+		};
 	}
 
 	async delete({
@@ -81,20 +86,33 @@ export class ProductService implements IProductService {
 	> {
 		const validationResult = this._validateProductId(productId);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
 		const deletedProduct = await this._repository.delete({
 			productId: validationResult.data,
 		});
 		if (!deletedProduct.success) {
-			throw deletedProduct.error;
+			return deletedProduct;
 		}
 		if (!deletedProduct.data) {
-			throw new NotFoundError("Product");
+			return {
+				error: new NotFoundError("Product"),
+				success: false,
+			};
 		}
 
-		await this._storage.delete({ url: deletedProduct.data.image });
+		const deleteResult = await this._storage.delete({
+			url: deletedProduct.data.image,
+		});
+		if (!deleteResult.success) {
+			return deleteResult;
+		}
+
+		return {
+			data: undefined,
+			success: true,
+		};
 	}
 
 	async getAll(
@@ -102,7 +120,7 @@ export class ProductService implements IProductService {
 	): MethodReturn<IProductService, "getAll"> {
 		const validationResult = this._validatePagination(data);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
 		const currentPage = validationResult.data.currentPage;
@@ -111,7 +129,7 @@ export class ProductService implements IProductService {
 		const numberOfProductsPerPage = 10;
 		const numberOfProducts = await this._repository.count(query);
 		if (!numberOfProducts.success) {
-			throw numberOfProducts.error;
+			return numberOfProducts;
 		}
 
 		const numberOfPages =
@@ -123,13 +141,16 @@ export class ProductService implements IProductService {
 			query,
 		});
 		if (!products.success) {
-			throw products.error;
+			return products;
 		}
 
 		return {
-			currentPage,
-			numberOfPages,
-			products: products.data,
+			data: {
+				currentPage,
+				numberOfPages,
+				products: products.data,
+			},
+			success: true,
 		};
 	}
 
@@ -141,20 +162,26 @@ export class ProductService implements IProductService {
 	> {
 		const validationResult = this._validateProductId(productId);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
 		const product = await this._repository.getById({
 			productId: validationResult.data,
 		});
 		if (!product.success) {
-			throw product.error;
+			return product;
 		}
 		if (!product.data) {
-			throw new NotFoundError("Product");
+			return {
+				error: new NotFoundError("Product"),
+				success: false,
+			};
 		}
 
-		return product.data;
+		return {
+			data: product.data,
+			success: true,
+		};
 	}
 
 	async getTopRated(): MethodReturn<IProductService, "getTopRated"> {
@@ -162,9 +189,13 @@ export class ProductService implements IProductService {
 
 		const result = await this._repository.getTopRated({ limit });
 		if (!result.success) {
-			throw result.error;
+			return result;
 		}
-		return result.data;
+
+		return {
+			data: result.data,
+			success: true,
+		};
 	}
 
 	async update(
@@ -172,12 +203,12 @@ export class ProductService implements IProductService {
 	): MethodReturn<IProductService, "update"> {
 		const updateDataValidationResult = this._validateUpdateData(args.data);
 		if (!updateDataValidationResult.success) {
-			throw updateDataValidationResult.error;
+			return updateDataValidationResult;
 		}
 
 		const productIdValidationResult = this._validateProductId(args.productId);
 		if (!productIdValidationResult.success) {
-			throw productIdValidationResult.error;
+			return productIdValidationResult;
 		}
 
 		const productId = productIdValidationResult.data;
@@ -191,12 +222,16 @@ export class ProductService implements IProductService {
 			const currentProduct = await this.getById({
 				productId: productId.toString(),
 			});
+			if (!currentProduct.success) {
+				return currentProduct;
+			}
+
 			const newImageUrl = await this._storage.replace({
 				file: image,
-				url: currentProduct.image,
+				url: currentProduct.data.image,
 			});
 			if (!newImageUrl.success) {
-				throw newImageUrl.error;
+				return newImageUrl;
 			}
 			updatedData = { ...newData, image: newImageUrl.data };
 		}
@@ -206,13 +241,19 @@ export class ProductService implements IProductService {
 			productId,
 		});
 		if (!updatedProduct.success) {
-			throw updatedProduct.error;
+			return updatedProduct;
 		}
 		if (!updatedProduct.data) {
-			throw new NotFoundError("Product");
+			return {
+				error: new NotFoundError("Product"),
+				success: false,
+			};
 		}
 
-		return updatedProduct.data;
+		return {
+			data: updatedProduct.data,
+			success: true,
+		};
 	}
 
 	private _validateCreateData(

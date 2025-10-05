@@ -59,10 +59,13 @@ export class ProductController implements IProductController {
 			user: res.locals.user._id,
 		};
 
-		const newProduct = await this._service.create(data);
+		const result = await this._service.create(data);
+		if (!result.success) {
+			throw result.error;
+		}
 
 		res.status(HTTP_STATUS.CREATED).json({
-			data: newProduct,
+			data: result.data,
 			success: true,
 		});
 	});
@@ -71,7 +74,12 @@ export class ProductController implements IProductController {
 		params: { productId: string };
 		resBody: { data: null };
 	}>(async (req, res) => {
-		await this._service.delete({ productId: req.params.productId });
+		const result = await this._service.delete({
+			productId: req.params.productId,
+		});
+		if (!result.success) {
+			throw result.error;
+		}
 
 		res.status(HTTP_STATUS.NO_CONTENT).json({
 			data: null,
@@ -92,13 +100,16 @@ export class ProductController implements IProductController {
 			};
 		};
 	}>(async (req, res) => {
-		const data = await this._service.getAll(req.query);
+		const result = await this._service.getAll(req.query);
+		if (!result.success) {
+			throw result.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: data.products,
+			data: result.data.products,
 			meta: {
-				currentPage: data.currentPage,
-				numberOfPages: data.numberOfPages,
+				currentPage: result.data.currentPage,
+				numberOfPages: result.data.numberOfPages,
 			},
 			success: true,
 		});
@@ -108,12 +119,15 @@ export class ProductController implements IProductController {
 		params: { productId: string };
 		resBody: { data: SelectProduct };
 	}>(async (req, res) => {
-		const product = await this._service.getById({
+		const result = await this._service.getById({
 			productId: req.params.productId,
 		});
+		if (!result.success) {
+			throw result.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: product,
+			data: result.data,
 			success: true,
 		});
 	});
@@ -121,10 +135,13 @@ export class ProductController implements IProductController {
 	getTopRated = asyncHandler<{
 		resBody: { data: Array<TopRatedProduct> };
 	}>(async (req, res) => {
-		const products = await this._service.getTopRated();
+		const result = await this._service.getTopRated();
+		if (!result.success) {
+			throw result.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: products,
+			data: result.data,
 			success: true,
 		});
 	});
@@ -139,13 +156,16 @@ export class ProductController implements IProductController {
 			image: req.file,
 		};
 
-		const updatedProduct = await this._service.update({
+		const result = await this._service.update({
 			data,
 			productId: req.params.productId,
 		});
+		if (!result.success) {
+			throw result.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: updatedProduct,
+			data: result.data,
 			success: true,
 		});
 	});

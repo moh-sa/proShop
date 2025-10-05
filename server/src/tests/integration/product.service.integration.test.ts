@@ -1,6 +1,7 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 
+import { MAX_TOP_RATED_PRODUCTS } from "../../constants/product.constants.js";
 import { NotFoundError, ValidationError } from "../../errors/index.js";
 import Product from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
@@ -53,23 +54,26 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			}));
 
 			// Act
-			const createdProduct = await productService.create(mockProduct);
+			const result = await productService.create(mockProduct);
 
 			// Assert
-			assert.ok(createdProduct._id, "Product should have an ID");
-			assert.equal(createdProduct.name, mockProduct.name);
-			assert.equal(createdProduct.brand, mockProduct.brand);
-			assert.equal(createdProduct.category, mockProduct.category);
-			assert.equal(createdProduct.description, mockProduct.description);
-			assert.equal(createdProduct.price, mockProduct.price);
-			assert.equal(createdProduct.countInStock, mockProduct.countInStock);
-			assert.equal(createdProduct.image, mockImageUrl);
-			assert.equal(createdProduct.rating, 0);
-			assert.equal(createdProduct.numReviews, 0);
-			assert.equal(imageStorageMock.upload.mock.calls.length, 1);
+			assert.strictEqual(result.success, true);
+
+			assert.ok(result.data._id);
+			assert.strictEqual(result.data.name, mockProduct.name);
+			assert.strictEqual(result.data.brand, mockProduct.brand);
+			assert.strictEqual(result.data.category, mockProduct.category);
+			assert.strictEqual(result.data.description, mockProduct.description);
+			assert.strictEqual(result.data.price, mockProduct.price);
+			assert.strictEqual(result.data.countInStock, mockProduct.countInStock);
+			assert.strictEqual(result.data.image, mockImageUrl);
+			assert.strictEqual(result.data.rating, 0);
+			assert.strictEqual(result.data.numReviews, 0);
+
+			assert.strictEqual(imageStorageMock.upload.mock.calls.length, 1);
 			assert.deepStrictEqual(
-				imageStorageMock.upload.mock.calls[0].arguments[0],
-				{ file: mockProduct.image },
+				imageStorageMock.upload.mock.calls[0].arguments[0].file,
+				mockProduct.image,
 			);
 		});
 
@@ -83,64 +87,44 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			}));
 
 			// Act
-			await productService.create(mockProduct);
+			const result = await productService.create(mockProduct);
 
 			// Assert
-			assert.equal(imageStorageMock.upload.mock.calls.length, 1);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(imageStorageMock.upload.mock.calls.length, 1);
 			assert.deepStrictEqual(
-				imageStorageMock.upload.mock.calls[0].arguments[0],
-				{ file: mockProduct.image },
+				imageStorageMock.upload.mock.calls[0].arguments[0].file,
+				mockProduct.image,
 			);
 		});
 
-		test("should throw 'ValidationError' when 'repo.create' is called with invalid data", async () => {
+		test("should return validation error when 'repo.create' is called with invalid data", async () => {
 			// Arrange
 			const invalidProduct = {
 				...generateMockInsertProductWithMulterImage(),
 				price: "invalid-price" as unknown as number,
 			};
-			const mockImageUrl = "https://example.com/image.jpg";
-			imageStorageMock.upload.mock.mockImplementationOnce(async () => ({
-				data: mockImageUrl,
-				success: true,
-			}));
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await productService.create(invalidProduct),
-				ValidationError,
-			);
+			// Act
+			const result = await productService.create(invalidProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("should throw error when 'storage.upload' fails during product creation", async () => {
-			// Arrange
-			const mockProduct = generateMockInsertProductWithMulterImage();
-			const mockError = new Error("Upload failed");
-			imageStorageMock.upload.mock.mockImplementationOnce(async () => {
-				throw mockError;
-			});
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await productService.create(mockProduct),
-				(error: Error) => {
-					assert.equal(error, mockError);
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ValidationError' when 'repo.create' is called without required fields", async () => {
+		test("Should return validation error when 'repo.create' is called without required fields", async () => {
 			// Arrange
 			const { name: _name, ...mockProduct } =
 				generateMockInsertProductWithMulterImage();
 
-			// Act & Assert
-			await assert.rejects(
-				// @ts-expect-error - test case
-				async () => await productService.create(mockProduct),
-				ValidationError,
-			);
+			// Act
+			// @ts-expect-error - test case
+			const result = await productService.create(mockProduct);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
@@ -156,10 +140,11 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const result = await productService.getAll({ currentPage, keyword });
 
 			// Assert
-			assert.ok(Array.isArray(result.products));
-			assert.equal(typeof result.currentPage, "number");
-			assert.equal(typeof result.numberOfPages, "number");
-			assert.equal(result.products.length, Math.min(10, mockProducts.length));
+			assert.strictEqual(result.success, true);
+			assert.ok(Array.isArray(result.data.products));
+			assert.strictEqual(typeof result.data.currentPage, "number");
+			assert.strictEqual(typeof result.data.numberOfPages, "number");
+			assert.strictEqual(result.data.products.length, mockProducts.length);
 		});
 
 		test("should return filtered products when 'repo.getAll' is called with search keyword", async () => {
@@ -173,8 +158,10 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const result = await productService.getAll({ currentPage, keyword });
 
 			// Assert
-			assert.ok(result.products.length > 0);
-			result.products.forEach((product) => {
+			assert.strictEqual(result.success, true);
+			assert.ok(result.data.products.length > 0);
+
+			result.data.products.forEach((product) => {
 				assert.ok(product.name.toLowerCase().includes(keyword.toLowerCase()));
 			});
 		});
@@ -190,26 +177,24 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const result = await productService.getAll({ currentPage, keyword });
 
 			// Assert
-			assert.equal(result.currentPage, currentPage);
-			assert.ok(result.products.length > 0);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.currentPage, Number(currentPage));
+			assert.ok(result.data.products.length > 0);
 
 			// Get first page to compare
 			const firstPageResult = await productService.getAll({
 				currentPage: "1",
 				keyword,
 			});
-			const firstPageIds = firstPageResult.products.map((p) =>
+			assert.strictEqual(firstPageResult.success, true);
+			const firstPageIds = firstPageResult.data.products.map((p) =>
 				p._id.toString(),
 			);
-			const secondPageIds = result.products.map((p) => p._id.toString());
+			const secondPageIds = result.data.products.map((p) => p._id.toString());
 
 			// Ensure no overlap between pages
 			const overlap = firstPageIds.some((id) => secondPageIds.includes(id));
-			assert.equal(
-				overlap,
-				false,
-				"Pages should not contain overlapping products",
-			);
+			assert.strictEqual(overlap, false);
 		});
 
 		test("should return empty products array when 'repo.getAll' is called and no products match keyword", async () => {
@@ -223,9 +208,10 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const result = await productService.getAll({ currentPage, keyword });
 
 			// Assert
-			assert.equal(result.products.length, 0);
-			assert.equal(result.currentPage, currentPage);
-			assert.equal(result.numberOfPages, 1);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.products.length, 0);
+			assert.strictEqual(result.data.currentPage, Number(currentPage));
+			assert.strictEqual(result.data.numberOfPages, 1);
 		});
 
 		test("should return first page when 'repo.getAll' is called without page number", async () => {
@@ -239,8 +225,9 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const result = await productService.getAll({ currentPage, keyword });
 
 			// Assert
-			assert.equal(result.currentPage, "1");
-			assert.ok(result.products.length > 0);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.currentPage, 1);
+			assert.ok(result.data.products.length > 0);
 		});
 
 		test("should calculate total number of pages correctly based on products per page", async () => {
@@ -255,47 +242,50 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const result = await productService.getAll({ currentPage, keyword });
 
 			// Assert
+			assert.strictEqual(result.success, true);
 			const expectedPages = Math.ceil(mockProducts.length / productsPerPage);
-			assert.equal(result.numberOfPages, expectedPages);
+			assert.strictEqual(result.data.numberOfPages, expectedPages);
 		});
 
-		test("Should throw 'ValidationError' when 'service.getAll' is called with invalid 'currentPage' query", async () => {
+		test("Should return validation error when 'service.getAll' is called with invalid 'currentPage' query", async () => {
 			// Arrange
 			const currentPage = "invalid-number";
 			const keyword = "";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await productService.getAll({ currentPage, keyword }),
-				ValidationError,
-			);
+			// Act
+			const result = await productService.getAll({ currentPage, keyword });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
 	describe("getTopRated", () => {
 		test("should return top rated products sorted by rating when 'repo.getTopRated' is called", async () => {
 			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 5 }).map(
-				(product, index) => ({
-					...product,
-					rating: 5 - index, // Create descending ratings: 5, 4, 3, 2, 1
-				}),
-			);
-			await Product.insertMany(mockProducts);
+			const mockProducts = generateMockSelectProducts({ count: 5 });
+			const expectedResult = (await Product.insertMany(mockProducts))
+				.map((p) => ({
+					_id: p._id.toString(),
+					image: p.image,
+					name: p.name,
+					price: p.price,
+				}))
+				.slice(0, 3);
 
 			// Act
-			const products = await productService.getTopRated();
+			const result = await productService.getTopRated();
 
 			// Assert
-			assert.ok(products.length > 0);
-			for (let i = 1; i < products.length; i++) {
-				const prevProduct = await Product.findById(products[i - 1]._id).lean(); // eslint-disable-line no-await-in-loop
-				const currentProduct = await Product.findById(products[i]._id).lean(); // eslint-disable-line no-await-in-loop
-				assert.ok(
-					prevProduct!.rating >= currentProduct!.rating,
-					"Products should be sorted by rating in descending order",
-				);
-			}
+			assert.strictEqual(result.success, true);
+			assert.ok(result.data.length > 0);
+
+			const resultWithStringId = result.data.map((product) => ({
+				...product,
+				_id: product._id.toString(),
+			}));
+			assert.deepStrictEqual(resultWithStringId, expectedResult);
 		});
 
 		test("should return at most MAX_TOP_RATED_PRODUCTS products when 'repo.getTopRated' is called", async () => {
@@ -304,10 +294,11 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			await Product.insertMany(mockProducts);
 
 			// Act
-			const products = await productService.getTopRated();
+			const result = await productService.getTopRated();
 
 			// Assert
-			assert.ok(products.length <= 3); // MAX_TOP_RATED_PRODUCTS is 3
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.length, MAX_TOP_RATED_PRODUCTS);
 		});
 
 		test("should return only id, name, price and image fields for each product", async () => {
@@ -316,16 +307,17 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			await Product.insertMany(mockProducts);
 
 			// Act
-			const products = await productService.getTopRated();
+			const result = await productService.getTopRated();
 
 			// Assert
-			products.forEach((product) => {
+			assert.strictEqual(result.success, true);
+			result.data.forEach((product) => {
 				const keys = Object.keys(product);
 				assert.ok(keys.includes("_id"));
 				assert.ok(keys.includes("name"));
 				assert.ok(keys.includes("price"));
 				assert.ok(keys.includes("image"));
-				assert.equal(keys.length, 4);
+				assert.strictEqual(keys.length, 4);
 			});
 		});
 
@@ -333,10 +325,11 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Arrange - database is already empty from beforeEach
 
 			// Act
-			const products = await productService.getTopRated();
+			const result = await productService.getTopRated();
 
 			// Assert
-			assert.equal(products.length, 0);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.length, 0);
 		});
 	});
 
@@ -348,42 +341,44 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			await Product.create(mockProduct);
 
 			// Act
-			const product = await productService.getById({
+			const result = await productService.getById({
 				productId,
 			});
 
 			// Assert
-			assert.ok(product);
-			assert.equal(product._id.toString(), productId);
-			assert.equal(product.name, mockProduct.name);
-			assert.equal(product.brand, mockProduct.brand);
-			assert.equal(product.category, mockProduct.category);
-			assert.equal(product.description, mockProduct.description);
-			assert.equal(product.price, mockProduct.price);
-			assert.equal(product.countInStock, mockProduct.countInStock);
-			assert.equal(product.image, mockProduct.image);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data._id.toString(), productId);
+			assert.strictEqual(result.data.name, mockProduct.name);
+			assert.strictEqual(result.data.brand, mockProduct.brand);
+			assert.strictEqual(result.data.category, mockProduct.category);
+			assert.strictEqual(result.data.description, mockProduct.description);
+			assert.strictEqual(result.data.price, mockProduct.price);
+			assert.strictEqual(result.data.countInStock, mockProduct.countInStock);
+			assert.strictEqual(result.data.image, mockProduct.image);
 		});
 
-		test("should throw 'NotFoundError' when 'repo.getById' is called with non-existent ID", async () => {
+		test("should return not found error when 'repo.getById' is called with non-existent ID", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId().toString();
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await productService.getById({ productId: nonExistentId }),
-				NotFoundError,
-			);
+			// Act
+			const result = await productService.getById({ productId: nonExistentId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
-		test("should throw 'ValidationError' when 'repo.getById' is called with invalid 'productId'", async () => {
+		test("should return validation error when 'repo.getById' is called with invalid 'productId'", async () => {
 			// Arrange
 			const productId = "invalid-product-id";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await productService.getById({ productId }),
-				ValidationError,
-			);
+			// Act
+			const result = await productService.getById({ productId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
@@ -399,19 +394,20 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			};
 
 			// Act
-			const updatedProduct = await productService.update({
+			const result = await productService.update({
 				data: updateData,
 				productId,
 			});
 
 			// Assert
-			assert.ok(updatedProduct);
-			assert.equal(updatedProduct.name, updateData.name);
-			assert.equal(updatedProduct.price, updateData.price);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.name, updateData.name);
+			assert.strictEqual(result.data.price, updateData.price);
+
 			// Verify other fields remain unchanged
-			assert.equal(updatedProduct.brand, mockProduct.brand);
-			assert.equal(updatedProduct.category, mockProduct.category);
-			assert.equal(updatedProduct.image, mockProduct.image);
+			assert.strictEqual(result.data.brand, mockProduct.brand);
+			assert.strictEqual(result.data.category, mockProduct.category);
+			assert.strictEqual(result.data.image, mockProduct.image);
 		});
 
 		test("should keep existing image when 'repo.update' is called without new image", async () => {
@@ -424,14 +420,15 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			};
 
 			// Act
-			const updatedProduct = await productService.update({
+			const result = await productService.update({
 				data: updateData,
 				productId,
 			});
 
 			// Assert
-			assert.equal(updatedProduct.image, mockProduct.image);
-			assert.equal(imageStorageMock.replace.mock.calls.length, 0);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.image, mockProduct.image);
+			assert.strictEqual(imageStorageMock.replace.mock.calls.length, 0);
 		});
 
 		test("should replace old image with new one in storage when updating product image", async () => {
@@ -451,93 +448,73 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			}));
 
 			// Act
-			const updatedProduct = await productService.update({
+			const result = await productService.update({
 				data: updateData,
 				productId,
 			});
 
 			// Assert
-			assert.equal(updatedProduct.image, newImageUrl);
-			assert.equal(imageStorageMock.replace.mock.calls.length, 1);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.image, newImageUrl);
+			assert.strictEqual(imageStorageMock.replace.mock.calls.length, 1);
 			assert.deepStrictEqual(
-				imageStorageMock.replace.mock.calls[0].arguments[0],
-				{ file: newImage, url: mockProduct.image },
+				imageStorageMock.replace.mock.calls[0].arguments[0].file,
+				newImage,
+			);
+			assert.deepStrictEqual(
+				imageStorageMock.replace.mock.calls[0].arguments[0].url,
+				mockProduct.image,
 			);
 		});
 
-		test("should throw 'NotFoundError' when 'repo.update' is called with non-existent ID", async () => {
+		test("should return not found error when 'repo.update' is called with non-existent ID", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId().toString();
 			const updateData = { name: "Updated Product Name" };
 
-			// Act & Assert
-			await assert.rejects(
-				async () =>
-					await productService.update({
-						data: updateData,
-						productId: nonExistentId,
-					}),
-				NotFoundError,
-			);
+			// Act
+			const result = await productService.update({
+				data: updateData,
+				productId: nonExistentId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
-		test("should throw 'ValidationError' when 'repo.update' is called with invalid data", async () => {
+		test("should return validation error when 'repo.update' is called with invalid data", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
 			const productId = mockProduct._id.toString();
 			await Product.create(mockProduct);
 			const invalidData = { price: "invalid-price" as unknown as number };
 
-			// Act & Assert
-			await assert.rejects(
-				async () =>
-					await productService.update({
-						data: invalidData,
-						productId,
-					}),
-				ValidationError,
-			);
-		});
-
-		test("should throw error when 'storage.replace' fails during product update", async () => {
-			// Arrange
-			const mockProduct = generateMockSelectProduct();
-			const productId = mockProduct._id.toString();
-			await Product.create(mockProduct);
-			const mockError = new Error("Replace failed");
-			const updateData = {
-				image: mockMulterImageFile(),
-				name: "Updated Product Name",
-			};
-			imageStorageMock.replace.mock.mockImplementationOnce(async () => {
-				throw mockError;
+			// Act
+			const result = await productService.update({
+				data: invalidData,
+				productId,
 			});
 
-			// Act & Assert
-			await assert.rejects(
-				async () =>
-					await productService.update({
-						data: updateData,
-						productId,
-					}),
-				(error: Error) => {
-					assert.equal(error, mockError);
-					return true;
-				},
-			);
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should throw 'ValidationError' when 'repo.update' is called with invalid 'productId'", async () => {
+		test("Should return validation error when 'repo.update' is called with invalid 'productId'", async () => {
 			// Arrange
 			const productId = "invalid-product-id";
 			const updateData = { name: "Updated Product Name" };
 
-			// Act & Assert
-			await assert.rejects(
-				async () =>
-					await productService.update({ data: updateData, productId }),
-				ValidationError,
-			);
+			// Act
+			const result = await productService.update({
+				data: updateData,
+				productId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
@@ -553,15 +530,16 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			}));
 
 			// Act
-			await productService.delete({ productId });
+			const result = await productService.delete({ productId });
 
 			// Assert
+			assert.strictEqual(result.success, true);
 			const deletedProduct = await Product.findById(mockProduct._id);
 			assert.strictEqual(deletedProduct, null);
-			assert.equal(imageStorageMock.delete.mock.calls.length, 1);
+			assert.strictEqual(imageStorageMock.delete.mock.calls.length, 1);
 			assert.deepStrictEqual(
-				imageStorageMock.delete.mock.calls[0].arguments[0],
-				{ url: mockProduct.image },
+				imageStorageMock.delete.mock.calls[0].arguments[0].url,
+				mockProduct.image,
 			);
 		});
 
@@ -570,9 +548,8 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const mockProduct = generateMockSelectProduct();
 			const productId = mockProduct._id.toString();
 			await productRepository.create(mockProduct);
-			let imageDeleted = false;
+
 			imageStorageMock.delete.mock.mockImplementationOnce(async () => {
-				imageDeleted = true;
 				return {
 					data: undefined,
 					success: true,
@@ -580,11 +557,11 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			});
 
 			// Act
-			await productService.delete({ productId });
+			const result = await productService.delete({ productId });
 
 			// Assert
-			assert.equal(imageDeleted, true);
-			assert.equal(imageStorageMock.delete.mock.calls.length, 1);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(imageStorageMock.delete.mock.calls.length, 1);
 		});
 
 		test("should handle case where storage deletion fails but product was deleted", async () => {
@@ -593,61 +570,45 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const productId = mockProduct._id.toString();
 			await productRepository.create(mockProduct);
 			const mockError = new Error("Delete failed");
-			imageStorageMock.delete.mock.mockImplementationOnce(async () => {
-				throw mockError;
-			});
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await productService.delete({ productId }),
-				(error: Error) => {
-					assert.equal(error, mockError);
-					return true;
-				},
+			imageStorageMock.delete.mock.mockImplementationOnce(() =>
+				Promise.resolve({ error: mockError, success: false }),
 			);
+
+			// Act
+			const result = await productService.delete({ productId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, mockError);
 
 			// Verify product was still deleted from database
 			const deletedProduct = await Product.findById(mockProduct._id);
 			assert.strictEqual(deletedProduct, null);
 		});
 
-		test("should throw 'NotFoundError' when 'repo.delete' is called with non-existent ID", async () => {
+		test("should return not found error when 'repo.delete' is called with non-existent ID", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId().toString();
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await productService.delete({ productId: nonExistentId }),
-				NotFoundError,
-			);
+			// Act
+			const result = await productService.delete({ productId: nonExistentId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
-		test("should throw 'ValidationError' when 'repo.delete' is called with invalid 'productId'", async () => {
+		test("should return validation error when 'repo.delete' is called with invalid 'productId'", async () => {
 			// Arrange
 			const productId = "invalid-product-id";
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await productService.delete({ productId }),
-				ValidationError,
-			);
-		});
+			// Act
+			const result = await productService.delete({ productId });
 
-		test("should throw error when 'storage.delete' fails during product deletion", async () => {
-			// Arrange
-			const mockProduct = generateMockSelectProduct();
-			const productId = mockProduct._id.toString();
-			await productRepository.create(mockProduct);
-			const mockError = new Error("Delete failed");
-			imageStorageMock.delete.mock.mockImplementationOnce(async () => {
-				throw mockError;
-			});
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await productService.delete({ productId }),
-				mockError,
-			);
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 });

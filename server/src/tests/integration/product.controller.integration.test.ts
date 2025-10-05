@@ -46,6 +46,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockProduct;
+			// @ts-expect-error - `req.file` expect the type to be diskStorage
 			req.file = image;
 			res.locals.user = mockUser;
 			storage.upload.mock.mockImplementationOnce(() =>
@@ -73,6 +74,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockProduct;
+			// @ts-expect-error - `req.file` expect the type to be diskStorage
 			req.file = image;
 			res.locals.user = mockUser;
 			storage.upload.mock.mockImplementationOnce(() =>
@@ -97,6 +99,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockProduct;
+			// @ts-expect-error - `req.file` expect the type to be diskStorage
 			req.file = image;
 			res.locals.user = mockUser;
 			storage.upload.mock.mockImplementationOnce(() =>
@@ -481,6 +484,10 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			await Product.insertMany([mockProduct]);
 			cache.set({ key: mockProduct._id.toString(), value: mockProduct });
 
+			storage.delete.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: undefined, success: true }),
+			);
+
 			// Act
 			await controller.delete(req, res, next);
 
@@ -499,6 +506,10 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			await Product.insertMany([mockProduct]);
 			cache.set({ key: mockProduct._id.toString(), value: mockProduct });
 
+			storage.delete.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: undefined, success: true }),
+			);
+
 			// Act
 			await controller.delete(req, res, next);
 
@@ -515,6 +526,10 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			await Product.insertMany([mockProduct]);
 			cache.set({ key: mockProduct._id.toString(), value: mockProduct });
+
+			storage.delete.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: undefined, success: true }),
+			);
 
 			// Act
 			await controller.delete(req, res, next);
