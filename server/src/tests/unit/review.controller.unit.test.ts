@@ -27,6 +27,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		const mockReview = generateMockSelectReview();
 
 		test("Should call 'service.create' once with the correct 'review data'", async (t) => {
+			// Arrange
 			const insertMockReview: InsertReview = {
 				comment: mockReview.comment,
 				name: mockReview.name,
@@ -50,15 +51,17 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(selectMockReview),
+				Promise.resolve({ data: selectMockReview, success: true }),
 			);
 
+			// Act
 			await controller.create(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(mockService.create.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockService.create.mock.calls[0].arguments[0],
@@ -67,6 +70,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '201' after successfully creating review data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockReview },
 				res: {
@@ -76,20 +80,23 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReview),
+				Promise.resolve({ data: mockReview, success: true }),
 			);
 
+			// Act
 			await controller.create(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 201);
 		});
 
 		test("Should call 'res.json' once with the success response object containing review data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockReview },
 				res: {
@@ -99,15 +106,17 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReview),
+				Promise.resolve({ data: mockReview, success: true }),
 			);
 
+			// Act
 			await controller.create(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -120,14 +129,16 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		const mockReviews = generateMockSelectReviews({ count: 5 });
 
 		test("Should call 'service.getAll' once without args", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				testContext: t,
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReviews),
+				Promise.resolve({ data: mockReviews, success: true }),
 			);
 
+			// Act
 			await assert.doesNotReject(
 				async () =>
 					await controller.getAll(
@@ -137,44 +148,51 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 					),
 			);
 
+			// Assert
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
 			assert.strictEqual(mockService.getAll.mock.calls[0].arguments.length, 0);
 		});
 
 		test("Should call'res.status' once with '200' after successfully fetching all reviews", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				testContext: t,
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReviews),
+				Promise.resolve({ data: mockReviews, success: true }),
 			);
 
+			// Act
 			await controller.getAll(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing all reviews", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				testContext: t,
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReviews),
+				Promise.resolve({ data: mockReviews, success: true }),
 			);
 
+			// Act
 			await controller.getAll(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -195,7 +213,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReviews),
+				Promise.resolve({ data: mockReviews, success: true }),
 			);
 
 			// Act
@@ -214,41 +232,47 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching all reviews", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
 			});
 
 			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReviews),
+				Promise.resolve({ data: mockReviews, success: true }),
 			);
 
+			// Act
 			await controller.getAllByUserId(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing all reviews", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
 			});
 
 			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReviews),
+				Promise.resolve({ data: mockReviews, success: true }),
 			);
 
+			// Act
 			await controller.getAllByUserId(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -269,7 +293,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getAllByProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReviews),
+				Promise.resolve({ data: mockReviews, success: true }),
 			);
 
 			// Act
@@ -288,41 +312,47 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching all reviews", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { productId: productId.toString() } },
 				testContext: t,
 			});
 
 			mockService.getAllByProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReviews),
+				Promise.resolve({ data: mockReviews, success: true }),
 			);
 
+			// Act
 			await controller.getAllByProductId(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing all reviews", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { productId: productId.toString() } },
 				testContext: t,
 			});
 
 			mockService.getAllByProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReviews),
+				Promise.resolve({ data: mockReviews, success: true }),
 			);
 
+			// Act
 			await controller.getAllByProductId(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -343,7 +373,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReview),
+				Promise.resolve({ data: mockReview, success: true }),
 			);
 
 			// Act
@@ -362,41 +392,47 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching review data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId: reviewId.toString() } },
 				testContext: t,
 			});
 
 			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReview),
+				Promise.resolve({ data: mockReview, success: true }),
 			);
 
+			// Act
 			await controller.getById(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing review data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId: reviewId.toString() } },
 				testContext: t,
 			});
 
 			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReview),
+				Promise.resolve({ data: mockReview, success: true }),
 			);
 
+			// Act
 			await controller.getById(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -410,6 +446,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		const reviewId = mockReview._id;
 
 		test("Should call 'service.update' once with the correct 'reviewId'", async (t) => {
+			// Arrange
 			const updateData: Partial<InsertReview> = { name: "new-name" };
 
 			const { next, req, res } = mockExpressCall({
@@ -421,15 +458,17 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.update.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReview),
+				Promise.resolve({ data: mockReview, success: true }),
 			);
 
+			// Act
 			await controller.update(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(mockService.update.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockService.update.mock.calls[0].arguments[0].reviewId,
@@ -442,41 +481,47 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '200' after successfully updating review data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId: reviewId.toString() } },
 				testContext: t,
 			});
 
 			mockService.update.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReview),
+				Promise.resolve({ data: mockReview, success: true }),
 			);
 
+			// Act
 			await controller.update(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing review data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId: reviewId.toString() } },
 				testContext: t,
 			});
 
 			mockService.update.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReview),
+				Promise.resolve({ data: mockReview, success: true }),
 			);
 
+			// Act
 			await controller.update(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -497,7 +542,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReview),
+				Promise.resolve({ data: mockReview, success: true }),
 			);
 
 			// Act
@@ -516,41 +561,47 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '204' after successfully deleting review data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId: reviewId.toString() } },
 				testContext: t,
 			});
 
 			mockService.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReview),
+				Promise.resolve({ data: mockReview, success: true }),
 			);
 
+			// Act
 			await controller.delete(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 204);
 		});
 
 		test("Should call 'res.json' once with the success response object containing review data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId: reviewId.toString() } },
 				testContext: t,
 			});
 
 			mockService.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockReview),
+				Promise.resolve({ data: mockReview, success: true }),
 			);
 
+			// Act
 			await controller.delete(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -563,58 +614,67 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		const mockCount = 5;
 
 		test("Should call 'service.count' once without args", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				testContext: t,
 			});
 
 			mockService.count.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
+				Promise.resolve({ data: mockCount, success: true }),
 			);
 
+			// Act
 			await controller.count(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(mockService.count.mock.callCount(), 1);
 			assert.strictEqual(mockService.count.mock.calls[0].arguments.length, 0);
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching review count", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				testContext: t,
 			});
 
 			mockService.count.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
+				Promise.resolve({ data: mockCount, success: true }),
 			);
 
+			// Act
 			await controller.count(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing review count", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				testContext: t,
 			});
 
 			mockService.count.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
+				Promise.resolve({ data: mockCount, success: true }),
 			);
 
+			// Act
 			await controller.count(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -635,7 +695,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.countByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
+				Promise.resolve({ data: mockCount, success: true }),
 			);
 
 			// Act
@@ -654,41 +714,47 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching review count", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
 			});
 
 			mockService.countByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
+				Promise.resolve({ data: mockCount, success: true }),
 			);
 
+			// Act
 			await controller.countByUserId(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing review count", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { userId: userId.toString() } },
 				testContext: t,
 			});
 
 			mockService.countByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
+				Promise.resolve({ data: mockCount, success: true }),
 			);
 
+			// Act
 			await controller.countByUserId(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -709,7 +775,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.countByProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
+				Promise.resolve({ data: mockCount, success: true }),
 			);
 
 			// Act
@@ -728,41 +794,47 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching review count", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { productId: productId.toString() } },
 				testContext: t,
 			});
 
 			mockService.countByProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
+				Promise.resolve({ data: mockCount, success: true }),
 			);
 
+			// Act
 			await controller.countByProductId(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing review count", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { productId: productId.toString() } },
 				testContext: t,
 			});
 
 			mockService.countByProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve(mockCount),
+				Promise.resolve({ data: mockCount, success: true }),
 			);
 
+			// Act
 			await controller.countByProductId(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -783,7 +855,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.existsById.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
+				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
 			// Act
@@ -802,41 +874,47 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching review data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId: mockReviewId.toString() } },
 				testContext: t,
 			});
 
 			mockService.existsById.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
+				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
+			// Act
 			await controller.existsById(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing review data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId: mockReviewId.toString() } },
 				testContext: t,
 			});
 
 			mockService.existsById.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
+				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
+			// Act
 			await controller.existsById(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -863,7 +941,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
+				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
 			// Act
@@ -891,6 +969,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching review data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
 					params: {
@@ -902,20 +981,23 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
+				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
+			// Act
 			await controller.existsByUserIdAndProductId(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing review data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
 					params: {
@@ -927,15 +1009,17 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve(serviceResult),
+				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
+			// Act
 			await controller.existsByUserIdAndProductId(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],

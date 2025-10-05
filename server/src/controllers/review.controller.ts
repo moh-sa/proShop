@@ -67,9 +67,12 @@ export class ReviewController implements IReviewController {
 		resBody: { data: number };
 	}>(async (req, res) => {
 		const count = await this._service.count();
+		if (!count.success) {
+			throw count.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: count,
+			data: count.data,
 			success: true,
 		});
 	});
@@ -81,9 +84,12 @@ export class ReviewController implements IReviewController {
 		const count = await this._service.countByProductId({
 			productId: req.params.productId,
 		});
+		if (!count.success) {
+			throw count.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: count,
+			data: count.data,
 			success: true,
 		});
 	});
@@ -95,9 +101,12 @@ export class ReviewController implements IReviewController {
 		const count = await this._service.countByUserId({
 			userId: req.params.userId,
 		});
+		if (!count.success) {
+			throw count.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: count,
+			data: count.data,
 			success: true,
 		});
 	});
@@ -113,9 +122,12 @@ export class ReviewController implements IReviewController {
 		};
 
 		const newReview = await this._service.create(data);
+		if (!newReview.success) {
+			throw newReview.error;
+		}
 
 		res.status(HTTP_STATUS.CREATED).json({
-			data: newReview,
+			data: newReview.data,
 			success: true,
 		});
 	});
@@ -124,7 +136,12 @@ export class ReviewController implements IReviewController {
 		params: { reviewId: string };
 		resBody: { data: null };
 	}>(async (req, res) => {
-		await this._service.delete({ reviewId: req.params.reviewId });
+		const result = await this._service.delete({
+			reviewId: req.params.reviewId,
+		});
+		if (!result.success) {
+			throw result.error;
+		}
 
 		res.status(HTTP_STATUS.NO_CONTENT).json({
 			data: null,
@@ -139,9 +156,12 @@ export class ReviewController implements IReviewController {
 		const exists = await this._service.existsById({
 			reviewId: req.params.reviewId,
 		});
+		if (!exists.success) {
+			throw exists.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: exists,
+			data: exists.data,
 			success: true,
 		});
 	});
@@ -154,9 +174,12 @@ export class ReviewController implements IReviewController {
 			productId: req.params.productId,
 			userId: req.params.userId,
 		});
+		if (!exists.success) {
+			throw exists.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: exists,
+			data: exists.data,
 			success: true,
 		});
 	});
@@ -165,9 +188,12 @@ export class ReviewController implements IReviewController {
 		resBody: { data: Array<SelectReview> };
 	}>(async (req, res) => {
 		const reviews = await this._service.getAll();
+		if (!reviews.success) {
+			throw reviews.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: reviews,
+			data: reviews.data,
 			success: true,
 		});
 	});
@@ -179,9 +205,12 @@ export class ReviewController implements IReviewController {
 		const reviews = await this._service.getAllByProductId({
 			productId: req.params.productId,
 		});
+		if (!reviews.success) {
+			throw reviews.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: reviews,
+			data: reviews.data,
 			success: true,
 		});
 	});
@@ -193,9 +222,11 @@ export class ReviewController implements IReviewController {
 		const reviews = await this._service.getAllByUserId({
 			userId: req.params.userId,
 		});
-
+		if (!reviews.success) {
+			throw reviews.error;
+		}
 		res.status(HTTP_STATUS.OK).json({
-			data: reviews,
+			data: reviews.data,
 			success: true,
 		});
 	});
@@ -207,9 +238,12 @@ export class ReviewController implements IReviewController {
 		const review = await this._service.getById({
 			reviewId: req.params.reviewId,
 		});
+		if (!review.success) {
+			throw review.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: review,
+			data: review.data,
 			success: true,
 		});
 	});
@@ -223,9 +257,12 @@ export class ReviewController implements IReviewController {
 			data: req.body,
 			reviewId: req.params.reviewId,
 		});
+		if (!updatedReview.success) {
+			throw updatedReview.error;
+		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: updatedReview,
+			data: updatedReview.data,
 			success: true,
 		});
 	});

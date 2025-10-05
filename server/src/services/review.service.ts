@@ -15,26 +15,32 @@ import { insertReviewSchema } from "../schemas/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IReviewService {
-	count: () => Promise<number>;
-	countByProductId: (data: { productId: string }) => Promise<number>;
-	countByUserId: (data: { userId: string }) => Promise<number>;
-	create: (data: InsertReview) => Promise<SelectReview>;
-	delete: (data: { reviewId: string }) => Promise<SelectReview>;
-	existsById: (data: { reviewId: string }) => Promise<{ _id: Types.ObjectId }>;
+	count: () => Promise<ReviewResult<number>>;
+	countByProductId: (data: {
+		productId: string;
+	}) => Promise<ReviewResult<number>>;
+	countByUserId: (data: { userId: string }) => Promise<ReviewResult<number>>;
+	create: (data: InsertReview) => Promise<ReviewResult<SelectReview>>;
+	delete: (data: { reviewId: string }) => Promise<ReviewResult<SelectReview>>;
+	existsById: (data: {
+		reviewId: string;
+	}) => Promise<ReviewResult<{ _id: Types.ObjectId }>>;
 	existsByUserIdAndProductId: (data: {
 		productId: string;
 		userId: string;
-	}) => Promise<{ _id: Types.ObjectId }>;
-	getAll: () => Promise<Array<SelectReview>>;
+	}) => Promise<ReviewResult<{ _id: Types.ObjectId }>>;
+	getAll: () => Promise<ReviewResult<Array<SelectReview>>>;
 	getAllByProductId: (data: {
 		productId: string;
-	}) => Promise<Array<SelectReview>>;
-	getAllByUserId: (data: { userId: string }) => Promise<Array<SelectReview>>;
-	getById: (data: { reviewId: string }) => Promise<SelectReview>;
+	}) => Promise<ReviewResult<Array<SelectReview>>>;
+	getAllByUserId: (data: {
+		userId: string;
+	}) => Promise<ReviewResult<Array<SelectReview>>>;
+	getById: (data: { reviewId: string }) => Promise<ReviewResult<SelectReview>>;
 	update: (data: {
 		data: Partial<InsertReview>;
 		reviewId: string;
-	}) => Promise<SelectReview>;
+	}) => Promise<ReviewResult<SelectReview>>;
 }
 
 type ReviewResult<T> = Result<T>;
@@ -49,10 +55,13 @@ export class ReviewService implements IReviewService {
 	async count(): MethodReturn<IReviewService, "count"> {
 		const result = await this._repository.count();
 		if (!result.success) {
-			throw result.error;
+			return result;
 		}
 
-		return result.data;
+		return {
+			data: result.data,
+			success: true,
+		};
 	}
 
 	async countByProductId({
@@ -63,17 +72,20 @@ export class ReviewService implements IReviewService {
 	> {
 		const validationResult = this._validateObjectId("productId", productId);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
 		const result = await this._repository.countByProductId({
 			productId: validationResult.data,
 		});
 		if (!result.success) {
-			throw result.error;
+			return result;
 		}
 
-		return result.data;
+		return {
+			data: result.data,
+			success: true,
+		};
 	}
 
 	async countByUserId({
@@ -84,17 +96,20 @@ export class ReviewService implements IReviewService {
 	> {
 		const validationResult = this._validateObjectId("userId", userId);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
 		const result = await this._repository.countByUserId({
 			userId: validationResult.data,
 		});
 		if (!result.success) {
-			throw result.error;
+			return result;
 		}
 
-		return result.data;
+		return {
+			data: result.data,
+			success: true,
+		};
 	}
 
 	async create(
@@ -102,15 +117,18 @@ export class ReviewService implements IReviewService {
 	): MethodReturn<IReviewService, "create"> {
 		const validationResult = this._validateCreateData(data);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
 		const result = await this._repository.create(validationResult.data);
 		if (!result.success) {
-			throw result.error;
+			return result;
 		}
 
-		return result.data;
+		return {
+			data: result.data,
+			success: true,
+		};
 	}
 
 	async delete({
@@ -121,21 +139,27 @@ export class ReviewService implements IReviewService {
 	> {
 		const validationResult = this._validateObjectId("reviewId", reviewId);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
 		const result = await this._repository.delete({
 			reviewId: validationResult.data,
 		});
 		if (!result.success) {
-			throw result.error;
+			return result;
 		}
 
 		if (!result.data) {
-			throw new NotFoundError("Review");
+			return {
+				error: new NotFoundError("Review"),
+				success: false,
+			};
 		}
 
-		return result.data;
+		return {
+			data: result.data,
+			success: true,
+		};
 	}
 
 	async existsById({
@@ -146,21 +170,27 @@ export class ReviewService implements IReviewService {
 	> {
 		const validationResult = this._validateObjectId("reviewId", reviewId);
 		if (!validationResult.success) {
-			throw validationResult.error;
+			return validationResult;
 		}
 
 		const result = await this._repository.existsById({
 			reviewId: validationResult.data,
 		});
 		if (!result.success) {
-			throw result.error;
+			return result;
 		}
 
 		if (!result.data) {
-			throw new NotFoundError("Review");
+			return {
+				error: new NotFoundError("Review"),
+				success: false,
+			};
 		}
 
-		return result.data;
+		return {
+			data: result.data,
+			success: true,
+		};
 	}
 
 	async existsByUserIdAndProductId({
@@ -175,12 +205,12 @@ export class ReviewService implements IReviewService {
 			productId,
 		);
 		if (!productIdValidationResult.success) {
-			throw productIdValidationResult.error;
+			return productIdValidationResult;
 		}
 
 		const userIdValidationResult = this._validateObjectId("userId", userId);
 		if (!userIdValidationResult.success) {
-			throw userIdValidationResult.error;
+			return userIdValidationResult;
 		}
 
 		const result = await this._repository.existsByUserIdAndProductId({
@@ -188,23 +218,32 @@ export class ReviewService implements IReviewService {
 			userId: userIdValidationResult.data,
 		});
 		if (!result.success) {
-			throw result.error;
+			return result;
 		}
 
 		if (!result.data) {
-			throw new NotFoundError("Review");
+			return {
+				error: new NotFoundError("Review"),
+				success: false,
+			};
 		}
 
-		return result.data;
+		return {
+			data: result.data,
+			success: true,
+		};
 	}
 
 	async getAll(): MethodReturn<IReviewService, "getAll"> {
 		const result = await this._repository.getAll();
 		if (!result.success) {
-			throw result.error;
+			return result;
 		}
 
-		return result.data;
+		return {
+			data: result.data,
+			success: true,
+		};
 	}
 
 	async getAllByProductId({
@@ -218,17 +257,20 @@ export class ReviewService implements IReviewService {
 			productId,
 		);
 		if (!productIdValidationResult.success) {
-			throw productIdValidationResult.error;
+			return productIdValidationResult;
 		}
 
 		const result = await this._repository.getAllByProductId({
 			productId: productIdValidationResult.data,
 		});
 		if (!result.success) {
-			throw result.error;
+			return result;
 		}
 
-		return result.data;
+		return {
+			data: result.data,
+			success: true,
+		};
 	}
 
 	async getAllByUserId({
@@ -239,17 +281,20 @@ export class ReviewService implements IReviewService {
 	> {
 		const userIdValidationResult = this._validateObjectId("userId", userId);
 		if (!userIdValidationResult.success) {
-			throw userIdValidationResult.error;
+			return userIdValidationResult;
 		}
 
 		const result = await this._repository.getAllByUserId({
 			userId: userIdValidationResult.data,
 		});
 		if (!result.success) {
-			throw result.error;
+			return result;
 		}
 
-		return result.data;
+		return {
+			data: result.data,
+			success: true,
+		};
 	}
 
 	async getById({
@@ -263,21 +308,27 @@ export class ReviewService implements IReviewService {
 			reviewId,
 		);
 		if (!reviewIdValidationResult.success) {
-			throw reviewIdValidationResult.error;
+			return reviewIdValidationResult;
 		}
 
 		const result = await this._repository.getById({
 			reviewId: reviewIdValidationResult.data,
 		});
 		if (!result.success) {
-			throw result.error;
+			return result;
 		}
 
 		if (!result.data) {
-			throw new NotFoundError("Review");
+			return {
+				error: new NotFoundError("Review"),
+				success: false,
+			};
 		}
 
-		return result.data;
+		return {
+			data: result.data,
+			success: true,
+		};
 	}
 
 	async update({
@@ -292,12 +343,12 @@ export class ReviewService implements IReviewService {
 			reviewId,
 		);
 		if (!reviewIdValidationResult.success) {
-			throw reviewIdValidationResult.error;
+			return reviewIdValidationResult;
 		}
 
 		const updateDataValidationResult = this._validateUpdateData(data);
 		if (!updateDataValidationResult.success) {
-			throw updateDataValidationResult.error;
+			return updateDataValidationResult;
 		}
 
 		const result = await this._repository.update({
@@ -305,14 +356,20 @@ export class ReviewService implements IReviewService {
 			reviewId: reviewIdValidationResult.data,
 		});
 		if (!result.success) {
-			throw result.error;
+			return result;
 		}
 
 		if (!result.data) {
-			throw new NotFoundError("Review");
+			return {
+				error: new NotFoundError("Review"),
+				success: false,
+			};
 		}
 
-		return result.data;
+		return {
+			data: result.data,
+			success: true,
+		};
 	}
 
 	private _validateCreateData(data: InsertReview): ReviewResult<InsertReview> {
