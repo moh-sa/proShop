@@ -5,6 +5,7 @@ export * from "./handle-database-error.util.js";
 export * from "./is-exist.util.js";
 export * from "./jwt-generate-token.util.js";
 export * from "./jwt-verify-token.util.js";
+export * from "./paginator.util.js";
 export * from "./remove-empty-fields.util.js";
 export * from "./remove-object-fields.js";
 export * from "./success-response.util.js";
