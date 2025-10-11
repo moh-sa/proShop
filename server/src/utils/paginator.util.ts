@@ -45,4 +45,8 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 	private _calculateSkip(pageNumber: number, pageSize: number): number {
 		return (pageNumber - 1) * pageSize;
 	}
+
+	private _calculateTotalPages(totalItems: number, pageSize: number): number {
+		return Math.ceil(totalItems / pageSize);
+	}
 }
