@@ -1,4 +1,4 @@
-import type { LeanDocument, Model } from "mongoose";
+import type { FilterQuery, LeanDocument, Model, PipelineStage } from "mongoose";
 
 import type { PaginationMeta } from "../types/index.js";
 
@@ -84,6 +84,51 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 			pageSize: args.pageSize,
 			totalItems: args.totalItems,
 			totalPages,
+		};
+	}
+
+	/** Build and run aggregation for items and total count. */
+	private async _query<TResult>(args: {
+		additionalAggregate?: Array<PipelineStage>;
+		limit: number;
+		query: FilterQuery<LeanDocument<TDocument>>;
+		skip: number;
+		sort: Partial<Record<keyof LeanDocument<TDocument>, -1 | 1>>;
+	}): Promise<{
+		items: Array<TResult>;
+		totalItems: number;
+	}> {
+		const hasSort = args.sort && Object.keys(args.sort).length > 0;
+		// Fallback to sort by `createdAt` if sort is not provided
+		const sort = hasSort
+			? (args.sort as Record<string, -1 | 1>)
+			: ({ createdAt: -1 } as Record<string, -1 | 1>);
+
+		// used `aggregate` to combine find and count in one operation
+		const [result = { items: [], meta: [] }] = await this._model.aggregate<{
+			items: Array<TResult>;
+			meta: Array<{ totalItems: number }>;
+		}>([
+			{ $match: args.query },
+			...(args.additionalAggregate ?? []),
+			{
+				$facet: {
+					items: [
+						{ $sort: sort },
+						{ $skip: args.skip },
+						{ $limit: args.limit },
+					],
+					meta: [{ $count: "totalItems" }],
+				},
+			},
+		]);
+
+		const items = result.items ?? [];
+		const totalItems = result.meta?.[0]?.totalItems ?? 0;
+
+		return {
+			items,
+			totalItems,
 		};
 	}
 }
