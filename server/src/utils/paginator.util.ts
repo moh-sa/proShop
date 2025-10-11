@@ -1,5 +1,7 @@
 import type { LeanDocument, Model } from "mongoose";
 
+import type { PaginationMeta } from "../types/index.js";
+
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "../constants/index.js";
 
 export interface PaginatorConfig {
@@ -56,5 +58,32 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 
 	private _hasPreviousPage(currentPage: number): boolean {
 		return currentPage > 1;
+	}
+
+	/**
+	 * Generate pagination meta
+	 * @returns object with `currentPage`, `hasNextPage`, `hasPreviousPage`, `pageSize`, `totalItems`, and `totalPages`
+	 */
+	private _generateMetaData(args: {
+		currentPage: number;
+		pageSize: number;
+		totalItems: number;
+	}): PaginationMeta {
+		const totalPages = this._calculateTotalPages(
+			args.totalItems,
+			args.pageSize,
+		);
+
+		const hasNextPage = this._hasNextPage(args.currentPage, totalPages);
+		const hasPreviousPage = this._hasPreviousPage(args.currentPage);
+
+		return {
+			currentPage: args.currentPage,
+			hasNextPage,
+			hasPreviousPage,
+			pageSize: args.pageSize,
+			totalItems: args.totalItems,
+			totalPages,
+		};
 	}
 }
