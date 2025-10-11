@@ -41,4 +41,8 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 		const sizeRange = Math.min(this._maxPageSize, atLeastOne);
 		return Math.floor(sizeRange);
 	}
+
+	private _calculateSkip(pageNumber: number, pageSize: number): number {
+		return (pageNumber - 1) * pageSize;
+	}
 }
