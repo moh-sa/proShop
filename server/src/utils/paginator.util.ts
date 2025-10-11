@@ -49,4 +49,8 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 	private _calculateTotalPages(totalItems: number, pageSize: number): number {
 		return Math.ceil(totalItems / pageSize);
 	}
+
+	private _hasNextPage(currentPage: number, totalPages: number): boolean {
+		return currentPage < totalPages;
+	}
 }
