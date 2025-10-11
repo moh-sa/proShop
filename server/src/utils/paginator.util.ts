@@ -34,4 +34,11 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 	private _calculatePageNumber(pageNumber: number): number {
 		return Math.floor(Math.max(1, pageNumber));
 	}
+
+	private _calculatePageSize(size?: number): number {
+		const fallbackSize = size ?? this._defaultPageSize;
+		const atLeastOne = Math.max(1, fallbackSize);
+		const sizeRange = Math.min(this._maxPageSize, atLeastOne);
+		return Math.floor(sizeRange);
+	}
 }
