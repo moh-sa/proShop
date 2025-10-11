@@ -1,6 +1,10 @@
 import type { FilterQuery, LeanDocument, Model, PipelineStage } from "mongoose";
 
-import type { PaginationMeta } from "../types/index.js";
+import type {
+	PaginatedResponse,
+	PaginationMeta,
+	PaginationParams,
+} from "../types/index.js";
 
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "../constants/index.js";
 
@@ -31,6 +35,46 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 	) {
 		this._defaultPageSize = config?.defaultPageSize ?? DEFAULT_PAGE_SIZE;
 		this._maxPageSize = config?.maxPageSize ?? MAX_PAGE_SIZE;
+	}
+
+	/**
+	 * Paginate documents with optional pipeline, query and sort.
+	 * @returns `Items` and `totalItems` count.
+	 * @example
+	 * const result = await paginator.paginate({
+	 *   page: { number: 1, size: 10 },
+	 *   query: { category: "Tools", price: { $gte: 50, $lte: 80 } },
+	 *   sort: { price: -1 },
+	 *   pipeline: [
+	 *     { $project: { name: 1, price: 1 } },
+	 *   ],
+	 * });
+	 */
+	async paginate<TResult = LeanDocument<TDocument>>(
+		args: PaginationParams<TDocument>,
+	): Promise<PaginatedResponse<TResult>> {
+		const pageNumber = this._calculatePageNumber(args.pageNumber);
+		const pageSize = this._calculatePageSize(args.pageSize);
+		const skip = this._calculateSkip(pageNumber, pageSize);
+
+		const result = await this._query<TResult>({
+			additionalAggregate: args.pipeline,
+			limit: pageSize,
+			query: args.query ?? {},
+			skip,
+			sort: args.sort ?? {},
+		});
+
+		const meta = this._generateMetaData({
+			currentPage: pageNumber,
+			pageSize,
+			totalItems: result.totalItems,
+		});
+
+		return {
+			items: result.items,
+			meta,
+		};
 	}
 
 	private _calculatePageNumber(pageNumber: number): number {
