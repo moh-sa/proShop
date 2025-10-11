@@ -53,4 +53,8 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 	private _hasNextPage(currentPage: number, totalPages: number): boolean {
 		return currentPage < totalPages;
 	}
+
+	private _hasPreviousPage(currentPage: number): boolean {
+		return currentPage > 1;
+	}
 }
