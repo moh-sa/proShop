@@ -30,4 +30,8 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 		this._defaultPageSize = config?.defaultPageSize ?? DEFAULT_PAGE_SIZE;
 		this._maxPageSize = config?.maxPageSize ?? MAX_PAGE_SIZE;
 	}
+
+	private _calculatePageNumber(pageNumber: number): number {
+		return Math.floor(Math.max(1, pageNumber));
+	}
 }
