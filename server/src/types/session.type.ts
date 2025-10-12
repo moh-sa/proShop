@@ -1,4 +1,3 @@
-import type { Document } from "mongoose";
 import type { z } from "zod";
 
 import type {
@@ -8,4 +7,4 @@ import type {
 
 export type InsertSession = z.infer<typeof insertSessionSchema>;
 export type SelectSession = z.infer<typeof selectSessionSchema>;
-export type SessionSchema = Document & SelectSession;
+export type SessionSchema = SelectSession;
