@@ -14,7 +14,7 @@ import type {
 
 import Product from "../models/product.model.js";
 import { CacheService } from "../services/index.js";
-import { handleDatabaseErrorResult } from "../utils/index.js";
+import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IProductRepository {
 	count(query: Record<string, unknown>): Promise<ProductResult<number>>;
@@ -46,6 +46,7 @@ type ProductResult<T> = Result<T, DatabaseBaseError>;
 export class ProductRepository implements IProductRepository {
 	private _cache: CacheService;
 	private readonly _db: typeof Product;
+	private _paginator: Paginator<SelectProduct>;
 
 	constructor(
 		db: typeof Product = Product,
@@ -53,6 +54,7 @@ export class ProductRepository implements IProductRepository {
 	) {
 		this._db = db;
 		this._cache = cache;
+		this._paginator = new Paginator(this._db);
 	}
 
 	async count(

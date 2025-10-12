@@ -12,7 +12,7 @@ import type {
 } from "../types/index.js";
 
 import Order from "../models/order.model.js";
-import { handleDatabaseErrorResult } from "../utils/index.js";
+import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IOrderRepository {
 	create(data: InsertOrder): Promise<OrderResult<SelectOrder>>;
@@ -41,9 +41,11 @@ type OrderResult<T> = Result<T, DatabaseBaseError>;
 
 export class OrderRepository implements IOrderRepository {
 	private readonly _db: typeof Order;
+	private _paginator: Paginator<SelectOrder>;
 
 	constructor(db: typeof Order = Order) {
 		this._db = db;
+		this._paginator = new Paginator(this._db);
 	}
 
 	async create(

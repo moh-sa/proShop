@@ -11,7 +11,7 @@ import type {
 } from "../types/index.js";
 
 import { Session } from "../models/session.model.js";
-import { handleDatabaseErrorResult } from "../utils/index.js";
+import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface ISessionRepository {
 	countActiveByUserId(args: { userId: string }): Promise<SessionResult<number>>;
@@ -56,9 +56,11 @@ type SessionResult<T> = Result<T, DatabaseBaseError>;
 
 export class SessionRepository implements ISessionRepository {
 	private readonly _db: typeof Session;
+	private _paginator: Paginator<SelectSession>;
 
-	constructor(db?: typeof Session) {
-		this._db = db ?? Session;
+	constructor(db: typeof Session = Session) {
+		this._db = db;
+		this._paginator = new Paginator(this._db);
 	}
 
 	public async countActiveByUserId(

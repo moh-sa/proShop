@@ -11,7 +11,7 @@ import type {
 } from "../types/index.js";
 
 import Review from "../models/review.model.js";
-import { handleDatabaseErrorResult } from "../utils/index.js";
+import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IReviewRepository {
 	count: () => Promise<ReviewResult<number>>;
@@ -52,9 +52,11 @@ type ReviewResult<T> = Result<T, DatabaseBaseError>;
 
 export class ReviewRepository implements IReviewRepository {
 	private readonly _db: typeof Review;
+	private _paginator: Paginator<SelectReview>;
 
 	constructor(db: typeof Review = Review) {
 		this._db = db;
+		this._paginator = new Paginator(this._db);
 	}
 
 	async count(): MethodReturn<IReviewRepository, "count"> {
