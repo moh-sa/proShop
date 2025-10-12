@@ -24,6 +24,13 @@ export type PaginationParams<TDocument> = {
 export type PaginationParamsQuery<TDocument> = PaginationParams<TDocument> &
 	PaginationQuery<TDocument>;
 
+/**
+ * String version of PaginationParams, for use in service and controller layers only.
+ */
+export type PaginationParamsString = {
+	[key in keyof PaginationParams<unknown>]: string;
+};
+
 export type PaginationQuery<TDocument> = {
 	pipeline?: Array<PipelineStage>;
 	query?: FilterQuery<LeanDocument<TDocument>>;
