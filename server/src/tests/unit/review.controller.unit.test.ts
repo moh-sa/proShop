@@ -127,40 +127,101 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
 	describe("getAll", () => {
 		const mockReviews = generateMockSelectReviews({ count: 5 });
+		const mockPaginationMeta = {
+			currentPage: 1,
+			hasNextPage: false,
+			hasPreviousPage: false,
+			pageSize: 10,
+			totalItems: 5,
+			totalPages: 1,
+		};
 
-		test("Should call 'service.getAll' once without args", async (t) => {
+		test("Should call 'service.getAll' once with pagination params from query", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
+				req: {
+					query: {
+						pageNumber: "1",
+						pageSize: "10",
+						sort: "createdAt:desc",
+					},
+				},
 				testContext: t,
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockReviews, success: true }),
+				Promise.resolve({
+					data: { items: mockReviews, meta: mockPaginationMeta },
+					success: true,
+				}),
 			);
 
 			// Act
-			await assert.doesNotReject(
-				async () =>
-					await controller.getAll(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
+			await controller.getAll(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
 			);
 
 			// Assert
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
-			assert.strictEqual(mockService.getAll.mock.calls[0].arguments.length, 0);
+			assert.ok(mockService.getAll.mock.calls[0].arguments[0]);
+			assert.strictEqual(
+				mockService.getAll.mock.calls[0].arguments[0].pageNumber,
+				"1",
+			);
+			assert.strictEqual(
+				mockService.getAll.mock.calls[0].arguments[0].pageSize,
+				"10",
+			);
+			assert.strictEqual(
+				mockService.getAll.mock.calls[0].arguments[0].sort,
+				"createdAt:desc",
+			);
 		});
 
-		test("Should call'res.status' once with '200' after successfully fetching all reviews", async (t) => {
+		test("Should call 'service.getAll' once with default pagination params when no query provided", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
+				req: { query: { pageNumber: "1" } },
 				testContext: t,
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockReviews, success: true }),
+				Promise.resolve({
+					data: { items: mockReviews, meta: mockPaginationMeta },
+					success: true,
+				}),
+			);
+
+			// Act
+			await controller.getAll(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
+			assert.ok(mockService.getAll.mock.calls[0].arguments[0]);
+			assert.strictEqual(
+				mockService.getAll.mock.calls[0].arguments[0].pageNumber,
+				"1",
+			);
+		});
+
+		test("Should call'res.status' once with '200' after successfully fetching paginated reviews", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { query: { pageNumber: "1" } },
+				testContext: t,
+			});
+
+			mockService.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { items: mockReviews, meta: mockPaginationMeta },
+					success: true,
+				}),
 			);
 
 			// Act
@@ -175,14 +236,18 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
-		test("Should call 'res.json' once with the success response object containing all reviews", async (t) => {
+		test("Should call 'res.json' once with the success response object containing paginated reviews and meta", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
+				req: { query: { pageNumber: "1" } },
 				testContext: t,
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockReviews, success: true }),
+				Promise.resolve({
+					data: { items: mockReviews, meta: mockPaginationMeta },
+					success: true,
+				}),
 			);
 
 			// Act
@@ -194,26 +259,41 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockReviews }),
-			);
+			assert.deepStrictEqual(res.json.mock.calls[0].arguments[0], {
+				data: mockReviews,
+				meta: mockPaginationMeta,
+				success: true,
+			});
 		});
 	});
 
 	describe("getAllByUserId", () => {
 		const mockReviews = generateMockSelectReviews({ count: 2 });
 		const userId = mockReviews[0].user;
+		const mockPaginationMeta = {
+			currentPage: 1,
+			hasNextPage: false,
+			hasPreviousPage: false,
+			pageSize: 10,
+			totalItems: 2,
+			totalPages: 1,
+		};
 
-		test("Should call 'service.getAllByUserId' once with the correct 'userId'", async (t) => {
+		test("Should call 'service.getAllByUserId' once with the correct 'userId' and pagination params", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
+				req: {
+					params: { userId: userId.toString() },
+					query: { pageNumber: "1", pageSize: "10" },
+				},
 				testContext: t,
 			});
 
 			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockReviews, success: true }),
+				Promise.resolve({
+					data: { items: mockReviews, meta: mockPaginationMeta },
+					success: true,
+				}),
 			);
 
 			// Act
@@ -229,17 +309,67 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 				mockService.getAllByUserId.mock.calls[0].arguments[0].userId,
 				userId.toString(),
 			);
+			assert.strictEqual(
+				mockService.getAllByUserId.mock.calls[0].arguments[0].pageNumber,
+				"1",
+			);
+			assert.strictEqual(
+				mockService.getAllByUserId.mock.calls[0].arguments[0].pageSize,
+				"10",
+			);
 		});
 
-		test("Should call 'res.status' once with '200' after successfully fetching all reviews", async (t) => {
+		test("Should call 'service.getAllByUserId' once with default pagination params when no query provided", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
+				req: {
+					params: { userId: userId.toString() },
+					query: { pageNumber: "1" },
+				},
 				testContext: t,
 			});
 
 			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockReviews, success: true }),
+				Promise.resolve({
+					data: { items: mockReviews, meta: mockPaginationMeta },
+					success: true,
+				}),
+			);
+
+			// Act
+			await controller.getAllByUserId(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockService.getAllByUserId.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockService.getAllByUserId.mock.calls[0].arguments[0].userId,
+				userId.toString(),
+			);
+			assert.strictEqual(
+				mockService.getAllByUserId.mock.calls[0].arguments[0].pageNumber,
+				"1",
+			);
+		});
+
+		test("Should call 'res.status' once with '200' after successfully fetching paginated reviews", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					params: { userId: userId.toString() },
+					query: { pageNumber: "1" },
+				},
+				testContext: t,
+			});
+
+			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { items: mockReviews, meta: mockPaginationMeta },
+					success: true,
+				}),
 			);
 
 			// Act
@@ -254,15 +384,21 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
-		test("Should call 'res.json' once with the success response object containing all reviews", async (t) => {
+		test("Should call 'res.json' once with the success response object containing paginated reviews and meta", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
+				req: {
+					params: { userId: userId.toString() },
+					query: { pageNumber: "1" },
+				},
 				testContext: t,
 			});
 
 			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockReviews, success: true }),
+				Promise.resolve({
+					data: { items: mockReviews, meta: mockPaginationMeta },
+					success: true,
+				}),
 			);
 
 			// Act
@@ -274,26 +410,41 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockReviews }),
-			);
+			assert.deepStrictEqual(res.json.mock.calls[0].arguments[0], {
+				data: mockReviews,
+				meta: mockPaginationMeta,
+				success: true,
+			});
 		});
 	});
 
 	describe("getAllByProductId", () => {
 		const mockReviews = generateMockSelectReviews({ count: 2 });
 		const productId = mockReviews[0].product;
+		const mockPaginationMeta = {
+			currentPage: 1,
+			hasNextPage: false,
+			hasPreviousPage: false,
+			pageSize: 10,
+			totalItems: 2,
+			totalPages: 1,
+		};
 
-		test("Should call 'service.getAllByProductId' once with the correct 'productId'", async (t) => {
+		test("Should call 'service.getAllByProductId' once with the correct 'productId' and pagination params", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: productId.toString() } },
+				req: {
+					params: { productId: productId.toString() },
+					query: { pageNumber: "1", pageSize: "10" },
+				},
 				testContext: t,
 			});
 
 			mockService.getAllByProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockReviews, success: true }),
+				Promise.resolve({
+					data: { items: mockReviews, meta: mockPaginationMeta },
+					success: true,
+				}),
 			);
 
 			// Act
@@ -309,17 +460,67 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 				mockService.getAllByProductId.mock.calls[0].arguments[0].productId,
 				productId.toString(),
 			);
+			assert.strictEqual(
+				mockService.getAllByProductId.mock.calls[0].arguments[0].pageNumber,
+				"1",
+			);
+			assert.strictEqual(
+				mockService.getAllByProductId.mock.calls[0].arguments[0].pageSize,
+				"10",
+			);
 		});
 
-		test("Should call 'res.status' once with '200' after successfully fetching all reviews", async (t) => {
+		test("Should call 'service.getAllByProductId' once with default pagination params when no query provided", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: productId.toString() } },
+				req: {
+					params: { productId: productId.toString() },
+					query: { pageNumber: "1" },
+				},
 				testContext: t,
 			});
 
 			mockService.getAllByProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockReviews, success: true }),
+				Promise.resolve({
+					data: { items: mockReviews, meta: mockPaginationMeta },
+					success: true,
+				}),
+			);
+
+			// Act
+			await controller.getAllByProductId(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockService.getAllByProductId.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockService.getAllByProductId.mock.calls[0].arguments[0].productId,
+				productId.toString(),
+			);
+			assert.strictEqual(
+				mockService.getAllByProductId.mock.calls[0].arguments[0].pageNumber,
+				"1",
+			);
+		});
+
+		test("Should call 'res.status' once with '200' after successfully fetching paginated reviews", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					params: { productId: productId.toString() },
+					query: { pageNumber: "1" },
+				},
+				testContext: t,
+			});
+
+			mockService.getAllByProductId.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { items: mockReviews, meta: mockPaginationMeta },
+					success: true,
+				}),
 			);
 
 			// Act
@@ -334,15 +535,21 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
-		test("Should call 'res.json' once with the success response object containing all reviews", async (t) => {
+		test("Should call 'res.json' once with the success response object containing paginated reviews and meta", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: productId.toString() } },
+				req: {
+					params: { productId: productId.toString() },
+					query: { pageNumber: "1" },
+				},
 				testContext: t,
 			});
 
 			mockService.getAllByProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockReviews, success: true }),
+				Promise.resolve({
+					data: { items: mockReviews, meta: mockPaginationMeta },
+					success: true,
+				}),
 			);
 
 			// Act
@@ -354,10 +561,11 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockReviews }),
-			);
+			assert.deepStrictEqual(res.json.mock.calls[0].arguments[0], {
+				data: mockReviews,
+				meta: mockPaginationMeta,
+				success: true,
+			});
 		});
 	});
 
