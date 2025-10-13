@@ -13,9 +13,7 @@ suite("Paginator 〖 Integration Tests 〗", async () => {
 	before(async () => await connectTestDatabase());
 	after(async () => await disconnectTestDatabase());
 
-	beforeEach(async () => {
-		await Product.deleteMany({});
-	});
+	beforeEach(async () => await Product.deleteMany({}));
 
 	describe("page size", () => {
 		it("should use default page size when size is undefined", async () => {
@@ -214,9 +212,14 @@ suite("Paginator 〖 Integration Tests 〗", async () => {
 	describe("skip", () => {
 		it("should skip items based on page and size", async () => {
 			// Arrange
-			const mockData = generateMockSelectProducts({ count: 10 });
+			const mockData = generateMockSelectProducts({ count: 10 }).map(
+				(p, i) => ({
+					...p,
+					price: i + 1,
+				}),
+			);
 			const expectedResult = mockData
-				.sort((a, b) => a.price - b.price)
+				.sort((a, b) => a.price - b.price) // ascending
 				.slice(2, 4);
 			await Product.insertMany(mockData);
 
@@ -224,7 +227,7 @@ suite("Paginator 〖 Integration Tests 〗", async () => {
 			const result = await paginator.paginate({
 				pageNumber: 2,
 				pageSize: 2,
-				sort: { price: 1 },
+				sort: { price: 1 }, // ascending
 			});
 
 			// Assert

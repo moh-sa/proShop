@@ -6,6 +6,8 @@ import type {
 	InsertUser,
 	MethodParams,
 	MethodReturn,
+	PaginatedResponse,
+	PaginationParamsQuery,
 	Result,
 	SelectUser,
 } from "../types/index.js";
@@ -21,7 +23,9 @@ export interface IUserRepository {
 	existsByEmail(data: {
 		email: string;
 	}): Promise<UserResult<null | { _id: Types.ObjectId }>>;
-	getAll(): Promise<UserResult<Array<SelectUser>>>;
+	getAll(
+		args: PaginationParamsQuery<SelectUser>,
+	): Promise<UserResult<PaginatedResponse<SelectUser>>>;
 	getByEmail(data: { email: string }): Promise<UserResult<null | SelectUser>>;
 	getById(data: {
 		userId: Types.ObjectId;
@@ -94,9 +98,16 @@ export class UserRepository implements IUserRepository {
 		}
 	}
 
-	async getAll(): MethodReturn<IUserRepository, "getAll"> {
+	async getAll(
+		args: MethodParams<IUserRepository, "getAll">,
+	): MethodReturn<IUserRepository, "getAll"> {
 		try {
-			const result = await this._db.find({}).lean();
+			const result = await this._paginator.paginate({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: args.query,
+				sort: args.sort,
+			});
 
 			return {
 				data: result,

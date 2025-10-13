@@ -15,6 +15,7 @@ import {
 	generateMockInsertUser,
 	generateMockInsertUsers,
 	generateMockObjectId,
+	generateMockSelectUsers,
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
@@ -157,26 +158,62 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 	});
 
 	describe("getAll", () => {
-		test("Should return 'success result' with 'all users' when users exist", async () => {
+		test("Should return paginated items and meta for given page", async () => {
 			// Arrange
-			const mockUsers = generateMockInsertUsers({ count: 3 });
+			const mockUsers = generateMockSelectUsers({ count: 4 });
+			const expectedResult = mockUsers
+				.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+				.slice(2, 4);
 			await User.insertMany(mockUsers);
 
 			// Act
-			const result = await repo.getAll();
+			const result = await repo.getAll({
+				pageNumber: 2,
+				pageSize: 2,
+			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.equal(result.data.length, mockUsers.length);
+			assert.strictEqual(result.data.items.length, 2);
+			assert.strictEqual(result.data.items[0].email, expectedResult[0].email);
+			assert.strictEqual(result.data.items[1].email, expectedResult[1].email);
+			assert.strictEqual(result.data.meta.currentPage, 2);
+			assert.strictEqual(result.data.meta.totalItems, mockUsers.length);
 		});
 
-		test("Should return 'success result' with 'empty array' when no users exist", async () => {
+		test("Should return empty items array and meta when no users exist", async () => {
 			// Act
-			const result = await repo.getAll();
+			const result = await repo.getAll({ pageNumber: 1, pageSize: 5 });
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.equal(result.data.length, 0);
+			assert.strictEqual(result.data.items.length, 0);
+			assert.strictEqual(result.data.meta.totalItems, 0);
+		});
+
+		test("Should apply query filter before pagination", async () => {
+			// Arrange
+			const adminUsers = generateMockInsertUsers({
+				count: 3,
+				options: { isAdmin: true },
+			});
+			const regularUsers = generateMockInsertUsers({
+				count: 2,
+				options: { isAdmin: false },
+			});
+			await User.insertMany([...adminUsers, ...regularUsers]);
+
+			// Act
+			const result = await repo.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				query: { isAdmin: true },
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.items.length, adminUsers.length);
+			assert.ok(result.data.items.every((u) => u.isAdmin === true));
 		});
 	});
 

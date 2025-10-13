@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import assert from "node:assert/strict";
 import { beforeEach, describe, mock, suite, test } from "node:test";
 
-import type { InsertUser } from "../../types/index.js";
+import type { InsertUser, PaginationParamsQuery } from "../../types/index.js";
 
 import {
 	DatabaseDuplicateKeyError,
@@ -14,6 +14,7 @@ import {
 } from "../../errors/index.js";
 import User from "../../models/user.model.js";
 import { UserRepository } from "../../repositories/index.js";
+import { Paginator } from "../../utils/paginator.util.js";
 import {
 	generateMockInsertUser,
 	generateMockInsertUsers,
@@ -148,44 +149,42 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'success result' with 'array of users' when 'db.find' succeeds", async (t) => {
 			// Arrange
 			const mockUsers = generateMockInsertUsers({ count: 5 });
-			const findMock = t.mock.method(User, "find", () => ({
-				lean: async () => mockUsers,
-			}));
+
+			t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({ items: mockUsers, meta: {} }),
+			);
 
 			// Act
-			const result = await repo.getAll();
+			const result = await repo.getAll({ pageNumber: 1 });
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.deepStrictEqual(result.data, mockUsers);
-
-			assert.strictEqual(findMock.mock.callCount(), 1);
-			assert.deepStrictEqual(findMock.mock.calls[0].arguments[0], {});
+			assert.deepStrictEqual(result.data.items, mockUsers);
 		});
 
 		test("Should return 'success result' with 'empty array' when 'db.find' returns 'empty array'", async (t) => {
 			// Arrange
-			t.mock.method(User, "find", () => ({
-				lean: async () => [],
-			}));
+			t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({ items: [], meta: {} }),
+			);
 
 			// Act
-			const result = await repo.getAll();
+			const result = await repo.getAll({ pageNumber: 1 });
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.length, 0);
+			assert.strictEqual(result.data.items.length, 0);
 		});
 
 		test("Should return 'failure result' with 'DatabaseValidationError' when 'db.find' throws 'ValidationError'", async (t) => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
-			t.mock.method(User, "find", () => {
+			t.mock.method(Paginator.prototype, "paginate", () => {
 				throw validationError;
 			});
 
 			// Act
-			const result = await repo.getAll();
+			const result = await repo.getAll({ pageNumber: 1 });
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -197,12 +196,13 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
-			t.mock.method(User, "find", () => {
+
+			t.mock.method(Paginator.prototype, "paginate", () => {
 				throw timeoutError;
 			});
 
 			// Act
-			const result = await repo.getAll();
+			const result = await repo.getAll({ pageNumber: 1 });
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -212,12 +212,12 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'DatabaseQueryError' when 'db.find' throws 'MongooseError'", async (t) => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
-			t.mock.method(User, "find", () => {
+			t.mock.method(Paginator.prototype, "paginate", () => {
 				throw queryError;
 			});
 
 			// Act
-			const result = await repo.getAll();
+			const result = await repo.getAll({ pageNumber: 1 });
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -227,12 +227,12 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'DatabaseNetworkError' when 'db.find' throws 'MongoError'", async (t) => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
-			t.mock.method(User, "find", () => {
+			t.mock.method(Paginator.prototype, "paginate", () => {
 				throw networkError;
 			});
 
 			// Act
-			const result = await repo.getAll();
+			const result = await repo.getAll({ pageNumber: 1 });
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -242,16 +242,58 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'GenericDatabaseError' when 'db.find' throws unknown error", async (t) => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
-			t.mock.method(User, "find", () => {
+			t.mock.method(Paginator.prototype, "paginate", () => {
 				throw unknownError;
 			});
 
 			// Act
-			const result = await repo.getAll();
+			const result = await repo.getAll({ pageNumber: 1 });
 
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof GenericDatabaseError);
+		});
+
+		test("Should pass args to paginator and return its result", async (t) => {
+			// Arrange
+			const mockUsers = generateMockInsertUsers({ count: 5 });
+			const pageSize = 3;
+			const items = mockUsers.slice(pageSize - 1, pageSize * 2);
+			const args: PaginationParamsQuery<unknown> = {
+				pageNumber: 2,
+				pageSize,
+				query: { isAdmin: true },
+				sort: { createdAt: -1 },
+			};
+
+			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({ items, meta: {} }),
+			);
+
+			// Act
+			const result = await repo.getAll(args);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data.items, items);
+
+			assert.strictEqual(paginateMock.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				paginateMock.mock.calls[0].arguments[0]?.pageNumber,
+				args.pageNumber,
+			);
+			assert.deepStrictEqual(
+				paginateMock.mock.calls[0].arguments[0]?.pageSize,
+				args.pageSize,
+			);
+			assert.deepStrictEqual(
+				paginateMock.mock.calls[0].arguments[0]?.query,
+				args.query,
+			);
+			assert.deepStrictEqual(
+				paginateMock.mock.calls[0].arguments[0]?.sort,
+				args.sort,
+			);
 		});
 	});
 

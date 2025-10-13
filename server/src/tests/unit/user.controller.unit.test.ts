@@ -106,14 +106,28 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 	describe("getAll", () => {
 		const mockUsers = generateMockSelectUsers({ count: 5 });
 
-		test("Should call 'service.getAll' once without args", async (t) => {
+		test("Should call 'service.getAll' once with the correct 'args'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
+				req: { query: { pageNumber: "1" } },
 				testContext: t,
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockUsers, success: true }),
+				Promise.resolve({
+					data: {
+						items: mockUsers,
+						meta: {
+							currentPage: 1,
+							hasNextPage: false,
+							hasPreviousPage: false,
+							pageSize: 5,
+							totalItems: 5,
+							totalPages: 1,
+						},
+					},
+					success: true,
+				}),
 			);
 
 			// Act
@@ -125,17 +139,46 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
-			assert.strictEqual(mockService.getAll.mock.calls[0].arguments.length, 0);
+			assert.strictEqual(
+				mockService.getAll.mock.calls[0].arguments[0].pageNumber,
+				"1",
+			);
+			assert.strictEqual(
+				mockService.getAll.mock.calls[0].arguments[0].pageSize,
+				undefined,
+			);
+			assert.strictEqual(
+				mockService.getAll.mock.calls[0].arguments[0].query,
+				undefined,
+			);
+			assert.strictEqual(
+				mockService.getAll.mock.calls[0].arguments[0].sort,
+				undefined,
+			);
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching all users", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
+				req: { query: { currentPage: "1" } },
 				testContext: t,
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockUsers, success: true }),
+				Promise.resolve({
+					data: {
+						items: mockUsers,
+						meta: {
+							currentPage: 1,
+							hasNextPage: false,
+							hasPreviousPage: false,
+							pageSize: 5,
+							totalItems: 5,
+							totalPages: 1,
+						},
+					},
+					success: true,
+				}),
 			);
 
 			// Act
@@ -153,11 +196,27 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing all users", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
+				req: { query: { currentPage: "1" } },
 				testContext: t,
 			});
 
+			const meta = {
+				currentPage: 1,
+				hasNextPage: false,
+				hasPreviousPage: false,
+				pageSize: 5,
+				totalItems: 5,
+				totalPages: 1,
+			};
+
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockUsers, success: true }),
+				Promise.resolve({
+					data: {
+						items: mockUsers,
+						meta,
+					},
+					success: true,
+				}),
 			);
 
 			// Act
@@ -171,7 +230,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockUsers }),
+				createSuccessResponseObject({ data: mockUsers, meta }),
 			);
 		});
 	});
