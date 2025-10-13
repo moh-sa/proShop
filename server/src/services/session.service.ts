@@ -6,8 +6,10 @@ import type {
 	InsertSession,
 	MethodParams,
 	MethodReturn,
+	PaginatedResponse,
 	Result,
 	SelectSession,
+	SessionPaginationParams,
 } from "../types/index.js";
 
 import {
@@ -20,7 +22,11 @@ import {
 } from "../errors/index.js";
 import { SessionRepository } from "../repositories/index.js";
 import { insertSessionSchema } from "../schemas/index.js";
-import { objectIdValidator, uuidValidator } from "../validators/index.js";
+import {
+	objectIdValidator,
+	paginationParamsValidator,
+	uuidValidator,
+} from "../validators/index.js";
 
 export interface ISessionService {
 	create(args: InsertSession): Promise<SessionResult<SelectSession>>;
@@ -32,9 +38,9 @@ export interface ISessionService {
 		userId: string;
 	}): Promise<SessionResult<SelectSession>>;
 
-	getActiveByUserId(args: {
-		userId: string;
-	}): Promise<SessionResult<Array<SelectSession>>>;
+	getActiveByUserId(
+		args: SessionPaginationParams,
+	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
 
 	getByTokenIdAndUserId(args: {
 		tokenId: string;
@@ -142,12 +148,29 @@ export class SessionService implements ISessionService {
 	public async getActiveByUserId(
 		args: MethodParams<ISessionService, "getActiveByUserId">,
 	): MethodReturn<ISessionService, "getActiveByUserId"> {
+		const paginationValidationResult = paginationParamsValidator.safeParse({
+			pageNumber: args.pageNumber,
+			pageSize: args.pageSize,
+			sort: args.sort,
+		});
+		if (!paginationValidationResult.success) {
+			return {
+				error: new SessionValidationError({
+					cause: paginationValidationResult.error,
+				}),
+				success: false,
+			};
+		}
+
 		const argsValidationResult = this._validateUserId(args.userId);
 		if (!argsValidationResult.success) {
 			return argsValidationResult;
 		}
 
 		const sessions = await this._repository.getAllActiveByUserId({
+			pageNumber: paginationValidationResult.data.pageNumber,
+			pageSize: paginationValidationResult.data.pageSize,
+			sort: paginationValidationResult.data.sort,
 			userId: args.userId,
 		});
 		if (!sessions.success) {

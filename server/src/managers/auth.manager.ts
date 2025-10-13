@@ -8,6 +8,8 @@ import type {
 	InsertUser,
 	MethodParams,
 	MethodReturn,
+	PaginatedResponse,
+	PaginationParamsString,
 	Result,
 	SafeSelectUser,
 	SelectSession,
@@ -33,9 +35,11 @@ type AuthResult<T> = Result<T>;
 
 // interfaces
 export interface IAuthManager {
-	getUserSessions(args: {
-		refreshToken: string;
-	}): Promise<AuthResult<Array<SelectSession>>>;
+	getUserSessions(
+		args: Omit<PaginationParamsString, "pipeline" | "query"> & {
+			refreshToken: string;
+		},
+	): Promise<AuthResult<PaginatedResponse<SelectSession>>>;
 
 	refreshAccessToken(args: { refreshToken: string }): Promise<
 		AuthResult<{
@@ -111,6 +115,9 @@ export class AuthManager implements IAuthManager {
 		const userId = refreshTokenValidationResult.data.userId;
 
 		const result = await this._session.getActiveByUserId({
+			pageNumber: args.pageNumber,
+			pageSize: args.pageSize,
+			sort: args.sort,
 			userId,
 		});
 		if (!result.success) {
