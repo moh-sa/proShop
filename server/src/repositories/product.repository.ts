@@ -269,9 +269,11 @@ export class ProductRepository implements IProductRepository {
 		return handleDatabaseErrorResult(error);
 	}
 
-	private _invalidateProductCache({ id }: { id: string }): void {
-		// Delete specific product cache
-		this._cache.delete({ key: id });
+	private _invalidateProductCache({ id }: { id?: string } = {}): void {
+		if (id && id.trim().length > 0) {
+			// Delete specific product cache
+			this._cache.delete({ key: id });
+		}
 
 		// Delete all top-rated caches as they might be affected
 		const stats = this._cache.getStats();
