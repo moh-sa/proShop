@@ -85,7 +85,10 @@ export class ProductRepository implements IProductRepository {
 				value: product,
 			});
 			if (!setCacheResult.success) {
-				console.error("Failed to set product cache", product._id.toString());
+				console.error("[PRODUCT REPOSITORY] Failed to set product cache", {
+					cacheKey: product._id.toString(),
+					cause: setCacheResult.error,
+				});
 			}
 			// invalidate `all` and `top-rated` caches
 			this._invalidateProductCache();
@@ -181,7 +184,10 @@ export class ProductRepository implements IProductRepository {
 					value: product,
 				});
 				if (setCacheResult && !setCacheResult.success) {
-					console.error("Failed to set product cache", cacheId);
+					console.error("[PRODUCT REPOSITORY] Failed to set product cache", {
+						cacheKey: cacheId,
+						cause: setCacheResult.error,
+					});
 				}
 			}
 
@@ -228,8 +234,11 @@ export class ProductRepository implements IProductRepository {
 				});
 				if (setCacheResult && !setCacheResult.success) {
 					console.error(
-						"Failed to set top-rated products cache",
-						this._getTopRatedCacheKey,
+						"[PRODUCT REPOSITORY] Failed to set top-rated products cache",
+						{
+							cacheKey: this._getTopRatedCacheKey,
+							cause: setCacheResult.error,
+						},
 					);
 				}
 			}
