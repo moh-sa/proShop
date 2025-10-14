@@ -1,6 +1,6 @@
 import type { FilterQuery, LeanDocument, Model, PipelineStage } from "mongoose";
 
-import type { PaginationMeta } from "../types/index.js";
+import type { PaginationMeta, PaginationParams } from "../types/index.js";
 
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "../constants/index.js";
 
@@ -85,6 +85,20 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 			totalItems: args.totalItems,
 			totalPages,
 		};
+	}
+
+	/**
+	 * Prepare pagination parameters.
+	 * @returns `pageNumber`, `pageSize`, and `skip`.
+	 */
+	private _preparePaginationParams(
+		args: Pick<PaginationParams<TDocument>, "pageNumber" | "pageSize">,
+	): { pageNumber: number; pageSize: number; skip: number } {
+		const pageNumber = this._calculatePageNumber(args.pageNumber);
+		const pageSize = this._calculatePageSize(args.pageSize);
+		const skip = this._calculateSkip(pageNumber, pageSize);
+
+		return { pageNumber, pageSize, skip };
 	}
 
 	/** Build and run aggregation for items and total count. */
