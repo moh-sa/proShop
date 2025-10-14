@@ -48,6 +48,10 @@ export class ProductRepository implements IProductRepository {
 	private readonly _db: typeof Product;
 	private _paginator: Paginator<SelectProduct>;
 
+	// Cache keys
+	private readonly _getAllCacheKey = "all";
+	private readonly _getTopRatedCacheKey = "top-rated";
+
 	constructor(
 		db: typeof Product = Product,
 		cache: CacheService = new CacheService("product"),
@@ -118,7 +122,7 @@ export class ProductRepository implements IProductRepository {
 		data: MethodParams<IProductRepository, "getAll">,
 	): MethodReturn<IProductRepository, "getAll"> {
 		const cachedProducts = this._cache.get<Array<AllProducts>>({
-			key: `all-${data.currentPage}`,
+			key: `${this._getAllCacheKey}-${data.currentPage}`,
 		});
 		if (!cachedProducts.success) {
 			return cachedProducts;
@@ -191,9 +195,8 @@ export class ProductRepository implements IProductRepository {
 		IProductRepository,
 		"getTopRated"
 	> {
-		const cacheKey = "top-rated";
 		const cachedProducts = this._cache.get<Array<TopRatedProduct>>({
-			key: cacheKey,
+			key: this._getTopRatedCacheKey,
 		});
 		if (!cachedProducts.success) {
 			return cachedProducts;
@@ -214,9 +217,15 @@ export class ProductRepository implements IProductRepository {
 				.lean();
 
 			if (products) {
-				const isSet = this._cache.set({ key: cacheKey, value: products });
+				const isSet = this._cache.set({
+					key: this._getTopRatedCacheKey,
+					value: products,
+				});
 				if (isSet && !isSet.success) {
-					console.error("Failed to set top-rated products cache", cacheKey);
+					console.error(
+						"Failed to set top-rated products cache",
+						this._getTopRatedCacheKey,
+					);
 				}
 			}
 
@@ -267,7 +276,7 @@ export class ProductRepository implements IProductRepository {
 		// Delete all top-rated caches as they might be affected
 		const stats = this._cache.getStats();
 		const keys = Object.keys(stats).filter((key) =>
-			key.startsWith("product:top-rated"),
+			key.startsWith(`product:${this._getTopRatedCacheKey}`),
 		);
 		if (keys.length > 0) {
 			this._cache.deleteMany({ keys });
