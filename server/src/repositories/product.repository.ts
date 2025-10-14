@@ -87,6 +87,8 @@ export class ProductRepository implements IProductRepository {
 			if (!isSet.success) {
 				console.error("Failed to set product cache", product._id.toString());
 			}
+			// invalidate `all` and `top-rated` caches
+			this._invalidateProductCache();
 
 			return {
 				data: product,

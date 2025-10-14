@@ -50,6 +50,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			}));
 
 			mockSetCache({ cacheKey, instance: mockCache });
+			mockCacheInvalidation({ cacheKey, instance: mockCache });
 
 			// Act
 			const product = await repo.create(mockInsertProduct);
@@ -83,6 +84,26 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				key: cacheKey,
 				value: mockSelectProduct,
 			});
+		});
+
+		test("Should call 'cache.delete' two times", async (t) => {
+			// Arrange
+			mockSetCache({ cacheKey, instance: mockCache });
+
+			mockCacheInvalidation({
+				cacheKey,
+				instance: mockCache,
+			});
+
+			t.mock.method(Product, "create", () => ({
+				toObject: () => mockSelectProduct,
+			}));
+
+			// Act
+			await repo.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(mockCache.delete.mock.callCount(), 2);
 		});
 
 		test("Should return 'DatabaseValidationError' when 'db.create' throws 'ValidationError'", async (t) => {
