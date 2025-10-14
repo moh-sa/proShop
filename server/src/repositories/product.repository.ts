@@ -123,15 +123,15 @@ export class ProductRepository implements IProductRepository {
 	async getAll(
 		data: MethodParams<IProductRepository, "getAll">,
 	): MethodReturn<IProductRepository, "getAll"> {
-		const cachedProducts = this._cache.get<Array<AllProducts>>({
+		const getCachedResult = this._cache.get<Array<AllProducts>>({
 			key: `${this._getAllCacheKey}-${data.currentPage}`,
 		});
-		if (!cachedProducts.success) {
-			return cachedProducts;
+		if (!getCachedResult.success) {
+			return getCachedResult;
 		}
-		if (cachedProducts.data) {
+		if (getCachedResult.data) {
 			return {
-				data: cachedProducts.data,
+				data: getCachedResult.data,
 				success: true,
 			};
 		}
@@ -160,15 +160,15 @@ export class ProductRepository implements IProductRepository {
 		"getById"
 	> {
 		const cacheId = productId.toString();
-		const cachedProduct = this._cache.get<SelectProduct>({
+		const getCachedResult = this._cache.get<SelectProduct>({
 			key: cacheId,
 		});
-		if (!cachedProduct.success) {
-			return cachedProduct;
+		if (!getCachedResult.success) {
+			return getCachedResult;
 		}
-		if (cachedProduct.data) {
+		if (getCachedResult.data) {
 			return {
-				data: cachedProduct.data,
+				data: getCachedResult.data,
 				success: true,
 			};
 		}
@@ -200,15 +200,15 @@ export class ProductRepository implements IProductRepository {
 		IProductRepository,
 		"getTopRated"
 	> {
-		const cachedProducts = this._cache.get<Array<TopRatedProduct>>({
+		const getCachedResult = this._cache.get<Array<TopRatedProduct>>({
 			key: this._getTopRatedCacheKey,
 		});
-		if (!cachedProducts.success) {
-			return cachedProducts;
+		if (!getCachedResult.success) {
+			return getCachedResult;
 		}
-		if (cachedProducts.data) {
+		if (getCachedResult.data) {
 			return {
-				data: cachedProducts.data,
+				data: getCachedResult.data,
 				success: true,
 			};
 		}
