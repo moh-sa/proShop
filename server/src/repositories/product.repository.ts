@@ -80,11 +80,11 @@ export class ProductRepository implements IProductRepository {
 	): MethodReturn<IProductRepository, "create"> {
 		try {
 			const product = (await this._db.create(data)).toObject();
-			const isSet = this._cache.set({
+			const setCacheResult = this._cache.set({
 				key: product._id.toString(),
 				value: product,
 			});
-			if (!isSet.success) {
+			if (!setCacheResult.success) {
 				console.error("Failed to set product cache", product._id.toString());
 			}
 			// invalidate `all` and `top-rated` caches
@@ -176,8 +176,11 @@ export class ProductRepository implements IProductRepository {
 		try {
 			const product = await this._db.findById(productId).lean();
 			if (product) {
-				const isSet = this._cache.set({ key: cacheId, value: product });
-				if (isSet && !isSet.success) {
+				const setCacheResult = this._cache.set({
+					key: cacheId,
+					value: product,
+				});
+				if (setCacheResult && !setCacheResult.success) {
 					console.error("Failed to set product cache", cacheId);
 				}
 			}
@@ -219,11 +222,11 @@ export class ProductRepository implements IProductRepository {
 				.lean();
 
 			if (products) {
-				const isSet = this._cache.set({
+				const setCacheResult = this._cache.set({
 					key: this._getTopRatedCacheKey,
 					value: products,
 				});
-				if (isSet && !isSet.success) {
+				if (setCacheResult && !setCacheResult.success) {
 					console.error(
 						"Failed to set top-rated products cache",
 						this._getTopRatedCacheKey,
