@@ -185,7 +185,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			}));
 
 			mockCacheMiss({
-				cacheKey,
 				instance: mockCache,
 			});
 
@@ -209,7 +208,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		test("Should return array of products when 'cache.get' is called once and returns 'undefined'", async (t) => {
 			// Arrange
 			mockCacheMiss({
-				cacheKey,
 				instance: mockCache,
 			});
 
@@ -266,7 +264,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return empty array when 'db.find' returns empty array", async (t) => {
 			// Arrange
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			t.mock.method(Product, "find", () => ({
 				select: () => ({
@@ -300,7 +298,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw validationError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const result = await repo.getAll({
@@ -324,7 +322,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw timeoutError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const result = await repo.getAll({
@@ -346,7 +344,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw queryError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const result = await repo.getAll({
@@ -368,7 +366,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw networkError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const result = await repo.getAll({
@@ -390,7 +388,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw unknownError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const result = await repo.getAll({
@@ -413,7 +411,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		test("Should return product object when 'db.findById' is called once with 'productId'", async (t) => {
 			// Arrange
 			mockCacheMiss({
-				cacheKey,
 				instance: mockCache,
 			});
 
@@ -439,7 +436,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		test("Should return product object when 'cache.get' is called once and returns 'undefined'", async (t) => {
 			// Arrange
 			mockCacheMiss({
-				cacheKey,
 				instance: mockCache,
 			});
 
@@ -481,7 +477,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.findById' returns 'null'", async (t) => {
 			// Arrange
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			const mockFindById = t.mock.method(Product, "findById", () => ({
 				lean: () => null,
@@ -509,7 +505,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw validationError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const product = await repo.getById({ productId: mockProduct._id });
@@ -529,7 +525,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw timeoutError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const product = await repo.getById({ productId: mockProduct._id });
@@ -547,7 +543,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw queryError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const product = await repo.getById({ productId: mockProduct._id });
@@ -565,7 +561,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw networkError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const product = await repo.getById({ productId: mockProduct._id });
@@ -583,7 +579,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw unknownError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const product = await repo.getById({ productId: mockProduct._id });
@@ -602,7 +598,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		test("Should return array of products when 'db.find' is called once with no args", async (t) => {
 			// Arrange
 			mockCacheMiss({
-				cacheKey,
 				instance: mockCache,
 			});
 
@@ -632,7 +627,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		test("Should return array of products when 'cache.get' is called once and returns 'undefined'", async (t) => {
 			// Arrange
 			mockCacheMiss({
-				cacheKey,
 				instance: mockCache,
 			});
 
@@ -681,7 +675,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return empty array when 'db.find' is called once and returns empty array", async (t) => {
 			// Arrange
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			t.mock.method(Product, "find", () => ({
 				select: () => ({
@@ -711,7 +705,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw validationError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const products = await repo.getTopRated({ limit });
@@ -731,7 +725,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw timeoutError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const products = await repo.getTopRated({ limit });
@@ -749,7 +743,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw queryError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const products = await repo.getTopRated({ limit });
@@ -767,7 +761,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw networkError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const products = await repo.getTopRated({ limit });
@@ -785,7 +779,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw unknownError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const products = await repo.getTopRated({ limit });

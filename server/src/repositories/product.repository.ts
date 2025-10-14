@@ -120,7 +120,10 @@ export class ProductRepository implements IProductRepository {
 		const cachedProducts = this._cache.get<Array<AllProducts>>({
 			key: `all-${data.currentPage}`,
 		});
-		if (cachedProducts.success) {
+		if (!cachedProducts.success) {
+			return cachedProducts;
+		}
+		if (cachedProducts.data) {
 			return {
 				data: cachedProducts.data,
 				success: true,
@@ -154,7 +157,10 @@ export class ProductRepository implements IProductRepository {
 		const cachedProduct = this._cache.get<SelectProduct>({
 			key: cacheId,
 		});
-		if (cachedProduct.success) {
+		if (!cachedProduct.success) {
+			return cachedProduct;
+		}
+		if (cachedProduct.data) {
 			return {
 				data: cachedProduct.data,
 				success: true,
@@ -189,7 +195,10 @@ export class ProductRepository implements IProductRepository {
 		const cachedProducts = this._cache.get<Array<TopRatedProduct>>({
 			key: cacheKey,
 		});
-		if (cachedProducts.success) {
+		if (!cachedProducts.success) {
+			return cachedProducts;
+		}
+		if (cachedProducts.data) {
 			return {
 				data: cachedProducts.data,
 				success: true,

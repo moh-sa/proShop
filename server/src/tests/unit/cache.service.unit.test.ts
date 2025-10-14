@@ -303,7 +303,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result.data);
 		});
 
-		test("Should return 'success', 'key', and 'error' when '_cache.get' returns 'undefined'", (t) => {
+		test("Should return 'success' and 'data' when '_cache.get' returns 'undefined'", (t) => {
 			// Arrange
 			const key = "test-key";
 
@@ -315,9 +315,8 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const result = cacheService.get({ key });
 
 			// Assert
-			assert.ok(!result.success);
-			assert.ok(result.key);
-			assert.ok(result.error);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, undefined);
 		});
 
 		test("Should return the correct 'data' when '_cache.get' returns data", (t) => {
@@ -335,38 +334,6 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.ok(result.success);
 			assert.strictEqual(result.data, value);
-		});
-
-		test("Should return the correct 'key' when '_cache.get' returns 'undefined'", (t) => {
-			// Arrange
-			const key = "test-key";
-
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
-			mockCache.get.mock.mockImplementationOnce(() => undefined);
-
-			// Act
-			const result = cacheService.get({ key });
-
-			// Assert
-			assert.ok(!result.success);
-			assert.strictEqual(result.key, key);
-		});
-
-		test("Should return 'error' instance of 'CacheOperationError' when '_cache.get' returns 'undefined'", (t) => {
-			// Arrange
-			const key = "test-key";
-
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
-			mockCache.get.mock.mockImplementationOnce(() => undefined);
-
-			// Act
-			const result = cacheService.get({ key });
-
-			// Assert
-			assert.ok(!result.success);
-			assert.ok(result.error instanceof CacheOperationError);
 		});
 
 		test("Should return 'error' instance of 'CacheOperationError' when '_cache.get' throws", (t) => {

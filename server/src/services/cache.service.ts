@@ -34,7 +34,7 @@ export interface ICacheService {
 	deleteMany(args: { keys: Array<string> }): Array<CacheResult>;
 	flush(): void;
 	flushStats(): void;
-	get<T>(args: { key: string }): CacheResult<T>;
+	get<T>(args: { key: string }): CacheResult<T | undefined>;
 	getKeys(): Array<string>;
 	getMany<T>(args: { keys: Array<string> }): Array<CacheResult<T>>;
 	getStats(): CacheStats;
@@ -119,7 +119,7 @@ export class CacheService implements ICacheService {
 		this._cache.flushStats();
 	}
 
-	get<T>(args: MethodParams<ICacheService, "get">): CacheResult<T> {
+	get<T>(args: MethodParams<ICacheService, "get">): CacheResult<T | undefined> {
 		const parsedKey = this._validateSchema({
 			data: args.key,
 			schema: cacheKeySchema,
@@ -130,7 +130,7 @@ export class CacheService implements ICacheService {
 			const result = this._cache.get<T>(key);
 			if (!result) {
 				console.error("Cache miss:", args.key);
-				return this._createFailureResult(key, CacheOperationError.get(key));
+				return this._createSuccessResult(undefined);
 			}
 
 			console.warn("Cache hit:", args.key);

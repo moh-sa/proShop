@@ -77,6 +77,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.ok(cachedProduct.success);
+			assert.ok(cachedProduct.data);
 			// IDs does not have the same reference
 			const { _id: createdProductId, ...assertProduct } = createdProduct.data;
 			const { _id: cachedProductId, ...assertCached } = cachedProduct.data;
@@ -256,7 +257,8 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 
 			// Act & Assert
 			const noProductsCached = cacheService.get({ key: "top-rated" });
-			assert.strictEqual(noProductsCached.success, false);
+			assert.strictEqual(noProductsCached.success, true);
+			assert.strictEqual(noProductsCached.data, undefined);
 
 			const products = await productRepository.getTopRated({ limit: 3 });
 			assert.strictEqual(products.success, true);
@@ -267,6 +269,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 				key: "top-rated",
 			});
 			assert.ok(cachedProducts.success);
+			assert.ok(cachedProducts.data);
 			assert.strictEqual(cachedProducts.data.length, mockProducts.length);
 		});
 
@@ -365,7 +368,8 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			const noProductCached = cacheService.get({
 				key: mockProduct._id.toString(),
 			});
-			assert.strictEqual(noProductCached.success, false);
+			assert.strictEqual(noProductCached.success, true);
+			assert.strictEqual(noProductCached.data, undefined);
 
 			await productRepository.getById({
 				productId: mockProduct._id,
@@ -375,6 +379,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 				key: mockProduct._id.toString(),
 			});
 			assert.ok(cachedProduct.success);
+			assert.ok(cachedProduct.data);
 			assert.strictEqual(cachedProduct.data.name, mockProduct.name);
 		});
 
@@ -449,7 +454,8 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			assert.strictEqual(cachedProduct.success, false);
+			assert.strictEqual(cachedProduct.success, true);
+			assert.strictEqual(cachedProduct.data, undefined);
 		});
 
 		test("should return null when 'db.update' is called with non-existent ID", async () => {
@@ -544,7 +550,8 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			const cachedProduct = cacheService.get<SelectProduct>({
 				key: cacheKey,
 			});
-			assert.strictEqual(cachedProduct.success, false);
+			assert.strictEqual(cachedProduct.success, true);
+			assert.strictEqual(cachedProduct.data, undefined);
 		});
 
 		test(

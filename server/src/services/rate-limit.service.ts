@@ -49,7 +49,11 @@ export class RateLimiterService {
 		};
 
 		const result = this._cache.get<RateLimitData>({ key });
-		return result.success ? result.data : fallback;
+		if (!result.success || !result.data) {
+			return fallback;
+		}
+
+		return result.data;
 	}
 
 	private _handleError(error: unknown, next: NextFunction): void {
