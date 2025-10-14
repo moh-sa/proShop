@@ -259,8 +259,12 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.data.meta.currentPage, 1);
 			assert.strictEqual(result.data.meta.totalPages, 1);
 
-			result.data.items.forEach((review, index) => {
-				const mockReview = mockReviews[index];
+			result.data.items.forEach((review) => {
+				const mockReview = mockReviews.find(
+					(r) => r.user.toString() === review.user.toString(),
+				);
+				assert.ok(mockReview);
+
 				assert.ok(review._id);
 				assert.ok(review.createdAt);
 				assert.ok(review.updatedAt);
