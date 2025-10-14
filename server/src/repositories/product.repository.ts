@@ -284,18 +284,40 @@ export class ProductRepository implements IProductRepository {
 	}
 
 	private _invalidateProductCache({ id }: { id?: string } = {}): void {
+		// delete specific product cache
 		if (id && id.trim().length > 0) {
-			// Delete specific product cache
-			this._cache.delete({ key: id });
+			const productCacheDeleteResult = this._cache.delete({ key: id });
+			if (!productCacheDeleteResult.success) {
+				console.error(
+					"[PRODUCT REPOSITORY] Failed to invalidate product cache",
+					{
+						cause: productCacheDeleteResult.error,
+						id,
+					},
+				);
+			}
 		}
 
-		// Delete all top-rated caches as they might be affected
-		const stats = this._cache.getStats();
-		const keys = Object.keys(stats).filter((key) =>
-			key.startsWith(`product:${this._getTopRatedCacheKey}`),
-		);
-		if (keys.length > 0) {
-			this._cache.deleteMany({ keys });
+		// delete top-rated products cache
+		const topRatedDelResult = this._cache.delete({
+			key: this._getTopRatedCacheKey,
+		});
+		if (!topRatedDelResult.success) {
+			console.error(
+				"[PRODUCT REPOSITORY] Failed to invalidate top-rated products cache",
+				{ cause: topRatedDelResult.error },
+			);
+		}
+
+		// delete all products cache
+		const allProductsDeleteResult = this._cache.delete({
+			key: this._getAllCacheKey,
+		});
+		if (!allProductsDeleteResult.success) {
+			console.error(
+				"[PRODUCT REPOSITORY] Failed to invalidate all products cache",
+				{ cause: allProductsDeleteResult.error },
+			);
 		}
 	}
 }

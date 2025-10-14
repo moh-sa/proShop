@@ -858,7 +858,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should call 'cache.delete' and 'cache.stats' once with the correct 'cacheKey'", async (t) => {
+		test("Should call 'cache.delete' three times with the correct 'cacheKey'", async (t) => {
 			// Arrange
 			mockCacheInvalidation({
 				cacheKey,
@@ -876,13 +876,11 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Assert
-			assert.strictEqual(mockCache.delete.mock.callCount(), 1);
-			assert.deepStrictEqual(mockCache.delete.mock.calls[0].arguments[0], {
-				key: cacheKey,
-			});
-
-			assert.strictEqual(mockCache.getStats.mock.callCount(), 1);
-			assert.strictEqual(mockCache.getStats.mock.calls[0].arguments.length, 0);
+			assert.strictEqual(mockCache.delete.mock.callCount(), 3);
+			assert.deepStrictEqual(
+				mockCache.delete.mock.calls[0].arguments[0].key,
+				cacheKey,
+			);
 		});
 
 		test("Should return 'null' when 'db.findByIdAndUpdate' returns 'null'", async (t) => {
@@ -1036,7 +1034,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should call 'cache.delete' and 'cache.stats' once with the correct 'cacheKey'", async (t) => {
+		test("Should call 'cache.delete' three times with the correct 'cacheKey'", async (t) => {
 			// Arrange
 			mockCacheInvalidation({
 				cacheKey,
@@ -1051,13 +1049,11 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			await repo.delete({ productId });
 
 			// Assert
-			assert.strictEqual(mockCache.delete.mock.callCount(), 1);
-			assert.deepStrictEqual(mockCache.delete.mock.calls[0].arguments[0], {
-				key: cacheKey,
-			});
-
-			assert.strictEqual(mockCache.getStats.mock.callCount(), 1);
-			assert.strictEqual(mockCache.getStats.mock.calls[0].arguments.length, 0);
+			assert.strictEqual(mockCache.delete.mock.callCount(), 3);
+			assert.deepStrictEqual(
+				mockCache.delete.mock.calls[0].arguments[0].key,
+				cacheKey,
+			);
 		});
 
 		test("Should return 'null' when 'db.findByIdAndDelete' returns 'null'", async (t) => {
