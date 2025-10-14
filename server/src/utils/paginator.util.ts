@@ -76,6 +76,36 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 		};
 	}
 
+	/**
+	 * Paginate pre-fetched array of items.
+	 * @returns `Items` and `totalItems` count.
+	 * @example
+	 * const result = await paginator.paginateArray<SelectProduct>({
+	 *   items: [1, 2, 3, 4, 5],
+	 *   pageNumber: 1,
+	 *   pageSize: 10,
+	 * });
+	 */
+	public paginateArray<TResult = LeanDocument<TDocument>>(args: {
+		items: Array<TResult>;
+		pageNumber: number;
+		pageSize?: number;
+	}): PaginatedResponse<TResult> {
+		const { pageNumber, pageSize, skip } = this._preparePaginationParams(args);
+
+		const paginatedItems = args.items.slice(skip, skip + pageSize);
+		const meta = this._generateMetaData({
+			currentPage: pageNumber,
+			pageSize,
+			totalItems: args.items.length,
+		});
+
+		return {
+			items: paginatedItems,
+			meta,
+		};
+	}
+
 	private _calculatePageNumber(pageNumber: number): number {
 		return Math.floor(Math.max(1, pageNumber));
 	}
