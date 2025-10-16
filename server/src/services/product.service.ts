@@ -9,6 +9,8 @@ import type {
 	InsertProduct,
 	MethodParams,
 	MethodReturn,
+	PaginatedResponse,
+	ProductPaginationParams,
 	Result,
 	SelectProduct,
 	TopRatedProduct,
@@ -19,18 +21,17 @@ import { NotFoundError, ValidationError } from "../errors/index.js";
 import { ProductRepository } from "../repositories/index.js";
 import { insertProductSchema } from "../schemas/index.js";
 import { ImageStorageService } from "../services/index.js";
-import { objectIdValidator } from "../validators/index.js";
+import {
+	objectIdValidator,
+	paginationParamsValidator,
+} from "../validators/index.js";
 
 export interface IProductService {
 	create(data: InsertProduct): Promise<ProductResult<SelectProduct>>;
 	delete(data: { productId: string }): Promise<ProductResult<void>>;
-	getAll(data: { currentPage: string; keyword: string }): Promise<
-		ProductResult<{
-			currentPage: number;
-			numberOfPages: number;
-			products: Array<AllProducts>;
-		}>
-	>;
+	getAll(
+		args: ProductPaginationParams,
+	): Promise<ProductResult<PaginatedResponse<AllProducts>>>;
 	getById(data: { productId: string }): Promise<ProductResult<SelectProduct>>;
 	getTopRated(): Promise<ProductResult<Array<TopRatedProduct>>>;
 	update(data: {
@@ -116,39 +117,57 @@ export class ProductService implements IProductService {
 	}
 
 	async getAll(
-		data: MethodParams<IProductService, "getAll">,
+		args: MethodParams<IProductService, "getAll">,
 	): MethodReturn<IProductService, "getAll"> {
-		const validationResult = this._validatePagination(data);
-		if (!validationResult.success) {
-			return validationResult;
-		}
-
-		const currentPage = validationResult.data.currentPage;
-		const query = validationResult.data.keyword;
-
-		const numberOfProductsPerPage = 10;
-		const numberOfProducts = await this._repository.count(query);
-		if (!numberOfProducts.success) {
-			return numberOfProducts;
-		}
-
-		const numberOfPages =
-			Math.ceil(numberOfProducts.data / numberOfProductsPerPage) || 1;
-
-		const products = await this._repository.getAll({
-			currentPage,
-			numberOfProductsPerPage,
-			query,
+		const paginationResult = paginationParamsValidator.safeParse({
+			pageNumber: args.pageNumber,
+			pageSize: args.pageSize,
+			sort: args.sort,
 		});
-		if (!products.success) {
-			return products;
+		if (!paginationResult.success) {
+			return {
+				error: new ValidationError("Invalid pagination data", {
+					cause: paginationResult.error,
+				}),
+				success: false,
+			};
+		}
+
+		const searchQuery =
+			args.keyword &&
+			typeof args.keyword === "string" &&
+			args.keyword.trim().length > 0
+				? { $text: { $search: args.keyword } }
+				: {};
+
+		const result = await this._repository.getAll({
+			pageNumber: paginationResult.data.pageNumber,
+			pageSize: paginationResult.data.pageSize,
+			pipeline: [
+				{
+					$project: {
+						_id: 1,
+						brand: 1,
+						category: 1,
+						image: 1,
+						name: 1,
+						price: 1,
+						rating: 1,
+					},
+				},
+			],
+			query: searchQuery,
+			sort: paginationResult.data.sort,
+		});
+
+		if (!result.success) {
+			return result;
 		}
 
 		return {
 			data: {
-				currentPage,
-				numberOfPages,
-				products: products.data,
+				items: result.data.items,
+				meta: result.data.meta,
 			},
 			success: true,
 		};

@@ -3,6 +3,8 @@ import type {
 	AllProducts,
 	AsyncHandler,
 	InsertProduct,
+	PaginatedResponse,
+	ProductPaginationParams,
 	SelectProduct,
 	TopRatedProduct,
 } from "../types/index.js";
@@ -21,16 +23,10 @@ export interface IProductController {
 		resBody: { data: null };
 	}>;
 	getAll: AsyncHandler<{
-		query: {
-			currentPage: string;
-			keyword: string;
-		};
+		query: ProductPaginationParams;
 		resBody: {
-			data: Array<AllProducts>;
-			meta: {
-				currentPage: number;
-				numberOfPages: number;
-			};
+			data: PaginatedResponse<AllProducts>["items"];
+			meta: PaginatedResponse<AllProducts>["meta"];
 		};
 	}>;
 	getById: AsyncHandler<{
@@ -88,16 +84,10 @@ export class ProductController implements IProductController {
 	});
 
 	getAll = asyncHandler<{
-		query: {
-			currentPage: string;
-			keyword: string;
-		};
+		query: ProductPaginationParams;
 		resBody: {
-			data: Array<AllProducts>;
-			meta: {
-				currentPage: number;
-				numberOfPages: number;
-			};
+			data: PaginatedResponse<AllProducts>["items"];
+			meta: PaginatedResponse<AllProducts>["meta"];
 		};
 	}>(async (req, res) => {
 		const result = await this._service.getAll(req.query);
@@ -106,11 +96,8 @@ export class ProductController implements IProductController {
 		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: result.data.products,
-			meta: {
-				currentPage: result.data.currentPage,
-				numberOfPages: result.data.numberOfPages,
-			},
+			data: result.data.items,
+			meta: result.data.meta,
 			success: true,
 		});
 	});

@@ -129,131 +129,250 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 	});
 
 	describe("getAll", () => {
-		test("should return response with products, currentPage and numberOfPages fields", async () => {
+		test("should return paginated response with items and meta when 'getAll' is called with valid parameters", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			await Product.insertMany(mockProducts);
-			const keyword = "";
-			const currentPage = "1";
 
 			// Act
-			const result = await productService.getAll({ currentPage, keyword });
-
-			// Assert
-			assert.strictEqual(result.success, true);
-			assert.ok(Array.isArray(result.data.products));
-			assert.strictEqual(typeof result.data.currentPage, "number");
-			assert.strictEqual(typeof result.data.numberOfPages, "number");
-			assert.strictEqual(result.data.products.length, mockProducts.length);
-		});
-
-		test("should return filtered products when 'repo.getAll' is called with search keyword", async () => {
-			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 5 });
-			await Product.insertMany(mockProducts);
-			const keyword = mockProducts[0].name.substring(0, 3);
-			const currentPage = "1";
-
-			// Act
-			const result = await productService.getAll({ currentPage, keyword });
-
-			// Assert
-			assert.strictEqual(result.success, true);
-			assert.ok(result.data.products.length > 0);
-
-			result.data.products.forEach((product) => {
-				assert.ok(product.name.toLowerCase().includes(keyword.toLowerCase()));
+			const result = await productService.getAll({
+				pageNumber: "1",
 			});
-		});
-
-		test("should return correct page when 'repo.getAll' is called with specific page number", async () => {
-			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 15 }); // Create enough products for multiple pages
-			await Product.insertMany(mockProducts);
-			const keyword = "";
-			const currentPage = "2";
-
-			// Act
-			const result = await productService.getAll({ currentPage, keyword });
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.currentPage, Number(currentPage));
-			assert.ok(result.data.products.length > 0);
+			assert.ok(result.data);
+			assert.ok(result.data.meta);
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, mockProducts.length);
+		});
 
-			// Get first page to compare
-			const firstPageResult = await productService.getAll({
-				currentPage: "1",
+		test("should return correct pagination meta when 'getAll' is called", async () => {
+			// Arrange
+			const mockProducts = generateMockSelectProducts({ count: 5 });
+			await Product.insertMany(mockProducts);
+
+			// Act
+			const result = await productService.getAll({
+				pageNumber: "1",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.meta.currentPage, 1);
+			assert.strictEqual(result.data.meta.pageSize, 10);
+			assert.strictEqual(result.data.meta.totalItems, 5);
+			assert.strictEqual(result.data.meta.totalPages, 1);
+			assert.strictEqual(result.data.meta.hasNextPage, false);
+			assert.strictEqual(result.data.meta.hasPreviousPage, false);
+		});
+
+		test("should return correct number of items per page when 'getAll' is called with specific pageSize", async () => {
+			// Arrange
+			const mockProducts = generateMockSelectProducts({ count: 5 });
+			const pageSize = "2";
+			await Product.insertMany(mockProducts);
+
+			// Act
+			const result = await productService.getAll({
+				keyword: "",
+				pageNumber: "1",
+				pageSize,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.items.length, 2);
+			assert.strictEqual(result.data.meta.pageSize, 2);
+		});
+
+		test("should return correct page of items when 'getAll' is called with specific pageNumber", async () => {
+			// Arrange
+			const mockProducts = generateMockSelectProducts({ count: 5 });
+			const pageSize = "2";
+			const pageNumber = "2";
+			await Product.insertMany(mockProducts);
+
+			// Act
+			const result = await productService.getAll({
+				pageNumber,
+				pageSize,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.items.length, 2);
+			assert.strictEqual(result.data.meta.currentPage, 2);
+		});
+
+		test("should return correct pagination meta for multiple pages when 'getAll' is called", async () => {
+			// Arrange
+			const mockProducts = generateMockSelectProducts({ count: 5 });
+			const pageSize = "2";
+			const pageNumber = "2";
+			await Product.insertMany(mockProducts);
+
+			// Act
+			const result = await productService.getAll({
+				keyword: "",
+				pageNumber,
+				pageSize,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.meta.currentPage, 2);
+			assert.strictEqual(result.data.meta.pageSize, 2);
+			assert.strictEqual(result.data.meta.totalItems, 5);
+			assert.strictEqual(result.data.meta.totalPages, 3);
+			assert.strictEqual(result.data.meta.hasNextPage, true);
+			assert.strictEqual(result.data.meta.hasPreviousPage, true);
+		});
+
+		test("should return filtered items when 'getAll' is called with search keyword", async () => {
+			// Arrange
+			const mockProducts = generateMockSelectProducts({ count: 5 });
+			const keyword = mockProducts[0].name;
+			await Product.insertMany(mockProducts);
+
+			// Act
+			const result = await productService.getAll({
 				keyword,
+				pageNumber: "1",
 			});
-			assert.strictEqual(firstPageResult.success, true);
-			const firstPageIds = firstPageResult.data.products.map((p) =>
-				p._id.toString(),
-			);
-			const secondPageIds = result.data.products.map((p) => p._id.toString());
 
-			// Ensure no overlap between pages
-			const overlap = firstPageIds.some((id) => secondPageIds.includes(id));
-			assert.strictEqual(overlap, false);
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.ok(Array.isArray(result.data.items));
+			assert.ok(result.data.items.length > 0);
 		});
 
-		test("should return empty products array when 'repo.getAll' is called and no products match keyword", async () => {
+		test("should return empty items array when 'getAll' is called with non-existent keyword", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
-			await Product.insertMany(mockProducts);
 			const keyword = "nonexistentproduct";
-			const currentPage = "1";
+			await Product.insertMany(mockProducts);
 
 			// Act
-			const result = await productService.getAll({ currentPage, keyword });
+			const result = await productService.getAll({
+				keyword,
+				pageNumber: "1",
+			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.products.length, 0);
-			assert.strictEqual(result.data.currentPage, Number(currentPage));
-			assert.strictEqual(result.data.numberOfPages, 1);
+			assert.strictEqual(result.data.items.length, 0);
+			assert.strictEqual(result.data.meta.totalItems, 0);
 		});
 
-		test("should return first page when 'repo.getAll' is called without page number", async () => {
+		test("should return correct pagination meta when no products match keyword", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
+			const keyword = "nonexistentproduct";
 			await Product.insertMany(mockProducts);
-			const keyword = "";
-			const currentPage = undefined as unknown as string;
 
 			// Act
-			const result = await productService.getAll({ currentPage, keyword });
+			const result = await productService.getAll({
+				keyword,
+				pageNumber: "1",
+			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.currentPage, 1);
-			assert.ok(result.data.products.length > 0);
+			assert.strictEqual(result.data.meta.currentPage, 1);
+			assert.strictEqual(result.data.meta.pageSize, 10);
+			assert.strictEqual(result.data.meta.totalItems, 0);
+			assert.strictEqual(result.data.meta.totalPages, 1);
+			assert.strictEqual(result.data.meta.hasNextPage, false);
+			assert.strictEqual(result.data.meta.hasPreviousPage, false);
 		});
 
-		test("should calculate total number of pages correctly based on products per page", async () => {
+		test("should return items with correct structure when 'getAll' is called", async () => {
 			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 25 }); // Create enough products for multiple pages
+			const mockProducts = generateMockSelectProducts({ count: 1 });
 			await Product.insertMany(mockProducts);
-			const keyword = "";
-			const currentPage = "1";
-			const productsPerPage = 10;
 
 			// Act
-			const result = await productService.getAll({ currentPage, keyword });
+			const result = await productService.getAll({
+				pageNumber: "1",
+			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			const expectedPages = Math.ceil(mockProducts.length / productsPerPage);
-			assert.strictEqual(result.data.numberOfPages, expectedPages);
+			assert.strictEqual(result.data.items.length, 1);
+
+			const product = result.data.items[0];
+			assert.ok(product._id);
+			assert.ok(typeof product.name === "string");
+			assert.ok(typeof product.brand === "string");
+			assert.ok(typeof product.category === "string");
+			assert.ok(typeof product.price === "number");
+			assert.ok(typeof product.rating === "number");
 		});
 
-		test("Should return validation error when 'service.getAll' is called with invalid 'currentPage' query", async () => {
-			// Arrange
-			const currentPage = "invalid-number";
-			const keyword = "";
-
+		test("should return validation error when 'pageNumber' is invalid", async () => {
 			// Act
-			const result = await productService.getAll({ currentPage, keyword });
+			const result = await productService.getAll({
+				pageNumber: "invalid",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("should return validation error when 'pageSize' is invalid", async () => {
+			// Act
+			const result = await productService.getAll({
+				pageNumber: "1",
+				pageSize: "invalid",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("should return validation error when 'pageNumber' is zero", async () => {
+			// Act
+			const result = await productService.getAll({
+				pageNumber: "0",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("should return validation error when 'pageNumber' is negative", async () => {
+			// Act
+			const result = await productService.getAll({
+				pageNumber: "-1",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("should return validation error when 'pageSize' is zero", async () => {
+			// Act
+			const result = await productService.getAll({
+				pageNumber: "1",
+				pageSize: "0",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("should return validation error when 'pageSize' is negative", async () => {
+			// Act
+			const result = await productService.getAll({
+				pageNumber: "1",
+				pageSize: "-1",
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);

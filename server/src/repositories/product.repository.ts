@@ -7,6 +7,8 @@ import type {
 	InsertProductWithStringImage,
 	MethodParams,
 	MethodReturn,
+	PaginatedResponse,
+	PaginationParamsQuery,
 	Result,
 	SelectProduct,
 	TopRatedProduct,
@@ -24,11 +26,9 @@ export interface IProductRepository {
 	delete(data: {
 		productId: Types.ObjectId;
 	}): Promise<ProductResult<null | SelectProduct>>;
-	getAll(data: {
-		currentPage: number;
-		numberOfProductsPerPage: number;
-		query: Record<string, unknown>;
-	}): Promise<ProductResult<Array<AllProducts>>>;
+	getAll(
+		args: PaginationParamsQuery<SelectProduct>,
+	): Promise<ProductResult<PaginatedResponse<AllProducts>>>;
 	getById(data: {
 		productId: Types.ObjectId;
 	}): Promise<ProductResult<null | SelectProduct>>;
@@ -124,15 +124,15 @@ export class ProductRepository implements IProductRepository {
 	}
 
 	async getAll(
-		data: MethodParams<IProductRepository, "getAll">,
+		args: MethodParams<IProductRepository, "getAll">,
 	): MethodReturn<IProductRepository, "getAll"> {
 		try {
-			const result = await this._db
-				.find({ ...data.query })
-				.select("id name brand category price rating numReviews image")
-				.limit(data.numberOfProductsPerPage)
-				.skip(data.numberOfProductsPerPage * (data.currentPage - 1))
-				.lean();
+			const result = await this._paginator.paginate({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: args.query,
+				sort: args.sort,
+			});
 
 			return {
 				data: result,

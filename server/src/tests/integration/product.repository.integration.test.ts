@@ -8,7 +8,6 @@ import { DatabaseValidationError } from "../../errors/index.js";
 import Product from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { CacheService } from "../../services/index.js";
-import { removeObjectFields } from "../../utils/index.js";
 import { generateMockObjectId } from "../mocks/index.js";
 import {
 	generateMockInsertProductWithStringImage,
@@ -105,7 +104,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 	});
 
 	describe("getAll", () => {
-		test("should return cached products when 'db.find' is called with page that exists in cache", async () => {
+		test("should return paginated response with items and meta when 'getAll' is called with valid parameters", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 3 });
 			await Promise.all(
@@ -115,113 +114,186 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			);
 
 			// Act
-			const products = await productRepository.getAll({
-				currentPage: 1,
-				numberOfProductsPerPage: 10,
-				query: {},
+			const result = await productRepository.getAll({
+				pageNumber: 1,
 			});
 
 			// Assert
-			assert.strictEqual(products.success, true);
-			assert.ok(Array.isArray(products.data));
-			assert.ok(products.data.length > 0);
-			assert.strictEqual(products.data.length, mockProducts.length);
+			assert.strictEqual(result.success, true);
+			assert.ok(result.data);
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, mockProducts.length);
 
-			const assertProducts = products.data.filter((product) => !product._id);
-			const assertMockProducts = mockProducts.map((product) => {
-				return removeObjectFields(product, [
-					"_id",
-					"user",
-					"countInStock",
-					"createdAt",
-					"updatedAt",
-					"description",
-				]);
-			});
-
-			assertProducts.forEach((product) => {
-				// @ts-expect-error - apparently, `removeObjectFields` does not update the type
-				assert.ok(assertMockProducts.includes(product));
-			});
+			assert.ok(result.data.meta);
 		});
 
-		test("should return correct number of products per page when 'db.find' is called", async () => {
+		test("should return correct pagination meta when 'getAll' is called", async () => {
+			// Arrange
+			const mockProducts = generateMockSelectProducts({ count: 3 });
+			await Product.insertMany(mockProducts);
+
+			// Act
+			const result = await productRepository.getAll({
+				pageNumber: 1,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.meta.currentPage, 1);
+			assert.strictEqual(result.data.meta.pageSize, 10);
+			assert.strictEqual(result.data.meta.totalItems, 3);
+			assert.strictEqual(result.data.meta.totalPages, 1);
+			assert.strictEqual(result.data.meta.hasNextPage, false);
+			assert.strictEqual(result.data.meta.hasPreviousPage, false);
+		});
+
+		test("should return correct number of items per page when 'getAll' is called with specific pageSize", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			await Product.insertMany(mockProducts);
-			const productsPerPage = 2;
+			const pageSize = 2;
 
 			// Act
-			const products = await productRepository.getAll({
-				currentPage: 1,
-				numberOfProductsPerPage: productsPerPage,
-				query: {},
+			const result = await productRepository.getAll({
+				pageNumber: 1,
+				pageSize,
 			});
 
 			// Assert
-			assert.strictEqual(products.success, true);
-			assert.ok(Array.isArray(products.data));
-			assert.equal(products.data.length, productsPerPage);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.items.length, pageSize);
+			assert.strictEqual(result.data.meta.pageSize, pageSize);
 		});
 
-		test("should return correct page of products when 'db.find' is called with specific page", async () => {
+		test("should return correct page of items when 'getAll' is called with specific pageNumber", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			await Product.insertMany(mockProducts);
-			const productsPerPage = 2;
-			const page = 2;
+			const pageSize = 2;
+			const pageNumber = 2;
 
 			// Act
-			const products = await productRepository.getAll({
-				currentPage: page,
-				numberOfProductsPerPage: productsPerPage,
-				query: {},
+			const result = await productRepository.getAll({
+				pageNumber,
+				pageSize,
 			});
 
 			// Assert
-			assert.strictEqual(products.success, true);
-			assert.ok(Array.isArray(products.data));
-			assert.equal(products.data.length, productsPerPage);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.items.length, pageSize);
+			assert.strictEqual(result.data.meta.currentPage, pageNumber);
 		});
 
-		test("should return filtered products when 'getAll' is called with query filters", async () => {
+		test("should return correct pagination meta for multiple pages when 'getAll' is called", async () => {
+			// Arrange
+			const mockProducts = generateMockSelectProducts({ count: 5 });
+			await Product.insertMany(mockProducts);
+			const pageSize = 2;
+			const pageNumber = 2;
+
+			// Act
+			const result = await productRepository.getAll({
+				pageNumber,
+				pageSize,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.meta.currentPage, pageNumber);
+			assert.strictEqual(result.data.meta.pageSize, pageSize);
+			assert.strictEqual(result.data.meta.totalItems, 5);
+			assert.strictEqual(result.data.meta.totalPages, 3);
+			assert.strictEqual(result.data.meta.hasNextPage, true);
+			assert.strictEqual(result.data.meta.hasPreviousPage, true);
+		});
+
+		test("should return filtered items when 'getAll' is called with query filters", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			const targetBrand = mockProducts[0].brand;
 			await Product.insertMany(mockProducts);
 
 			// Act
-			const products = await productRepository.getAll({
-				currentPage: 1,
-				numberOfProductsPerPage: 10,
+			const result = await productRepository.getAll({
+				pageNumber: 1,
+				pageSize: 10,
 				query: { brand: targetBrand },
 			});
 
 			// Assert
-			assert.strictEqual(products.success, true);
-			assert.ok(Array.isArray(products.data));
-			assert.ok(products.data.length > 0);
-			products.data.forEach((product) => {
+			assert.strictEqual(result.success, true);
+			assert.ok(result.data);
+			assert.ok(Array.isArray(result.data.items));
+			assert.ok(result.data.items.length > 0);
+			result.data.items.forEach((product) => {
 				assert.equal(product.brand, targetBrand);
 			});
 		});
 
-		test("should return empty array when 'getAll' is called and no products match criteria", async () => {
+		test("should return empty items array when 'getAll' is called and no products match criteria", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 3 });
 			await Product.insertMany(mockProducts);
 
 			// Act
-			const products = await productRepository.getAll({
-				currentPage: 1,
-				numberOfProductsPerPage: 10,
+			const result = await productRepository.getAll({
+				pageNumber: 1,
+				pageSize: 10,
 				query: { brand: "Non-existent Brand" },
 			});
 
 			// Assert
-			assert.strictEqual(products.success, true);
-			assert.ok(Array.isArray(products.data));
-			assert.strictEqual(products.data.length, 0);
+			assert.strictEqual(result.success, true);
+			assert.ok(result.data);
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, 0);
+			assert.strictEqual(result.data.meta.totalItems, 0);
+		});
+
+		test("should return correct pagination meta when no products match criteria", async () => {
+			// Arrange
+			const mockProducts = generateMockSelectProducts({ count: 3 });
+			await Product.insertMany(mockProducts);
+
+			// Act
+			const result = await productRepository.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				query: { brand: "Non-existent Brand" },
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.meta.currentPage, 1);
+			assert.strictEqual(result.data.meta.pageSize, 10);
+			assert.strictEqual(result.data.meta.totalItems, 0);
+			assert.strictEqual(result.data.meta.totalPages, 1);
+			assert.strictEqual(result.data.meta.hasNextPage, false);
+			assert.strictEqual(result.data.meta.hasPreviousPage, false);
+		});
+
+		test("should return sorted items when 'getAll' is called with sort parameter", async () => {
+			// Arrange
+			const mockProducts = generateMockSelectProducts({ count: 3 });
+			const expectedResult = mockProducts.sort((a, b) => a.price - b.price);
+			await Product.insertMany(mockProducts);
+
+			// Act
+			const result = await productRepository.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				query: {},
+				sort: { price: 1 },
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, 3);
+			result.data.items.map((item, index) => {
+				const expectedItem = expectedResult[index];
+				assert.strictEqual(item.price, expectedItem.price);
+			});
 		});
 	});
 

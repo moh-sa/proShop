@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import type { InsertUser, PaginationParamsString } from "../../types/index.js";
+import type { InsertUser, UserPaginationParams } from "../../types/index.js";
 
 import {
 	InternalError,
@@ -86,10 +86,10 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			const args: PaginationParamsString = {
+			const args: UserPaginationParams = {
+				isAdmin: "true",
 				pageNumber: "2",
 				pageSize: "3",
-				query: JSON.stringify({ isAdmin: true }),
 				sort: "createdAt:asc",
 			};
 
@@ -112,14 +112,12 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				mockRepo.getAll.mock.calls[0].arguments[0].pageSize,
 				Number(args.pageSize),
 			);
-			assert.deepStrictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].query,
-				JSON.parse(args.query ?? "{}"),
-			);
-			assert.deepStrictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].sort,
-				JSON.parse(JSON.stringify({ createdAt: 1 })),
-			);
+			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0].query, {
+				isAdmin: true,
+			});
+			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0].sort, {
+				createdAt: 1,
+			});
 		});
 
 		test("Should return empty items with meta when repo returns empty page", async () => {

@@ -145,9 +145,9 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
 			// Act
 			const result = await userService.getAll({
+				isAdmin: "true",
 				pageNumber: "1",
 				pageSize: "10",
-				query: JSON.stringify({ isAdmin: true }),
 			});
 
 			// Assert
