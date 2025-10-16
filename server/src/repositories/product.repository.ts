@@ -126,19 +126,6 @@ export class ProductRepository implements IProductRepository {
 	async getAll(
 		data: MethodParams<IProductRepository, "getAll">,
 	): MethodReturn<IProductRepository, "getAll"> {
-		const getCachedResult = this._cache.get<Array<AllProducts>>({
-			key: `${this._getAllCacheKey}-${data.currentPage}`,
-		});
-		if (!getCachedResult.success) {
-			return getCachedResult;
-		}
-		if (getCachedResult.data) {
-			return {
-				data: getCachedResult.data,
-				success: true,
-			};
-		}
-
 		try {
 			const result = await this._db
 				.find({ ...data.query })
