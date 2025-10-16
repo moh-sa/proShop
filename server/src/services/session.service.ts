@@ -23,6 +23,7 @@ import {
 import { SessionRepository } from "../repositories/index.js";
 import { insertSessionSchema } from "../schemas/index.js";
 import {
+	objectIdStringValidator,
 	objectIdValidator,
 	paginationParamsValidator,
 	uuidValidator,
@@ -100,18 +101,20 @@ export class SessionService implements ISessionService {
 	public async deleteAllByUserId(
 		args: MethodParams<ISessionService, "deleteAllByUserId">,
 	): MethodReturn<ISessionService, "deleteAllByUserId"> {
-		const argsValidationResult = this._validateUserId(args.userId);
-		if (!argsValidationResult.success) {
-			return argsValidationResult;
+		const userIdResult = this._validateUserId(args.userId);
+		if (!userIdResult.success) {
+			return userIdResult;
 		}
 
-		const deletedCount = await this._repository.deleteAllByUserId(args);
-		if (!deletedCount.success) {
-			return deletedCount;
+		const result = await this._repository.deleteAllByUserId({
+			userId: userIdResult.data,
+		});
+		if (!result.success) {
+			return result;
 		}
 
 		return {
-			data: deletedCount.data,
+			data: result.data,
 			success: true,
 		};
 	}
@@ -148,30 +151,30 @@ export class SessionService implements ISessionService {
 	public async getActiveByUserId(
 		args: MethodParams<ISessionService, "getActiveByUserId">,
 	): MethodReturn<ISessionService, "getActiveByUserId"> {
-		const paginationValidationResult = paginationParamsValidator.safeParse({
+		const paginationResult = paginationParamsValidator.safeParse({
 			pageNumber: args.pageNumber,
 			pageSize: args.pageSize,
 			sort: args.sort,
 		});
-		if (!paginationValidationResult.success) {
+		if (!paginationResult.success) {
 			return {
 				error: new SessionValidationError({
-					cause: paginationValidationResult.error,
+					cause: paginationResult.error,
 				}),
 				success: false,
 			};
 		}
 
-		const argsValidationResult = this._validateUserId(args.userId);
-		if (!argsValidationResult.success) {
-			return argsValidationResult;
+		const userIdResult = this._validateUserId(args.userId);
+		if (!userIdResult.success) {
+			return userIdResult;
 		}
 
 		const sessions = await this._repository.getAllActiveByUserId({
-			pageNumber: paginationValidationResult.data.pageNumber,
-			pageSize: paginationValidationResult.data.pageSize,
-			sort: paginationValidationResult.data.sort,
-			userId: args.userId,
+			pageNumber: paginationResult.data.pageNumber,
+			pageSize: paginationResult.data.pageSize,
+			sort: paginationResult.data.sort,
+			userId: userIdResult.data,
 		});
 		if (!sessions.success) {
 			return sessions;
@@ -218,17 +221,19 @@ export class SessionService implements ISessionService {
 	public async revokeAllByUserId(
 		args: MethodParams<ISessionService, "revokeAllByUserId">,
 	): MethodReturn<ISessionService, "revokeAllByUserId"> {
-		const argsValidationResult = this._validateUserId(args.userId);
-		if (!argsValidationResult.success) {
-			return argsValidationResult;
+		const userIdResult = this._validateUserId(args.userId);
+		if (!userIdResult.success) {
+			return userIdResult;
 		}
 
-		const revokedCount = await this._repository.revokeAllByUserId(args);
-		if (!revokedCount.success) {
-			return revokedCount;
+		const result = await this._repository.revokeAllByUserId({
+			userId: userIdResult.data,
+		});
+		if (!result.success) {
+			return result;
 		}
 
-		return { data: revokedCount.data, success: true };
+		return { data: result.data, success: true };
 	}
 
 	public async revokeByTokenIdAndUserId(
@@ -343,8 +348,9 @@ export class SessionService implements ISessionService {
 		return { data: undefined, success: true };
 	}
 
-	private _validateUserId(userId: string): SessionResult<undefined> {
-		const userIdValidationResult = objectIdValidator.safeParse(userId);
+	private _validateUserId(userId: string): SessionResult<string> {
+		const userIdValidationResult =
+			objectIdStringValidator("User ID").safeParse(userId);
 		if (!userIdValidationResult.success) {
 			return {
 				error: new SessionValidationError({
@@ -353,6 +359,6 @@ export class SessionService implements ISessionService {
 				success: false,
 			};
 		}
-		return { data: undefined, success: true };
+		return { data: userIdValidationResult.data, success: true };
 	}
 }
