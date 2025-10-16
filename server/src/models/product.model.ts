@@ -55,6 +55,29 @@ const productSchema = new Schema<ProductSchema>(
 	},
 );
 
+// Indexes
+productSchema.index(
+	{
+		brand: "text",
+		category: "text",
+		description: "text",
+		name: "text",
+	},
+	{
+		name: "product_text_search",
+		weights: {
+			brand: 5,
+			category: 3,
+			description: 2,
+			name: 10,
+		},
+	},
+);
+
+productSchema.index({ createdAt: -1 }, { name: "product_created_desc" });
+productSchema.index({ rating: -1 }, { name: "product_rating_desc" });
+
+// Model
 const Product = model<ProductSchema>("Product", productSchema);
 
 export default Product;
