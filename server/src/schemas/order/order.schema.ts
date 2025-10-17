@@ -55,4 +55,5 @@ export const allOrdersResponseSchema = selectOrderSchema.pick({
 	isPaid: true,
 	paidAt: true,
 	totalPrice: true,
+	user: true,
 });
