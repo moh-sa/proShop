@@ -47,14 +47,12 @@ export const selectOrderSchema = baseOrderSchema.extend({
 	user: selectUserSchema.pick({ _id: true, email: true, name: true }),
 });
 
-export const allOrdersResponseSchema = z.array(
-	selectOrderSchema.pick({
-		_id: true,
-		createdAt: true,
-		deliveredAt: true,
-		isDelivered: true,
-		isPaid: true,
-		paidAt: true,
-		totalPrice: true,
-	}),
-);
+export const allOrdersResponseSchema = selectOrderSchema.pick({
+	_id: true,
+	createdAt: true,
+	deliveredAt: true,
+	isDelivered: true,
+	isPaid: true,
+	paidAt: true,
+	totalPrice: true,
+});
