@@ -1,6 +1,6 @@
 export * from "./cache/cache.schema.js";
 export * from "./jwt/index.js";
-export * from "./order/order.schema.js";
+export * from "./order/index.js";
 export * from "./payment/payment-result.schema.js";
 export * from "./product/index.js";
 export * from "./review/review.schema.js";
