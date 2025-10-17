@@ -6,6 +6,8 @@ import type {
 	InsertOrder,
 	MethodParams,
 	MethodReturn,
+	OrderPaginationParams,
+	PaginatedResponse,
 	Result,
 	SelectOrder,
 } from "../types/index.js";
@@ -16,15 +18,15 @@ import {
 	ValidationError,
 } from "../errors/index.js";
 import { OrderRepository } from "../repositories/index.js";
-import { insertOrderSchema } from "../schemas/index.js";
+import { insertOrderSchema, orderQuerySchema } from "../schemas/index.js";
 import { objectIdValidator } from "../validators/object-id.validator.js";
+import { paginationParamsValidator } from "../validators/pagination.validator.js";
 
 export interface IOrderService {
 	create(data: InsertOrder): Promise<OrderResult<SelectOrder>>;
-	getAll(): Promise<OrderResult<AllOrdersResponse>>;
-	getAllByUserId(data: {
-		userId: string;
-	}): Promise<OrderResult<AllOrdersResponse>>;
+	getAll(
+		args: OrderPaginationParams,
+	): Promise<OrderResult<PaginatedResponse<AllOrdersResponse>>>;
 	getById(data: { orderId: string }): Promise<OrderResult<SelectOrder>>;
 	updateToDelivered(data: {
 		orderId: string;
@@ -69,31 +71,54 @@ export class OrderService implements IOrderService {
 		};
 	}
 
-	async getAll(): MethodReturn<IOrderService, "getAll"> {
-		const result = await this._repository.getAll();
-		if (!result.success) {
-			return result;
+	async getAll(
+		args: MethodParams<IOrderService, "getAll">,
+	): MethodReturn<IOrderService, "getAll"> {
+		const paginationResult = paginationParamsValidator
+			.omit({ query: true })
+			.safeParse(args);
+		if (!paginationResult.success) {
+			return {
+				error: new ValidationError("Invalid pagination data", {
+					cause: paginationResult.error,
+				}),
+				success: false,
+			};
 		}
 
-		return {
-			data: result.data,
-			success: true,
-		};
-	}
-
-	async getAllByUserId({
-		userId,
-	}: MethodParams<IOrderService, "getAllByUserId">): MethodReturn<
-		IOrderService,
-		"getAllByUserId"
-	> {
-		const validationResult = this._validateObjectId("userId", userId);
-		if (!validationResult.success) {
-			return validationResult;
+		const queryResult = orderQuerySchema.safeParse({
+			isDelivered: args.isDelivered,
+			isPaid: args.isPaid,
+			user: args.user,
+		});
+		if (!queryResult.success) {
+			return {
+				error: new ValidationError("Invalid query data", {
+					cause: queryResult.error,
+				}),
+				success: false,
+			};
 		}
 
-		const result = await this._repository.getAllByUserId({
-			userId: validationResult.data,
+		const result = await this._repository.getAll({
+			pageNumber: paginationResult.data.pageNumber,
+			pageSize: paginationResult.data.pageSize,
+			pipeline: [
+				{
+					$project: {
+						_id: 1,
+						createdAt: 1,
+						deliveredAt: 1,
+						isDelivered: 1,
+						isPaid: 1,
+						paidAt: 1,
+						totalPrice: 1,
+						user: 1,
+					},
+				},
+			],
+			query: queryResult.data,
+			sort: paginationResult.data.sort,
 		});
 		if (!result.success) {
 			return result;

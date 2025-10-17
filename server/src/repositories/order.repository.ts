@@ -7,6 +7,8 @@ import type {
 	InsertOrder,
 	MethodParams,
 	MethodReturn,
+	PaginatedResponse,
+	PaginationParamsQuery,
 	Result,
 	SelectOrder,
 } from "../types/index.js";
@@ -16,10 +18,9 @@ import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IOrderRepository {
 	create(data: InsertOrder): Promise<OrderResult<SelectOrder>>;
-	getAll(): Promise<OrderResult<AllOrdersResponse>>;
-	getAllByUserId(data: {
-		userId: Types.ObjectId;
-	}): Promise<OrderResult<AllOrdersResponse>>;
+	getAll(
+		args: PaginationParamsQuery<SelectOrder>,
+	): Promise<OrderResult<PaginatedResponse<AllOrdersResponse>>>;
 	getById({
 		orderId,
 	}: {
@@ -62,36 +63,18 @@ export class OrderRepository implements IOrderRepository {
 		}
 	}
 
-	async getAll(): MethodReturn<IOrderRepository, "getAll"> {
+	async getAll(
+		args: MethodParams<IOrderRepository, "getAll">,
+	): MethodReturn<IOrderRepository, "getAll"> {
 		try {
-			const result = await this._db
-				.find({})
-				.select(
-					"_id createdAt isPaid paidAt isDelivered deliveredAt totalPrice user",
-				)
-				.lean();
-			return {
-				data: result,
-				success: true,
-			};
-		} catch (error) {
-			return this._errorHandler(error);
-		}
-	}
+			// _id createdAt isPaid paidAt isDelivered deliveredAt totalPrice user
 
-	async getAllByUserId({
-		userId,
-	}: MethodParams<IOrderRepository, "getAllByUserId">): MethodReturn<
-		IOrderRepository,
-		"getAllByUserId"
-	> {
-		try {
-			const result = await this._db
-				.find({ user: userId })
-				.select(
-					"_id createdAt isPaid paidAt isDelivered deliveredAt totalPrice user",
-				)
-				.lean();
+			const result = await this._paginator.paginate<AllOrdersResponse>({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: args.query,
+				sort: args.sort,
+			});
 
 			return {
 				data: result,

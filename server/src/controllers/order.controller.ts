@@ -3,6 +3,8 @@ import type {
 	AllOrdersResponse,
 	AsyncHandler,
 	InsertOrder,
+	OrderPaginationParams,
+	PaginatedResponse,
 	SelectOrder,
 } from "../types/index.js";
 
@@ -16,11 +18,19 @@ export interface IOrderController {
 		resBody: { data: SelectOrder };
 	}>;
 	getAll: AsyncHandler<{
-		resBody: { data: AllOrdersResponse };
+		query: Omit<OrderPaginationParams, "user">;
+		resBody: {
+			data: PaginatedResponse<AllOrdersResponse>["items"];
+			meta: PaginatedResponse<AllOrdersResponse>["meta"];
+		};
 	}>;
 	getAllByUserId: AsyncHandler<{
 		params: { userId: string };
-		resBody: { data: AllOrdersResponse };
+		query: Omit<OrderPaginationParams, "user">;
+		resBody: {
+			data: PaginatedResponse<AllOrdersResponse>["items"];
+			meta: PaginatedResponse<AllOrdersResponse>["meta"];
+		};
 	}>;
 	getById: AsyncHandler<{
 		params: { orderId: string };
@@ -59,32 +69,43 @@ export class OrderController implements IOrderController {
 	});
 
 	getAll = asyncHandler<{
-		resBody: { data: AllOrdersResponse };
+		query: Omit<OrderPaginationParams, "user">;
+		resBody: {
+			data: PaginatedResponse<AllOrdersResponse>["items"];
+			meta: PaginatedResponse<AllOrdersResponse>["meta"];
+		};
 	}>(async (req, res) => {
-		const result = await this._service.getAll();
+		const result = await this._service.getAll(req.query);
 		if (!result.success) {
 			throw result.error;
 		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: result.data,
+			data: result.data.items,
+			meta: result.data.meta,
 			success: true,
 		});
 	});
 
 	getAllByUserId = asyncHandler<{
 		params: { userId: string };
-		resBody: { data: AllOrdersResponse };
+		query: Omit<OrderPaginationParams, "user">;
+		resBody: {
+			data: PaginatedResponse<AllOrdersResponse>["items"];
+			meta: PaginatedResponse<AllOrdersResponse>["meta"];
+		};
 	}>(async (req, res) => {
-		const result = await this._service.getAllByUserId({
-			userId: req.params.userId,
+		const result = await this._service.getAll({
+			...req.query,
+			user: req.params.userId,
 		});
 		if (!result.success) {
 			throw result.error;
 		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: result.data,
+			data: result.data.items,
+			meta: result.data.meta,
 			success: true,
 		});
 	});
