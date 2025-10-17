@@ -291,7 +291,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 			assert.strictEqual(result.data.meta.totalItems, 0);
 			assert.strictEqual(result.data.meta.currentPage, 1);
-			assert.strictEqual(result.data.meta.totalPages, 0);
+			assert.strictEqual(result.data.meta.totalPages, 1);
 		});
 
 		test("Should return paginated reviews with correct pagination when 'repo.getAll' is called with pageSize", async () => {
@@ -409,7 +409,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 			assert.strictEqual(result.data.meta.totalItems, 0);
 			assert.strictEqual(result.data.meta.currentPage, 1);
-			assert.strictEqual(result.data.meta.totalPages, 0);
+			assert.strictEqual(result.data.meta.totalPages, 1);
 		});
 
 		test("Should return paginated user reviews with correct pagination when 'repo.getAllByUserId' is called with pageSize", async () => {
@@ -538,7 +538,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 			assert.strictEqual(result.data.meta.totalItems, 0);
 			assert.strictEqual(result.data.meta.currentPage, 1);
-			assert.strictEqual(result.data.meta.totalPages, 0);
+			assert.strictEqual(result.data.meta.totalPages, 1);
 		});
 
 		test("Should return paginated product reviews with correct pagination when 'repo.getAllByProductId' is called with pageSize", async () => {

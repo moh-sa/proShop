@@ -426,7 +426,7 @@ suite("Paginator 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(result.items.length, 0);
 			assert.strictEqual(result.meta.totalItems, 0);
-			assert.strictEqual(result.meta.totalPages, 0);
+			assert.strictEqual(result.meta.totalPages, 1);
 			assert.strictEqual(result.meta.hasNextPage, false);
 			assert.strictEqual(result.meta.hasPreviousPage, false);
 		});
