@@ -72,6 +72,7 @@ export class OrderRepository implements IOrderRepository {
 			const result = await this._paginator.paginate<AllOrdersResponse>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
+				pipeline: args.pipeline,
 				query: args.query,
 				sort: args.sort,
 			});
