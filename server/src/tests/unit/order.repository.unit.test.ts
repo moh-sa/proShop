@@ -11,6 +11,7 @@ import {
 } from "../../errors/index.js";
 import Order from "../../models/order.model.js";
 import { OrderRepository } from "../../repositories/index.js";
+import { Paginator } from "../../utils/paginator.util.js";
 import {
 	generateMockInsertOrder,
 	generateMockInsertOrders,
@@ -126,257 +127,145 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 
 	describe("getAll", () => {
 		const mockOrders = generateMockInsertOrders(4);
+		const mockPaginatedResponse = {
+			items: mockOrders,
+			meta: {
+				currentPage: 1,
+				hasNextPage: false,
+				hasPreviousPage: false,
+				pageSize: 10,
+				totalItems: 4,
+				totalPages: 1,
+			},
+		};
 
-		test("Should return array of orders when 'db.find' is called once with empty object arg", async (t) => {
+		test("Should return successful result when paginator.paginate succeeds", async (t) => {
 			// Arrange
-			const findMock = t.mock.method(Order, "find", () => ({
-				select: () => ({
-					lean: () => mockOrders,
-				}),
-			}));
+			t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve(mockPaginatedResponse),
+			);
+
+			const paginationArgs = {
+				pageNumber: 1,
+				pageSize: 10,
+				query: {},
+				sort: {},
+			};
 
 			// Act
-			const orders = await repo.getAll();
+			const result = await repo.getAll(paginationArgs);
 
 			// Assert
-			assert.ok(orders);
-			assert.strictEqual(orders.success, true);
-			assert.ok(Array.isArray(orders.data));
-			assert.strictEqual(orders.data.length, mockOrders.length);
-			assert.deepStrictEqual(orders.data, mockOrders);
-
-			assert.strictEqual(findMock.mock.callCount(), 1);
-			assert.deepStrictEqual(findMock.mock.calls[0].arguments[0], {});
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, mockPaginatedResponse);
 		});
 
-		test("Should return empty array when 'db.find' returns empty array", async (t) => {
-			// Arrange
-			t.mock.method(Order, "find", () => ({
-				select: () => ({
-					lean: () => [],
-				}),
-			}));
-
-			// Act
-			const orders = await repo.getAll();
-
-			// Assert
-			assert.ok(orders);
-			assert.strictEqual(orders.success, true);
-			assert.ok(Array.isArray(orders.data));
-			assert.strictEqual(orders.data.length, 0);
-		});
-
-		test("Should return 'DatabaseValidationError' when 'db.find' throws 'ValidationError'", async (t) => {
+		test("Should return 'DatabaseValidationError' when paginator.paginate throws ValidationError", async (t) => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
-
-			t.mock.method(Order, "find", () => {
+			t.mock.method(Paginator.prototype, "paginate", () => {
 				throw validationError;
 			});
 
+			const paginationArgs = {
+				pageNumber: 1,
+				pageSize: 10,
+				query: {},
+				sort: {},
+			};
+
 			// Act
-			const result = await repo.getAll();
+			const result = await repo.getAll(paginationArgs);
 
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 
-		test("Should return 'DatabaseTimeoutError' when 'db.find' throws 'MongoNetworkTimeoutError'", async (t) => {
+		test("Should return 'DatabaseTimeoutError' when paginator.paginate throws MongoNetworkTimeoutError", async (t) => {
 			// Arrange
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
-
-			t.mock.method(Order, "find", () => {
+			t.mock.method(Paginator.prototype, "paginate", () => {
 				throw timeoutError;
 			});
 
+			const paginationArgs = {
+				pageNumber: 1,
+				pageSize: 10,
+				query: {},
+				sort: {},
+			};
+
 			// Act
-			const result = await repo.getAll();
+			const result = await repo.getAll(paginationArgs);
 
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof DatabaseTimeoutError);
 		});
 
-		test("Should return 'DatabaseQueryError' when 'db.find' throws 'MongooseError'", async (t) => {
+		test("Should return 'DatabaseQueryError' when paginator.paginate throws MongooseError", async (t) => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
-
-			t.mock.method(Order, "find", () => {
+			t.mock.method(Paginator.prototype, "paginate", () => {
 				throw queryError;
 			});
 
+			const paginationArgs = {
+				pageNumber: 1,
+				pageSize: 10,
+				query: {},
+				sort: {},
+			};
+
 			// Act
-			const result = await repo.getAll();
+			const result = await repo.getAll(paginationArgs);
 
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof DatabaseQueryError);
 		});
 
-		test("Should return 'DatabaseNetworkError' when 'db.find' throws 'MongoError'", async (t) => {
+		test("Should return 'DatabaseNetworkError' when paginator.paginate throws MongoError", async (t) => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
-
-			t.mock.method(Order, "find", () => {
+			t.mock.method(Paginator.prototype, "paginate", () => {
 				throw networkError;
 			});
 
+			const paginationArgs = {
+				pageNumber: 1,
+				pageSize: 10,
+				query: {},
+				sort: {},
+			};
+
 			// Act
-			const result = await repo.getAll();
+			const result = await repo.getAll(paginationArgs);
 
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof DatabaseNetworkError);
 		});
 
-		test("Should return 'GenericDatabaseError' when 'db.find' throws unknown error", async (t) => {
+		test("Should return 'GenericDatabaseError' when paginator.paginate throws unknown error", async (t) => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
-
-			t.mock.method(Order, "find", () => {
+			t.mock.method(Paginator.prototype, "paginate", () => {
 				throw unknownError;
 			});
 
-			// Act
-			const result = await repo.getAll();
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof GenericDatabaseError);
-		});
-	});
-
-	describe("getAllByUserId", () => {
-		const mockOrders = generateMockInsertOrders(4);
-		const userId = mockOrders[0].user;
-
-		test("Should return array of orders when 'db.find' is called once with 'userId'", async (t) => {
-			// Arrange
-			const findMock = t.mock.method(Order, "find", () => ({
-				select: () => ({
-					lean: async () => mockOrders,
-				}),
-			}));
+			const paginationArgs = {
+				pageNumber: 1,
+				pageSize: 10,
+				query: {},
+				sort: {},
+			};
 
 			// Act
-			const orders = await repo.getAllByUserId({ userId });
-
-			// Assert
-			assert.ok(orders);
-			assert.strictEqual(orders.success, true);
-			assert.ok(Array.isArray(orders.data));
-			assert.strictEqual(orders.data.length, mockOrders.length);
-			assert.deepStrictEqual(orders.data, mockOrders);
-
-			assert.strictEqual(findMock.mock.callCount(), 1);
-			assert.deepStrictEqual(findMock.mock.calls[0].arguments[0], {
-				user: userId,
-			});
-		});
-
-		test("Should return empty array when 'db.find({userId})' returns empty array", async (t) => {
-			// Arrange
-			const findMock = t.mock.method(Order, "find", () => ({
-				select: () => ({
-					lean: async () => [],
-				}),
-			}));
-
-			// Act
-			const orders = await repo.getAllByUserId({ userId });
-
-			// Assert
-			assert.ok(orders);
-			assert.strictEqual(orders.success, true);
-			assert.ok(Array.isArray(orders.data));
-			assert.strictEqual(orders.data.length, 0);
-
-			assert.strictEqual(findMock.mock.callCount(), 1);
-			assert.deepStrictEqual(findMock.mock.calls[0].arguments[0], {
-				user: userId,
-			});
-		});
-
-		test("Should return 'DatabaseValidationError' when 'db.find({userId})' throws 'ValidationError'", async (t) => {
-			// Arrange
-			const validationError = new mongoose.Error.ValidationError();
-
-			t.mock.method(Order, "find", () => {
-				throw validationError;
-			});
-
-			// Act
-			const result = await repo.getAllByUserId({ userId });
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof DatabaseValidationError);
-		});
-
-		test("Should return 'DatabaseTimeoutError' when 'db.find({userId})' throws 'MongoNetworkTimeoutError'", async (t) => {
-			// Arrange
-			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
-				"Timeout",
-			);
-
-			t.mock.method(Order, "find", () => {
-				throw timeoutError;
-			});
-
-			// Act
-			const result = await repo.getAllByUserId({ userId });
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof DatabaseTimeoutError);
-		});
-
-		test("Should return 'DatabaseQueryError' when 'db.find({userId})' throws 'MongooseError'", async (t) => {
-			// Arrange
-			const queryError = new mongoose.Error("Query failed");
-
-			t.mock.method(Order, "find", () => {
-				throw queryError;
-			});
-
-			// Act
-			const result = await repo.getAllByUserId({ userId });
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof DatabaseQueryError);
-		});
-
-		test("Should return 'DatabaseNetworkError' when 'db.find({userId})' throws 'MongoError'", async (t) => {
-			// Arrange
-			const networkError = new mongoose.mongo.MongoError("Network error");
-
-			t.mock.method(Order, "find", () => {
-				throw networkError;
-			});
-
-			// Act
-			const result = await repo.getAllByUserId({ userId });
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof DatabaseNetworkError);
-		});
-
-		test("Should return 'GenericDatabaseError' when 'db.find({userId})' throws unknown error", async (t) => {
-			// Arrange
-			const unknownError = new Error("Something unexpected happened");
-
-			t.mock.method(Order, "find", () => {
-				throw unknownError;
-			});
-
-			// Act
-			const result = await repo.getAllByUserId({ userId });
+			const result = await repo.getAll(paginationArgs);
 
 			// Assert
 			assert.strictEqual(result.success, false);

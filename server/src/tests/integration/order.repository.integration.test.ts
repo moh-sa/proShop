@@ -388,190 +388,240 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 	});
 
 	describe("getAll", () => {
-		test("Should return all orders when 'db.find' is called", async () => {
+		test("Should return paginated response with array of orders", async () => {
 			// Arrange
 			const mockOrders = generateMockInsertOrders(3);
 			await Order.insertMany(mockOrders);
 
+			const paginationArgs = {
+				pageNumber: 1,
+			};
+
 			// Act
-			const orders = await orderRepository.getAll();
+			const result = await orderRepository.getAll(paginationArgs);
 
 			// Assert
-			assert.ok(orders);
-			assert.strictEqual(orders.success, true);
-			assert.ok(Array.isArray(orders.data));
-			assert.strictEqual(orders.data.length, mockOrders.length);
-			orders.data.forEach((order) => {
-				assert.ok(order._id);
-				assert.ok(order.createdAt);
-				assert.ok("isPaid" in order);
-				assert.ok("isDelivered" in order);
-				assert.ok("totalPrice" in order);
-			});
+			assert.strictEqual(result.success, true);
+
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, mockOrders.length);
 		});
 
-		test("Should return empty array when 'db.find' is called with no orders exist", async () => {
+		test("Should return paginated response with meta data", async () => {
+			// Arrange
+			const mockOrders = generateMockInsertOrders(3);
+			await Order.insertMany(mockOrders);
+
+			const paginationArgs = {
+				pageNumber: 1,
+			};
+
 			// Act
-			const orders = await orderRepository.getAll();
+			const result = await orderRepository.getAll(paginationArgs);
 
 			// Assert
-			assert.strictEqual(orders.success, true);
-			assert.ok(Array.isArray(orders.data));
-			assert.strictEqual(orders.data.length, 0);
+			assert.strictEqual(result.success, true);
+
+			assert.strictEqual(result.data.meta.totalItems, 3);
+			assert.strictEqual(result.data.meta.currentPage, 1);
+			assert.strictEqual(result.data.meta.pageSize, 10);
+			assert.strictEqual(result.data.meta.totalPages, 1);
+			assert.strictEqual(result.data.meta.hasNextPage, false);
+			assert.strictEqual(result.data.meta.hasPreviousPage, false);
 		});
 
-		test("Should return orders sorted by createdAt when 'db.find' is called", async () => {
+		test("Should return empty paginated response when no orders exist", async () => {
+			// Arrange
+			const paginationArgs = {
+				pageNumber: 1,
+			};
+
+			// Act
+			const result = await orderRepository.getAll(paginationArgs);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, 0);
+			assert.strictEqual(result.data.meta.totalItems, 0);
+		});
+
+		test("Should return paginated response with correct page size", async () => {
+			// Arrange
+			const pageSize = 2;
+			const mockOrders = generateMockInsertOrders(5);
+			await Order.insertMany(mockOrders);
+
+			const paginationArgs = {
+				pageNumber: 1,
+				pageSize,
+			};
+
+			// Act
+			const result = await orderRepository.getAll(paginationArgs);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+
+			assert.strictEqual(result.data.items.length, pageSize);
+			assert.strictEqual(result.data.meta.pageSize, pageSize);
+		});
+
+		test("Should return second page when pageNumber is 2", async () => {
+			// Arrange
+			const pageSize = 2;
+			const pageNumber = 2;
+			const mockOrders = generateMockInsertOrders(5);
+			await Order.insertMany(mockOrders);
+
+			const paginationArgs = {
+				pageNumber,
+				pageSize,
+			};
+
+			// Act
+			const result = await orderRepository.getAll(paginationArgs);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+
+			assert.strictEqual(result.data.items.length, pageSize);
+			assert.strictEqual(result.data.meta.currentPage, pageNumber);
+		});
+
+		test("Should return last page when pageNumber equals totalPages", async () => {
+			// Arrange
+			const mockOrders = generateMockInsertOrders(5);
+			await Order.insertMany(mockOrders);
+
+			const paginationArgs = {
+				pageNumber: 3,
+				pageSize: 2,
+			};
+
+			// Act
+			const result = await orderRepository.getAll(paginationArgs);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+
+			assert.strictEqual(result.data.items.length, 1);
+			assert.strictEqual(result.data.meta.currentPage, 3);
+			assert.strictEqual(result.data.meta.hasNextPage, false);
+			assert.strictEqual(result.data.meta.hasPreviousPage, true);
+		});
+
+		test("Should filter orders by user when query contains user filter", async () => {
+			// Arrange
+			const userId = generateMockObjectId();
+			const userOrders = generateMockInsertOrders(2, { user: userId });
+			const otherOrders = generateMockInsertOrders(3);
+			await Order.insertMany([...userOrders, ...otherOrders]);
+
+			const paginationArgs = {
+				pageNumber: 1,
+				query: { user: userId },
+			};
+
+			// Act
+			const result = await orderRepository.getAll(paginationArgs);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+
+			assert.strictEqual(result.data.items.length, userOrders.length);
+			assert.strictEqual(result.data.meta.totalItems, userOrders.length);
+			assert.ok(
+				result.data.items.every((o) => o.user.toString() === userId.toString()),
+			);
+		});
+
+		test("Should filter orders by isPaid when query contains isPaid filter", async () => {
+			// Arrange
+			const paidOrders = generateMockInsertOrders(2, { isPaid: true });
+			const unpaidOrders = generateMockInsertOrders(3, { isPaid: false });
+			await Order.insertMany([...paidOrders, ...unpaidOrders]);
+
+			const paginationArgs = {
+				pageNumber: 1,
+				query: { isPaid: true },
+			};
+
+			// Act
+			const result = await orderRepository.getAll(paginationArgs);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+
+			assert.strictEqual(result.data.items.length, paidOrders.length);
+			assert.strictEqual(result.data.meta.totalItems, paidOrders.length);
+			assert.ok(result.data.items.every((o) => o.isPaid));
+		});
+
+		test("Should sort orders by createdAt descending when sort is not provided", async () => {
 			// Arrange
 			const mockOrders = generateMockSelectOrders(3).map((item, i) => ({
 				...item,
 				createdAt: new Date(2025, 0, i + 1),
 			}));
+			const expectedResult = mockOrders.sort((a, b) =>
+				b.createdAt.toISOString().localeCompare(a.createdAt.toISOString()),
+			);
 			await Order.insertMany(mockOrders);
 
-			// Act
-			const orders = await orderRepository.getAll();
-
-			// Assert
-			assert.strictEqual(orders.success, true);
-			assert.strictEqual(orders.data.length, 3);
-			orders.data.forEach((order, i) => {
-				if (i > 0) {
-					assert.ok(order.createdAt >= orders.data[i - 1].createdAt);
-				}
-			});
-		});
-
-		test("Should return only selected fields when 'db.find' is called", async () => {
-			// Arrange
-			const mockOrder = generateMockInsertOrder();
-			await Order.insertMany(mockOrder);
+			const paginationArgs = {
+				pageNumber: 1,
+			};
 
 			// Act
-			const orders = await orderRepository.getAll();
+			const result = await orderRepository.getAll(paginationArgs);
 
 			// Assert
-			assert.ok(orders);
-			assert.strictEqual(orders.success, true);
-			assert.ok(Array.isArray(orders.data));
-			assert.strictEqual(orders.data.length, 1);
+			assert.strictEqual(result.success, true);
 
-			const order = orders.data[0];
-			assert.ok(order._id);
-			assert.ok(order.createdAt);
-			assert.ok("isPaid" in order);
-			assert.ok("isDelivered" in order);
-			assert.ok("totalPrice" in order);
-			assert.ok(!("orderItems" in order));
-			assert.ok(!("shippingAddress" in order));
-		});
-	});
-
-	describe("getAllByUserId", () => {
-		test("Should return user orders when 'db.find' is called with valid user ID", async () => {
-			// Arrange
-			const userId = generateMockObjectId();
-			const mockOrders = generateMockInsertOrders(3, { user: userId });
-
-			// Also create some orders for other users
-			const otherOrders = generateMockInsertOrders(2);
-			await Order.insertMany([...mockOrders, ...otherOrders]);
-
-			// Act
-			const orders = await orderRepository.getAllByUserId({ userId });
-
-			// Assert
-			assert.ok(orders);
-			assert.strictEqual(orders.success, true);
-			assert.ok(Array.isArray(orders.data));
-
-			assert.strictEqual(orders.data.length, mockOrders.length);
-			orders.data.forEach((order) => {
-				assert.ok(order._id);
-				assert.ok(order.createdAt);
-				assert.ok("isPaid" in order);
-				assert.ok("isDelivered" in order);
-				assert.ok("totalPrice" in order);
-			});
+			assert.strictEqual(result.data.items.length, 3);
+			assert.ok(
+				result.data.items.every(
+					(o, i) =>
+						o.createdAt.toISOString() ===
+						expectedResult[i].createdAt.toISOString(),
+				),
+			);
 		});
 
-		test("Should return empty array when 'db.find' is called with user having no orders", async () => {
+		test("Should sort orders by createdAt ascending when sort is provided", async () => {
 			// Arrange
-			const userId = generateMockObjectId();
-
-			// Act
-			const orders = await orderRepository.getAllByUserId({ userId });
-
-			// Assert
-			assert.strictEqual(orders.success, true);
-			assert.ok(Array.isArray(orders.data));
-			assert.strictEqual(orders.data.length, 0);
-		});
-
-		test("Should return 'DatabaseValidationError' when 'db.find' is called with invalid user ID", async () => {
-			// Arrange
-			const invalidUserId = "invalid-id" as any;
-
-			// Act
-			const result = await orderRepository.getAllByUserId({
-				userId: invalidUserId,
-			});
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof DatabaseValidationError);
-		});
-
-		test("Should return orders sorted by createdAt when 'db.find' is called with user ID", async () => {
-			// Arrange
-			const userId = generateMockObjectId();
-			const mockOrders = generateMockSelectOrders(3).map((order, i) => ({
-				...order,
-				createdAt: new Date(2023, 0, i + 1), // January 1-3, 2023
-				user: userId,
+			const mockOrders = generateMockSelectOrders(3).map((item, i) => ({
+				...item,
+				createdAt: new Date(2025, 0, i + 1),
 			}));
+			const expectedResult = mockOrders.sort((a, b) =>
+				a.createdAt.toISOString().localeCompare(b.createdAt.toISOString()),
+			);
 			await Order.insertMany(mockOrders);
 
-			// Act
-			const orders = await orderRepository.getAllByUserId({ userId });
-
-			// Assert
-			assert.ok(orders);
-			assert.strictEqual(orders.success, true);
-			assert.ok(Array.isArray(orders.data));
-
-			assert.strictEqual(orders.data.length, 3);
-			orders.data.forEach((order, i) => {
-				if (i > 0) {
-					assert.ok(order.createdAt >= orders.data[i - 1].createdAt);
-				}
-			});
-		});
-
-		test("Should return only selected fields when 'db.find' is called with user ID", async () => {
-			// Arrange
-			const mockOrder = generateMockInsertOrder();
-			const userId = mockOrder.user;
-
-			await Order.insertMany(mockOrder);
+			const paginationArgs = {
+				pageNumber: 1,
+				pageSize: 10,
+				query: {},
+				sort: { createdAt: 1 as const },
+			};
 
 			// Act
-			const orders = await orderRepository.getAllByUserId({ userId });
+			const result = await orderRepository.getAll(paginationArgs);
 
 			// Assert
-			assert.ok(orders);
-			assert.strictEqual(orders.success, true);
-			assert.ok(Array.isArray(orders.data));
-			assert.strictEqual(orders.data.length, 1);
+			assert.strictEqual(result.success, true);
 
-			const order = orders.data[0];
-			assert.ok(order);
-			assert.ok(order._id);
-			assert.ok(order.createdAt);
-			assert.ok("isPaid" in order);
-			assert.ok("isDelivered" in order);
-			assert.ok("totalPrice" in order);
-			assert.ok(!("orderItems" in order));
-			assert.ok(!("shippingAddress" in order));
+			assert.strictEqual(result.data.items.length, 3);
+			assert.ok(
+				result.data.items.every(
+					(o, i) =>
+						o.createdAt.toISOString() ===
+						expectedResult[i].createdAt.toISOString(),
+				),
+			);
 		});
 	});
 });

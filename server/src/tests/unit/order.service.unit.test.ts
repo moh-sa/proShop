@@ -1,11 +1,16 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import { NotFoundError, ValidationError } from "../../errors/index.js";
+import {
+	DatabaseBaseError,
+	NotFoundError,
+	ValidationError,
+} from "../../errors/index.js";
 import { OrderService } from "../../services/index.js";
 import {
 	generateMockInsertOrder,
 	generateMockInsertProductWithStringImage,
+	generateMockObjectId,
 	generateMockSelectOrder,
 	generateMockSelectOrders,
 	mockOrderRepository,
@@ -91,93 +96,209 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 	describe("getAll", () => {
 		const mockOrders = generateMockSelectOrders(4);
+		const mockMeta = {
+			currentPage: 1,
+			hasNextPage: false,
+			hasPreviousPage: false,
+			pageSize: 10,
+			totalItems: mockOrders.length,
+			totalPages: 1,
+		};
 
-		test("Should return array of orders when 'repo.getAll' is called once with no args", async () => {
+		const mockPaginatedResponse = {
+			items: mockOrders,
+			meta: mockMeta,
+		};
+
+		test("Should return paginated response when valid pagination parameters are provided", async () => {
 			// Arrange
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrders, success: true }),
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
+			const paginationArgs = {
+				pageNumber: "1",
+			};
+
 			// Act
-			const orders = await service.getAll();
+			const result = await service.getAll(paginationArgs);
 
 			// Assert
-			assert.strictEqual(orders.success, true);
-			assert.deepStrictEqual(orders.data, mockOrders);
-
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, mockPaginatedResponse);
 			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
-			assert.strictEqual(mockRepo.getAll.mock.calls[0].arguments.length, 0);
 		});
 
-		test("Should return empty array if 'repo.getAll' returns empty array", async () => {
+		test("Should return ValidationError when pageNumber is invalid", async () => {
 			// Arrange
-			mockRepo.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: [], success: true }),
-			);
+			const invalidArgs = {
+				pageNumber: "invalid",
+			};
 
 			// Act
-			const orders = await service.getAll();
-
-			// Assert
-			assert.strictEqual(orders.success, true);
-			assert.strictEqual(orders.data.length, 0);
-		});
-	});
-
-	describe("getAllByUserId", () => {
-		const mockOrders = generateMockSelectOrders(4);
-		const userId = mockOrders[0].user._id;
-
-		test("Should return array of orders when 'repo.getAllByUserId' is called once with 'userId'", async () => {
-			// Arrange
-			mockRepo.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrders, success: true }),
-			);
-
-			// Act
-			const orders = await service.getAllByUserId({
-				userId: userId.toString(),
-			});
-
-			// Assert
-			assert.strictEqual(orders.success, true);
-			assert.deepStrictEqual(orders.data, mockOrders);
-
-			assert.strictEqual(mockRepo.getAllByUserId.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockRepo.getAllByUserId.mock.calls[0].arguments[0],
-				{ userId },
-			);
-		});
-
-		test("Should return empty array if 'repo.getAllByUserId' returns empty array", async () => {
-			// Arrange
-			mockRepo.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: [], success: true }),
-			);
-
-			// Act
-			const orders = await service.getAllByUserId({
-				userId: userId.toString(),
-			});
-
-			// Assert
-			assert.strictEqual(orders.success, true);
-			assert.strictEqual(orders.data.length, 0);
-		});
-
-		test("Should return 'ValidationError' if 'userId' is invalid", async () => {
-			// Arrange
-			const invalidUserId = "invalid-user-id";
-
-			// Act
-			const result = await service.getAllByUserId({ userId: invalidUserId });
+			const result = await service.getAll(invalidArgs);
 
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof ValidationError);
 
-			assert.strictEqual(mockRepo.getAllByUserId.mock.callCount(), 0);
+			assert.strictEqual(mockRepo.getAll.mock.callCount(), 0);
+		});
+
+		test("Should return ValidationError when pageSize is invalid", async () => {
+			// Arrange
+			const invalidArgs = {
+				pageNumber: "1",
+				pageSize: "invalid",
+			};
+
+			// Act
+			const result = await service.getAll(invalidArgs);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+
+			assert.strictEqual(mockRepo.getAll.mock.callCount(), 0);
+		});
+
+		test("Should return ValidationError when sort parameter is invalid", async () => {
+			// Arrange
+			const invalidArgs = {
+				pageNumber: "1",
+				sort: 123,
+			};
+
+			// Act
+			// @ts-expect-error - test case
+			const result = await service.getAll(invalidArgs);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+
+			assert.strictEqual(mockRepo.getAll.mock.callCount(), 0);
+		});
+
+		test("Should return ValidationError when user parameter is invalid ObjectId", async () => {
+			// Arrange
+			const invalidArgs = {
+				pageNumber: "1",
+				user: "invalid-user-id",
+			};
+
+			// Act
+			const result = await service.getAll(invalidArgs);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+
+			assert.strictEqual(mockRepo.getAll.mock.callCount(), 0);
+		});
+
+		test("Should return ValidationError when isPaid parameter is invalid boolean", async () => {
+			// Arrange
+			const invalidArgs = {
+				isPaid: "invalid-boolean",
+				pageNumber: "1",
+			};
+
+			// Act
+			const result = await service.getAll(invalidArgs);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+
+			assert.strictEqual(mockRepo.getAll.mock.callCount(), 0);
+		});
+
+		test("Should return ValidationError when isDelivered parameter is invalid boolean", async () => {
+			// Arrange
+			const invalidArgs = {
+				isDelivered: "invalid-boolean",
+				pageNumber: "1",
+			};
+
+			// Act
+			const result = await service.getAll(invalidArgs);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+
+			assert.strictEqual(mockRepo.getAll.mock.callCount(), 0);
+		});
+
+		test("Should call repository with correct parameters when all validations pass", async () => {
+			// Arrange
+			mockRepo.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
+			);
+			const userId = generateMockObjectId().toString();
+			const pageNumber = "2";
+			const pageSize = "5";
+			const sort = "createdAt:desc";
+
+			const paginationArgs = {
+				isDelivered: "false",
+				isPaid: "true",
+				pageNumber,
+				pageSize,
+				sort,
+				user: userId,
+			};
+
+			// Act
+			await service.getAll(paginationArgs);
+
+			// Assert
+			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
+
+			assert.strictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].pageNumber,
+				Number(pageNumber),
+			);
+			assert.strictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].pageSize,
+				Number(pageSize),
+			);
+
+			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0].sort, {
+				createdAt: -1,
+			});
+			assert.strictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].query?.isDelivered,
+				false,
+			);
+			assert.strictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].query.isPaid,
+				true,
+			);
+			assert.strictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].query.user.toString(),
+				userId,
+			);
+		});
+
+		test("Should return repository error when repository call fails", async () => {
+			// Arrange
+			const repositoryError = new DatabaseBaseError("Database error");
+			mockRepo.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ error: repositoryError, success: false }),
+			);
+
+			const paginationArgs = {
+				pageNumber: "1",
+			};
+
+			// Act
+			const result = await service.getAll(paginationArgs);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, repositoryError);
 		});
 	});
 

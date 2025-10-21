@@ -213,12 +213,13 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 	});
 
 	describe("getAll", () => {
-		test("Should return success response when 'service.getAll' is called with valid data", async () => {
+		test("Should return success response when called with valid pagination parameters", async () => {
 			// Arrange
 			const mockOrders = generateMockSelectOrders(2);
 			await Order.insertMany(mockOrders);
 
 			const { next, req, res } = createMockExpressContext();
+			req.query = { pageNumber: "1", pageSize: "10" };
 
 			// Act
 			await controller.getAll(req, res, next);
@@ -228,11 +229,13 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response);
 			assert.ok(response.success);
 			assert.ok(response.data);
+			assert.ok(response.meta);
 		});
 
-		test("Should return '200' status code when 'service.getAll' is called with valid data", async () => {
+		test("Should return '200' status code when called with valid pagination parameters", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
+			req.query = { pageNumber: "1" };
 
 			// Act
 			await controller.getAll(req, res, next);
@@ -242,12 +245,13 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(code, 200);
 		});
 
-		test("Should return array of orders when 'service.getAll' is called with existing orders", async () => {
+		test("Should return paginated response structure when called with existing orders", async () => {
 			// Arrange
 			const mockOrders = generateMockSelectOrders(2);
 			await Order.insertMany(mockOrders);
 
 			const { next, req, res } = createMockExpressContext();
+			req.query = { pageNumber: "1", pageSize: "10" };
 
 			// Act
 			await controller.getAll(req, res, next);
@@ -255,14 +259,41 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.ok(response);
-			assert.ok(response.data);
 			assert.ok(Array.isArray(response.data));
-			assert.strictEqual(response.data.length, mockOrders.length);
+			assert.ok(response.meta);
+			assert.strictEqual(response.data.length, 2);
+			assert.strictEqual(response.meta.totalItems, 2);
 		});
 
-		test("Should return 'empty array' when 'service.getAll' is called with no orders in database", async () => {
+		test("Should return empty paginated response when no orders exist", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
+			req.query = { pageNumber: "1" };
+
+			// Act
+			await controller.getAll(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.ok(response);
+			assert.ok(Array.isArray(response.data));
+			assert.ok(response.meta);
+			assert.strictEqual(response.data.length, 0);
+			assert.strictEqual(response.meta.totalItems, 0);
+		});
+
+		test("Should handle query parameters correctly", async () => {
+			// Arrange
+			const mockOrders = generateMockSelectOrders(3);
+			await Order.insertMany(mockOrders);
+
+			const { next, req, res } = createMockExpressContext();
+			req.query = {
+				isPaid: "true",
+				pageNumber: "1",
+				pageSize: "2",
+				sort: "createdAt:desc",
+			};
 
 			// Act
 			await controller.getAll(req, res, next);
@@ -271,18 +302,38 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const response = res._getJSONData();
 			assert.ok(response);
 			assert.ok(response.data);
-			assert.strictEqual(response.data.length, 0);
+			assert.ok(response.meta);
+			assert.strictEqual(response.meta.pageSize, 2);
+		});
+
+		test("Should handle empty query parameters", async () => {
+			// Arrange
+			const mockOrders = generateMockSelectOrders(1);
+			await Order.insertMany(mockOrders);
+
+			const { next, req, res } = createMockExpressContext();
+			req.query = {};
+
+			// Act
+			await controller.getAll(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.ok(response);
+			assert.ok(response.data);
+			assert.ok(response.meta);
 		});
 	});
 
 	describe("getAllByUserId", () => {
-		test("Should return success response when 'service.getAllByUserId' is called with valid data", async () => {
+		test("Should return success response when called with valid userId and pagination parameters", async () => {
 			// Arrange
 			const mockOrder = generateMockSelectOrder();
 			await Order.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockOrder.user._id.toString() };
+			req.query = { pageNumber: "1", pageSize: "10" };
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -292,14 +343,16 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response);
 			assert.ok(response.success);
 			assert.ok(response.data);
+			assert.ok(response.meta);
 		});
 
-		test("Should return '200' status code when 'service.getAllByUserId' is called with valid data", async () => {
+		test("Should return '200' status code when called with valid userId and pagination parameters", async () => {
 			// Arrange
 			const mockOrder = generateMockSelectOrder();
 			const { next, req, res } = createMockExpressContext();
 
 			req.params = { userId: mockOrder.user._id.toString() };
+			req.query = { pageNumber: "1" };
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -309,7 +362,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(code, 200);
 		});
 
-		test("Should return array of orders for specific user when 'service.getAllByUserId' is called with existing orders", async () => {
+		test("Should return paginated response for specific user when called with existing orders", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const mockOrders = generateMockSelectOrders(3, { user: mockUser });
@@ -317,8 +370,8 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			await Order.insertMany([mockOrders, otherOrders].flat());
 
 			const { next, req, res } = createMockExpressContext();
-
 			req.params = { userId: mockUser._id.toString() };
+			req.query = { pageNumber: "1", pageSize: "10" };
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -326,12 +379,13 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.ok(response);
-			assert.ok(response.data);
 			assert.ok(Array.isArray(response.data));
+			assert.ok(response.meta);
 			assert.strictEqual(response.data.length, 3);
+			assert.strictEqual(response.meta.totalItems, 3);
 		});
 
-		test("Should return 'empty array' when 'service.getAllByUserId' is called with user who has no orders", async () => {
+		test("Should return empty paginated response when user has no orders", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const mockOrders = generateMockSelectOrders(5);
@@ -339,6 +393,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockUser._id.toString() };
+			req.query = { pageNumber: "1" };
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -346,11 +401,13 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.ok(response);
-			assert.ok(response.data);
+			assert.ok(Array.isArray(response.data));
+			assert.ok(response.meta);
 			assert.strictEqual(response.data.length, 0);
+			assert.strictEqual(response.meta.totalItems, 0);
 		});
 
-		test("Should not return orders from other users when 'service.getAllByUserId' is called", async () => {
+		test("Should not return orders from other users when called with specific userId", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
@@ -361,6 +418,64 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockOrder1.user._id.toString() };
+			req.query = { pageNumber: "1" };
+
+			// Act
+			await controller.getAllByUserId(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.ok(response);
+			assert.ok(Array.isArray(response.data));
+			assert.ok(response.meta);
+			assert.strictEqual(response.data.length, 1);
+			assert.strictEqual(
+				response.data[0].user.toString(),
+				mockOrder1.user._id.toString(),
+			);
+		});
+
+		test("Should handle query parameters with userId correctly", async () => {
+			// Arrange
+			const mockUser = generateMockSelectUser();
+			const paidOrders = generateMockSelectOrders(2, {
+				isPaid: true,
+				user: mockUser,
+			});
+			const unpaidOrders = generateMockSelectOrders(1, {
+				isPaid: false,
+				user: mockUser,
+			});
+			await Order.insertMany([...paidOrders, ...unpaidOrders]);
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { userId: mockUser._id.toString() };
+			req.query = {
+				isPaid: "true",
+				pageNumber: "1",
+				pageSize: "10",
+			};
+
+			// Act
+			await controller.getAllByUserId(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.ok(response);
+			assert.ok(Array.isArray(response.data));
+			assert.ok(response.meta);
+			assert.strictEqual(response.data.length, 2);
+			assert.ok(response.data.every((order: any) => order.isPaid === true));
+		});
+
+		test("Should handle empty query parameters with userId", async () => {
+			// Arrange
+			const mockOrder = generateMockSelectOrder();
+			await Order.insertMany([mockOrder]);
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { userId: mockOrder.user._id.toString() };
+			req.query = {};
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -369,11 +484,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const response = res._getJSONData();
 			assert.ok(response);
 			assert.ok(response.data);
-			assert.strictEqual(response.data.length, 1);
-			assert.strictEqual(
-				response.data[0].user.toString(),
-				mockOrder1.user._id.toString(),
-			);
+			assert.ok(response.meta);
 		});
 	});
 
