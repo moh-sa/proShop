@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import type { InsertUser } from "../../types/index.js";
+import type { InsertUser, UserPaginationParams } from "../../types/index.js";
 
 import {
 	InternalError,
@@ -67,47 +67,97 @@ suite("User Service 〖 Unit Tests 〗", () => {
 	});
 
 	describe("getAll", () => {
-		const mockUsers = generateMockSelectUsers({ count: 5 });
-		const expectedUsers = mockUsers.map((user) => {
-			const { password: _, ...expectedUser } = user;
-			return expectedUser;
-		});
-
-		test("Should return 'array of users' when 'repo.getAll' is called once with no args", async () => {
+		test("Should return sanitized paginated items and meta; pass args to repo", async () => {
 			// Arrange
+			const items = generateMockSelectUsers({ count: 3 });
+			const meta = {
+				currentPage: 2,
+				hasNextPage: true,
+				hasPreviousPage: true,
+				pageSize: 3,
+				totalItems: 9,
+				totalPages: 3,
+			};
+
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({
-					data: mockUsers,
+					data: { items, meta },
 					success: true,
 				}),
 			);
 
+			const args: UserPaginationParams = {
+				isAdmin: "true",
+				pageNumber: "2",
+				pageSize: "3",
+				sort: "createdAt:asc",
+			};
+
 			// Act
-			const result = await service.getAll();
+			const result = await service.getAll(args);
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.deepStrictEqual(result.data, expectedUsers);
+			assert.strictEqual(result.data.items.length, items.length);
+			// Ensure items are sanitized (no password)
+			assert.ok(!("password" in result.data.items[0]));
+			assert.deepStrictEqual(result.data.meta, meta);
 
 			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
-			assert.strictEqual(mockRepo.getAll.mock.calls[0].arguments.length, 0);
+			assert.deepStrictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].pageNumber,
+				Number(args.pageNumber),
+			);
+			assert.deepStrictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].pageSize,
+				Number(args.pageSize),
+			);
+			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0].query, {
+				isAdmin: true,
+			});
+			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0].sort, {
+				createdAt: 1,
+			});
 		});
 
-		test("Should return 'empty array' when 'repo.getAll' returns 'empty array'", async () => {
+		test("Should return empty items with meta when repo returns empty page", async () => {
 			// Arrange
+			const meta = {
+				currentPage: 1,
+				hasNextPage: false,
+				hasPreviousPage: false,
+				pageSize: 5,
+				totalItems: 0,
+				totalPages: 0,
+			};
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({
-					data: [],
+					data: { items: [], meta },
 					success: true,
 				}),
 			);
 
 			// Act
-			const result = await service.getAll();
+			const result = await service.getAll({ pageNumber: "1" });
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.length, 0);
+			assert.strictEqual(result.data.items.length, 0);
+			assert.deepStrictEqual(result.data.meta, meta);
+		});
+
+		test("Should return 'ValidationError' when pagination args are invalid", async () => {
+			// Arrange
+			const invalidArgs = { pageNumber: "0" };
+
+			// Act
+			const result = await service.getAll(invalidArgs);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+
+			assert.strictEqual(mockRepo.getAll.mock.callCount(), 0);
 		});
 	});
 
@@ -158,7 +208,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'ValidationError' when userId is invalid", async () => {
 			// Arrange
-			const invalidUserId = "invalid-objectid" as any;
+			const invalidUserId = "invalid-objectid";
 
 			// Act
 			const result = await service.getById({ userId: invalidUserId });
@@ -289,7 +339,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'ValidationError' when userId is invalid", async () => {
 			// Arrange
-			const invalidUserId = "invalid-objectid" as any;
+			const invalidUserId = "invalid-objectid";
 
 			// Act
 			const result = await service.updateById({
@@ -372,7 +422,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'ValidationError' when userId is invalid", async () => {
 			// Arrange
-			const invalidUserId = "invalid-objectid" as any;
+			const invalidUserId = "invalid-objectid";
 
 			// Act
 			const result = await service.delete({ userId: invalidUserId });
@@ -630,7 +680,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'ValidationError' when userId is invalid", async () => {
 			// Arrange
-			const invalidUserId = "invalid-objectid" as any;
+			const invalidUserId = "invalid-objectid";
 
 			// Act
 			const result = await service.getById_UNSAFE({ userId: invalidUserId });

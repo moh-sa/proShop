@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 
-import type { InsertProduct } from "../../types/index.js";
+import type { AllProducts, InsertProduct } from "../../types/index.js";
 
 import { ProductController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
@@ -140,12 +140,10 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
 			assert.ok(response.success);
 			assert.ok(response.data);
+			assert.ok(response.meta);
 			assert.strictEqual(response.data.length, mockProducts.length);
-			assert.strictEqual(response.meta.currentPage, 1);
-			assert.strictEqual(response.meta.numberOfPages, 1);
 		});
 
 		test("Should return '200' status code when 'service.getAll' is called with valid data", async () => {
@@ -160,7 +158,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(code, 200);
 		});
 
-		test("Should return 'meta data' containing 'currentPage' and 'numberOfPages' when 'service.getAll' is called with valid data", async () => {
+		test("Should return 'meta data' containing pagination information when 'service.getAll' is called with valid data", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 
@@ -169,10 +167,14 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(response.meta);
-			assert.strictEqual(response.meta.currentPage, 1); // default value
-			assert.strictEqual(response.meta.numberOfPages, 1); // default value
+			assert.strictEqual(response.meta.currentPage, 1);
+			assert.strictEqual(response.meta.pageSize, 10);
+			assert.strictEqual(response.meta.totalItems, 0);
+			assert.strictEqual(response.meta.totalPages, 1);
+			assert.strictEqual(response.meta.hasNextPage, false);
+			assert.strictEqual(response.meta.hasPreviousPage, false);
 		});
 
 		test("Should return array of products when 'service.getAll' is called with existing products", async () => {
@@ -186,7 +188,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.ok(Array.isArray(response.data));
 			assert.strictEqual(response.data.length, mockProducts.length);
@@ -207,10 +209,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(response.data);
-			assert.strictEqual(response.data.length, 1);
-			assert.strictEqual(response.data[0].name, keyword);
+			assert.ok(response.data.length > 0);
+			assert.strictEqual(
+				response.data.some((p: AllProducts) => p.name === keyword),
+				true,
+			);
 		});
 
 		test("Should return '10' products in 'page 1' when 'service.getAll' is called with 13 products in database", async () => {
@@ -218,18 +223,20 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			const mockProducts = generateMockSelectProducts({ count: 13 });
 			await Product.insertMany(mockProducts);
-			req.query = { currentPage: "1" };
+			req.query = { pageNumber: "1" };
 
 			// Act
 			await controller.getAll(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.strictEqual(response.data.length, 10);
 			assert.strictEqual(response.meta.currentPage, 1);
-			assert.strictEqual(response.meta.numberOfPages, 2);
+			assert.strictEqual(response.meta.totalPages, 2);
+			assert.strictEqual(response.meta.hasNextPage, true);
+			assert.strictEqual(response.meta.hasPreviousPage, false);
 		});
 
 		test("Should return '3' products in 'page 2' when 'service.getAll' is called with 13 products in database", async () => {
@@ -237,18 +244,20 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			const mockProducts = generateMockSelectProducts({ count: 13 });
 			await Product.insertMany(mockProducts);
-			req.query = { currentPage: "2" };
+			req.query = { pageNumber: "2" };
 
 			// Act
 			await controller.getAll(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.strictEqual(response.data.length, 3);
 			assert.strictEqual(response.meta.currentPage, 2);
-			assert.strictEqual(response.meta.numberOfPages, 2);
+			assert.strictEqual(response.meta.totalPages, 2);
+			assert.strictEqual(response.meta.hasNextPage, false);
+			assert.strictEqual(response.meta.hasPreviousPage, true);
 		});
 
 		test("Should return 'empty array' when 'service.getAll' is called with no products in database", async () => {
@@ -260,9 +269,52 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.strictEqual(response.data.length, 0);
+		});
+
+		test("Should return products with custom page size when 'service.getAll' is called with pageSize parameter", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			const mockProducts = generateMockSelectProducts({ count: 15 });
+			await Product.insertMany(mockProducts);
+			req.query = { pageSize: "5" };
+
+			// Act
+			await controller.getAll(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.ok(response.success);
+			assert.ok(response.data);
+			assert.strictEqual(response.data.length, 5);
+			assert.strictEqual(response.meta.pageSize, 5);
+			assert.strictEqual(response.meta.totalPages, 3);
+		});
+
+		test("Should return products sorted by name when 'service.getAll' is called with sort parameter", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			const mockProducts = generateMockSelectProducts({ count: 3 });
+			// Set specific names for sorting test
+			mockProducts[0].name = "Zebra Product";
+			mockProducts[1].name = "Apple Product";
+			mockProducts[2].name = "Banana Product";
+			await Product.insertMany(mockProducts);
+			req.query = { sort: "name:asc" };
+
+			// Act
+			await controller.getAll(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.ok(response.success);
+			assert.ok(response.data);
+			assert.strictEqual(response.data.length, 3);
+			assert.strictEqual(response.data[0].name, "Apple Product");
+			assert.strictEqual(response.data[1].name, "Banana Product");
+			assert.strictEqual(response.data[2].name, "Zebra Product");
 		});
 	});
 

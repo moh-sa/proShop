@@ -1,14 +1,16 @@
-import type { Types } from "mongoose";
+import type { FilterQuery, LeanDocument, Types } from "mongoose";
 
 import type { IUserRepository } from "../repositories/index.js";
 import type {
 	InsertUser,
 	MethodParams,
 	MethodReturn,
+	PaginatedResponse,
 	Result,
 	SafeSelectUser,
 	SelectUser,
 	UnSafeSelectUser,
+	UserPaginationParams,
 } from "../types/index.js";
 
 import {
@@ -17,8 +19,16 @@ import {
 	ValidationError,
 } from "../errors/index.js";
 import { UserRepository } from "../repositories/index.js";
-import { insertUserSchema, selectUserSchema } from "../schemas/index.js";
-import { emailValidator, objectIdValidator } from "../validators/index.js";
+import {
+	insertUserSchema,
+	selectUserSchema,
+	userQuerySchema,
+} from "../schemas/index.js";
+import {
+	emailValidator,
+	objectIdValidator,
+	paginationParamsValidator,
+} from "../validators/index.js";
 
 export interface IUserService {
 	create: (data: InsertUser) => Promise<UserResult<SafeSelectUser>>;
@@ -26,7 +36,9 @@ export interface IUserService {
 	existsByEmail: (data: {
 		email: string;
 	}) => Promise<UserResult<null | { _id: Types.ObjectId }>>;
-	getAll: () => Promise<UserResult<Array<SafeSelectUser>>>;
+	getAll: (
+		args: UserPaginationParams,
+	) => Promise<UserResult<PaginatedResponse<SafeSelectUser>>>;
 	getByEmail: (data: { email: string }) => Promise<UserResult<SafeSelectUser>>;
 	getById: (data: { userId: string }) => Promise<UserResult<SafeSelectUser>>;
 	sanitizeUser: (user: SelectUser) => UserResult<SafeSelectUser>;
@@ -140,14 +152,65 @@ export class UserService implements IUserService {
 		};
 	}
 
-	async getAll(): MethodReturn<IUserService, "getAll"> {
-		const getAllResult = await this._repository.getAll();
+	async getAll(
+		args: MethodParams<IUserService, "getAll">,
+	): MethodReturn<IUserService, "getAll"> {
+		const paginationResult = paginationParamsValidator
+			.omit({ query: true })
+			.safeParse({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				sort: args.sort,
+			});
+		if (!paginationResult.success) {
+			return {
+				error: new ValidationError("Invalid pagination data", {
+					cause: paginationResult.error,
+				}),
+				success: false,
+			};
+		}
+
+		const queryResult = userQuerySchema.safeParse(args);
+		if (!queryResult.success) {
+			return {
+				error: new ValidationError("Invalid query data", {
+					cause: queryResult.error,
+				}),
+				success: false,
+			};
+		}
+
+		function searchQuery(): FilterQuery<LeanDocument<SelectUser>> {
+			const result: FilterQuery<LeanDocument<SelectUser>> = {};
+
+			if (queryResult.data?.email) {
+				result.email = queryResult.data.email;
+			}
+
+			if (queryResult.data?.name) {
+				result.name = { $options: "i", $regex: queryResult.data.name };
+			}
+
+			if (queryResult.data?.isAdmin !== undefined) {
+				result.isAdmin = queryResult.data.isAdmin;
+			}
+
+			return result;
+		}
+
+		const getAllResult = await this._repository.getAll({
+			pageNumber: paginationResult.data.pageNumber,
+			pageSize: paginationResult.data.pageSize,
+			query: searchQuery(),
+			sort: paginationResult.data.sort,
+		});
 		if (!getAllResult.success) {
 			return getAllResult;
 		}
 
 		const sanitizedUsers: Array<SafeSelectUser> = [];
-		for (const user of getAllResult.data) {
+		for (const user of getAllResult.data.items) {
 			const sanitizeResult = this.sanitizeUser(user);
 			if (!sanitizeResult.success) {
 				return sanitizeResult;
@@ -157,7 +220,10 @@ export class UserService implements IUserService {
 		}
 
 		return {
-			data: sanitizedUsers,
+			data: {
+				items: sanitizedUsers,
+				meta: getAllResult.data.meta,
+			},
 			success: true,
 		};
 	}

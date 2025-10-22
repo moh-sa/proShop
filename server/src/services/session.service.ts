@@ -6,8 +6,10 @@ import type {
 	InsertSession,
 	MethodParams,
 	MethodReturn,
+	PaginatedResponse,
 	Result,
 	SelectSession,
+	SessionPaginationParams,
 } from "../types/index.js";
 
 import {
@@ -20,7 +22,12 @@ import {
 } from "../errors/index.js";
 import { SessionRepository } from "../repositories/index.js";
 import { insertSessionSchema } from "../schemas/index.js";
-import { objectIdValidator, uuidValidator } from "../validators/index.js";
+import {
+	objectIdStringValidator,
+	objectIdValidator,
+	paginationParamsValidator,
+	uuidValidator,
+} from "../validators/index.js";
 
 export interface ISessionService {
 	create(args: InsertSession): Promise<SessionResult<SelectSession>>;
@@ -32,9 +39,9 @@ export interface ISessionService {
 		userId: string;
 	}): Promise<SessionResult<SelectSession>>;
 
-	getActiveByUserId(args: {
-		userId: string;
-	}): Promise<SessionResult<Array<SelectSession>>>;
+	getActiveByUserId(
+		args: SessionPaginationParams,
+	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
 
 	getByTokenIdAndUserId(args: {
 		tokenId: string;
@@ -94,18 +101,20 @@ export class SessionService implements ISessionService {
 	public async deleteAllByUserId(
 		args: MethodParams<ISessionService, "deleteAllByUserId">,
 	): MethodReturn<ISessionService, "deleteAllByUserId"> {
-		const argsValidationResult = this._validateUserId(args.userId);
-		if (!argsValidationResult.success) {
-			return argsValidationResult;
+		const userIdResult = this._validateUserId(args.userId);
+		if (!userIdResult.success) {
+			return userIdResult;
 		}
 
-		const deletedCount = await this._repository.deleteAllByUserId(args);
-		if (!deletedCount.success) {
-			return deletedCount;
+		const result = await this._repository.deleteAllByUserId({
+			userId: userIdResult.data,
+		});
+		if (!result.success) {
+			return result;
 		}
 
 		return {
-			data: deletedCount.data,
+			data: result.data,
 			success: true,
 		};
 	}
@@ -142,13 +151,30 @@ export class SessionService implements ISessionService {
 	public async getActiveByUserId(
 		args: MethodParams<ISessionService, "getActiveByUserId">,
 	): MethodReturn<ISessionService, "getActiveByUserId"> {
-		const argsValidationResult = this._validateUserId(args.userId);
-		if (!argsValidationResult.success) {
-			return argsValidationResult;
+		const paginationResult = paginationParamsValidator.safeParse({
+			pageNumber: args.pageNumber,
+			pageSize: args.pageSize,
+			sort: args.sort,
+		});
+		if (!paginationResult.success) {
+			return {
+				error: new SessionValidationError({
+					cause: paginationResult.error,
+				}),
+				success: false,
+			};
+		}
+
+		const userIdResult = this._validateUserId(args.userId);
+		if (!userIdResult.success) {
+			return userIdResult;
 		}
 
 		const sessions = await this._repository.getAllActiveByUserId({
-			userId: args.userId,
+			pageNumber: paginationResult.data.pageNumber,
+			pageSize: paginationResult.data.pageSize,
+			sort: paginationResult.data.sort,
+			userId: userIdResult.data,
 		});
 		if (!sessions.success) {
 			return sessions;
@@ -195,17 +221,19 @@ export class SessionService implements ISessionService {
 	public async revokeAllByUserId(
 		args: MethodParams<ISessionService, "revokeAllByUserId">,
 	): MethodReturn<ISessionService, "revokeAllByUserId"> {
-		const argsValidationResult = this._validateUserId(args.userId);
-		if (!argsValidationResult.success) {
-			return argsValidationResult;
+		const userIdResult = this._validateUserId(args.userId);
+		if (!userIdResult.success) {
+			return userIdResult;
 		}
 
-		const revokedCount = await this._repository.revokeAllByUserId(args);
-		if (!revokedCount.success) {
-			return revokedCount;
+		const result = await this._repository.revokeAllByUserId({
+			userId: userIdResult.data,
+		});
+		if (!result.success) {
+			return result;
 		}
 
-		return { data: revokedCount.data, success: true };
+		return { data: result.data, success: true };
 	}
 
 	public async revokeByTokenIdAndUserId(
@@ -320,8 +348,9 @@ export class SessionService implements ISessionService {
 		return { data: undefined, success: true };
 	}
 
-	private _validateUserId(userId: string): SessionResult<undefined> {
-		const userIdValidationResult = objectIdValidator.safeParse(userId);
+	private _validateUserId(userId: string): SessionResult<string> {
+		const userIdValidationResult =
+			objectIdStringValidator("User ID").safeParse(userId);
 		if (!userIdValidationResult.success) {
 			return {
 				error: new SessionValidationError({
@@ -330,6 +359,6 @@ export class SessionService implements ISessionService {
 				success: false,
 			};
 		}
-		return { data: undefined, success: true };
+		return { data: userIdValidationResult.data, success: true };
 	}
 }

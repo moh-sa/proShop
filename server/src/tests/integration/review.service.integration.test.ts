@@ -241,21 +241,30 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 	});
 
 	describe("getAll", () => {
-		test("Should return all reviews when 'repo.getAll' is called with multiple reviews in database", async () => {
+		test("Should return paginated reviews when 'repo.getAll' is called with multiple reviews in database", async () => {
 			// Arrange
 			const mockReviews = generateMockInsertReviews({ count: 3 });
 			await Review.insertMany(mockReviews);
 
 			// Act
-			const result = await reviewService.getAll();
+			const result = await reviewService.getAll({ pageNumber: "1" });
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert(Array.isArray(result.data));
-			assert.strictEqual(result.data.length, mockReviews.length);
 
-			result.data.forEach((review, index) => {
-				const mockReview = mockReviews[index];
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, mockReviews.length);
+
+			assert.strictEqual(result.data.meta.totalItems, mockReviews.length);
+			assert.strictEqual(result.data.meta.currentPage, 1);
+			assert.strictEqual(result.data.meta.totalPages, 1);
+
+			result.data.items.forEach((review) => {
+				const mockReview = mockReviews.find(
+					(r) => r.user.toString() === review.user.toString(),
+				);
+				assert.ok(mockReview);
+
 				assert.ok(review._id);
 				assert.ok(review.createdAt);
 				assert.ok(review.updatedAt);
@@ -270,19 +279,83 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			});
 		});
 
-		test("Should return empty array when 'repo.getAll' is called with no reviews in database", async () => {
+		test("Should return empty paginated result when 'repo.getAll' is called with no reviews in database", async () => {
 			// Act
-			const result = await reviewService.getAll();
+			const result = await reviewService.getAll({ pageNumber: "1" });
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert(Array.isArray(result.data));
-			assert.strictEqual(result.data.length, 0);
+
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, 0);
+
+			assert.strictEqual(result.data.meta.totalItems, 0);
+			assert.strictEqual(result.data.meta.currentPage, 1);
+			assert.strictEqual(result.data.meta.totalPages, 1);
+		});
+
+		test("Should return paginated reviews with correct pagination when 'repo.getAll' is called with pageSize", async () => {
+			// Arrange
+			const mockReviews = generateMockInsertReviews({ count: 15 });
+			await Review.insertMany(mockReviews);
+
+			// Act
+			const result = await reviewService.getAll({
+				pageNumber: "1",
+				pageSize: "5",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, 5);
+
+			assert.strictEqual(result.data.meta.totalItems, 15);
+			assert.strictEqual(result.data.meta.currentPage, 1);
+			assert.strictEqual(result.data.meta.pageSize, 5);
+			assert.strictEqual(result.data.meta.totalPages, 3);
+			assert.strictEqual(result.data.meta.hasNextPage, true);
+			assert.strictEqual(result.data.meta.hasPreviousPage, false);
+		});
+
+		test("Should return second page of reviews when 'repo.getAll' is called with pageNumber 2", async () => {
+			// Arrange
+			const mockReviews = generateMockInsertReviews({ count: 15 });
+			await Review.insertMany(mockReviews);
+
+			// Act
+			const result = await reviewService.getAll({
+				pageNumber: "2",
+				pageSize: "5",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, 5);
+
+			assert.strictEqual(result.data.meta.totalItems, 15);
+			assert.strictEqual(result.data.meta.currentPage, 2);
+			assert.strictEqual(result.data.meta.pageSize, 5);
+			assert.strictEqual(result.data.meta.totalPages, 3);
+			assert.strictEqual(result.data.meta.hasNextPage, true);
+			assert.strictEqual(result.data.meta.hasPreviousPage, true);
+		});
+
+		test("Should return 'ValidationError' when pagination params are invalid", async () => {
+			// Act
+			const result = await reviewService.getAll({ pageNumber: "invalid" });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 		});
 	});
 
 	describe("getAllByUserId", () => {
-		test("Should return all user reviews when 'repo.getAllByUserId' is called with user having multiple reviews", async () => {
+		test("Should return paginated user reviews when 'repo.getAllByUserId' is called with user having multiple reviews", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
 			const mockReviews = generateMockInsertReviews({
@@ -296,39 +369,113 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 			// Act
 			const result = await reviewService.getAllByUserId({
+				pageNumber: "1",
 				userId: userId.toString(),
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert(Array.isArray(result.data));
-			assert.strictEqual(result.data.length, mockReviews.length);
-			result.data.forEach((review) => {
-				assert.strictEqual(review.user.toString(), userId.toString());
-			});
+
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, mockReviews.length);
+
+			assert.strictEqual(result.data.meta.totalItems, mockReviews.length);
+			assert.strictEqual(result.data.meta.currentPage, 1);
+			assert.strictEqual(result.data.meta.totalPages, 1);
+
+			assert.strictEqual(
+				result.data.items.every(
+					(review) => review.user.toString() === userId.toString(),
+				),
+				true,
+			);
 		});
 
-		test("Should return empty array when 'repo.getAllByUserId' is called with user having no reviews", async () => {
+		test("Should return empty paginated result when 'repo.getAllByUserId' is called with user having no reviews", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
 
 			// Act
 			const result = await reviewService.getAllByUserId({
+				pageNumber: "1",
 				userId: userId.toString(),
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert(Array.isArray(result.data));
-			assert.strictEqual(result.data.length, 0);
+
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, 0);
+
+			assert.strictEqual(result.data.meta.totalItems, 0);
+			assert.strictEqual(result.data.meta.currentPage, 1);
+			assert.strictEqual(result.data.meta.totalPages, 1);
 		});
 
-		test("Should return 'ValidationError' when 'repo.getAllByUserId' is called 'userId' being invalid ObjectId", async () => {
+		test("Should return paginated user reviews with correct pagination when 'repo.getAllByUserId' is called with pageSize", async () => {
+			// Arrange
+			const userId = generateMockObjectId();
+			const mockReviews = generateMockInsertReviews({
+				count: 8,
+				options: { user: userId },
+			});
+			const otherReviews = generateMockInsertReviews({
+				count: 5,
+			});
+			await Review.insertMany([...mockReviews, ...otherReviews]);
+
+			// Act
+			const result = await reviewService.getAllByUserId({
+				pageNumber: "1",
+				pageSize: "3",
+				userId: userId.toString(),
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, 3);
+
+			assert.strictEqual(result.data.meta.totalItems, mockReviews.length);
+			assert.strictEqual(result.data.meta.currentPage, 1);
+			assert.strictEqual(result.data.meta.pageSize, 3);
+			assert.strictEqual(result.data.meta.totalPages, 3);
+			assert.strictEqual(result.data.meta.hasNextPage, true);
+			assert.strictEqual(result.data.meta.hasPreviousPage, false);
+
+			assert.strictEqual(
+				result.data.items.every(
+					(review) => review.user.toString() === userId.toString(),
+				),
+				true,
+			);
+		});
+
+		test("Should return 'ValidationError' when 'repo.getAllByUserId' is called with 'userId' being invalid ObjectId", async () => {
 			// Arrange
 			const userId = "invalid-user-id";
 
 			// Act
-			const result = await reviewService.getAllByUserId({ userId });
+			const result = await reviewService.getAllByUserId({
+				pageNumber: "1",
+				userId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("Should return 'ValidationError' when pagination params are invalid", async () => {
+			// Arrange
+			const userId = generateMockObjectId();
+
+			// Act
+			const result = await reviewService.getAllByUserId({
+				pageNumber: "invalid",
+				userId: userId.toString(),
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -337,7 +484,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 	});
 
 	describe("getAllByProductId", () => {
-		test("Should return all product reviews when 'repo.getAllByProductId' is called with product having multiple reviews", async () => {
+		test("Should return paginated product reviews when 'repo.getAllByProductId' is called with product having multiple reviews", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
 			const mockReviews = generateMockInsertReviews({
@@ -349,19 +496,29 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 			// Act
 			const result = await reviewService.getAllByProductId({
+				pageNumber: "1",
 				productId: productId.toString(),
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert(Array.isArray(result.data));
-			assert.strictEqual(result.data.length, mockReviews.length);
-			result.data.forEach((review) => {
-				assert.strictEqual(review.product.toString(), productId.toString());
-			});
+
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, mockReviews.length);
+
+			assert.strictEqual(result.data.meta.totalItems, mockReviews.length);
+			assert.strictEqual(result.data.meta.currentPage, 1);
+			assert.strictEqual(result.data.meta.totalPages, 1);
+
+			assert.strictEqual(
+				result.data.items.every(
+					(review) => review.product.toString() === productId.toString(),
+				),
+				true,
+			);
 		});
 
-		test("Should return empty array when 'repo.getAllByProductId' is called with product having no reviews", async () => {
+		test("Should return empty paginated result when 'repo.getAllByProductId' is called with product having no reviews", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
 			const mockReviews = generateMockInsertReviews({ count: 3 });
@@ -369,13 +526,55 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 			// Act
 			const result = await reviewService.getAllByProductId({
+				pageNumber: "1",
 				productId: productId.toString(),
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert(Array.isArray(result.data));
-			assert.strictEqual(result.data.length, 0);
+
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, 0);
+
+			assert.strictEqual(result.data.meta.totalItems, 0);
+			assert.strictEqual(result.data.meta.currentPage, 1);
+			assert.strictEqual(result.data.meta.totalPages, 1);
+		});
+
+		test("Should return paginated product reviews with correct pagination when 'repo.getAllByProductId' is called with pageSize", async () => {
+			// Arrange
+			const productId = generateMockObjectId();
+			const mockReviews = generateMockInsertReviews({
+				count: 7,
+				options: { product: productId },
+			});
+			const otherReviews = generateMockInsertReviews({ count: 4 });
+			await Review.insertMany([...mockReviews, ...otherReviews]);
+
+			// Act
+			const result = await reviewService.getAllByProductId({
+				pageNumber: "1",
+				pageSize: "3",
+				productId: productId.toString(),
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, 3);
+
+			assert.strictEqual(result.data.meta.totalItems, mockReviews.length);
+			assert.strictEqual(result.data.meta.currentPage, 1);
+			assert.strictEqual(result.data.meta.pageSize, 3);
+			assert.strictEqual(result.data.meta.totalPages, 3);
+			assert.strictEqual(result.data.meta.hasNextPage, true);
+			assert.strictEqual(result.data.meta.hasPreviousPage, false);
+
+			result.data.items.every(
+				(review) => review.product.toString() === productId.toString(),
+				true,
+			);
 		});
 
 		test("Should return 'ValidationError' when 'repo.getAllByProductId' is called with 'productId' being invalid ObjectId", async () => {
@@ -383,7 +582,25 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			const productId = "invalid-product-id";
 
 			// Act
-			const result = await reviewService.getAllByProductId({ productId });
+			const result = await reviewService.getAllByProductId({
+				pageNumber: "1",
+				productId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("Should return 'ValidationError' when pagination params are invalid", async () => {
+			// Arrange
+			const productId = generateMockObjectId();
+
+			// Act
+			const result = await reviewService.getAllByProductId({
+				pageNumber: "invalid",
+				productId: productId.toString(),
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);

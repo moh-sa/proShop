@@ -6,12 +6,14 @@ import type {
 	InsertSession,
 	MethodParams,
 	MethodReturn,
+	PaginatedResponse,
+	PaginationParamsQuery,
 	Result,
 	SelectSession,
 } from "../types/index.js";
 
 import { Session } from "../models/session.model.js";
-import { handleDatabaseErrorResult } from "../utils/index.js";
+import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface ISessionRepository {
 	countActiveByUserId(args: { userId: string }): Promise<SessionResult<number>>;
@@ -25,17 +27,27 @@ export interface ISessionRepository {
 		tokenId: string;
 		userId: string;
 	}): Promise<SessionResult<null | { _id: Types.ObjectId }>>;
-	getAll(): Promise<SessionResult<Array<SelectSession>>>;
-	getAllActiveByUserId(args: {
-		userId: string;
-	}): Promise<SessionResult<Array<SelectSession>>>;
-	getAllByUserId(args: {
-		userId: string;
-	}): Promise<SessionResult<Array<SelectSession>>>;
-	getAllRevoked(): Promise<SessionResult<Array<SelectSession>>>;
-	getAllRevokedByUserId(args: {
-		userId: string;
-	}): Promise<SessionResult<Array<SelectSession>>>;
+	getAll(
+		args: PaginationParamsQuery<SelectSession>,
+	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
+	getAllActiveByUserId(
+		args: PaginationParamsQuery<SelectSession> & {
+			userId: string;
+		},
+	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
+	getAllByUserId(
+		args: PaginationParamsQuery<SelectSession> & {
+			userId: string;
+		},
+	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
+	getAllRevoked(
+		args: PaginationParamsQuery<SelectSession>,
+	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
+	getAllRevokedByUserId(
+		args: PaginationParamsQuery<SelectSession> & {
+			userId: string;
+		},
+	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
 	getByTokenIdAndUserId(args: {
 		tokenId: string;
 		userId: string;
@@ -56,9 +68,11 @@ type SessionResult<T> = Result<T, DatabaseBaseError>;
 
 export class SessionRepository implements ISessionRepository {
 	private readonly _db: typeof Session;
+	private _paginator: Paginator<SelectSession>;
 
-	constructor(db?: typeof Session) {
-		this._db = db ?? Session;
+	constructor(db: typeof Session = Session) {
+		this._db = db;
+		this._paginator = new Paginator(this._db);
 	}
 
 	public async countActiveByUserId(
@@ -144,9 +158,16 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async getAll(): MethodReturn<ISessionRepository, "getAll"> {
+	public async getAll(
+		args: MethodParams<ISessionRepository, "getAll">,
+	): MethodReturn<ISessionRepository, "getAll"> {
 		try {
-			const result = await this._db.find({}).lean();
+			const result = await this._paginator.paginate({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: args.query,
+				sort: args.sort,
+			});
 
 			return {
 				data: result,
@@ -161,13 +182,16 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "getAllActiveByUserId">,
 	): MethodReturn<ISessionRepository, "getAllActiveByUserId"> {
 		try {
-			const result = await this._db
-				.find({
+			const result = await this._paginator.paginate({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: {
 					expiresAt: { $gt: new Date() },
 					revokedAt: null,
 					userId: args.userId,
-				})
-				.lean();
+				},
+				sort: args.sort,
+			});
 
 			return {
 				data: result,
@@ -182,7 +206,14 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "getAllByUserId">,
 	): MethodReturn<ISessionRepository, "getAllByUserId"> {
 		try {
-			const result = await this._db.find({ userId: args.userId }).lean();
+			const result = await this._paginator.paginate({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: {
+					userId: args.userId,
+				},
+				sort: args.sort,
+			});
 
 			return {
 				data: result,
@@ -193,12 +224,18 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async getAllRevoked(): MethodReturn<
-		ISessionRepository,
-		"getAllRevoked"
-	> {
+	public async getAllRevoked(
+		args: MethodParams<ISessionRepository, "getAllRevoked">,
+	): MethodReturn<ISessionRepository, "getAllRevoked"> {
 		try {
-			const result = await this._db.find({ revokedAt: { $ne: null } }).lean();
+			const result = await this._paginator.paginate({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: {
+					revokedAt: { $ne: null },
+				},
+				sort: args.sort,
+			});
 
 			return {
 				data: result,
@@ -213,9 +250,15 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "getAllRevokedByUserId">,
 	): MethodReturn<ISessionRepository, "getAllRevokedByUserId"> {
 		try {
-			const result = await this._db
-				.find({ revokedAt: { $ne: null }, userId: args.userId })
-				.lean();
+			const result = await this._paginator.paginate({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: {
+					revokedAt: { $ne: null },
+					userId: args.userId,
+				},
+				sort: args.sort,
+			});
 
 			return {
 				data: result,
@@ -247,7 +290,7 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "revokeAllByUserId">,
 	): MethodReturn<ISessionRepository, "revokeAllByUserId"> {
 		try {
-			const result = await await this._db
+			const result = await this._db
 				.updateMany({ userId: args.userId }, { revokedAt: new Date() })
 				.lean();
 

@@ -4,6 +4,8 @@ import type { IReviewService } from "../services/index.js";
 import type {
 	AsyncHandler,
 	InsertReview,
+	PaginatedResponse,
+	PaginationParamsString,
 	SelectReview,
 } from "../types/index.js";
 
@@ -40,15 +42,27 @@ export interface IReviewController {
 		resBody: { data: { _id: Types.ObjectId } };
 	}>;
 	getAll: AsyncHandler<{
-		resBody: { data: Array<SelectReview> };
+		query: PaginationParamsString;
+		resBody: {
+			data: PaginatedResponse<SelectReview>["items"];
+			meta: PaginatedResponse<SelectReview>["meta"];
+		};
 	}>;
 	getAllByProductId: AsyncHandler<{
 		params: { productId: string };
-		resBody: { data: Array<SelectReview> };
+		query: PaginationParamsString;
+		resBody: {
+			data: PaginatedResponse<SelectReview>["items"];
+			meta: PaginatedResponse<SelectReview>["meta"];
+		};
 	}>;
 	getAllByUserId: AsyncHandler<{
 		params: { userId: string };
-		resBody: { data: Array<SelectReview> };
+		query: PaginationParamsString;
+		resBody: {
+			data: PaginatedResponse<SelectReview>["items"];
+			meta: PaginatedResponse<SelectReview>["meta"];
+		};
 	}>;
 	getById: AsyncHandler<{
 		params: { reviewId: string };
@@ -185,48 +199,73 @@ export class ReviewController implements IReviewController {
 	});
 
 	getAll = asyncHandler<{
-		resBody: { data: Array<SelectReview> };
+		query: PaginationParamsString;
+		resBody: {
+			data: PaginatedResponse<SelectReview>["items"];
+			meta: PaginatedResponse<SelectReview>["meta"];
+		};
 	}>(async (req, res) => {
-		const reviews = await this._service.getAll();
+		const reviews = await this._service.getAll({
+			pageNumber: req.query.pageNumber,
+			pageSize: req.query.pageSize,
+			sort: req.query.sort,
+		});
 		if (!reviews.success) {
 			throw reviews.error;
 		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: reviews.data,
+			data: reviews.data.items,
+			meta: reviews.data.meta,
 			success: true,
 		});
 	});
 
 	getAllByProductId = asyncHandler<{
 		params: { productId: string };
-		resBody: { data: Array<SelectReview> };
+		query: PaginationParamsString;
+		resBody: {
+			data: PaginatedResponse<SelectReview>["items"];
+			meta: PaginatedResponse<SelectReview>["meta"];
+		};
 	}>(async (req, res) => {
 		const reviews = await this._service.getAllByProductId({
+			pageNumber: req.query.pageNumber,
+			pageSize: req.query.pageSize,
 			productId: req.params.productId,
+			sort: req.query.sort,
 		});
 		if (!reviews.success) {
 			throw reviews.error;
 		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: reviews.data,
+			data: reviews.data.items,
+			meta: reviews.data.meta,
 			success: true,
 		});
 	});
 
 	getAllByUserId = asyncHandler<{
 		params: { userId: string };
-		resBody: { data: Array<SelectReview> };
+		query: PaginationParamsString;
+		resBody: {
+			data: PaginatedResponse<SelectReview>["items"];
+			meta: PaginatedResponse<SelectReview>["meta"];
+		};
 	}>(async (req, res) => {
 		const reviews = await this._service.getAllByUserId({
+			pageNumber: req.query.pageNumber,
+			pageSize: req.query.pageSize,
+			sort: req.query.sort,
 			userId: req.params.userId,
 		});
 		if (!reviews.success) {
 			throw reviews.error;
 		}
 		res.status(HTTP_STATUS.OK).json({
-			data: reviews.data,
+			data: reviews.data.items,
+			meta: reviews.data.meta,
 			success: true,
 		});
 	});

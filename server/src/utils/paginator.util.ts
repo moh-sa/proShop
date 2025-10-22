@@ -4,6 +4,7 @@ import type {
 	PaginatedResponse,
 	PaginationMeta,
 	PaginationParams,
+	PaginationParamsQuery,
 } from "../types/index.js";
 
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "../constants/index.js";
@@ -38,6 +39,31 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 	}
 
 	/**
+	 * Parse sort string into a sort object.
+	 * @param input - The sort string to parse.
+	 * @returns The sort object.
+	 * @example
+	 * const sort = Paginator.parseSort("createdAt:desc,name:asc");
+	 */
+	static handleSortString<
+		TResult extends LeanDocument<unknown> = LeanDocument<unknown>,
+	>(input: string): Partial<Record<keyof LeanDocument<TResult>, -1 | 1>> {
+		if (!input) {
+			return {};
+		}
+
+		// TODO: handle security
+		return input.split(",").reduce(
+			(acc, item) => {
+				const [key, direction] = item.split(":");
+				acc[key as keyof LeanDocument<TResult>] = direction === "desc" ? -1 : 1;
+				return acc;
+			},
+			{} as Partial<Record<keyof LeanDocument<TResult>, -1 | 1>>,
+		);
+	}
+
+	/**
 	 * Paginate documents with optional pipeline, query and sort.
 	 * @returns `Items` and `totalItems` count.
 	 * @example
@@ -50,12 +76,10 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 	 *   ],
 	 * });
 	 */
-	async paginate<TResult = LeanDocument<TDocument>>(
-		args: PaginationParams<TDocument>,
+	public async paginate<TResult = LeanDocument<TDocument>>(
+		args: PaginationParamsQuery<TDocument>,
 	): Promise<PaginatedResponse<TResult>> {
-		const pageNumber = this._calculatePageNumber(args.pageNumber);
-		const pageSize = this._calculatePageSize(args.pageSize);
-		const skip = this._calculateSkip(pageNumber, pageSize);
+		const { pageNumber, pageSize, skip } = this._preparePaginationParams(args);
 
 		const result = await this._query<TResult>({
 			additionalAggregate: args.pipeline,
@@ -77,6 +101,36 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 		};
 	}
 
+	/**
+	 * Paginate pre-fetched array of items.
+	 * @returns `Items` and `totalItems` count.
+	 * @example
+	 * const result = await paginator.paginateArray<SelectProduct>({
+	 *   items: [1, 2, 3, 4, 5],
+	 *   pageNumber: 1,
+	 *   pageSize: 10,
+	 * });
+	 */
+	public paginateArray<TResult = LeanDocument<TDocument>>(args: {
+		items: Array<TResult>;
+		pageNumber: number;
+		pageSize?: number;
+	}): PaginatedResponse<TResult> {
+		const { pageNumber, pageSize, skip } = this._preparePaginationParams(args);
+
+		const paginatedItems = args.items.slice(skip, skip + pageSize);
+		const meta = this._generateMetaData({
+			currentPage: pageNumber,
+			pageSize,
+			totalItems: args.items.length,
+		});
+
+		return {
+			items: paginatedItems,
+			meta,
+		};
+	}
+
 	private _calculatePageNumber(pageNumber: number): number {
 		return Math.floor(Math.max(1, pageNumber));
 	}
@@ -93,7 +147,7 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 	}
 
 	private _calculateTotalPages(totalItems: number, pageSize: number): number {
-		return Math.ceil(totalItems / pageSize);
+		return Math.max(1, Math.ceil(totalItems / pageSize));
 	}
 
 	private _hasNextPage(currentPage: number, totalPages: number): boolean {
@@ -129,6 +183,20 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 			totalItems: args.totalItems,
 			totalPages,
 		};
+	}
+
+	/**
+	 * Prepare pagination parameters.
+	 * @returns `pageNumber`, `pageSize`, and `skip`.
+	 */
+	private _preparePaginationParams(
+		args: Pick<PaginationParams<TDocument>, "pageNumber" | "pageSize">,
+	): { pageNumber: number; pageSize: number; skip: number } {
+		const pageNumber = this._calculatePageNumber(args.pageNumber);
+		const pageSize = this._calculatePageSize(args.pageSize);
+		const skip = this._calculateSkip(pageNumber, pageSize);
+
+		return { pageNumber, pageSize, skip };
 	}
 
 	/** Build and run aggregation for items and total count. */

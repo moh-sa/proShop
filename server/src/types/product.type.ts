@@ -4,6 +4,7 @@ import type {
 	insertProductSchema,
 	selectProductSchema,
 } from "../schemas/index.js";
+import type { PaginationParamsString } from "./pagination.type.js";
 
 export type AllProducts = Pick<
 	SelectProduct,
@@ -22,3 +23,8 @@ export type TopRatedProduct = Pick<
 	SelectProduct,
 	"_id" | "image" | "name" | "price"
 >;
+
+// Pagination
+export type ProductPaginationParams = PaginationParamsString & {
+	keyword?: string;
+};

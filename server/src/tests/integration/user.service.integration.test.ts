@@ -5,6 +5,7 @@ import { NotFoundError, ValidationError } from "../../errors/index.js";
 import User from "../../models/user.model.js";
 import { UserService } from "../../services/user.service.js";
 import {
+	generateMockInsertUsers,
 	generateMockObjectId,
 	generateMockSelectUser,
 	generateMockSelectUsers,
@@ -97,23 +98,62 @@ suite("User Service 〖 Integration Tests 〗", () => {
 	});
 
 	describe("getAll", () => {
-		test("Should return array of users when 'repo.getAll' is called", async () => {
+		test("Should return paginated sanitized items and meta", async () => {
 			// Arrange
 			await User.insertMany(mockUsers);
 
 			// Act
-			const result = await userService.getAll();
+			const result = await userService.getAll({
+				pageNumber: "1",
+				pageSize: "2",
+			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert(Array.isArray(result.data));
-			assert(result.data.length > 0);
-			const foundUser = result.data.find(
-				(user) => user.email === mockUsers[0].email.toLowerCase(),
-			);
-			assert(foundUser);
-			assert.strictEqual(foundUser.name, mockUsers[0].name);
-			assert.strictEqual(foundUser.email, mockUsers[0].email.toLowerCase());
+			assert(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, 2);
+
+			assert.ok(!("password" in result.data.items[0]));
+			assert.strictEqual(result.data.meta.currentPage, 1);
+			assert.strictEqual(result.data.meta.totalItems, mockUsers.length);
+		});
+
+		test("Should return empty items and correct meta when no users exist", async () => {
+			// Act
+			const result = await userService.getAll({
+				pageNumber: "1",
+				pageSize: "5",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.items.length, 0);
+			assert.strictEqual(result.data.meta.totalItems, 0);
+		});
+
+		test("Should apply query filter before pagination", async () => {
+			// Arrange
+			const adminUsers = generateMockInsertUsers({
+				count: 3,
+				options: { isAdmin: true },
+			});
+			const regularUsers = generateMockInsertUsers({
+				count: 2,
+				options: { isAdmin: false },
+			});
+			await User.insertMany([...adminUsers, ...regularUsers]);
+
+			// Act
+			const result = await userService.getAll({
+				isAdmin: "true",
+				pageNumber: "1",
+				pageSize: "10",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.items.length, adminUsers.length);
+			assert.ok(result.data.items.every((u) => u.isAdmin === true));
 		});
 	});
 

@@ -40,29 +40,46 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 	});
 
 	describe("getUserSessions", () => {
-		it("should return success with active sessions when refreshToken is valid and session service resolves", async () => {
+		it("should return success with paginated active sessions when refreshToken is valid and session service resolves", async () => {
 			// Arrange
 			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
 			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
 			const mockSessions = generateMockSelectSessions({ count: 2 });
+			const mockPaginationMeta = {
+				currentPage: 1,
+				hasNextPage: false,
+				hasPreviousPage: false,
+				pageSize: 10,
+				totalItems: 2,
+				totalPages: 1,
+			};
 
 			mockJwt.verify.mock.mockImplementation(() => ({
 				data: mockDecodedToken,
 				success: true,
 			}));
+
 			mockSession.getActiveByUserId.mock.mockImplementation(async () => ({
-				data: mockSessions,
+				data: {
+					items: mockSessions,
+					meta: mockPaginationMeta,
+				},
 				success: true,
 			}));
 
 			// Act
 			const result = await manager.getUserSessions({
+				pageNumber: "1",
+				pageSize: "10",
 				refreshToken: mockRefreshToken,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.deepStrictEqual(result.data, mockSessions);
+			assert.strictEqual(Array.isArray(result.data.items), true);
+			assert.strictEqual(result.data.items.length, 2);
+			assert.deepStrictEqual(result.data.items, mockSessions);
+			assert.deepStrictEqual(result.data.meta, mockPaginationMeta);
 
 			assert.strictEqual(mockJwt.verify.mock.callCount(), 1);
 			assert.deepStrictEqual(
@@ -73,12 +90,6 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 				mockJwt.verify.mock.calls[0].arguments[0].token,
 				mockRefreshToken,
 			);
-
-			assert.strictEqual(mockSession.getActiveByUserId.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockSession.getActiveByUserId.mock.calls[0].arguments[0].userId,
-				mockDecodedToken.userId,
-			);
 		});
 
 		it("should return ValidationError when refreshToken is missing", async () => {
@@ -87,6 +98,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = await manager.getUserSessions({
+				pageNumber: "1",
+				pageSize: "10",
 				refreshToken: emptyRefreshToken,
 			});
 
@@ -109,6 +122,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = await manager.getUserSessions({
+				pageNumber: "1",
+				pageSize: "10",
 				refreshToken: invalidToken,
 			});
 
@@ -136,12 +151,112 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = await manager.getUserSessions({
+				pageNumber: "1",
+				pageSize: "10",
 				refreshToken: mockRefreshToken,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.strictEqual(result.error, error);
+		});
+
+		it("should return success with empty paginated results when no active sessions exist", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const emptyPaginationMeta = {
+				currentPage: 1,
+				hasNextPage: false,
+				hasPreviousPage: false,
+				pageSize: 10,
+				totalItems: 0,
+				totalPages: 0,
+			};
+
+			mockJwt.verify.mock.mockImplementation(() => ({
+				data: mockDecodedToken,
+				success: true,
+			}));
+			mockSession.getActiveByUserId.mock.mockImplementation(async () => ({
+				data: {
+					items: [],
+					meta: emptyPaginationMeta,
+				},
+				success: true,
+			}));
+
+			// Act
+			const result = await manager.getUserSessions({
+				pageNumber: "1",
+				pageSize: "10",
+				refreshToken: mockRefreshToken,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(Array.isArray(result.data.items), true);
+			assert.strictEqual(result.data.items.length, 0);
+			assert.deepStrictEqual(result.data.items, []);
+			assert.deepStrictEqual(result.data.meta, emptyPaginationMeta);
+
+			assert.strictEqual(mockSession.getActiveByUserId.mock.callCount(), 1);
+		});
+
+		it("should pass pagination parameters correctly to session service", async () => {
+			// Arrange
+			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const mockSessions = generateMockSelectSessions({ count: 1 });
+			const mockPaginationMeta = {
+				currentPage: 2,
+				hasNextPage: true,
+				hasPreviousPage: true,
+				pageSize: 5,
+				totalItems: 12,
+				totalPages: 3,
+			};
+
+			mockJwt.verify.mock.mockImplementation(() => ({
+				data: mockDecodedToken,
+				success: true,
+			}));
+			mockSession.getActiveByUserId.mock.mockImplementation(async () => ({
+				data: {
+					items: mockSessions,
+					meta: mockPaginationMeta,
+				},
+				success: true,
+			}));
+
+			// Act
+			const result = await manager.getUserSessions({
+				pageNumber: "2",
+				pageSize: "5",
+				refreshToken: mockRefreshToken,
+				sort: "createdAt:desc",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+
+			assert.strictEqual(mockSession.getActiveByUserId.mock.callCount(), 1);
+			assert.strictEqual(
+				mockSession.getActiveByUserId.mock.calls[0].arguments[0].userId,
+				mockDecodedToken.userId,
+			);
+			assert.strictEqual(
+				mockSession.getActiveByUserId.mock.calls[0].arguments[0].pageNumber,
+				"2",
+			);
+			assert.strictEqual(
+				mockSession.getActiveByUserId.mock.calls[0].arguments[0].pageSize,
+				"5",
+			);
+			assert.strictEqual(
+				mockSession.getActiveByUserId.mock.calls[0].arguments[0].sort,
+				"createdAt:desc",
+			);
 		});
 	});
 

@@ -5,6 +5,8 @@ import type { ICookieService } from "../services/index.js";
 import type {
 	AsyncHandler,
 	InsertUser,
+	PaginatedResponse,
+	PaginationParamsString,
 	SafeSelectUser,
 	SelectSession,
 	TokenPair,
@@ -66,7 +68,11 @@ export interface IAuth2Controller {
 	 * GET /auth/sessions
 	 */
 	getUserSessions: AsyncHandler<{
-		resBody: { data: { sessions: Array<SelectSession> } };
+		query: PaginationParamsString;
+		resBody: {
+			data: PaginatedResponse<SelectSession>["items"];
+			meta: PaginatedResponse<SelectSession>["meta"];
+		};
 	}>;
 
 	/**
@@ -277,7 +283,11 @@ export class Auth2Controller implements IAuth2Controller {
 	 * GET /auth/sessions
 	 */
 	getUserSessions = asyncHandler<{
-		resBody: { data: { sessions: Array<SelectSession> } };
+		query: PaginationParamsString;
+		resBody: {
+			data: PaginatedResponse<SelectSession>["items"];
+			meta: PaginatedResponse<SelectSession>["meta"];
+		};
 	}>(async (req, res) => {
 		console.info(`[AUTH] Get user sessions attempt`);
 
@@ -286,7 +296,10 @@ export class Auth2Controller implements IAuth2Controller {
 
 		// Get user sessions
 		const result = await this._authManager.getUserSessions({
+			pageNumber: req.query.pageNumber,
+			pageSize: req.query.pageSize,
 			refreshToken: refreshCookie,
+			sort: req.query.sort,
 		});
 		if (!result.success) {
 			console.error(
@@ -296,13 +309,12 @@ export class Auth2Controller implements IAuth2Controller {
 		}
 
 		console.info(
-			`[AUTH] Get user sessions successful - ${result.data.length} sessions found`,
+			`[AUTH] Get user sessions successful - ${result.data.items.length} sessions found`,
 		);
 
 		res.status(HTTP_STATUS.OK).json({
-			data: {
-				sessions: result.data,
-			},
+			data: result.data.items,
+			meta: result.data.meta,
 			success: true,
 		});
 	});

@@ -9,6 +9,7 @@ import type {
 	insertOrderItemSchema,
 	selectOrderItemSchema,
 } from "../schemas/order/order-item.schema.js";
+import type { PaginationParamsString } from "./pagination.type.js";
 
 export type AllOrdersResponse = z.infer<typeof allOrdersResponseSchema>;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
@@ -17,3 +18,10 @@ export type OrderSchema = SelectOrder;
 
 export type SelectOrder = z.infer<typeof selectOrderSchema>;
 export type SelectOrderItem = z.infer<typeof selectOrderItemSchema>;
+
+// Pagination
+export type OrderPaginationParams = PaginationParamsString & {
+	isDelivered?: string;
+	isPaid?: string;
+	user?: string;
+};

@@ -14,6 +14,7 @@ import {
 } from "../../errors/index.js";
 import Product from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
+import { Paginator } from "../../utils/paginator.util.js";
 import {
 	generateMockInsertProductWithStringImage,
 	generateMockSelectProduct,
@@ -50,6 +51,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			}));
 
 			mockSetCache({ cacheKey, instance: mockCache });
+			mockCacheInvalidation({ cacheKey, instance: mockCache });
 
 			// Act
 			const product = await repo.create(mockInsertProduct);
@@ -83,6 +85,26 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				key: cacheKey,
 				value: mockSelectProduct,
 			});
+		});
+
+		test("Should call 'cache.delete' two times", async (t) => {
+			// Arrange
+			mockSetCache({ cacheKey, instance: mockCache });
+
+			mockCacheInvalidation({
+				cacheKey,
+				instance: mockCache,
+			});
+
+			t.mock.method(Product, "create", () => ({
+				toObject: () => mockSelectProduct,
+			}));
+
+			// Act
+			await repo.create(mockInsertProduct);
+
+			// Assert
+			assert.strictEqual(mockCache.delete.mock.callCount(), 2);
 		});
 
 		test("Should return 'DatabaseValidationError' when 'db.create' throws 'ValidationError'", async (t) => {
@@ -169,144 +191,171 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 	});
 
 	describe("getAll", () => {
-		const cacheKey = "all-1";
 		const mockProducts = generateMockSelectProducts({ count: 8 });
+		const mockMeta = {
+			currentPage: 1,
+			hasNextPage: true,
+			hasPreviousPage: false,
+			pageSize: 10,
+			totalItems: mockProducts.length,
+			totalPages: Math.ceil(mockProducts.length / 10),
+		};
+		const mockPaginatedResponse = {
+			items: mockProducts,
+			meta: mockMeta,
+		};
 
-		test("Should return array of products when 'db.find' is called once with no args", async (t) => {
+		test("Should return paginated response when 'paginator.paginate' is called with valid parameters", async (t) => {
 			// Arrange
-			const mockFind = t.mock.method(Product, "find", () => ({
-				select: () => ({
-					limit: () => ({
-						skip: () => ({
-							lean: () => mockProducts,
-						}),
-					}),
-				}),
-			}));
-
-			mockCacheMiss({
-				cacheKey,
-				instance: mockCache,
-			});
-
-			// Act
-			const products = await repo.getAll({
-				currentPage: 1,
-				numberOfProductsPerPage: 10,
-				query: {},
-			});
-
-			// Assert
-			assert.strictEqual(products.success, true);
-			assert.ok(Array.isArray(products.data));
-			assert.strictEqual(products.data.length, mockProducts.length);
-			assert.deepStrictEqual(products.data, mockProducts);
-
-			assert.strictEqual(mockFind.mock.callCount(), 1);
-			assert.deepStrictEqual(mockFind.mock.calls[0].arguments[0], {});
-		});
-
-		test("Should return array of products when 'cache.get' is called once and returns 'undefined'", async (t) => {
-			// Arrange
-			mockCacheMiss({
-				cacheKey,
-				instance: mockCache,
-			});
-
-			t.mock.method(Product, "find", () => ({
-				select: () => ({
-					limit: () => ({
-						skip: () => ({
-							lean: () => mockProducts,
-						}),
-					}),
-				}),
-			}));
-
-			// Act
-			await repo.getAll({
-				currentPage: 1,
-				numberOfProductsPerPage: 10,
-				query: {},
-			});
-
-			// Assert
-			assert.strictEqual(mockCache.get.mock.callCount(), 1);
-			assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
-				key: cacheKey,
-			});
-		});
-
-		test("Should return array of products when 'cache.get' is called once and returns value", async () => {
-			// Arrange
-			mockCacheHit({
-				cacheKey,
-				instance: mockCache,
-				returnValue: mockProducts,
-			});
-
-			// Act
-			const products = await repo.getAll({
-				currentPage: 1,
-				numberOfProductsPerPage: 10,
-				query: {},
-			});
-
-			// Assert
-			assert.strictEqual(products.success, true);
-			assert.ok(Array.isArray(products.data));
-			assert.strictEqual(products.data.length, mockProducts.length);
-			assert.deepStrictEqual(products.data, mockProducts);
-
-			assert.strictEqual(mockCache.get.mock.callCount(), 1);
-			assert.deepStrictEqual(mockCache.get.mock.calls[0].arguments[0], {
-				key: cacheKey,
-			});
-		});
-
-		test("Should return empty array when 'db.find' returns empty array", async (t) => {
-			// Arrange
-			mockCacheMiss({ cacheKey, instance: mockCache });
-
-			t.mock.method(Product, "find", () => ({
-				select: () => ({
-					limit: () => ({
-						skip: () => ({
-							lean: () => [],
-						}),
-					}),
-				}),
-			}));
-
-			// Act
-			const products = await repo.getAll({
-				currentPage: 1,
-				numberOfProductsPerPage: 10,
-				query: {},
-			});
-
-			// Assert
-			assert.ok(products);
-			assert.strictEqual(products.success, true);
-			assert.ok(Array.isArray(products.data));
-			assert.strictEqual(products.data.length, 0);
-		});
-
-		test("Should return 'DatabaseValidationError' when 'db.find' throws 'ValidationError'", async (t) => {
-			// Arrange
-			const validationError = new mongoose.Error.ValidationError();
-
-			t.mock.method(Product, "find", () => {
-				throw validationError;
-			});
-
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve(mockPaginatedResponse),
+			);
 
 			// Act
 			const result = await repo.getAll({
-				currentPage: 1,
-				numberOfProductsPerPage: 10,
+				pageNumber: 1,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, mockPaginatedResponse);
+			assert.strictEqual(result.data.items.length, mockProducts.length);
+			assert.deepStrictEqual(result.data.meta, mockMeta);
+		});
+
+		test("Should call 'paginator.paginate' exactly once when 'getAll' is called", async (t) => {
+			// Arrange
+			const mockPaginate = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve(mockPaginatedResponse),
+			);
+
+			// Act
+			await repo.getAll({
+				pageNumber: 1,
+			});
+
+			// Assert
+			assert.strictEqual(mockPaginate.mock.callCount(), 1);
+		});
+
+		test("Should call 'paginator.paginate' with different pageNumber values", async (t) => {
+			// Arrange
+			const pageNumber = 2;
+			const mockPaginate = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve(mockPaginatedResponse),
+			);
+
+			// Act
+			await repo.getAll({
+				pageNumber,
+			});
+
+			// Assert
+			assert.strictEqual(
+				mockPaginate.mock.calls[0].arguments[0]?.pageNumber,
+				pageNumber,
+			);
+		});
+
+		test("Should call 'paginator.paginate' with different pageSize values", async (t) => {
+			// Arrange
+			const pageSize = 5;
+			const mockPaginate = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve(mockPaginatedResponse),
+			);
+
+			// Act
+			await repo.getAll({
+				pageNumber: 1,
+				pageSize,
 				query: {},
+			});
+
+			// Assert
+			assert.strictEqual(
+				mockPaginate.mock.calls[0].arguments[0]?.pageSize,
+				pageSize,
+			);
+		});
+
+		test("Should call 'paginator.paginate' with query filters", async (t) => {
+			// Arrange
+			const mockPaginate = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve(mockPaginatedResponse),
+			);
+
+			// Act
+			await repo.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				query: { brand: "TestBrand" },
+			});
+
+			// Assert
+			assert.deepStrictEqual(mockPaginate.mock.calls[0].arguments[0]?.query, {
+				brand: "TestBrand",
+			});
+		});
+
+		test("Should call 'paginator.paginate' with sort parameters", async (t) => {
+			// Arrange
+			const mockPaginate = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve(mockPaginatedResponse),
+			);
+
+			// Act
+			await repo.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				query: {},
+				sort: { name: 1, price: -1 },
+			});
+
+			// Assert
+			assert.deepStrictEqual(mockPaginate.mock.calls[0].arguments[0]?.sort, {
+				name: 1,
+				price: -1,
+			});
+		});
+
+		test("Should return paginated response with empty items when 'paginator.paginate' returns empty items", async (t) => {
+			// Arrange
+			const emptyPaginatedResponse = {
+				items: [],
+				meta: {
+					currentPage: 1,
+					hasNextPage: false,
+					hasPreviousPage: false,
+					pageSize: 10,
+					totalItems: 0,
+					totalPages: 0,
+				},
+			};
+			t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve(emptyPaginatedResponse),
+			);
+
+			// Act
+			const result = await repo.getAll({
+				pageNumber: 1,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, emptyPaginatedResponse);
+			assert.strictEqual(result.data.items.length, 0);
+		});
+
+		test("Should return 'DatabaseValidationError' when 'paginator.paginate' throws 'ValidationError'", async (t) => {
+			// Arrange
+			const validationError = new mongoose.Error.ValidationError();
+			t.mock.method(Paginator.prototype, "paginate", () => {
+				throw validationError;
+			});
+
+			// Act
+			const result = await repo.getAll({
+				pageNumber: 1,
 			});
 
 			// Assert
@@ -314,23 +363,18 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 
-		test("Should return 'DatabaseTimeoutError' when 'db.find' throws 'MongoNetworkTimeoutError'", async (t) => {
+		test("Should return 'DatabaseTimeoutError' when 'paginator.paginate' throws 'MongoNetworkTimeoutError'", async (t) => {
 			// Arrange
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
-
-			t.mock.method(Product, "find", () => {
+			t.mock.method(Paginator.prototype, "paginate", () => {
 				throw timeoutError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
-
 			// Act
 			const result = await repo.getAll({
-				currentPage: 1,
-				numberOfProductsPerPage: 10,
-				query: {},
+				pageNumber: 1,
 			});
 
 			// Assert
@@ -338,21 +382,16 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof DatabaseTimeoutError);
 		});
 
-		test("Should return 'DatabaseQueryError' when 'db.find' throws 'MongooseError'", async (t) => {
+		test("Should return 'DatabaseQueryError' when 'paginator.paginate' throws 'MongooseError'", async (t) => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
-
-			t.mock.method(Product, "find", () => {
+			t.mock.method(Paginator.prototype, "paginate", () => {
 				throw queryError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
-
 			// Act
 			const result = await repo.getAll({
-				currentPage: 1,
-				numberOfProductsPerPage: 10,
-				query: {},
+				pageNumber: 1,
 			});
 
 			// Assert
@@ -360,21 +399,16 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof DatabaseQueryError);
 		});
 
-		test("Should return 'DatabaseNetworkError' when 'db.find' throws 'MongoError'", async (t) => {
+		test("Should return 'DatabaseNetworkError' when 'paginator.paginate' throws 'MongoError'", async (t) => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
-
-			t.mock.method(Product, "find", () => {
+			t.mock.method(Paginator.prototype, "paginate", () => {
 				throw networkError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
-
 			// Act
 			const result = await repo.getAll({
-				currentPage: 1,
-				numberOfProductsPerPage: 10,
-				query: {},
+				pageNumber: 1,
 			});
 
 			// Assert
@@ -382,21 +416,16 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof DatabaseNetworkError);
 		});
 
-		test("Should return 'GenericDatabaseError' when 'db.find' throws unknown error", async (t) => {
+		test("Should return 'GenericDatabaseError' when 'paginator.paginate' throws unknown error", async (t) => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
-
-			t.mock.method(Product, "find", () => {
+			t.mock.method(Paginator.prototype, "paginate", () => {
 				throw unknownError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
-
 			// Act
 			const result = await repo.getAll({
-				currentPage: 1,
-				numberOfProductsPerPage: 10,
-				query: {},
+				pageNumber: 1,
 			});
 
 			// Assert
@@ -413,7 +442,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		test("Should return product object when 'db.findById' is called once with 'productId'", async (t) => {
 			// Arrange
 			mockCacheMiss({
-				cacheKey,
 				instance: mockCache,
 			});
 
@@ -439,7 +467,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		test("Should return product object when 'cache.get' is called once and returns 'undefined'", async (t) => {
 			// Arrange
 			mockCacheMiss({
-				cacheKey,
 				instance: mockCache,
 			});
 
@@ -481,7 +508,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.findById' returns 'null'", async (t) => {
 			// Arrange
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			const mockFindById = t.mock.method(Product, "findById", () => ({
 				lean: () => null,
@@ -509,7 +536,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw validationError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const product = await repo.getById({ productId: mockProduct._id });
@@ -529,7 +556,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw timeoutError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const product = await repo.getById({ productId: mockProduct._id });
@@ -547,7 +574,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw queryError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const product = await repo.getById({ productId: mockProduct._id });
@@ -565,7 +592,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw networkError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const product = await repo.getById({ productId: mockProduct._id });
@@ -583,7 +610,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw unknownError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const product = await repo.getById({ productId: mockProduct._id });
@@ -602,7 +629,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		test("Should return array of products when 'db.find' is called once with no args", async (t) => {
 			// Arrange
 			mockCacheMiss({
-				cacheKey,
 				instance: mockCache,
 			});
 
@@ -632,7 +658,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		test("Should return array of products when 'cache.get' is called once and returns 'undefined'", async (t) => {
 			// Arrange
 			mockCacheMiss({
-				cacheKey,
 				instance: mockCache,
 			});
 
@@ -681,7 +706,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return empty array when 'db.find' is called once and returns empty array", async (t) => {
 			// Arrange
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			t.mock.method(Product, "find", () => ({
 				select: () => ({
@@ -711,7 +736,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw validationError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const products = await repo.getTopRated({ limit });
@@ -731,7 +756,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw timeoutError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const products = await repo.getTopRated({ limit });
@@ -749,7 +774,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw queryError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const products = await repo.getTopRated({ limit });
@@ -767,7 +792,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw networkError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const products = await repo.getTopRated({ limit });
@@ -785,7 +810,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				throw unknownError;
 			});
 
-			mockCacheMiss({ cacheKey, instance: mockCache });
+			mockCacheMiss({ instance: mockCache });
 
 			// Act
 			const products = await repo.getTopRated({ limit });
@@ -843,7 +868,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should call 'cache.delete' and 'cache.stats' once with the correct 'cacheKey'", async (t) => {
+		test("Should call 'cache.delete' three times with the correct 'cacheKey'", async (t) => {
 			// Arrange
 			mockCacheInvalidation({
 				cacheKey,
@@ -861,13 +886,11 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Assert
-			assert.strictEqual(mockCache.delete.mock.callCount(), 1);
-			assert.deepStrictEqual(mockCache.delete.mock.calls[0].arguments[0], {
-				key: cacheKey,
-			});
-
-			assert.strictEqual(mockCache.getStats.mock.callCount(), 1);
-			assert.strictEqual(mockCache.getStats.mock.calls[0].arguments.length, 0);
+			assert.strictEqual(mockCache.delete.mock.callCount(), 3);
+			assert.deepStrictEqual(
+				mockCache.delete.mock.calls[0].arguments[0].key,
+				cacheKey,
+			);
 		});
 
 		test("Should return 'null' when 'db.findByIdAndUpdate' returns 'null'", async (t) => {
@@ -1021,7 +1044,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should call 'cache.delete' and 'cache.stats' once with the correct 'cacheKey'", async (t) => {
+		test("Should call 'cache.delete' three times with the correct 'cacheKey'", async (t) => {
 			// Arrange
 			mockCacheInvalidation({
 				cacheKey,
@@ -1036,13 +1059,11 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			await repo.delete({ productId });
 
 			// Assert
-			assert.strictEqual(mockCache.delete.mock.callCount(), 1);
-			assert.deepStrictEqual(mockCache.delete.mock.calls[0].arguments[0], {
-				key: cacheKey,
-			});
-
-			assert.strictEqual(mockCache.getStats.mock.callCount(), 1);
-			assert.strictEqual(mockCache.getStats.mock.calls[0].arguments.length, 0);
+			assert.strictEqual(mockCache.delete.mock.callCount(), 3);
+			assert.deepStrictEqual(
+				mockCache.delete.mock.calls[0].arguments[0].key,
+				cacheKey,
+			);
 		});
 
 		test("Should return 'null' when 'db.findByIdAndDelete' returns 'null'", async (t) => {

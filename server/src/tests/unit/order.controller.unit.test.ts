@@ -121,161 +121,318 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 	describe("getAll", () => {
 		const mockOrders = generateMockSelectOrders(5);
+		const mockMeta = {
+			currentPage: 1,
+			hasNextPage: false,
+			hasPreviousPage: false,
+			pageSize: 10,
+			totalItems: mockOrders.length,
+			totalPages: 1,
+		};
+		const mockPaginatedResponse = {
+			items: mockOrders,
+			meta: mockMeta,
+		};
 
-		test("Should call 'service.getAll' once without args", async (t) => {
+		test("Should call 'service.getAll' once with query parameters", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
+				req: { query: { pageNumber: "1" } },
 				testContext: t,
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrders, success: true }),
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
-			await assert.doesNotReject(
-				async () =>
-					await controller.getAll(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-			);
-
-			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
-			assert.strictEqual(mockService.getAll.mock.calls[0].arguments.length, 0);
-		});
-
-		test("Should call'res.status' once with '200' after successfully fetching all orders", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				testContext: t,
-			});
-
-			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrders, success: true }),
-			);
-
+			// Act
 			await controller.getAll(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
+			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
+			assert.strictEqual(mockService.getAll.mock.calls[0].arguments.length, 1);
+		});
+
+		test("Should pass query parameters to service.getAll", async (t) => {
+			// Arrange
+			const queryParams = {
+				pageNumber: "2",
+				pageSize: "5",
+				sort: "createdAt:desc",
+			};
+			const { next, req, res } = mockExpressCall({
+				req: { query: queryParams },
+				testContext: t,
+			});
+
+			mockService.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
+			);
+
+			// Act
+			await controller.getAll(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockService.getAll.mock.calls[0].arguments[0],
+				queryParams,
+			);
+		});
+
+		test("Should call 'res.status' once with '200' after successfully fetching orders", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { query: { pageNumber: "1" } },
+				testContext: t,
+			});
+
+			mockService.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
+			);
+
+			// Act
+			await controller.getAll(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
-		test("Should call 'res.json' once with the success response object containing all orders", async (t) => {
+		test("Should call 'res.json' once with paginated response structure", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
+				req: { query: { pageNumber: "1" } },
 				testContext: t,
 			});
 
 			mockService.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrders, success: true }),
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
+			// Act
 			await controller.getAll(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockOrders }),
+			assert.deepStrictEqual(res.json.mock.calls[0].arguments[0], {
+				data: mockPaginatedResponse.items,
+				meta: mockPaginatedResponse.meta,
+				success: true,
+			});
+		});
+
+		test("Should handle empty query parameters", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { query: {} },
+				testContext: t,
+			});
+
+			mockService.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
+
+			// Act
+			await controller.getAll(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
+			assert.deepStrictEqual(mockService.getAll.mock.calls[0].arguments[0], {});
 		});
 	});
 
 	describe("getAllByUserId", () => {
 		const mockOrders = generateMockSelectOrders(2);
 		const userId = mockOrders[0].user._id;
+		const mockMeta = {
+			currentPage: 1,
+			hasNextPage: false,
+			hasPreviousPage: false,
+			pageSize: 10,
+			totalItems: mockOrders.length,
+			totalPages: 1,
+		};
+		const mockPaginatedResponse = {
+			items: mockOrders,
+			meta: mockMeta,
+		};
 
-		test("Should parse 'userId' from 'req.params'", async (t) => {
+		test("Should parse 'userId' from 'req.params' and query from 'req.query'", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
-				testContext: t,
-			});
-
-			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrders, success: true }),
-			);
-
-			await assert.doesNotReject(
-				async () =>
-					await controller.getAllByUserId(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-			);
-		});
-
-		test("Should call 'service.getAllByUserId' once with the correct 'userId'", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
-				testContext: t,
-			});
-
-			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrders, success: true }),
-			);
-
-			await controller.getAllByUserId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
-
-			assert.strictEqual(mockService.getAllByUserId.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockService.getAllByUserId.mock.calls[0].arguments[0],
-				{
-					userId: userId.toString(),
+				req: {
+					params: { userId: userId.toString() },
+					query: { pageNumber: "1" },
 				},
-			);
-		});
-
-		test("Should call 'res.status' once with '200' after successfully fetching all orders", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
 				testContext: t,
 			});
 
-			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrders, success: true }),
+			mockService.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
+			// Act
 			await controller.getAllByUserId(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
+			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockService.getAll.mock.calls[0].arguments[0].user?.toString(),
+				userId.toString(),
+			);
+		});
+
+		test("Should call 'service.getAll' once with params", async (t) => {
+			// Arrange
+			const queryParams = {
+				pageNumber: "2",
+				pageSize: "5",
+				sort: "createdAt:desc",
+			};
+
+			const { next, req, res } = mockExpressCall({
+				req: {
+					params: { userId: userId.toString() },
+					query: queryParams,
+				},
+				testContext: t,
+			});
+
+			mockService.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
+			);
+
+			// Act
+			await controller.getAllByUserId(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
+
+			assert.deepStrictEqual(
+				mockService.getAll.mock.calls[0].arguments[0].pageNumber,
+				queryParams.pageNumber,
+			);
+			assert.deepStrictEqual(
+				mockService.getAll.mock.calls[0].arguments[0].pageSize,
+				queryParams.pageSize,
+			);
+			assert.deepStrictEqual(
+				mockService.getAll.mock.calls[0].arguments[0].sort,
+				queryParams.sort,
+			);
+		});
+
+		test("Should call 'res.status' once with '200' after successfully fetching user orders", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					params: { userId: userId.toString() },
+					query: { pageNumber: "1" },
+				},
+				testContext: t,
+			});
+
+			mockService.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
+			);
+
+			// Act
+			await controller.getAllByUserId(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
-		test("Should call 'res.json' once with the success response object containing all orders", async (t) => {
+		test("Should call 'res.json' once with paginated response structure", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
+				req: {
+					params: { userId: userId.toString() },
+					query: { pageNumber: "1" },
+				},
 				testContext: t,
 			});
 
-			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrders, success: true }),
+			mockService.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
+			// Act
 			await controller.getAllByUserId(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockOrders }),
+			assert.deepStrictEqual(res.json.mock.calls[0].arguments[0], {
+				data: mockPaginatedResponse.items,
+				meta: mockPaginatedResponse.meta,
+				success: true,
+			});
+		});
+
+		test("Should handle empty query parameters with userId", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					params: { userId: userId.toString() },
+					query: {},
+				},
+				testContext: t,
+			});
+
+			mockService.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
+
+			// Act
+			await controller.getAllByUserId(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
+			assert.deepStrictEqual(mockService.getAll.mock.calls[0].arguments[0], {
+				user: userId.toString(),
+			});
 		});
 	});
 
@@ -283,27 +440,8 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		const mockOrder = generateMockSelectOrder();
 		const orderId = mockOrder._id;
 
-		test("Should parse 'orderId' from 'req.params'", async (t) => {
-			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: orderId.toString() } },
-				testContext: t,
-			});
-
-			mockService.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrder, success: true }),
-			);
-
-			await assert.doesNotReject(
-				async () =>
-					await controller.getById(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
-			);
-		});
-
 		test("Should call 'service.getById' once with the correct 'orderId'", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId: orderId.toString() } },
 				testContext: t,
@@ -313,19 +451,23 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
+			// Act
 			await controller.getById(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(mockService.getById.mock.callCount(), 1);
-			assert.deepStrictEqual(mockService.getById.mock.calls[0].arguments[0], {
-				orderId: orderId.toString(),
-			});
+			assert.deepStrictEqual(
+				mockService.getById.mock.calls[0].arguments[0].orderId,
+				orderId.toString(),
+			);
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching order data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId: orderId.toString() } },
 				testContext: t,
@@ -335,17 +477,20 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
+			// Act
 			await controller.getById(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing order data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId: orderId.toString() } },
 				testContext: t,
@@ -355,12 +500,14 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
+			// Act
 			await controller.getById(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -374,6 +521,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		const orderId = mockOrder._id;
 
 		test("Should parse 'orderId' from 'req.params'", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId: orderId.toString() } },
 				testContext: t,
@@ -383,6 +531,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
+			// Act
 			await assert.doesNotReject(
 				async () =>
 					await controller.updateToPaid(
@@ -391,9 +540,13 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 						next,
 					),
 			);
+
+			// Assert
+			// Test passes if no error is thrown
 		});
 
 		test("Should call 'service.updateToPaid' once with the correct 'orderId'", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId: orderId.toString() } },
 				testContext: t,
@@ -403,12 +556,14 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
+			// Act
 			await controller.updateToPaid(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(mockService.updateToPaid.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockService.updateToPaid.mock.calls[0].arguments[0],
@@ -419,6 +574,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '200' after successfully updating order data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId: orderId.toString() } },
 				testContext: t,
@@ -428,17 +584,20 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
+			// Act
 			await controller.updateToPaid(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing order data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId: orderId.toString() } },
 				testContext: t,
@@ -448,12 +607,14 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
+			// Act
 			await controller.updateToPaid(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -467,6 +628,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		const orderId = mockOrder._id;
 
 		test("Should parse 'orderId' from 'req.params'", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId: orderId.toString() } },
 				testContext: t,
@@ -476,6 +638,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
+			// Act
 			await assert.doesNotReject(
 				async () =>
 					await controller.updateToDelivered(
@@ -484,9 +647,13 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 						next,
 					),
 			);
+
+			// Assert
+			// Test passes if no error is thrown
 		});
 
 		test("Should call 'service.updateToDelivered' once with the correct 'orderId'", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId: orderId.toString() } },
 				testContext: t,
@@ -496,12 +663,14 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
+			// Act
 			await controller.updateToDelivered(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(mockService.updateToDelivered.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockService.updateToDelivered.mock.calls[0].arguments[0],
@@ -512,6 +681,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '200' after successfully updating order data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId: orderId.toString() } },
 				testContext: t,
@@ -521,17 +691,20 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
+			// Act
 			await controller.updateToDelivered(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing order data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId: orderId.toString() } },
 				testContext: t,
@@ -541,12 +714,14 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
+			// Act
 			await controller.updateToDelivered(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],

@@ -215,27 +215,56 @@ suite("Session Service〖 Unit Tests 〗", () => {
 	});
 
 	describe("getActiveByUserId", () => {
-		it("Should return success with active sessions when repository resolves", async () => {
+		it("Should return success with paginated active sessions when repository resolves", async () => {
 			// Arrange
 			const userId = generateMockObjectId().toString();
-			const expected = generateMockSelectSessions({ count: 2 });
+			const expectedSessions = generateMockSelectSessions({ count: 2 });
+			const expectedPaginationMeta = {
+				currentPage: 1,
+				hasNextPage: false,
+				hasPreviousPage: false,
+				pageSize: 10,
+				totalItems: 2,
+				totalPages: 1,
+			};
 
-			mockRepo.getAllActiveByUserId.mock.mockImplementation(async () => ({
-				data: expected,
-				success: true,
-			}));
+			mockRepo.getAllActiveByUserId.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: {
+						items: expectedSessions,
+						meta: expectedPaginationMeta,
+					},
+					success: true,
+				}),
+			);
 
 			// Act
-			const result = await service.getActiveByUserId({ userId });
+			const result = await service.getActiveByUserId({
+				pageNumber: "1",
+				pageSize: "10",
+				userId,
+			});
 
 			// Assert
 			assert.ok(result.success);
-			assert.deepStrictEqual(result.data, expected);
+			assert.strictEqual(Array.isArray(result.data.items), true);
+			assert.strictEqual(result.data.items.length, 2);
+			assert.deepStrictEqual(result.data.items, expectedSessions);
+			assert.deepStrictEqual(result.data.meta, expectedPaginationMeta);
 
 			assert.strictEqual(mockRepo.getAllActiveByUserId.mock.callCount(), 1);
-			assert.deepStrictEqual(
+
+			assert.strictEqual(
 				mockRepo.getAllActiveByUserId.mock.calls[0].arguments[0].userId,
 				userId,
+			);
+			assert.strictEqual(
+				mockRepo.getAllActiveByUserId.mock.calls[0].arguments[0].pageNumber,
+				1,
+			);
+			assert.strictEqual(
+				mockRepo.getAllActiveByUserId.mock.calls[0].arguments[0].pageSize,
+				10,
 			);
 		});
 
@@ -244,13 +273,72 @@ suite("Session Service〖 Unit Tests 〗", () => {
 			const userId = "invalid-objectid";
 
 			// Act
-			const result = await service.getActiveByUserId({ userId });
+			const result = await service.getActiveByUserId({
+				pageNumber: "1",
+				pageSize: "10",
+				userId,
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof SessionValidationError);
 
 			assert.strictEqual(mockRepo.getAllActiveByUserId.mock.callCount(), 0);
+		});
+
+		it("Should return SessionValidationError for invalid pagination parameters", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+
+			// Act
+			const result = await service.getActiveByUserId({
+				pageNumber: "invalid-page",
+				pageSize: "invalid-size",
+				userId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof SessionValidationError);
+
+			assert.strictEqual(mockRepo.getAllActiveByUserId.mock.callCount(), 0);
+		});
+
+		it("Should return success with empty paginated result when no active sessions exist", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+			const emptyPaginationMeta = {
+				currentPage: 1,
+				hasNextPage: false,
+				hasPreviousPage: false,
+				pageSize: 10,
+				totalItems: 0,
+				totalPages: 0,
+			};
+
+			mockRepo.getAllActiveByUserId.mock.mockImplementation(async () => ({
+				data: {
+					items: [],
+					meta: emptyPaginationMeta,
+				},
+				success: true,
+			}));
+
+			// Act
+			const result = await service.getActiveByUserId({
+				pageNumber: "1",
+				pageSize: "10",
+				userId,
+			});
+
+			// Assert
+			assert.ok(result.success);
+			assert.strictEqual(Array.isArray(result.data.items), true);
+			assert.strictEqual(result.data.items.length, 0);
+			assert.deepStrictEqual(result.data.items, []);
+			assert.deepStrictEqual(result.data.meta, emptyPaginationMeta);
+
+			assert.strictEqual(mockRepo.getAllActiveByUserId.mock.callCount(), 1);
 		});
 
 		it("Should pass through BaseError from repository", async () => {
@@ -265,7 +353,11 @@ suite("Session Service〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const result = await service.getActiveByUserId({ userId });
+			const result = await service.getActiveByUserId({
+				pageNumber: "1",
+				pageSize: "10",
+				userId,
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -286,7 +378,11 @@ suite("Session Service〖 Unit Tests 〗", () => {
 				);
 
 				// Act
-				const result = await service.getActiveByUserId({ userId });
+				const result = await service.getActiveByUserId({
+					pageNumber: "1",
+					pageSize: "10",
+					userId,
+				});
 
 				// Assert
 				assert.strictEqual(result.success, false);

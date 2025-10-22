@@ -2,7 +2,9 @@ import type { IUserService } from "../services/index.js";
 import type {
 	AsyncHandler,
 	InsertUser,
+	PaginatedResponse,
 	SafeSelectUser,
+	UserPaginationParams,
 } from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
@@ -15,7 +17,11 @@ export interface IUserController {
 		resBody: { data: null };
 	}>;
 	getAll: AsyncHandler<{
-		resBody: { data: Array<SafeSelectUser> };
+		query: UserPaginationParams;
+		resBody: {
+			data: PaginatedResponse<SafeSelectUser>["items"];
+			meta: PaginatedResponse<SafeSelectUser>["meta"];
+		};
 	}>;
 	getById: AsyncHandler<{
 		params: { userId: string };
@@ -47,15 +53,20 @@ export class UserController implements IUserController {
 	});
 
 	getAll = asyncHandler<{
-		resBody: { data: Array<SafeSelectUser> };
+		query: UserPaginationParams;
+		resBody: {
+			data: PaginatedResponse<SafeSelectUser>["items"];
+			meta: PaginatedResponse<SafeSelectUser>["meta"];
+		};
 	}>(async (req, res) => {
-		const result = await this._service.getAll();
+		const result = await this._service.getAll(req.query);
 		if (!result.success) {
 			throw result.error;
 		}
 
 		res.status(HTTP_STATUS.OK).json({
-			data: result.data,
+			data: result.data.items,
+			meta: result.data.meta,
 			success: true,
 		});
 	});

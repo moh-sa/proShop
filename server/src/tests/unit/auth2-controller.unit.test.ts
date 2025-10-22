@@ -727,6 +727,14 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockSessions = generateMockSelectSessions({ count: 3 });
 			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockPaginationMeta = {
+				currentPage: 1,
+				hasNextPage: false,
+				hasPreviousPage: false,
+				pageSize: 10,
+				totalItems: 3,
+				totalPages: 1,
+			};
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -734,10 +742,16 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 				data: mockRefreshToken,
 				success: true,
 			}));
-			mockManager.getUserSessions.mock.mockImplementation(async () => ({
-				data: mockSessions,
-				success: true,
-			}));
+
+			mockManager.getUserSessions.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: {
+						items: mockSessions,
+						meta: mockPaginationMeta,
+					},
+					success: true,
+				}),
+			);
 
 			// Act
 			await controller.getUserSessions(req, res, next);
@@ -750,6 +764,14 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockSessions = generateMockSelectSessions({ count: 3 });
 			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockPaginationMeta = {
+				currentPage: 1,
+				hasNextPage: false,
+				hasPreviousPage: false,
+				pageSize: 10,
+				totalItems: 3,
+				totalPages: 1,
+			};
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -757,10 +779,15 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 				data: mockRefreshToken,
 				success: true,
 			}));
-			mockManager.getUserSessions.mock.mockImplementation(async () => ({
-				data: mockSessions,
-				success: true,
-			}));
+			mockManager.getUserSessions.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: {
+						items: mockSessions,
+						meta: mockPaginationMeta,
+					},
+					success: true,
+				}),
+			);
 
 			// Act
 			await controller.getUserSessions(req, res, next);
@@ -770,23 +797,37 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 			const expectedSessions = JSON.parse(JSON.stringify(mockSessions));
 
 			assert.ok(responseData.success);
-			assert.deepStrictEqual(responseData.data.sessions, expectedSessions);
+			assert.deepStrictEqual(responseData.data, expectedSessions);
+			assert.deepStrictEqual(responseData.meta, mockPaginationMeta);
 		});
 
 		it("should not modify any cookies during session retrieval", async () => {
 			// Arrange
 			const mockSessions = generateMockSelectSessions({ count: 3 });
 			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockPaginationMeta = {
+				currentPage: 1,
+				hasNextPage: false,
+				hasPreviousPage: false,
+				pageSize: 10,
+				totalItems: 3,
+				totalPages: 1,
+			};
 
 			const { next, req, res } = createMockExpressContext();
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
 				success: true,
 			}));
-			mockManager.getUserSessions.mock.mockImplementation(async () => ({
-				data: mockSessions,
-				success: true,
-			}));
+			mockManager.getUserSessions.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: {
+						items: mockSessions,
+						meta: mockPaginationMeta,
+					},
+					success: true,
+				}),
+			);
 
 			// Act
 			await controller.getUserSessions(req, res, next);

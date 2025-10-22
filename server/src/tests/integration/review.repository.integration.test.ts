@@ -48,9 +48,9 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			assert.ok(createdReview.success);
 			assert.ok(createdReview.data);
 			assert.ok(createdReview.data._id, "Review should have an ID");
-			assert.equal(createdReview.data.name, mockReview.name);
-			assert.equal(createdReview.data.rating, mockReview.rating);
-			assert.equal(createdReview.data.comment, mockReview.comment);
+			assert.strictEqual(createdReview.data.name, mockReview.name);
+			assert.strictEqual(createdReview.data.rating, mockReview.rating);
+			assert.strictEqual(createdReview.data.comment, mockReview.comment);
 			assert.deepStrictEqual(createdReview.data.user, mockReview.user);
 			assert.deepStrictEqual(createdReview.data.product, mockReview.product);
 		});
@@ -84,9 +84,9 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.ok(retrievedReview.success);
 			assert.ok(retrievedReview.data);
-			assert.equal(retrievedReview.data.name, mockReview.name);
-			assert.equal(retrievedReview.data.rating, mockReview.rating);
-			assert.equal(retrievedReview.data.comment, mockReview.comment);
+			assert.strictEqual(retrievedReview.data.name, mockReview.name);
+			assert.strictEqual(retrievedReview.data.rating, mockReview.rating);
+			assert.strictEqual(retrievedReview.data.comment, mockReview.comment);
 			assert.deepStrictEqual(retrievedReview.data.user, mockReview.user);
 			assert.deepStrictEqual(retrievedReview.data.product, mockReview.product);
 		});
@@ -119,29 +119,40 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 	});
 
 	describe("getAll", () => {
-		test("should return empty array when 'getAll' is called with no reviews in database", async () => {
+		test("should return empty paginated result when 'getAll' is called with no reviews in database", async () => {
 			// Act
-			const reviews = await reviewRepository.getAll();
+			const reviews = await reviewRepository.getAll({ pageNumber: 1 });
 
 			// Assert
 			assert.ok(reviews.success);
-			assert.deepStrictEqual(reviews.data, []);
+
+			assert.ok(Array.isArray(reviews.data.items));
+			assert.strictEqual(reviews.data.items.length, 0);
+
+			assert.strictEqual(reviews.data.meta.totalItems, 0);
+			assert.strictEqual(reviews.data.meta.currentPage, 1);
+			assert.strictEqual(reviews.data.meta.totalPages, 1);
 		});
 
-		test("should return all reviews when 'getAll' is called with multiple reviews in database", async () => {
+		test("should return paginated reviews when 'getAll' is called with multiple reviews in database", async () => {
 			// Arrange
 			const mockReviews = generateMockSelectReviews({ count: 3 });
 			await Review.insertMany(mockReviews);
 
 			// Act
-			const reviews = await reviewRepository.getAll();
+			const reviews = await reviewRepository.getAll({ pageNumber: 1 });
 
 			// Assert
 			assert.ok(reviews.success);
-			assert.ok(Array.isArray(reviews.data));
-			assert.equal(reviews.data.length, mockReviews.length);
 
-			reviews.data.forEach((review) => {
+			assert.ok(Array.isArray(reviews.data.items));
+			assert.strictEqual(reviews.data.items.length, mockReviews.length);
+
+			assert.strictEqual(reviews.data.meta.totalItems, mockReviews.length);
+			assert.strictEqual(reviews.data.meta.currentPage, 1);
+			assert.strictEqual(reviews.data.meta.totalPages, 1);
+
+			reviews.data.items.forEach((review) => {
 				const mockReview = mockReviews.find(
 					(mr) => mr._id.toString() === review._id.toString(),
 				);
@@ -151,10 +162,60 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 				);
 			});
 		});
+
+		test("should return paginated reviews with correct pagination when 'getAll' is called with pageSize", async () => {
+			// Arrange
+			const mockReviews = generateMockSelectReviews({ count: 15 });
+			await Review.insertMany(mockReviews);
+
+			// Act
+			const reviews = await reviewRepository.getAll({
+				pageNumber: 1,
+				pageSize: 5,
+			});
+
+			// Assert
+			assert.ok(reviews.success);
+
+			assert.ok(Array.isArray(reviews.data.items));
+			assert.strictEqual(reviews.data.items.length, 5);
+
+			assert.strictEqual(reviews.data.meta.totalItems, 15);
+			assert.strictEqual(reviews.data.meta.currentPage, 1);
+			assert.strictEqual(reviews.data.meta.pageSize, 5);
+			assert.strictEqual(reviews.data.meta.totalPages, 3);
+			assert.strictEqual(reviews.data.meta.hasNextPage, true);
+			assert.strictEqual(reviews.data.meta.hasPreviousPage, false);
+		});
+
+		test("should return second page of reviews when 'getAll' is called with pageNumber 2", async () => {
+			// Arrange
+			const mockReviews = generateMockSelectReviews({ count: 15 });
+			await Review.insertMany(mockReviews);
+
+			// Act
+			const reviews = await reviewRepository.getAll({
+				pageNumber: 2,
+				pageSize: 5,
+			});
+
+			// Assert
+			assert.ok(reviews.success);
+
+			assert.ok(Array.isArray(reviews.data.items));
+			assert.strictEqual(reviews.data.items.length, 5);
+
+			assert.strictEqual(reviews.data.meta.totalItems, 15);
+			assert.strictEqual(reviews.data.meta.currentPage, 2);
+			assert.strictEqual(reviews.data.meta.pageSize, 5);
+			assert.strictEqual(reviews.data.meta.totalPages, 3);
+			assert.strictEqual(reviews.data.meta.hasNextPage, true);
+			assert.strictEqual(reviews.data.meta.hasPreviousPage, true);
+		});
 	});
 
 	describe("getAllByUserId", () => {
-		test("should return user's reviews when 'getAllByUserId' is called with valid user ID", async () => {
+		test("should return user's paginated reviews when 'getAllByUserId' is called with valid user ID", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
 			const mockReviews = generateMockSelectReviews({
@@ -165,54 +226,109 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			await Review.insertMany([...mockReviews, ...otherReviews]);
 
 			// Act
-			const reviews = await reviewRepository.getAllByUserId({ userId });
+			const reviews = await reviewRepository.getAllByUserId({
+				pageNumber: 1,
+				userId,
+			});
 
 			// Assert
 			assert.ok(reviews.success);
-			assert.ok(Array.isArray(reviews.data));
-			assert.equal(reviews.data.length, mockReviews.length);
 
-			reviews.data.forEach((review) => {
-				assert.deepStrictEqual(
-					review.user,
-					userId,
-					"Each review should belong to the specified user",
-				);
-			});
+			assert.ok(Array.isArray(reviews.data.items));
+			assert.strictEqual(reviews.data.items.length, mockReviews.length);
+
+			assert.strictEqual(reviews.data.meta.totalItems, mockReviews.length);
+			assert.strictEqual(reviews.data.meta.currentPage, 1);
+			assert.strictEqual(reviews.data.meta.totalPages, 1);
+
+			assert.strictEqual(
+				reviews.data.items.every(
+					(r) => r.user.toString() === userId.toString(),
+				),
+				true,
+			);
 		});
 
-		test("should return empty array when 'getAllByUserId' is called with user having no reviews", async () => {
+		test("should return empty paginated result when 'getAllByUserId' is called with user having no reviews", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
 			const mockReviews = generateMockSelectReviews({ count: 2 });
 			await Review.insertMany(mockReviews);
 
 			// Act
-			const reviews = await reviewRepository.getAllByUserId({ userId });
+			const reviews = await reviewRepository.getAllByUserId({
+				pageNumber: 1,
+				userId,
+			});
 
 			// Assert
 			assert.ok(reviews.success);
-			assert.ok(Array.isArray(reviews.data));
-			assert.deepStrictEqual(reviews.data, []);
+
+			assert.ok(Array.isArray(reviews.data.items));
+			assert.strictEqual(reviews.data.items.length, 0);
+
+			assert.strictEqual(reviews.data.meta.totalItems, 0);
+			assert.strictEqual(reviews.data.meta.currentPage, 1);
+			assert.strictEqual(reviews.data.meta.totalPages, 1);
 		});
 
-		test("should throw 'DatabaseValidationError' when 'getAllByUserId' is called with invalid ObjectId", async () => {
+		test("should return paginated user reviews with correct pagination when 'getAllByUserId' is called with pageSize", async () => {
+			// Arrange
+			const userId = generateMockObjectId();
+			const mockReviews = generateMockSelectReviews({
+				count: 8,
+				options: { user: userId },
+			});
+			const otherReviews = generateMockSelectReviews({ count: 5 });
+			await Review.insertMany([...mockReviews, ...otherReviews]);
+
+			// Act
+			const reviews = await reviewRepository.getAllByUserId({
+				pageNumber: 1,
+				pageSize: 3,
+				userId,
+			});
+
+			// Assert
+			assert.ok(reviews.success);
+
+			assert.ok(Array.isArray(reviews.data.items));
+			assert.strictEqual(reviews.data.items.length, 3);
+
+			assert.strictEqual(reviews.data.meta.totalItems, mockReviews.length);
+			assert.strictEqual(reviews.data.meta.currentPage, 1);
+			assert.strictEqual(reviews.data.meta.pageSize, 3);
+			assert.strictEqual(reviews.data.meta.totalPages, 3);
+			assert.strictEqual(reviews.data.meta.hasNextPage, true);
+			assert.strictEqual(reviews.data.meta.hasPreviousPage, false);
+
+			assert.strictEqual(
+				reviews.data.items.every(
+					(r) => r.user.toString() === userId.toString(),
+				),
+				true,
+			);
+		});
+
+		test("should return 'empty array' when 'getAllByUserId' is called with invalid ObjectId", async () => {
 			// Arrange
 			const invalidId = "invalid-id" as unknown as Types.ObjectId;
 
 			// Act
 			const result = await reviewRepository.getAllByUserId({
+				pageNumber: 1,
 				userId: invalidId,
 			});
 
 			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof DatabaseValidationError);
+			assert.strictEqual(result.success, true);
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, 0);
 		});
 	});
 
 	describe("getAllByProductId", () => {
-		test("should return product's reviews when 'getAllByProductId' is called with valid product ID", async () => {
+		test("should return product's paginated reviews when 'getAllByProductId' is called with valid product ID", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
 			const mockReviews = generateMockSelectReviews({
@@ -223,48 +339,104 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			await Review.insertMany([...mockReviews, ...otherReviews]);
 
 			// Act
-			const reviews = await reviewRepository.getAllByProductId({ productId });
+			const reviews = await reviewRepository.getAllByProductId({
+				pageNumber: 1,
+				productId,
+			});
 
 			// Assert
 			assert.ok(reviews.success);
-			assert.ok(Array.isArray(reviews.data));
-			assert.equal(reviews.data.length, mockReviews.length);
-			reviews.data.forEach((review) => {
-				assert.deepStrictEqual(
-					review.product,
-					productId,
-					"Each review should belong to the specified product",
-				);
-			});
+
+			assert.ok(Array.isArray(reviews.data.items));
+			assert.strictEqual(reviews.data.items.length, mockReviews.length);
+
+			assert.strictEqual(reviews.data.meta.totalItems, mockReviews.length);
+			assert.strictEqual(reviews.data.meta.currentPage, 1);
+			assert.strictEqual(reviews.data.meta.totalPages, 1);
+
+			assert.strictEqual(
+				reviews.data.items.every(
+					(r) => r.product.toString() === productId.toString(),
+				),
+				true,
+			);
 		});
 
-		test("should return empty array when 'getAllByProductId' is called with product having no reviews", async () => {
+		test("should return empty paginated result when 'getAllByProductId' is called with product having no reviews", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
 			const mockReviews = generateMockSelectReviews({ count: 2 });
 			await Review.insertMany(mockReviews);
 
 			// Act
-			const reviews = await reviewRepository.getAllByProductId({ productId });
+			const reviews = await reviewRepository.getAllByProductId({
+				pageNumber: 1,
+				productId,
+			});
 
 			// Assert
 			assert.ok(reviews.success);
-			assert.ok(Array.isArray(reviews.data));
-			assert.deepStrictEqual(reviews.data, []);
+
+			assert.ok(Array.isArray(reviews.data.items));
+			assert.strictEqual(reviews.data.items.length, 0);
+
+			assert.strictEqual(reviews.data.meta.totalItems, 0);
+			assert.strictEqual(reviews.data.meta.currentPage, 1);
+			assert.strictEqual(reviews.data.meta.totalPages, 1);
 		});
 
-		test("should throw 'DatabaseValidationError' when 'getAllByProductId' is called with invalid ObjectId", async () => {
+		test("should return paginated product reviews with correct pagination when 'getAllByProductId' is called with pageSize", async () => {
+			// Arrange
+			const productId = generateMockObjectId();
+			const mockReviews = generateMockSelectReviews({
+				count: 7,
+				options: { product: productId },
+			});
+			const otherReviews = generateMockSelectReviews({ count: 4 });
+			await Review.insertMany([...mockReviews, ...otherReviews]);
+
+			// Act
+			const reviews = await reviewRepository.getAllByProductId({
+				pageNumber: 1,
+				pageSize: 3,
+				productId,
+			});
+
+			// Assert
+			assert.ok(reviews.success);
+
+			assert.ok(Array.isArray(reviews.data.items));
+			assert.strictEqual(reviews.data.items.length, 3);
+
+			assert.strictEqual(reviews.data.meta.totalItems, mockReviews.length);
+			assert.strictEqual(reviews.data.meta.currentPage, 1);
+			assert.strictEqual(reviews.data.meta.pageSize, 3);
+			assert.strictEqual(reviews.data.meta.totalPages, 3);
+			assert.strictEqual(reviews.data.meta.hasNextPage, true);
+			assert.strictEqual(reviews.data.meta.hasPreviousPage, false);
+
+			assert.strictEqual(
+				reviews.data.items.every(
+					(r) => r.product.toString() === productId.toString(),
+				),
+				true,
+			);
+		});
+
+		test("should return 'empty array' when 'getAllByProductId' is called with invalid ObjectId", async () => {
 			// Arrange
 			const invalidId = "invalid-id" as unknown as Types.ObjectId;
 
 			// Act
 			const result = await reviewRepository.getAllByProductId({
+				pageNumber: 1,
 				productId: invalidId,
 			});
 
 			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof DatabaseValidationError);
+			assert.strictEqual(result.success, true);
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, 0);
 		});
 	});
 
@@ -288,11 +460,11 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.ok(updatedReview.success);
 			assert.ok(updatedReview.data);
-			assert.equal(updatedReview.data.rating, updateData.rating);
-			assert.equal(updatedReview.data.comment, updateData.comment);
+			assert.strictEqual(updatedReview.data.rating, updateData.rating);
+			assert.strictEqual(updatedReview.data.comment, updateData.comment);
 
 			// Verify other fields remain unchanged
-			assert.equal(updatedReview.data.name, mockReview.name);
+			assert.strictEqual(updatedReview.data.name, mockReview.name);
 			assert.deepStrictEqual(updatedReview.data.user, mockReview.user);
 			assert.deepStrictEqual(updatedReview.data.product, mockReview.product);
 		});
@@ -329,9 +501,9 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.ok(deletedReview.success);
 			assert.ok(deletedReview.data);
-			assert.equal(deletedReview.data.name, mockReview.name);
-			assert.equal(deletedReview.data.rating, mockReview.rating);
-			assert.equal(deletedReview.data.comment, mockReview.comment);
+			assert.strictEqual(deletedReview.data.name, mockReview.name);
+			assert.strictEqual(deletedReview.data.rating, mockReview.rating);
+			assert.strictEqual(deletedReview.data.comment, mockReview.comment);
 			assert.deepStrictEqual(deletedReview.data.user, mockReview.user);
 			assert.deepStrictEqual(deletedReview.data.product, mockReview.product);
 
@@ -378,7 +550,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.ok(count.success);
-			assert.equal(count.data, mockReviews.length);
+			assert.strictEqual(count.data, mockReviews.length);
 		});
 
 		test("should return zero when 'count' is called with empty database", async () => {
@@ -387,7 +559,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.ok(count.success);
-			assert.equal(count.data, 0);
+			assert.strictEqual(count.data, 0);
 		});
 	});
 
@@ -407,7 +579,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.ok(count.success);
-			assert.equal(count.data, mockReviews.length);
+			assert.strictEqual(count.data, mockReviews.length);
 		});
 
 		test("should return zero when 'countByUserId' is called with user having no reviews", async () => {
@@ -421,7 +593,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.ok(count.success);
-			assert.equal(count.data, 0);
+			assert.strictEqual(count.data, 0);
 		});
 
 		test("should throw 'DatabaseValidationError' when 'countByUserId' is called with invalid ObjectId", async () => {
@@ -455,7 +627,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.ok(count.success);
-			assert.equal(count.data, mockReviews.length);
+			assert.strictEqual(count.data, mockReviews.length);
 		});
 
 		test("should return zero when 'countByProductId' is called with product having no reviews", async () => {
@@ -469,7 +641,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.ok(count.success);
-			assert.equal(count.data, 0);
+			assert.strictEqual(count.data, 0);
 		});
 
 		test("should throw 'DatabaseValidationError' when 'countByProductId' is called with invalid ObjectId", async () => {
@@ -600,8 +772,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Assert
 			const updatedProduct = await Product.findById(productId).lean();
 			assert.ok(updatedProduct);
-			assert.equal(updatedProduct.rating, 4.0);
-			assert.equal(updatedProduct.numReviews, 1);
+			assert.strictEqual(updatedProduct.rating, 4.0);
+			assert.strictEqual(updatedProduct.numReviews, 1);
 		});
 
 		test("should update product rating and numReviews when review is updated", async () => {
@@ -626,8 +798,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const updatedProduct = await Product.findById(productId).lean();
 
 			assert.ok(updatedProduct);
-			assert.equal(updatedProduct.rating, updateData.rating);
-			assert.equal(updatedProduct.numReviews, 1);
+			assert.strictEqual(updatedProduct.rating, updateData.rating);
+			assert.strictEqual(updatedProduct.numReviews, 1);
 		});
 
 		test("should update product rating and numReviews when review is deleted", async () => {
@@ -648,8 +820,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const updatedProduct = await Product.findById(productId).lean();
 
 			assert.ok(updatedProduct);
-			assert.equal(updatedProduct.rating, 0);
-			assert.equal(updatedProduct.numReviews, 0);
+			assert.strictEqual(updatedProduct.rating, 0);
+			assert.strictEqual(updatedProduct.numReviews, 0);
 		});
 	});
 });

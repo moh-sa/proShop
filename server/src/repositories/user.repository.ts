@@ -6,12 +6,14 @@ import type {
 	InsertUser,
 	MethodParams,
 	MethodReturn,
+	PaginatedResponse,
+	PaginationParamsQuery,
 	Result,
 	SelectUser,
 } from "../types/index.js";
 
 import User from "../models/user.model.js";
-import { handleDatabaseErrorResult } from "../utils/index.js";
+import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IUserRepository {
 	create(data: InsertUser): Promise<UserResult<SelectUser>>;
@@ -21,7 +23,9 @@ export interface IUserRepository {
 	existsByEmail(data: {
 		email: string;
 	}): Promise<UserResult<null | { _id: Types.ObjectId }>>;
-	getAll(): Promise<UserResult<Array<SelectUser>>>;
+	getAll(
+		args: PaginationParamsQuery<SelectUser>,
+	): Promise<UserResult<PaginatedResponse<SelectUser>>>;
 	getByEmail(data: { email: string }): Promise<UserResult<null | SelectUser>>;
 	getById(data: {
 		userId: Types.ObjectId;
@@ -36,9 +40,11 @@ type UserResult<T> = Result<T, DatabaseBaseError>;
 
 export class UserRepository implements IUserRepository {
 	private readonly _db: typeof User;
+	private _paginator: Paginator<SelectUser>;
 
 	constructor(db: typeof User = User) {
 		this._db = db;
+		this._paginator = new Paginator(this._db);
 	}
 
 	async create(
@@ -92,9 +98,16 @@ export class UserRepository implements IUserRepository {
 		}
 	}
 
-	async getAll(): MethodReturn<IUserRepository, "getAll"> {
+	async getAll(
+		args: MethodParams<IUserRepository, "getAll">,
+	): MethodReturn<IUserRepository, "getAll"> {
 		try {
-			const result = await this._db.find({}).lean();
+			const result = await this._paginator.paginate({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: args.query,
+				sort: args.sort,
+			});
 
 			return {
 				data: result,

@@ -1,8 +1,6 @@
 import type { ICacheService } from "../../services/index.js";
 import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
-import { CacheOperationError } from "../../errors/index.js";
-
 export function mockCacheInvalidation({
 	cacheKey,
 	instance,
@@ -10,18 +8,8 @@ export function mockCacheInvalidation({
 	cacheKey: string;
 	instance: FunctionMocksWithReset<ICacheService>;
 }): void {
-	instance.delete.mock.mockImplementationOnce(() => ({
-		error: CacheOperationError.delete(cacheKey),
-		key: cacheKey,
-		success: false,
-	}));
-
-	instance.getStats.mock.mockImplementationOnce(() => ({
-		hits: 0,
-		keysSize: 0,
-		misses: 0,
-		numberOfKeys: 0,
-		totalSize: 0,
-		valuesSize: 0,
+	instance.delete.mock.mockImplementation(() => ({
+		data: cacheKey,
+		success: true,
 	}));
 }

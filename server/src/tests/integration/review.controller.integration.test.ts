@@ -1,6 +1,8 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 
+import type { SelectReview } from "../../types/review.type.js";
+
 import { ReviewController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
 import Review from "../../models/review.model.js";
@@ -41,8 +43,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.success);
+			assert.strictEqual(response.success, true);
 			assert.ok(response.data);
 		});
 
@@ -81,7 +82,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.strictEqual(response.success, true);
 			assert.ok(response.data);
 			assert.ok(response.data._id);
 			assert.strictEqual(response.data.user, mockReview.user.toString());
@@ -106,8 +107,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.success);
+			assert.strictEqual(response.success, true);
 			assert.ok(response.data);
 		});
 
@@ -140,7 +140,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.strictEqual(response.success, true);
 			assert.ok(response.data);
 			assert.strictEqual(response.data.user, mockReview.user.toString());
 			assert.strictEqual(response.data.product, mockReview.product.toString());
@@ -180,10 +180,12 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.success);
-			assert.ok(response.data);
-			assert.ok(response.data.length > 0);
+			assert.strictEqual(response.success, true);
+
+			assert.strictEqual(Array.isArray(response.data), true);
+			assert.strictEqual(response.data.length > 0, true);
+
+			assert.ok(response.meta);
 		});
 
 		test("Should return '200' status code when 'service.getAll' is called", async () => {
@@ -198,7 +200,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(code, 200);
 		});
 
-		test("Should return array of reviews when 'service.getAll' is called with reviews in database", async () => {
+		test("Should return paginated reviews when 'service.getAll' is called with reviews in database", async () => {
 			// Arrange
 			const mockReviews = generateMockSelectReviews({ count: 3 });
 			await Review.insertMany(mockReviews);
@@ -210,13 +212,20 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.data);
-			assert.ok(Array.isArray(response.data));
+			assert.strictEqual(response.success, true);
+
+			assert.strictEqual(Array.isArray(response.data), true);
 			assert.strictEqual(response.data.length, mockReviews.length);
+
+			assert.strictEqual(response.meta.totalItems, mockReviews.length);
+			assert.strictEqual(response.meta.currentPage, 1);
+			assert.strictEqual(response.meta.totalPages, 1);
+			assert.strictEqual(response.meta.pageSize, 10);
+			assert.strictEqual(response.meta.hasNextPage, false);
+			assert.strictEqual(response.meta.hasPreviousPage, false);
 		});
 
-		test("Should return empty array when 'service.getAll' is called with no reviews in database", async () => {
+		test("Should return empty paginated result when 'service.getAll' is called with no reviews in database", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 
@@ -225,9 +234,66 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.data);
+			assert.strictEqual(response.success, true);
+
+			assert.strictEqual(Array.isArray(response.data), true);
 			assert.strictEqual(response.data.length, 0);
+
+			assert.strictEqual(response.meta.totalItems, 0);
+			assert.strictEqual(response.meta.currentPage, 1);
+			assert.strictEqual(response.meta.totalPages, 1);
+		});
+
+		test("Should return paginated reviews with correct pagination when 'service.getAll' is called with pageSize", async () => {
+			// Arrange
+			const mockReviews = generateMockSelectReviews({ count: 15 });
+			await Review.insertMany(mockReviews);
+
+			const { next, req, res } = createMockExpressContext();
+			req.query = { pageNumber: "1", pageSize: "5" };
+
+			// Act
+			await controller.getAll(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.strictEqual(response.success, true);
+
+			assert.strictEqual(Array.isArray(response.data), true);
+			assert.strictEqual(response.data.length, 5);
+
+			assert.strictEqual(response.meta.totalItems, 15);
+			assert.strictEqual(response.meta.currentPage, 1);
+			assert.strictEqual(response.meta.pageSize, 5);
+			assert.strictEqual(response.meta.totalPages, 3);
+			assert.strictEqual(response.meta.hasNextPage, true);
+			assert.strictEqual(response.meta.hasPreviousPage, false);
+		});
+
+		test("Should return paginated reviews for second page when 'service.getAll' is called with pageNumber 2", async () => {
+			// Arrange
+			const mockReviews = generateMockSelectReviews({ count: 15 });
+			await Review.insertMany(mockReviews);
+
+			const { next, req, res } = createMockExpressContext();
+			req.query = { pageNumber: "2", pageSize: "5" };
+
+			// Act
+			await controller.getAll(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.strictEqual(response.success, true);
+
+			assert.strictEqual(Array.isArray(response.data), true);
+			assert.strictEqual(response.data.length, 5);
+
+			assert.strictEqual(response.meta.totalItems, 15);
+			assert.strictEqual(response.meta.currentPage, 2);
+			assert.strictEqual(response.meta.pageSize, 5);
+			assert.strictEqual(response.meta.totalPages, 3);
+			assert.strictEqual(response.meta.hasNextPage, true);
+			assert.strictEqual(response.meta.hasPreviousPage, true);
 		});
 	});
 
@@ -245,10 +311,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.success);
-			assert.ok(response.data);
-			assert.ok(response.data.length > 0);
+			assert.strictEqual(response.success, true);
+
+			assert.strictEqual(Array.isArray(response.data), true);
+			assert.strictEqual(response.data.length > 0, true);
 		});
 
 		test("Should return '200' status code when 'service.getAllByUserId' is called with valid 'userId'", async () => {
@@ -267,7 +333,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(code, 200);
 		});
 
-		test("Should return array of reviews for specific user when 'service.getAllByUserId' is called", async () => {
+		test("Should return paginated reviews for specific user when 'service.getAllByUserId' is called", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
 			const mockReviews = generateMockSelectReviews({
@@ -285,20 +351,25 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.data);
-			assert.ok(Array.isArray(response.data));
+			assert.strictEqual(response.success, true);
+
+			assert.strictEqual(Array.isArray(response.data), true);
 			assert.strictEqual(response.data.length, mockReviews.length);
-			mockReviews.forEach((review) => {
-				assert.ok(
-					response.data.some(
-						(r: any) => r._id.toString() === review._id.toString(),
-					),
-				);
-			});
+
+			assert.strictEqual(response.meta.totalItems, mockReviews.length);
+			assert.strictEqual(response.meta.currentPage, 1);
+			assert.strictEqual(response.meta.totalPages, 1);
+
+			assert.strictEqual(
+				response.data.every(
+					(review: SelectReview) =>
+						review.user.toString() === userId.toString(),
+				),
+				true,
+			);
 		});
 
-		test("Should return empty array when 'service.getAllByUserId' is called with user who has no reviews", async () => {
+		test("Should return empty paginated result when 'service.getAllByUserId' is called with user who has no reviews", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
 			const otherReviews = generateMockSelectReviews({ count: 2 }); // Different user
@@ -312,9 +383,45 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.data);
+			assert.strictEqual(response.success, true);
+
+			assert.strictEqual(Array.isArray(response.data), true);
 			assert.strictEqual(response.data.length, 0);
+
+			assert.strictEqual(response.meta.totalItems, 0);
+			assert.strictEqual(response.meta.currentPage, 1);
+			assert.strictEqual(response.meta.totalPages, 1);
+		});
+
+		test("Should return paginated reviews with correct pagination when 'service.getAllByUserId' is called with pageSize", async () => {
+			// Arrange
+			const userId = generateMockObjectId();
+			const mockReviews = generateMockSelectReviews({
+				count: 8,
+				options: { user: userId },
+			});
+			await Review.insertMany(mockReviews);
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { userId: userId.toString() };
+			req.query = { pageNumber: "1", pageSize: "3" };
+
+			// Act
+			await controller.getAllByUserId(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.strictEqual(response.success, true);
+
+			assert.strictEqual(Array.isArray(response.data), true);
+			assert.strictEqual(response.data.length, 3);
+
+			assert.strictEqual(response.meta.totalItems, mockReviews.length);
+			assert.strictEqual(response.meta.currentPage, 1);
+			assert.strictEqual(response.meta.pageSize, 3);
+			assert.strictEqual(response.meta.totalPages, 3);
+			assert.strictEqual(response.meta.hasNextPage, true);
+			assert.strictEqual(response.meta.hasPreviousPage, false);
 		});
 	});
 
@@ -332,10 +439,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.success);
-			assert.ok(response.data);
-			assert.ok(response.data.length > 0);
+			assert.strictEqual(response.success, true);
+
+			assert.strictEqual(Array.isArray(response.data), true);
+			assert.strictEqual(response.data.length > 0, true);
 		});
 
 		test("Should return '200' status code when 'service.getAllByProductId' is called with valid 'productId'", async () => {
@@ -354,7 +461,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(code, 200);
 		});
 
-		test("Should return array of reviews for specific product when 'service.getAllByProductId' is called", async () => {
+		test("Should return paginated reviews for specific product when 'service.getAllByProductId' is called", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
 			const mockReviews = generateMockSelectReviews({
@@ -372,20 +479,25 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.data);
-			assert.ok(Array.isArray(response.data));
+			assert.strictEqual(response.success, true);
+
+			assert.strictEqual(Array.isArray(response.data), true);
 			assert.strictEqual(response.data.length, mockReviews.length);
-			mockReviews.forEach((review) => {
-				assert.ok(
-					response.data.some(
-						(r: any) => r._id.toString() === review._id.toString(),
-					),
-				);
-			});
+
+			assert.strictEqual(response.meta.totalItems, mockReviews.length);
+			assert.strictEqual(response.meta.currentPage, 1);
+			assert.strictEqual(response.meta.totalPages, 1);
+
+			assert.strictEqual(
+				response.data.every(
+					(review: SelectReview) =>
+						review.product.toString() === productId.toString(),
+				),
+				true,
+			);
 		});
 
-		test("Should return empty array when 'service.getAllByProductId' is called with product that has no reviews", async () => {
+		test("Should return empty paginated result when 'service.getAllByProductId' is called with product that has no reviews", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
 			const otherReviews = generateMockSelectReviews({ count: 2 }); // Different product
@@ -399,9 +511,45 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.data);
+			assert.strictEqual(response.success, true);
+
+			assert.strictEqual(Array.isArray(response.data), true);
 			assert.strictEqual(response.data.length, 0);
+
+			assert.strictEqual(response.meta.totalItems, 0);
+			assert.strictEqual(response.meta.currentPage, 1);
+			assert.strictEqual(response.meta.totalPages, 1);
+		});
+
+		test("Should return paginated reviews with correct pagination when 'service.getAllByProductId' is called with pageSize", async () => {
+			// Arrange
+			const productId = generateMockObjectId();
+			const mockReviews = generateMockSelectReviews({
+				count: 7,
+				options: { product: productId },
+			});
+			await Review.insertMany(mockReviews);
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { productId: productId.toString() };
+			req.query = { pageNumber: "1", pageSize: "3" };
+
+			// Act
+			await controller.getAllByProductId(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.strictEqual(response.success, true);
+
+			assert.strictEqual(Array.isArray(response.data), true);
+			assert.strictEqual(response.data.length, 3);
+
+			assert.strictEqual(response.meta.totalItems, mockReviews.length);
+			assert.strictEqual(response.meta.currentPage, 1);
+			assert.strictEqual(response.meta.pageSize, 3);
+			assert.strictEqual(response.meta.totalPages, 3);
+			assert.strictEqual(response.meta.hasNextPage, true);
+			assert.strictEqual(response.meta.hasPreviousPage, false);
 		});
 	});
 
@@ -419,8 +567,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.success);
+			assert.strictEqual(response.success, true);
 			assert.ok(response.data);
 		});
 
@@ -455,7 +602,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.strictEqual(response.success, true);
 			assert.strictEqual(response.data.comment, updateData.comment);
 			assert.strictEqual(response.data.rating, updateData.rating);
 		});
@@ -475,7 +622,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.strictEqual(response.success, true);
 			assert.strictEqual(response.data.comment, updateData.comment);
 			assert.strictEqual(response.data.rating, mockReview.rating); // Should remain unchanged
 		});
@@ -515,8 +662,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.success);
+			assert.strictEqual(response.success, true);
 		});
 
 		test("Should return '204' status code when 'service.delete' is called with 'reviewId'", async () => {
@@ -548,7 +694,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.strictEqual(response.success, true);
 			assert.strictEqual(response.data, null);
 		});
 
@@ -586,8 +732,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.success);
+			assert.strictEqual(response.success, true);
 			assert.ok(response.data);
 		});
 
@@ -618,7 +763,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.strictEqual(response.success, true);
 			assert.strictEqual(typeof response.data, "number");
 		});
 
@@ -634,7 +779,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.strictEqual(response.success, true);
 			assert.strictEqual(response.data, mockReviews.length);
 		});
 
@@ -647,7 +792,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.strictEqual(response.success, true);
 			assert.strictEqual(response.data, 0);
 		});
 	});
@@ -666,8 +811,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.success);
+			assert.strictEqual(response.success, true);
 			assert.ok(response.data);
 		});
 
@@ -700,7 +844,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.strictEqual(response.success, true);
 			assert.strictEqual(typeof response.data, "number");
 		});
 
@@ -722,7 +866,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.strictEqual(response.success, true);
 			assert.strictEqual(response.data, mockReviews.length);
 		});
 
@@ -740,7 +884,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.strictEqual(response.success, true);
 			assert.strictEqual(response.data, 0);
 		});
 	});
@@ -759,8 +903,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.success);
+			assert.strictEqual(response.success, true);
 			assert.ok(response.data);
 		});
 
@@ -793,7 +936,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.strictEqual(response.success, true);
 			assert.strictEqual(typeof response.data, "number");
 		});
 
@@ -815,7 +958,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.strictEqual(response.success, true);
 			assert.strictEqual(response.data, mockReviews.length);
 		});
 
@@ -833,7 +976,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.strictEqual(response.success, true);
 			assert.strictEqual(response.data, 0);
 		});
 	});
@@ -852,8 +995,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.success);
+			assert.strictEqual(response.success, true);
 			assert.ok(response.data);
 		});
 
@@ -887,7 +1029,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.strictEqual(response.success, true);
 			assert.strictEqual(
 				response.data._id.toString(),
 				targetReview._id.toString(),
@@ -929,8 +1071,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.success);
+			assert.strictEqual(response.success, true);
 			assert.ok(response.data);
 		});
 
@@ -970,7 +1111,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.strictEqual(response.success, true);
 			assert.strictEqual(
 				response.data._id.toString(),
 				mockReview._id.toString(),

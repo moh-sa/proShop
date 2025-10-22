@@ -5,14 +5,21 @@ import type {
 	InsertReview,
 	MethodParams,
 	MethodReturn,
+	PaginatedResponse,
+	PaginationParamsString,
 	Result,
+	ReviewPaginationParamsByProductId,
+	ReviewPaginationParamsByUserId,
 	SelectReview,
 } from "../types/index.js";
 
 import { NotFoundError, ValidationError } from "../errors/index.js";
 import { ReviewRepository } from "../repositories/index.js";
 import { insertReviewSchema } from "../schemas/index.js";
-import { objectIdValidator } from "../validators/index.js";
+import {
+	objectIdValidator,
+	paginationParamsValidator,
+} from "../validators/index.js";
 
 export interface IReviewService {
 	count: () => Promise<ReviewResult<number>>;
@@ -29,13 +36,15 @@ export interface IReviewService {
 		productId: string;
 		userId: string;
 	}) => Promise<ReviewResult<{ _id: Types.ObjectId }>>;
-	getAll: () => Promise<ReviewResult<Array<SelectReview>>>;
-	getAllByProductId: (data: {
-		productId: string;
-	}) => Promise<ReviewResult<Array<SelectReview>>>;
-	getAllByUserId: (data: {
-		userId: string;
-	}) => Promise<ReviewResult<Array<SelectReview>>>;
+	getAll: (
+		args: PaginationParamsString,
+	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
+	getAllByProductId: (
+		args: ReviewPaginationParamsByProductId,
+	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
+	getAllByUserId: (
+		args: ReviewPaginationParamsByUserId,
+	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
 	getById: (data: { reviewId: string }) => Promise<ReviewResult<SelectReview>>;
 	update: (data: {
 		data: Partial<InsertReview>;
@@ -234,34 +243,27 @@ export class ReviewService implements IReviewService {
 		};
 	}
 
-	async getAll(): MethodReturn<IReviewService, "getAll"> {
-		const result = await this._repository.getAll();
-		if (!result.success) {
-			return result;
+	async getAll(
+		args: MethodParams<IReviewService, "getAll">,
+	): MethodReturn<IReviewService, "getAll"> {
+		const paginationValidationResult = paginationParamsValidator.safeParse({
+			pageNumber: args.pageNumber,
+			pageSize: args.pageSize,
+			sort: args.sort,
+		});
+		if (!paginationValidationResult.success) {
+			return {
+				error: new ValidationError("Invalid pagination data", {
+					cause: paginationValidationResult.error,
+				}),
+				success: false,
+			};
 		}
 
-		return {
-			data: result.data,
-			success: true,
-		};
-	}
-
-	async getAllByProductId({
-		productId,
-	}: MethodParams<IReviewService, "getAllByProductId">): MethodReturn<
-		IReviewService,
-		"getAllByProductId"
-	> {
-		const productIdValidationResult = this._validateObjectId(
-			"productId",
-			productId,
-		);
-		if (!productIdValidationResult.success) {
-			return productIdValidationResult;
-		}
-
-		const result = await this._repository.getAllByProductId({
-			productId: productIdValidationResult.data,
+		const result = await this._repository.getAll({
+			pageNumber: paginationValidationResult.data.pageNumber,
+			pageSize: paginationValidationResult.data.pageSize,
+			sort: paginationValidationResult.data.sort,
 		});
 		if (!result.success) {
 			return result;
@@ -273,18 +275,75 @@ export class ReviewService implements IReviewService {
 		};
 	}
 
-	async getAllByUserId({
-		userId,
-	}: MethodParams<IReviewService, "getAllByUserId">): MethodReturn<
-		IReviewService,
-		"getAllByUserId"
-	> {
-		const userIdValidationResult = this._validateObjectId("userId", userId);
+	async getAllByProductId(
+		args: MethodParams<IReviewService, "getAllByProductId">,
+	): MethodReturn<IReviewService, "getAllByProductId"> {
+		const paginationValidationResult = paginationParamsValidator.safeParse({
+			pageNumber: args.pageNumber,
+			pageSize: args.pageSize,
+			sort: args.sort,
+		});
+		if (!paginationValidationResult.success) {
+			return {
+				error: new ValidationError("Invalid pagination data", {
+					cause: paginationValidationResult.error,
+				}),
+				success: false,
+			};
+		}
+
+		const productIdValidationResult = this._validateObjectId(
+			"productId",
+			args.productId,
+		);
+		if (!productIdValidationResult.success) {
+			return productIdValidationResult;
+		}
+
+		const result = await this._repository.getAllByProductId({
+			pageNumber: paginationValidationResult.data.pageNumber,
+			pageSize: paginationValidationResult.data.pageSize,
+			productId: productIdValidationResult.data,
+			sort: paginationValidationResult.data.sort,
+		});
+		if (!result.success) {
+			return result;
+		}
+
+		return {
+			data: result.data,
+			success: true,
+		};
+	}
+
+	async getAllByUserId(
+		args: MethodParams<IReviewService, "getAllByUserId">,
+	): MethodReturn<IReviewService, "getAllByUserId"> {
+		const paginationValidationResult = paginationParamsValidator.safeParse({
+			pageNumber: args.pageNumber,
+			pageSize: args.pageSize,
+			sort: args.sort,
+		});
+		if (!paginationValidationResult.success) {
+			return {
+				error: new ValidationError("Invalid pagination data", {
+					cause: paginationValidationResult.error,
+				}),
+				success: false,
+			};
+		}
+
+		const userIdValidationResult = this._validateObjectId(
+			"userId",
+			args.userId,
+		);
 		if (!userIdValidationResult.success) {
 			return userIdValidationResult;
 		}
-
 		const result = await this._repository.getAllByUserId({
+			pageNumber: paginationValidationResult.data.pageNumber,
+			pageSize: paginationValidationResult.data.pageSize,
+			sort: paginationValidationResult.data.sort,
 			userId: userIdValidationResult.data,
 		});
 		if (!result.success) {

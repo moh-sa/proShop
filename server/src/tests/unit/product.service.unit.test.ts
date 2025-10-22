@@ -3,7 +3,11 @@ import type { Types } from "mongoose";
 import assert from "node:assert/strict";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import { NotFoundError, ValidationError } from "../../errors/index.js";
+import {
+	DatabaseBaseError,
+	NotFoundError,
+	ValidationError,
+} from "../../errors/index.js";
 import { ProductService } from "../../services/index.js";
 import {
 	generateMockInsertProductWithMulterImage,
@@ -231,182 +235,231 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 	});
 
 	describe("getAll", () => {
-		const mockCount = 4;
-		const expectedResult = generateMockSelectProducts({ count: 4 });
+		const mockProducts = generateMockSelectProducts({ count: 4 });
+		const mockPaginatedResponse = {
+			items: mockProducts,
+			meta: {
+				currentPage: 1,
+				hasNextPage: false,
+				hasPreviousPage: false,
+				pageSize: 10,
+				totalItems: 4,
+				totalPages: 1,
+			},
+		};
 
-		function createRegexQuery(keyword: string) {
-			return { name: { $options: "i", $regex: keyword } };
-		}
-
-		test("Should return array of products when both 'repo.count' and 'repo.getAll' are called once with no args", async () => {
+		test("Should return paginated response when 'repo.getAll' is called with valid parameters", async () => {
 			// Arrange
-			const currentPage = "1";
-			const keyword = "";
-
-			mockRepo.count.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockCount, success: true }),
-			);
-
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: expectedResult, success: true }),
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
 			// Act
-			const result = await service.getAll({ currentPage, keyword });
+			const result = await service.getAll({
+				pageNumber: "1",
+			});
 
 			// Assert
 			assert.ok(result.success);
-			assert.strictEqual(result.data.products.length, expectedResult.length);
-			assert.deepStrictEqual(result.data.products, expectedResult);
+			assert.ok(result.data);
+			assert.ok(result.data.meta);
+			assert.ok(Array.isArray(result.data.items));
+			assert.strictEqual(result.data.items.length, mockProducts.length);
+			assert.deepStrictEqual(result.data.items, mockProducts);
+		});
 
-			assert.strictEqual(mockRepo.count.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.count.mock.calls[0].arguments[0], {});
+		test("Should call 'repo.getAll' with correct pagination parameters", async () => {
+			// Arrange
+			const pageNumber = "2";
+			const pageSize = "5";
+			mockRepo.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
+			);
 
+			// Act
+			await service.getAll({
+				pageNumber,
+				pageSize,
+			});
+
+			// Assert
 			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].currentPage,
-				Number(currentPage),
+			assert.strictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].pageNumber,
+				Number(pageNumber),
 			);
-			assert.deepStrictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].numberOfProductsPerPage,
-				10,
-			);
-			assert.deepStrictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].query,
-				{},
+			assert.strictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].pageSize,
+				Number(pageSize),
 			);
 		});
 
-		test("Should return array of products when both 'repo.count' and 'repo.getAll' are called once with 'keyword''", async () => {
+		test("Should call 'repo.getAll' with search query when keyword is provided", async () => {
 			// Arrange
-			const currentPage = "1";
 			const keyword = "test";
-
-			mockRepo.count.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockCount, success: true }),
-			);
-
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: expectedResult, success: true }),
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
 			// Act
-			const result = await service.getAll({ currentPage, keyword });
+			await service.getAll({
+				keyword,
+				pageNumber: "1",
+			});
+
+			// Assert
+			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
+			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0].query, {
+				$text: { $search: keyword },
+			});
+		});
+
+		test("Should call 'repo.getAll' with pipeline projection", async () => {
+			// Arrange
+			mockRepo.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
+			);
+
+			// Act
+			await service.getAll({
+				pageNumber: "1",
+			});
+
+			// Assert
+			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
+			assert.ok(mockRepo.getAll.mock.calls[0].arguments[0].pipeline);
+			assert.strictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].pipeline.length,
+				1,
+			);
+			assert.deepStrictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].pipeline[0],
+				{
+					$project: {
+						_id: 1,
+						brand: 1,
+						category: 1,
+						image: 1,
+						name: 1,
+						price: 1,
+						rating: 1,
+					},
+				},
+			);
+		});
+
+		test("Should return paginated response with empty items", async () => {
+			// Arrange
+			const emptyPaginatedResponse = {
+				items: [],
+				meta: {
+					currentPage: 1,
+					hasNextPage: false,
+					hasPreviousPage: false,
+					pageSize: 10,
+					totalItems: 0,
+					totalPages: 0,
+				},
+			};
+			mockRepo.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: emptyPaginatedResponse, success: true }),
+			);
+
+			// Act
+			const result = await service.getAll({
+				pageNumber: "1",
+			});
 
 			// Assert
 			assert.ok(result.success);
-			assert.strictEqual(result.data.products.length, expectedResult.length);
-			assert.deepStrictEqual(result.data.products, expectedResult);
-
-			assert.strictEqual(mockRepo.count.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockRepo.count.mock.calls[0].arguments[0],
-				createRegexQuery(keyword),
-			);
-
-			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].currentPage,
-				Number(currentPage),
-			);
-			assert.deepStrictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].numberOfProductsPerPage,
-				10,
-			);
-			assert.deepStrictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].query,
-				createRegexQuery(keyword),
-			);
+			assert.strictEqual(result.data.items.length, 0);
+			assert.strictEqual(result.data.meta.totalItems, 0);
 		});
 
-		test("Should return array of products when both 'repo.count' and 'repo.getAll' are called once with 'currentPage'", async () => {
-			// Arrange
-			const currentPage = "2";
-			const keyword = "";
+		test("Should return validation error when 'pageNumber' is invalid", async () => {
+			// Act
+			const result = await service.getAll({
+				pageNumber: "invalid",
+			});
 
-			mockRepo.count.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockCount, success: true }),
-			);
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("Should return validation error when 'pageSize' is invalid", async () => {
+			// Act
+			const result = await service.getAll({
+				pageNumber: "1",
+				pageSize: "invalid",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("Should return validation error when 'pageNumber' is zero", async () => {
+			// Act
+			const result = await service.getAll({
+				pageNumber: "0",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("Should return validation error when 'pageNumber' is negative", async () => {
+			// Act
+			const result = await service.getAll({
+				pageNumber: "-1",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("Should return validation error when 'pageSize' is zero", async () => {
+			// Act
+			const result = await service.getAll({
+				pageNumber: "1",
+				pageSize: "0",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("Should return validation error when 'pageSize' is negative", async () => {
+			// Act
+			const result = await service.getAll({
+				pageNumber: "1",
+				pageSize: "-1",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("Should return repository error when 'repo.getAll' fails", async () => {
+			// Arrange
+			const repositoryError = new DatabaseBaseError("Repository error");
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: expectedResult, success: true }),
+				Promise.resolve({ error: repositoryError, success: false }),
 			);
 
 			// Act
-			const result = await service.getAll({ currentPage, keyword });
-
-			// Assert
-			assert.ok(result.success);
-			assert.strictEqual(result.data.products.length, expectedResult.length);
-			assert.deepStrictEqual(result.data.products, expectedResult);
-
-			assert.strictEqual(mockRepo.count.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.count.mock.calls[0].arguments[0], {});
-
-			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].currentPage,
-				Number(currentPage),
-			);
-			assert.deepStrictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].numberOfProductsPerPage,
-				10,
-			);
-			assert.deepStrictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].query,
-				{},
-			);
-		});
-
-		test("Should return validation error if 'currentPage' is not a number", async () => {
-			// Arrange
-			const currentPage = "invalid-number";
-			const keyword = "";
-
-			// Act
-			const result = await service.getAll({ currentPage, keyword });
+			const result = await service.getAll({
+				pageNumber: "1",
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof ValidationError);
-		});
-
-		test("Should return validation error if 'currentPage' is '0'", async () => {
-			// Arrange
-			const currentPage = "0";
-			const keyword = "";
-
-			// Act
-			const result = await service.getAll({ currentPage, keyword });
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof ValidationError);
-		});
-
-		test("Should return validation error if 'currentPage' is a negative number", async () => {
-			// Arrange
-			const currentPage = "-1";
-			const keyword = "";
-
-			// Act
-			const result = await service.getAll({ currentPage, keyword });
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof ValidationError);
-		});
-
-		test("Should return validation error if 'currentPage' is non-integer number", async () => {
-			// Arrange
-			const currentPage = "1.5";
-			const keyword = "";
-
-			// Act
-			const result = await service.getAll({ currentPage, keyword });
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof ValidationError);
+			assert.strictEqual(result.error, repositoryError);
 		});
 	});
 

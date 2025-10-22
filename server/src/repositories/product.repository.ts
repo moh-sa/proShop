@@ -7,6 +7,8 @@ import type {
 	InsertProductWithStringImage,
 	MethodParams,
 	MethodReturn,
+	PaginatedResponse,
+	PaginationParamsQuery,
 	Result,
 	SelectProduct,
 	TopRatedProduct,
@@ -14,7 +16,7 @@ import type {
 
 import Product from "../models/product.model.js";
 import { CacheService } from "../services/index.js";
-import { handleDatabaseErrorResult } from "../utils/index.js";
+import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IProductRepository {
 	count(query: Record<string, unknown>): Promise<ProductResult<number>>;
@@ -24,11 +26,9 @@ export interface IProductRepository {
 	delete(data: {
 		productId: Types.ObjectId;
 	}): Promise<ProductResult<null | SelectProduct>>;
-	getAll(data: {
-		currentPage: number;
-		numberOfProductsPerPage: number;
-		query: Record<string, unknown>;
-	}): Promise<ProductResult<Array<AllProducts>>>;
+	getAll(
+		args: PaginationParamsQuery<SelectProduct>,
+	): Promise<ProductResult<PaginatedResponse<AllProducts>>>;
 	getById(data: {
 		productId: Types.ObjectId;
 	}): Promise<ProductResult<null | SelectProduct>>;
@@ -46,6 +46,11 @@ type ProductResult<T> = Result<T, DatabaseBaseError>;
 export class ProductRepository implements IProductRepository {
 	private _cache: CacheService;
 	private readonly _db: typeof Product;
+	private _paginator: Paginator<SelectProduct>;
+
+	// Cache keys
+	private readonly _getAllCacheKey = "all";
+	private readonly _getTopRatedCacheKey = "top-rated";
 
 	constructor(
 		db: typeof Product = Product,
@@ -53,6 +58,7 @@ export class ProductRepository implements IProductRepository {
 	) {
 		this._db = db;
 		this._cache = cache;
+		this._paginator = new Paginator(this._db);
 	}
 
 	async count(
@@ -74,13 +80,18 @@ export class ProductRepository implements IProductRepository {
 	): MethodReturn<IProductRepository, "create"> {
 		try {
 			const product = (await this._db.create(data)).toObject();
-			const isSet = this._cache.set({
+			const setCacheResult = this._cache.set({
 				key: product._id.toString(),
 				value: product,
 			});
-			if (!isSet.success) {
-				console.error("Failed to set product cache", product._id.toString());
+			if (!setCacheResult.success) {
+				console.error("[PRODUCT REPOSITORY] Failed to set product cache", {
+					cacheKey: product._id.toString(),
+					cause: setCacheResult.error,
+				});
 			}
+			// invalidate `all` and `top-rated` caches
+			this._invalidateProductCache();
 
 			return {
 				data: product,
@@ -113,25 +124,15 @@ export class ProductRepository implements IProductRepository {
 	}
 
 	async getAll(
-		data: MethodParams<IProductRepository, "getAll">,
+		args: MethodParams<IProductRepository, "getAll">,
 	): MethodReturn<IProductRepository, "getAll"> {
-		const cachedProducts = this._cache.get<Array<AllProducts>>({
-			key: `all-${data.currentPage}`,
-		});
-		if (cachedProducts.success) {
-			return {
-				data: cachedProducts.data,
-				success: true,
-			};
-		}
-
 		try {
-			const result = await this._db
-				.find({ ...data.query })
-				.select("id name brand category price rating numReviews image")
-				.limit(data.numberOfProductsPerPage)
-				.skip(data.numberOfProductsPerPage * (data.currentPage - 1))
-				.lean();
+			const result = await this._paginator.paginate({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: args.query,
+				sort: args.sort,
+			});
 
 			return {
 				data: result,
@@ -149,12 +150,15 @@ export class ProductRepository implements IProductRepository {
 		"getById"
 	> {
 		const cacheId = productId.toString();
-		const cachedProduct = this._cache.get<SelectProduct>({
+		const getCachedResult = this._cache.get<SelectProduct>({
 			key: cacheId,
 		});
-		if (cachedProduct.success) {
+		if (!getCachedResult.success) {
+			return getCachedResult;
+		}
+		if (getCachedResult.data) {
 			return {
-				data: cachedProduct.data,
+				data: getCachedResult.data,
 				success: true,
 			};
 		}
@@ -162,9 +166,15 @@ export class ProductRepository implements IProductRepository {
 		try {
 			const product = await this._db.findById(productId).lean();
 			if (product) {
-				const isSet = this._cache.set({ key: cacheId, value: product });
-				if (isSet && !isSet.success) {
-					console.error("Failed to set product cache", cacheId);
+				const setCacheResult = this._cache.set({
+					key: cacheId,
+					value: product,
+				});
+				if (setCacheResult && !setCacheResult.success) {
+					console.error("[PRODUCT REPOSITORY] Failed to set product cache", {
+						cacheKey: cacheId,
+						cause: setCacheResult.error,
+					});
 				}
 			}
 
@@ -183,13 +193,15 @@ export class ProductRepository implements IProductRepository {
 		IProductRepository,
 		"getTopRated"
 	> {
-		const cacheKey = "top-rated";
-		const cachedProducts = this._cache.get<Array<TopRatedProduct>>({
-			key: cacheKey,
+		const getCachedResult = this._cache.get<Array<TopRatedProduct>>({
+			key: this._getTopRatedCacheKey,
 		});
-		if (cachedProducts.success) {
+		if (!getCachedResult.success) {
+			return getCachedResult;
+		}
+		if (getCachedResult.data) {
 			return {
-				data: cachedProducts.data,
+				data: getCachedResult.data,
 				success: true,
 			};
 		}
@@ -203,9 +215,18 @@ export class ProductRepository implements IProductRepository {
 				.lean();
 
 			if (products) {
-				const isSet = this._cache.set({ key: cacheKey, value: products });
-				if (isSet && !isSet.success) {
-					console.error("Failed to set top-rated products cache", cacheKey);
+				const setCacheResult = this._cache.set({
+					key: this._getTopRatedCacheKey,
+					value: products,
+				});
+				if (setCacheResult && !setCacheResult.success) {
+					console.error(
+						"[PRODUCT REPOSITORY] Failed to set top-rated products cache",
+						{
+							cacheKey: this._getTopRatedCacheKey,
+							cause: setCacheResult.error,
+						},
+					);
 				}
 			}
 
@@ -249,17 +270,41 @@ export class ProductRepository implements IProductRepository {
 		return handleDatabaseErrorResult(error);
 	}
 
-	private _invalidateProductCache({ id }: { id: string }): void {
-		// Delete specific product cache
-		this._cache.delete({ key: id });
+	private _invalidateProductCache({ id }: { id?: string } = {}): void {
+		// delete specific product cache
+		if (id && id.trim().length > 0) {
+			const productCacheDeleteResult = this._cache.delete({ key: id });
+			if (!productCacheDeleteResult.success) {
+				console.error(
+					"[PRODUCT REPOSITORY] Failed to invalidate product cache",
+					{
+						cause: productCacheDeleteResult.error,
+						id,
+					},
+				);
+			}
+		}
 
-		// Delete all top-rated caches as they might be affected
-		const stats = this._cache.getStats();
-		const keys = Object.keys(stats).filter((key) =>
-			key.startsWith("product:top-rated"),
-		);
-		if (keys.length > 0) {
-			this._cache.deleteMany({ keys });
+		// delete top-rated products cache
+		const topRatedDelResult = this._cache.delete({
+			key: this._getTopRatedCacheKey,
+		});
+		if (!topRatedDelResult.success) {
+			console.error(
+				"[PRODUCT REPOSITORY] Failed to invalidate top-rated products cache",
+				{ cause: topRatedDelResult.error },
+			);
+		}
+
+		// delete all products cache
+		const allProductsDeleteResult = this._cache.delete({
+			key: this._getAllCacheKey,
+		});
+		if (!allProductsDeleteResult.success) {
+			console.error(
+				"[PRODUCT REPOSITORY] Failed to invalidate all products cache",
+				{ cause: allProductsDeleteResult.error },
+			);
 		}
 	}
 }

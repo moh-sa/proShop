@@ -6,12 +6,14 @@ import type {
 	InsertReview,
 	MethodParams,
 	MethodReturn,
+	PaginatedResponse,
+	PaginationParamsQuery,
 	Result,
 	SelectReview,
 } from "../types/index.js";
 
 import Review from "../models/review.model.js";
-import { handleDatabaseErrorResult } from "../utils/index.js";
+import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IReviewRepository {
 	count: () => Promise<ReviewResult<number>>;
@@ -32,13 +34,19 @@ export interface IReviewRepository {
 		productId: Types.ObjectId;
 		userId: Types.ObjectId;
 	}) => Promise<ReviewResult<null | { _id: Types.ObjectId }>>;
-	getAll: () => Promise<ReviewResult<Array<SelectReview>>>;
-	getAllByProductId: (data: {
-		productId: Types.ObjectId;
-	}) => Promise<ReviewResult<Array<SelectReview>>>;
-	getAllByUserId: (data: {
-		userId: Types.ObjectId;
-	}) => Promise<ReviewResult<Array<SelectReview>>>;
+	getAll: (
+		args: PaginationParamsQuery<SelectReview>,
+	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
+	getAllByProductId: (
+		data: PaginationParamsQuery<SelectReview> & {
+			productId: Types.ObjectId;
+		},
+	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
+	getAllByUserId: (
+		data: PaginationParamsQuery<SelectReview> & {
+			userId: Types.ObjectId;
+		},
+	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
 	getById: (data: {
 		reviewId: Types.ObjectId;
 	}) => Promise<ReviewResult<null | SelectReview>>;
@@ -52,9 +60,11 @@ type ReviewResult<T> = Result<T, DatabaseBaseError>;
 
 export class ReviewRepository implements IReviewRepository {
 	private readonly _db: typeof Review;
+	private _paginator: Paginator<SelectReview>;
 
 	constructor(db: typeof Review = Review) {
 		this._db = db;
+		this._paginator = new Paginator(this._db);
 	}
 
 	async count(): MethodReturn<IReviewRepository, "count"> {
@@ -187,9 +197,16 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async getAll(): MethodReturn<IReviewRepository, "getAll"> {
+	async getAll(
+		args: MethodParams<IReviewRepository, "getAll">,
+	): MethodReturn<IReviewRepository, "getAll"> {
 		try {
-			const result = await this._db.find({}).lean();
+			const result = await this._paginator.paginate({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: args.query,
+				sort: args.sort,
+			});
 
 			return {
 				data: result,
@@ -200,14 +217,16 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async getAllByProductId({
-		productId,
-	}: MethodParams<IReviewRepository, "getAllByProductId">): MethodReturn<
-		IReviewRepository,
-		"getAllByProductId"
-	> {
+	async getAllByProductId(
+		args: MethodParams<IReviewRepository, "getAllByProductId">,
+	): MethodReturn<IReviewRepository, "getAllByProductId"> {
 		try {
-			const result = await this._db.find({ product: productId }).lean();
+			const result = await this._paginator.paginate({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: { product: args.productId },
+				sort: args.sort,
+			});
 
 			return {
 				data: result,
@@ -218,14 +237,16 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async getAllByUserId({
-		userId,
-	}: MethodParams<IReviewRepository, "getAllByUserId">): MethodReturn<
-		IReviewRepository,
-		"getAllByUserId"
-	> {
+	async getAllByUserId(
+		args: MethodParams<IReviewRepository, "getAllByUserId">,
+	): MethodReturn<IReviewRepository, "getAllByUserId"> {
 		try {
-			const result = await this._db.find({ user: userId }).lean();
+			const result = await this._paginator.paginate({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: { user: args.userId },
+				sort: args.sort,
+			});
 
 			return {
 				data: result,
