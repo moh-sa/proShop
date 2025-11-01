@@ -24,6 +24,7 @@ connectDB();
 app.use(express.json());
 app.use(
 	cors({
+		credentials: true,
 		origin: [env.CLIENT_URL],
 	}),
 );
