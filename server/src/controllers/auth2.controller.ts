@@ -437,7 +437,7 @@ export class Auth2Controller implements IAuth2Controller {
 			},
 			options: {
 				expires: args.expiresAt,
-				httpOnly: false,
+				httpOnly: true,
 			},
 			response: args.res,
 		});

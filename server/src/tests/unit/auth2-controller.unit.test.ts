@@ -101,7 +101,7 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 			assert.strictEqual(refreshTokenCall.item.value, mockTokens.refresh.token);
 		});
 
-		it("should configure access token as non-httpOnly and refresh token as httpOnly", async () => {
+		it("should configure both access and refresh tokens as httpOnly", async () => {
 			// Arrange
 			const mockInsertUser = generateMockInsertUser();
 			const { password: _, ...safeUser } = generateMockSelectUser();
@@ -130,7 +130,7 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 			const refreshTokenCall = mockCookie.set.mock.calls[1].arguments[0];
 
 			assert.ok(accessTokenCall.options);
-			assert.strictEqual(accessTokenCall.options.httpOnly, false);
+			assert.strictEqual(accessTokenCall.options.httpOnly, true);
 
 			assert.ok(refreshTokenCall.options);
 			assert.strictEqual(refreshTokenCall.options.httpOnly, true);
@@ -240,7 +240,7 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 			assert.strictEqual(refreshTokenCall.item.value, mockTokens.refresh.token);
 		});
 
-		it("should configure access token as non-httpOnly and refresh token as httpOnly", async () => {
+		it("should configure both access and refresh tokens as httpOnly", async () => {
 			// Arrange
 			const mockTokens = generateMockTokenPairWithData();
 
@@ -273,7 +273,7 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 			const refreshTokenCall = mockCookie.set.mock.calls[1].arguments[0];
 
 			assert.ok(accessTokenCall.options);
-			assert.strictEqual(accessTokenCall.options.httpOnly, false);
+			assert.strictEqual(accessTokenCall.options.httpOnly, true);
 
 			assert.ok(refreshTokenCall.options);
 			assert.strictEqual(refreshTokenCall.options.httpOnly, true);
@@ -640,7 +640,7 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 			assert.strictEqual(accessTokenCall.item.value, mockNewAccessToken.token);
 		});
 
-		it("should configure access token cookie as non-httpOnly", async () => {
+		it("should configure access token cookie as httpOnly", async () => {
 			// Arrange
 			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
 			const { exp: expiresAt, token } = generateMockTokenWithData(
@@ -672,7 +672,7 @@ suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
 			// Assert
 			const accessTokenCall = mockCookie.set.mock.calls[0].arguments[0];
 			assert.ok(accessTokenCall.options);
-			assert.strictEqual(accessTokenCall.options.httpOnly, false);
+			assert.strictEqual(accessTokenCall.options.httpOnly, true);
 		});
 
 		it("should throw when refresh cookie is missing/invalid", async () => {
