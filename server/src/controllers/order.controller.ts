@@ -5,6 +5,7 @@ import type {
 	InsertOrder,
 	OrderPaginationParams,
 	PaginatedResponse,
+	SafeSelectUser,
 	SelectOrder,
 } from "../types/index.js";
 
@@ -14,6 +15,7 @@ import { asyncHandler } from "../utils/index.js";
 
 export interface IOrderController {
 	create: AsyncHandler<{
+		locals: { user: SafeSelectUser };
 		reqBody: InsertOrder;
 		resBody: { data: SelectOrder };
 	}>;
@@ -49,6 +51,7 @@ export class OrderController implements IOrderController {
 	private readonly _service: IOrderService;
 
 	create = asyncHandler<{
+		locals: { user: SafeSelectUser };
 		reqBody: InsertOrder;
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {

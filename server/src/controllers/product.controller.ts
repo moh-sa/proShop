@@ -5,6 +5,7 @@ import type {
 	InsertProduct,
 	PaginatedResponse,
 	ProductPaginationParams,
+	SafeSelectUser,
 	SelectProduct,
 	TopRatedProduct,
 } from "../types/index.js";
@@ -15,6 +16,7 @@ import { asyncHandler } from "../utils/index.js";
 
 export interface IProductController {
 	create: AsyncHandler<{
+		locals: { user: SafeSelectUser };
 		reqBody: InsertProduct;
 		resBody: { data: SelectProduct };
 	}>;
@@ -46,6 +48,7 @@ export class ProductController implements IProductController {
 	private readonly _service: IProductService;
 
 	create = asyncHandler<{
+		locals: { user: SafeSelectUser };
 		reqBody: InsertProduct;
 		resBody: { data: SelectProduct };
 	}>(async (req, res) => {

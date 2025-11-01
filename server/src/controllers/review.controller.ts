@@ -6,6 +6,7 @@ import type {
 	InsertReview,
 	PaginatedResponse,
 	PaginationParamsString,
+	SafeSelectUser,
 	SelectReview,
 } from "../types/index.js";
 
@@ -26,6 +27,7 @@ export interface IReviewController {
 		resBody: { data: number };
 	}>;
 	create: AsyncHandler<{
+		locals: { user: SafeSelectUser };
 		reqBody: InsertReview;
 		resBody: { data: SelectReview };
 	}>;
@@ -126,6 +128,7 @@ export class ReviewController implements IReviewController {
 	});
 
 	create = asyncHandler<{
+		locals: { user: SafeSelectUser };
 		reqBody: InsertReview;
 		resBody: { data: SelectReview };
 	}>(async (req, res) => {

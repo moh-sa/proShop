@@ -24,10 +24,12 @@ export interface IUserController {
 		};
 	}>;
 	getById: AsyncHandler<{
+		locals: { user: SafeSelectUser };
 		params: { userId: string };
 		resBody: { data: SafeSelectUser };
 	}>;
 	update: AsyncHandler<{
+		locals: { user: SafeSelectUser };
 		params: { userId: string };
 		reqBody: Partial<InsertUser>;
 		resBody: { data: SafeSelectUser };
@@ -72,11 +74,12 @@ export class UserController implements IUserController {
 	});
 
 	getById = asyncHandler<{
+		locals: { user: SafeSelectUser };
 		params: { userId: string };
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
 		const result = await this._service.getById({
-			userId: req.params?.userId ?? res.locals.user?._id,
+			userId: req.params.userId || res.locals.user._id.toString(),
 		});
 		if (!result.success) {
 			throw result.error;
@@ -89,13 +92,14 @@ export class UserController implements IUserController {
 	});
 
 	update = asyncHandler<{
+		locals: { user: SafeSelectUser };
 		params: { userId: string };
 		reqBody: Partial<InsertUser>;
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
 		const result = await this._service.updateById({
 			data: req.body,
-			userId: req.params?.userId ?? res.locals.user?._id,
+			userId: req.params.userId || res.locals.user._id.toString(),
 		});
 		if (!result.success) {
 			throw result.error;
