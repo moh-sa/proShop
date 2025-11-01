@@ -3,7 +3,6 @@ import express from "express";
 import { ReviewController } from "../../controllers/index.js";
 import {
 	checkIfUserIsAdmin,
-	checkJwtTokenValidation,
 	checkUserIdExists,
 	verifyReviewOwnership,
 } from "../../middlewares/index.js";
@@ -28,51 +27,31 @@ publicRouter
 	.route("/count/product/:productId")
 	.get(defaultLimiter, controller.countByProductId);
 
-userRouter
-	.route("/")
-	.post(
-		strictLimiter,
-		checkJwtTokenValidation,
-		checkUserIdExists,
-		controller.create,
-	);
+userRouter.route("/").post(strictLimiter, checkUserIdExists, controller.create);
 
 userRouter
 	.route("/count/user/:userId")
-	.get(
-		defaultLimiter,
-		checkJwtTokenValidation,
-		checkUserIdExists,
-		controller.countByUserId,
-	);
+	.get(defaultLimiter, checkUserIdExists, controller.countByUserId);
 
 userRouter
 	.route("/exists/user/:userId/product/:productId")
 	.get(
 		defaultLimiter,
-		checkJwtTokenValidation,
 		checkUserIdExists,
 		controller.existsByUserIdAndProductId,
 	);
 
 userRouter
 	.route("/:userId")
-	.get(
-		defaultLimiter,
-		checkJwtTokenValidation,
-		checkUserIdExists,
-		controller.getAllByUserId,
-	)
+	.get(defaultLimiter, checkUserIdExists, controller.getAllByUserId)
 	.patch(
 		strictLimiter,
-		checkJwtTokenValidation,
 		checkUserIdExists,
 		verifyReviewOwnership,
 		controller.update,
 	)
 	.delete(
 		defaultLimiter,
-		checkJwtTokenValidation,
 		checkUserIdExists,
 		verifyReviewOwnership,
 		controller.delete,
@@ -80,29 +59,16 @@ userRouter
 
 adminRouter
 	.route("/")
-	.get(
-		adminLimiter,
-		checkJwtTokenValidation,
-		checkUserIdExists,
-		checkIfUserIsAdmin,
-		controller.getAll,
-	);
+	.get(adminLimiter, checkUserIdExists, checkIfUserIsAdmin, controller.getAll);
 
 adminRouter
 	.route("/count")
-	.get(
-		adminLimiter,
-		checkJwtTokenValidation,
-		checkUserIdExists,
-		checkIfUserIsAdmin,
-		controller.count,
-	);
+	.get(adminLimiter, checkUserIdExists, checkIfUserIsAdmin, controller.count);
 
 adminRouter
 	.route("/exists/:reviewId")
 	.get(
 		adminLimiter,
-		checkJwtTokenValidation,
 		checkUserIdExists,
 		checkIfUserIsAdmin,
 		controller.existsById,
@@ -110,13 +76,7 @@ adminRouter
 
 adminRouter
 	.route("/:reviewId")
-	.get(
-		adminLimiter,
-		checkJwtTokenValidation,
-		checkUserIdExists,
-		checkIfUserIsAdmin,
-		controller.getById,
-	);
+	.get(adminLimiter, checkUserIdExists, checkIfUserIsAdmin, controller.getById);
 
 protectedRoutes.use("/", userRouter);
 protectedRoutes.use("/admin", adminRouter);

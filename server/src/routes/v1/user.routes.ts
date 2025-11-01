@@ -3,7 +3,6 @@ import express from "express";
 import { UserController } from "../../controllers/index.js";
 import {
 	checkIfUserIsAdmin,
-	checkJwtTokenValidation,
 	checkUserIdExists,
 } from "../../middlewares/index.js";
 import {
@@ -22,48 +21,19 @@ const adminRouter = express.Router();
 
 profileRouter
 	.route("/")
-	.get(
-		defaultLimiter,
-		checkJwtTokenValidation,
-		checkUserIdExists,
-		controller.getById,
-	)
-	.patch(
-		strictLimiter,
-		checkJwtTokenValidation,
-		checkUserIdExists,
-		controller.update,
-	);
+	.get(defaultLimiter, checkUserIdExists, controller.getById)
+	.patch(strictLimiter, checkUserIdExists, controller.update);
 
 adminRouter
 	.route("/")
-	.get(
-		adminLimiter,
-		checkJwtTokenValidation,
-		checkUserIdExists,
-		checkIfUserIsAdmin,
-		controller.getAll,
-	);
+	.get(adminLimiter, checkUserIdExists, checkIfUserIsAdmin, controller.getAll);
 
 adminRouter
 	.route("/:userId")
-	.get(
-		adminLimiter,
-		checkJwtTokenValidation,
-		checkUserIdExists,
-		checkIfUserIsAdmin,
-		controller.getById,
-	)
-	.patch(
-		adminLimiter,
-		checkJwtTokenValidation,
-		checkUserIdExists,
-		checkIfUserIsAdmin,
-		controller.update,
-	)
+	.get(adminLimiter, checkUserIdExists, checkIfUserIsAdmin, controller.getById)
+	.patch(adminLimiter, checkUserIdExists, checkIfUserIsAdmin, controller.update)
 	.delete(
 		adminLimiter,
-		checkJwtTokenValidation,
 		checkUserIdExists,
 		checkIfUserIsAdmin,
 		controller.delete,

@@ -1,22 +1,14 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
-import { ZodError } from "zod";
 
-import {
-	AuthenticationError,
-	AuthorizationError,
-	JwtInvalidPayloadError,
-	JwtInvalidTokenError,
-} from "../../errors/index.js";
+import { AuthenticationError, AuthorizationError } from "../../errors/index.js";
 import {
 	checkIfUserIsAdmin,
-	checkJwtTokenValidation,
 	checkUserIdExists,
 	verifyReviewOwnership,
 } from "../../middlewares/index.js";
 import Review from "../../models/review.model.js";
 import User from "../../models/user.model.js";
-import { generateJwtToken } from "../../utils/index.js";
 import {
 	generateMockInsertUser,
 	generateMockObjectId,
@@ -33,67 +25,6 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 	before(async () => await connectTestDatabase());
 	after(async () => await disconnectTestDatabase());
 	beforeEach(async () => await User.deleteMany({}));
-	describe("checkJwtTokenValidation", () => {
-		test("Should parse JWT and set decoded data in 'res.locals.token'", async () => {
-			const mockId = generateMockObjectId();
-			const jwt = generateJwtToken({ _id: mockId });
-
-			const { next, req, res } = createMockExpressContext();
-			req.headers.authorization = `Bearer ${jwt}`;
-
-			await checkJwtTokenValidation(req, res, next);
-
-			assert.ok(res.locals.token);
-			assert.equal(Object.keys(res.locals.token).length, 3);
-			assert.equal(res.locals.token._id.toString(), mockId);
-		});
-
-		test("Should throw 'ZodError' if 'req.headers.authorization' is empty", async () => {
-			const { next, req, res } = createMockExpressContext();
-
-			await assert.rejects(
-				async () => await checkJwtTokenValidation(req, res, next),
-				(error) => {
-					assert.ok(error instanceof ZodError);
-					assert.equal(error.issues.length, 1);
-
-					assert.equal(error.issues[0].message, "Required");
-					assert.equal(error.issues[0].code, "invalid_type");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'JwtInvalidTokenError' if JWT is invalid", async () => {
-			const { next, req, res } = createMockExpressContext();
-
-			req.headers.authorization = `Bearer RANDOM_STRING`;
-
-			await assert.rejects(
-				async () => await checkJwtTokenValidation(req, res, next),
-				(error) => {
-					assert.ok(error instanceof JwtInvalidTokenError);
-					assert.strictEqual(error.message, "Invalid JWT token format");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'JwtInvalidPayloadError' if userId is not a valid ObjectId", async () => {
-			const { next, req, res } = createMockExpressContext();
-			const jwt = generateJwtToken({ id: "RANDOM_STRING" });
-			req.headers.authorization = `Bearer ${jwt}`;
-
-			await assert.rejects(
-				async () => await checkJwtTokenValidation(req, res, next),
-				(error) => {
-					assert.ok(error instanceof JwtInvalidPayloadError);
-					assert.strictEqual(error.message, "Invalid JWT token payload");
-					return true;
-				},
-			);
-		});
-	});
 
 	describe("checkUserIdExists", () => {
 		test("Should find user by id and set res.locals.user", async () => {

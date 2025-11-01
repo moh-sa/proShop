@@ -4,7 +4,6 @@ import { uploadSingle as uploadSingleMiddleware } from "../../config/multer.conf
 import { ProductController } from "../../controllers/index.js";
 import {
 	checkIfUserIsAdmin,
-	checkJwtTokenValidation,
 	checkUserIdExists,
 } from "../../middlewares/index.js";
 import { adminLimiter, defaultLimiter } from "../../services/index.js";
@@ -26,7 +25,6 @@ adminRouter
 	.route("/")
 	.post(
 		adminLimiter,
-		checkJwtTokenValidation,
 		checkUserIdExists,
 		checkIfUserIsAdmin,
 		uploadSingleMiddleware,
@@ -38,14 +36,12 @@ adminRouter
 	.get(defaultLimiter, controller.getById)
 	.delete(
 		adminLimiter,
-		checkJwtTokenValidation,
 		checkUserIdExists,
 		checkIfUserIsAdmin,
 		controller.delete,
 	)
 	.patch(
 		adminLimiter,
-		checkJwtTokenValidation,
 		checkUserIdExists,
 		checkIfUserIsAdmin,
 		uploadSingleMiddleware,

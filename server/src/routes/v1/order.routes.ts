@@ -3,7 +3,6 @@ import express from "express";
 import { OrderController } from "../../controllers/index.js";
 import {
 	checkIfUserIsAdmin,
-	checkJwtTokenValidation,
 	checkUserIdExists,
 } from "../../middlewares/index.js";
 import { defaultLimiter, strictLimiter } from "../../services/index.js";
@@ -15,38 +14,20 @@ const protectedRoutes = express.Router();
 const userRouter = express.Router();
 const adminRouter = express.Router();
 
-userRouter
-	.route("/")
-	.post(
-		strictLimiter,
-		checkJwtTokenValidation,
-		checkUserIdExists,
-		controller.create,
-	);
+userRouter.route("/").post(strictLimiter, checkUserIdExists, controller.create);
 
 userRouter
 	.route("/user/:userId")
-	.get(
-		defaultLimiter,
-		checkJwtTokenValidation,
-		checkUserIdExists,
-		controller.getAllByUserId,
-	);
+	.get(defaultLimiter, checkUserIdExists, controller.getAllByUserId);
 
 userRouter
 	.route("/:orderId")
-	.get(
-		defaultLimiter,
-		checkJwtTokenValidation,
-		checkUserIdExists,
-		controller.getById,
-	);
+	.get(defaultLimiter, checkUserIdExists, controller.getById);
 
 adminRouter
 	.route("/")
 	.get(
 		defaultLimiter,
-		checkJwtTokenValidation,
 		checkUserIdExists,
 		checkIfUserIsAdmin,
 		controller.getAll,
@@ -56,7 +37,6 @@ adminRouter
 	.route("/:orderId/payment")
 	.patch(
 		strictLimiter,
-		checkJwtTokenValidation,
 		checkUserIdExists,
 		checkIfUserIsAdmin,
 		controller.updateToPaid,
@@ -66,7 +46,6 @@ adminRouter
 	.route("/:orderId/delivery")
 	.patch(
 		strictLimiter,
-		checkJwtTokenValidation,
 		checkUserIdExists,
 		checkIfUserIsAdmin,
 		controller.updateToDelivered,
