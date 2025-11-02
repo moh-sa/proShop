@@ -14,7 +14,7 @@ import {
 } from "../../errors/index.js";
 import {
 	authenticate,
-	checkIfUserIsAdmin,
+	authorizeAdmin,
 	checkUserExists,
 } from "../../middlewares/index.js";
 import {
@@ -377,7 +377,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			res.locals.user = { _id: "507f1f77bcf86cd799439011", isAdmin: true };
 
 			// Act
-			await checkIfUserIsAdmin(req as any, res as any, next);
+			await authorizeAdmin(req as any, res as any, next);
 
 			// Assert
 			assert.strictEqual(next.mock.callCount(), 1);
@@ -392,7 +392,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => checkIfUserIsAdmin(req as any, res as any, next),
+				async () => authorizeAdmin(req as any, res as any, next),
 				InternalError,
 			);
 		});
@@ -407,7 +407,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => checkIfUserIsAdmin(req as any, res as any, next),
+				async () => authorizeAdmin(req as any, res as any, next),
 				ForbiddenError,
 			);
 		});

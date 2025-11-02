@@ -4,7 +4,7 @@ import { uploadSingle as uploadSingleMiddleware } from "../../config/multer.conf
 import { ProductController } from "../../controllers/index.js";
 import {
 	authenticate,
-	checkIfUserIsAdmin,
+	authorizeAdmin,
 	checkUserExists,
 } from "../../middlewares/index.js";
 import { adminLimiter, defaultLimiter } from "../../services/index.js";
@@ -28,7 +28,7 @@ adminRouter
 		adminLimiter,
 		authenticate,
 		checkUserExists,
-		checkIfUserIsAdmin,
+		authorizeAdmin,
 		uploadSingleMiddleware,
 		controller.create,
 	);
@@ -40,14 +40,14 @@ adminRouter
 		adminLimiter,
 		authenticate,
 		checkUserExists,
-		checkIfUserIsAdmin,
+		authorizeAdmin,
 		controller.delete,
 	)
 	.patch(
 		adminLimiter,
 		authenticate,
 		checkUserExists,
-		checkIfUserIsAdmin,
+		authorizeAdmin,
 		uploadSingleMiddleware,
 		controller.update,
 	);

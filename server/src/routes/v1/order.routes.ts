@@ -3,7 +3,7 @@ import express from "express";
 import { OrderController } from "../../controllers/index.js";
 import {
 	authenticate,
-	checkIfUserIsAdmin,
+	authorizeAdmin,
 	checkUserExists,
 } from "../../middlewares/index.js";
 import { defaultLimiter, strictLimiter } from "../../services/index.js";
@@ -38,7 +38,7 @@ adminRouter
 		defaultLimiter,
 		authenticate,
 		checkUserExists,
-		checkIfUserIsAdmin,
+		authorizeAdmin,
 		controller.getAll,
 	);
 
@@ -48,7 +48,7 @@ adminRouter
 		strictLimiter,
 		authenticate,
 		checkUserExists,
-		checkIfUserIsAdmin,
+		authorizeAdmin,
 		controller.updateToPaid,
 	);
 
@@ -58,7 +58,7 @@ adminRouter
 		strictLimiter,
 		authenticate,
 		checkUserExists,
-		checkIfUserIsAdmin,
+		authorizeAdmin,
 		controller.updateToDelivered,
 	);
 

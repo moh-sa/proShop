@@ -12,7 +12,7 @@ import {
 } from "../../errors/index.js";
 import {
 	authenticate,
-	checkIfUserIsAdmin,
+	authorizeAdmin,
 	checkUserExists,
 	verifyReviewOwnership,
 } from "../../middlewares/index.js";
@@ -107,9 +107,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			res.locals.user = mockUser;
 
 			// Act & Assert
-			await assert.doesNotReject(async () =>
-				checkIfUserIsAdmin(req, res, next),
-			);
+			await assert.doesNotReject(async () => authorizeAdmin(req, res, next));
 		});
 
 		test("Should throw 'ForbiddenError' if user is not admin", async () => {
@@ -120,7 +118,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => checkIfUserIsAdmin(req, res, next),
+				async () => authorizeAdmin(req, res, next),
 				ForbiddenError,
 			);
 		});
@@ -131,7 +129,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => checkIfUserIsAdmin(req, res, next),
+				async () => authorizeAdmin(req, res, next),
 				InternalError,
 			);
 		});

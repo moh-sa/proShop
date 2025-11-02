@@ -3,7 +3,7 @@ import express from "express";
 import { ReviewController } from "../../controllers/index.js";
 import {
 	authenticate,
-	checkIfUserIsAdmin,
+	authorizeAdmin,
 	checkUserExists,
 	verifyReviewOwnership,
 } from "../../middlewares/index.js";
@@ -69,7 +69,7 @@ adminRouter
 		adminLimiter,
 		authenticate,
 		checkUserExists,
-		checkIfUserIsAdmin,
+		authorizeAdmin,
 		controller.getAll,
 	);
 
@@ -79,7 +79,7 @@ adminRouter
 		adminLimiter,
 		authenticate,
 		checkUserExists,
-		checkIfUserIsAdmin,
+		authorizeAdmin,
 		controller.count,
 	);
 
@@ -89,7 +89,7 @@ adminRouter
 		adminLimiter,
 		authenticate,
 		checkUserExists,
-		checkIfUserIsAdmin,
+		authorizeAdmin,
 		controller.existsById,
 	);
 
@@ -99,7 +99,7 @@ adminRouter
 		adminLimiter,
 		authenticate,
 		checkUserExists,
-		checkIfUserIsAdmin,
+		authorizeAdmin,
 		controller.getById,
 	);
 

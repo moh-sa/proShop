@@ -3,7 +3,7 @@ import express from "express";
 import { UserController } from "../../controllers/index.js";
 import {
 	authenticate,
-	checkIfUserIsAdmin,
+	authorizeAdmin,
 	checkUserExists,
 } from "../../middlewares/index.js";
 import {
@@ -31,7 +31,7 @@ adminRouter
 		adminLimiter,
 		authenticate,
 		checkUserExists,
-		checkIfUserIsAdmin,
+		authorizeAdmin,
 		controller.getAll,
 	);
 
@@ -41,21 +41,21 @@ adminRouter
 		adminLimiter,
 		authenticate,
 		checkUserExists,
-		checkIfUserIsAdmin,
+		authorizeAdmin,
 		controller.getById,
 	)
 	.patch(
 		adminLimiter,
 		authenticate,
 		checkUserExists,
-		checkIfUserIsAdmin,
+		authorizeAdmin,
 		controller.update,
 	)
 	.delete(
 		adminLimiter,
 		authenticate,
 		checkUserExists,
-		checkIfUserIsAdmin,
+		authorizeAdmin,
 		controller.delete,
 	);
 
