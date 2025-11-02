@@ -5,6 +5,7 @@ import { CookieName } from "../../constants/cookie.constants.js";
 import {
 	AuthenticationError,
 	AuthorizationError,
+	ConflictError,
 	ForbiddenError,
 	InternalError,
 	NotFoundError,
@@ -13,14 +14,18 @@ import {
 import {
 	authenticate,
 	authorizeAdmin,
+	checkProductReviewedByUser,
 	checkUserExists,
 	verifyReviewOwnership,
 } from "../../middlewares/index.js";
+import Product from "../../models/product.model.js";
 import Review from "../../models/review.model.js";
 import { Session } from "../../models/session.model.js";
 import User from "../../models/user.model.js";
 import { JwtService } from "../../services/index.js";
 import {
+	generateMockInsertProductWithStringImage,
+	generateMockInsertReview,
 	generateMockInsertUser,
 	generateMockObjectId,
 	generateMockSelectReview,
@@ -39,6 +44,75 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		await User.deleteMany({});
 		await Session.deleteMany({});
 		await Review.deleteMany({});
+	});
+
+	describe("checkProductReviewedByUser", () => {
+		test("Should throw ConflictError when review exists for user and product", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			const user = await User.create(generateMockInsertUser());
+			const product = await Product.create({
+				...generateMockInsertProductWithStringImage(),
+				user: user._id,
+			});
+			await Review.create({
+				...generateMockInsertReview(),
+				product: product._id,
+				user: user._id,
+			});
+
+			res.locals.user = user;
+			req.params.productId = product._id.toString();
+
+			// Act & Assert
+			await assert.rejects(
+				async () => checkProductReviewedByUser(req, res, next),
+				ConflictError,
+			);
+		});
+
+		test("Should not throw when review does not exist", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			const user = await User.create(generateMockInsertUser());
+			const productData = generateMockInsertProductWithStringImage();
+			const product = await Product.create({ ...productData, user: user._id });
+
+			res.locals.user = user;
+			req.params.productId = product._id.toString();
+
+			// Act & Assert
+			await assert.doesNotReject(async () =>
+				checkProductReviewedByUser(req, res, next),
+			);
+		});
+
+		test("Should throw ValidationError when productId is invalid", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			const user = await User.create(generateMockInsertUser());
+
+			res.locals.user = user;
+			req.params.productId = "invalid";
+
+			// Act & Assert
+			await assert.rejects(
+				async () => checkProductReviewedByUser(req, res, next),
+				ValidationError,
+			);
+		});
+
+		test("Should throw InternalError when res.locals.user is missing", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			req.params.productId = generateMockObjectId().toString();
+
+			// Act & Assert
+			await assert.rejects(
+				async () => checkProductReviewedByUser(req, res, next),
+				InternalError,
+			);
+		});
 	});
 
 	describe("checkUserIdExists", () => {
