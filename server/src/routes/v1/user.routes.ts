@@ -2,6 +2,7 @@ import express from "express";
 
 import { UserController } from "../../controllers/index.js";
 import {
+	authenticate,
 	checkIfUserIsAdmin,
 	checkUserIdExists,
 } from "../../middlewares/index.js";
@@ -21,19 +22,38 @@ const adminRouter = express.Router();
 
 profileRouter
 	.route("/")
-	.get(defaultLimiter, checkUserIdExists, controller.getById)
-	.patch(strictLimiter, checkUserIdExists, controller.update);
+	.get(defaultLimiter, authenticate, checkUserIdExists, controller.getById)
+	.patch(strictLimiter, authenticate, checkUserIdExists, controller.update);
 
 adminRouter
 	.route("/")
-	.get(adminLimiter, checkUserIdExists, checkIfUserIsAdmin, controller.getAll);
+	.get(
+		adminLimiter,
+		authenticate,
+		checkUserIdExists,
+		checkIfUserIsAdmin,
+		controller.getAll,
+	);
 
 adminRouter
 	.route("/:userId")
-	.get(adminLimiter, checkUserIdExists, checkIfUserIsAdmin, controller.getById)
-	.patch(adminLimiter, checkUserIdExists, checkIfUserIsAdmin, controller.update)
+	.get(
+		adminLimiter,
+		authenticate,
+		checkUserIdExists,
+		checkIfUserIsAdmin,
+		controller.getById,
+	)
+	.patch(
+		adminLimiter,
+		authenticate,
+		checkUserIdExists,
+		checkIfUserIsAdmin,
+		controller.update,
+	)
 	.delete(
 		adminLimiter,
+		authenticate,
 		checkUserIdExists,
 		checkIfUserIsAdmin,
 		controller.delete,

@@ -3,6 +3,7 @@ import express from "express";
 import { uploadSingle as uploadSingleMiddleware } from "../../config/multer.config.js";
 import { ProductController } from "../../controllers/index.js";
 import {
+	authenticate,
 	checkIfUserIsAdmin,
 	checkUserIdExists,
 } from "../../middlewares/index.js";
@@ -25,6 +26,7 @@ adminRouter
 	.route("/")
 	.post(
 		adminLimiter,
+		authenticate,
 		checkUserIdExists,
 		checkIfUserIsAdmin,
 		uploadSingleMiddleware,
@@ -36,12 +38,14 @@ adminRouter
 	.get(defaultLimiter, controller.getById)
 	.delete(
 		adminLimiter,
+		authenticate,
 		checkUserIdExists,
 		checkIfUserIsAdmin,
 		controller.delete,
 	)
 	.patch(
 		adminLimiter,
+		authenticate,
 		checkUserIdExists,
 		checkIfUserIsAdmin,
 		uploadSingleMiddleware,

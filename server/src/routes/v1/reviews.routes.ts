@@ -2,6 +2,7 @@ import express from "express";
 
 import { ReviewController } from "../../controllers/index.js";
 import {
+	authenticate,
 	checkIfUserIsAdmin,
 	checkUserIdExists,
 	verifyReviewOwnership,
@@ -27,31 +28,46 @@ publicRouter
 	.route("/count/product/:productId")
 	.get(defaultLimiter, controller.countByProductId);
 
-userRouter.route("/").post(strictLimiter, checkUserIdExists, controller.create);
+userRouter
+	.route("/")
+	.post(strictLimiter, authenticate, checkUserIdExists, controller.create);
 
 userRouter
 	.route("/count/user/:userId")
-	.get(defaultLimiter, checkUserIdExists, controller.countByUserId);
+	.get(
+		defaultLimiter,
+		authenticate,
+		checkUserIdExists,
+		controller.countByUserId,
+	);
 
 userRouter
 	.route("/exists/user/:userId/product/:productId")
 	.get(
 		defaultLimiter,
+		authenticate,
 		checkUserIdExists,
 		controller.existsByUserIdAndProductId,
 	);
 
 userRouter
 	.route("/:userId")
-	.get(defaultLimiter, checkUserIdExists, controller.getAllByUserId)
+	.get(
+		defaultLimiter,
+		authenticate,
+		checkUserIdExists,
+		controller.getAllByUserId,
+	)
 	.patch(
 		strictLimiter,
+		authenticate,
 		checkUserIdExists,
 		verifyReviewOwnership,
 		controller.update,
 	)
 	.delete(
 		defaultLimiter,
+		authenticate,
 		checkUserIdExists,
 		verifyReviewOwnership,
 		controller.delete,
@@ -59,16 +75,29 @@ userRouter
 
 adminRouter
 	.route("/")
-	.get(adminLimiter, checkUserIdExists, checkIfUserIsAdmin, controller.getAll);
+	.get(
+		adminLimiter,
+		authenticate,
+		checkUserIdExists,
+		checkIfUserIsAdmin,
+		controller.getAll,
+	);
 
 adminRouter
 	.route("/count")
-	.get(adminLimiter, checkUserIdExists, checkIfUserIsAdmin, controller.count);
+	.get(
+		adminLimiter,
+		authenticate,
+		checkUserIdExists,
+		checkIfUserIsAdmin,
+		controller.count,
+	);
 
 adminRouter
 	.route("/exists/:reviewId")
 	.get(
 		adminLimiter,
+		authenticate,
 		checkUserIdExists,
 		checkIfUserIsAdmin,
 		controller.existsById,
@@ -76,7 +105,13 @@ adminRouter
 
 adminRouter
 	.route("/:reviewId")
-	.get(adminLimiter, checkUserIdExists, checkIfUserIsAdmin, controller.getById);
+	.get(
+		adminLimiter,
+		authenticate,
+		checkUserIdExists,
+		checkIfUserIsAdmin,
+		controller.getById,
+	);
 
 protectedRoutes.use("/", userRouter);
 protectedRoutes.use("/admin", adminRouter);
