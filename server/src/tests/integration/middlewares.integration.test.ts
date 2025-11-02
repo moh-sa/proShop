@@ -5,6 +5,8 @@ import { CookieName } from "../../constants/cookie.constants.js";
 import {
 	AuthenticationError,
 	AuthorizationError,
+	InternalError,
+	NotFoundError,
 	ValidationError,
 } from "../../errors/index.js";
 import {
@@ -35,35 +37,63 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 	beforeEach(async () => {
 		await User.deleteMany({});
 		await Session.deleteMany({});
+		await Review.deleteMany({});
 	});
 
 	describe("checkUserIdExists", () => {
-		test("Should find user by id and set res.locals.user", async () => {
+		test("Should set res.locals.user when user exists for res.locals.userId", async () => {
+			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockInsertUser();
-
 			const user = await User.create(mockUser);
-			res.locals.token = { _id: user._id, exp: 456, iat: 123 };
 
+			res.locals.userId = user._id.toString();
+
+			// Act
 			await checkUserIdExists(req, res, next);
 
+			// Assert
 			assert.ok(res.locals.user);
-			assert.equal(res.locals.user._id.toString(), user._id.toString());
 		});
 
-		test("Should throw 'AuthenticationError' if user does not exist", async () => {
+		test("Should set the correct user in res.locals.user", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			const mockUser = generateMockInsertUser();
+			const user = await User.create(mockUser);
+
+			res.locals.userId = user._id.toString();
+
+			// Act
+			await checkUserIdExists(req, res, next);
+
+			// Assert
+			assert.equal(res.locals.user?._id.toString(), user._id.toString());
+		});
+
+		test("Should throw NotFoundError when user does not exist", async () => {
+			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockId = generateMockObjectId();
 
-			res.locals.token = { _id: mockId, exp: 456, iat: 123 };
+			res.locals.userId = mockId.toString();
 
-			try {
-				await checkUserIdExists(req, res, next);
-			} catch (error) {
-				assert.ok(error instanceof AuthenticationError);
-				assert.equal(error.statusCode, 401);
-				assert.equal(error.message, "Authentication required");
-			}
+			// Act & Assert
+			await assert.rejects(
+				async () => checkUserIdExists(req, res, next),
+				NotFoundError,
+			);
+		});
+
+		test("Should throw InternalError when res.locals.userId is missing", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+
+			// Act & Assert
+			await assert.rejects(
+				async () => checkUserIdExists(req, res, next),
+				InternalError,
+			);
 		});
 	});
 

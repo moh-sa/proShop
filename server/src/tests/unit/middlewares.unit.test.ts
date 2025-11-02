@@ -6,12 +6,17 @@ import test, { describe, suite } from "node:test";
 import type { TokenType } from "../../types/index.js";
 
 import { CookieName } from "../../constants/cookie.constants.js";
-import { AuthenticationError } from "../../errors/index.js";
-import { authenticate } from "../../middlewares/index.js";
+import {
+	AuthenticationError,
+	InternalError,
+	ValidationError,
+} from "../../errors/index.js";
+import { authenticate, checkUserIdExists } from "../../middlewares/index.js";
 import {
 	CookieService,
 	JwtService,
 	SessionService,
+	UserService,
 } from "../../services/index.js";
 import { mockExpressCall } from "../mocks/index.js";
 
@@ -239,6 +244,121 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 				async () => authenticate(req as any, res as any, next),
 				AuthenticationError,
 			);
+		});
+	});
+
+	describe("checkUserIdExists", () => {
+		test("Should call next with InternalError when res.locals.userId is missing", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { cookies: {}, signedCookies: {} },
+				testContext: t,
+			});
+
+			// Act & Assert
+			await assert.rejects(
+				async () => checkUserIdExists(req as any, res as any, next),
+				InternalError,
+			);
+		});
+
+		test("Should call UserService.getById with res.locals.userId", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { cookies: {}, signedCookies: {} },
+				testContext: t,
+			});
+
+			const userId = "507f1f77bcf86cd799439011";
+			res.locals.userId = userId;
+
+			const mockGetUserById = t.mock.method(
+				UserService.prototype,
+				"getById",
+				async () => ({
+					data: { _id: userId, email: "a@b.com", isAdmin: false, name: "A" },
+					success: true,
+				}),
+			);
+
+			// Act
+			await checkUserIdExists(req as any, res as any, next);
+
+			// Assert
+			assert.strictEqual(
+				mockGetUserById.mock.calls[0].arguments[0]?.userId,
+				userId,
+			);
+		});
+
+		test("Should call next with ValidationError when service returns validation error", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { cookies: {}, signedCookies: {} },
+				testContext: t,
+			});
+
+			res.locals.userId = "invalid-id";
+
+			t.mock.method(UserService.prototype, "getById", async () => ({
+				error: new ValidationError("Invalid userId"),
+				success: false,
+			}));
+
+			// Act & Assert
+			await assert.rejects(
+				async () => checkUserIdExists(req as any, res as any, next),
+				ValidationError,
+			);
+		});
+
+		test("Should set res.locals.user when user exists", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { cookies: {}, signedCookies: {} },
+				testContext: t,
+			});
+			const userId = "507f1f77bcf86cd799439011";
+			const user = {
+				_id: userId,
+				email: "a@b.com",
+				isAdmin: false,
+				name: "A",
+			};
+			res.locals.userId = userId;
+
+			t.mock.method(UserService.prototype, "getById", async () => ({
+				data: user,
+				success: true,
+			}));
+
+			// Act
+			await checkUserIdExists(req as any, res as any, next);
+
+			// Assert
+			assert.deepStrictEqual(res.locals.user, user);
+		});
+
+		test("Should call next once without error on success", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { cookies: {}, signedCookies: {} },
+				testContext: t,
+			});
+
+			const userId = "507f1f77bcf86cd799439011";
+			res.locals.userId = userId;
+
+			t.mock.method(UserService.prototype, "getById", async () => ({
+				data: { _id: userId, email: "a@b.com", isAdmin: false, name: "A" },
+				success: true,
+			}));
+
+			// Act
+			await checkUserIdExists(req as any, res as any, next);
+
+			// Assert
+			assert.strictEqual(next.mock.callCount(), 1);
 		});
 	});
 });
