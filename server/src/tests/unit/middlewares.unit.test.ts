@@ -8,10 +8,15 @@ import type { TokenType } from "../../types/index.js";
 import { CookieName } from "../../constants/cookie.constants.js";
 import {
 	AuthenticationError,
+	ForbiddenError,
 	InternalError,
 	ValidationError,
 } from "../../errors/index.js";
-import { authenticate, checkUserExists } from "../../middlewares/index.js";
+import {
+	authenticate,
+	checkIfUserIsAdmin,
+	checkUserExists,
+} from "../../middlewares/index.js";
 import {
 	CookieService,
 	JwtService,
@@ -359,6 +364,52 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(next.mock.callCount(), 1);
+		});
+	});
+
+	describe("checkIfUserIsAdmin", () => {
+		test("Should call next once when user is admin", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { cookies: {}, signedCookies: {} },
+				testContext: t,
+			});
+			res.locals.user = { _id: "507f1f77bcf86cd799439011", isAdmin: true };
+
+			// Act
+			await checkIfUserIsAdmin(req as any, res as any, next);
+
+			// Assert
+			assert.strictEqual(next.mock.callCount(), 1);
+		});
+
+		test("Should call next with InternalError when res.locals.user is missing", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { cookies: {}, signedCookies: {} },
+				testContext: t,
+			});
+
+			// Act & Assert
+			await assert.rejects(
+				async () => checkIfUserIsAdmin(req as any, res as any, next),
+				InternalError,
+			);
+		});
+
+		test("Should call next with ForbiddenError when user is not admin", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { cookies: {}, signedCookies: {} },
+				testContext: t,
+			});
+			res.locals.user = { _id: "507f1f77bcf86cd799439011", isAdmin: false };
+
+			// Act & Assert
+			await assert.rejects(
+				async () => checkIfUserIsAdmin(req as any, res as any, next),
+				ForbiddenError,
+			);
 		});
 	});
 });

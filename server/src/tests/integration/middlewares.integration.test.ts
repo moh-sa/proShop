@@ -5,6 +5,7 @@ import { CookieName } from "../../constants/cookie.constants.js";
 import {
 	AuthenticationError,
 	AuthorizationError,
+	ForbiddenError,
 	InternalError,
 	NotFoundError,
 	ValidationError,
@@ -98,28 +99,41 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 	});
 
 	describe("checkIfUserIsAdmin", () => {
-		test("Should allow admin access", async () => {
+		test("Should not throw when user is admin", async () => {
+			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser({ isAdmin: true });
 
 			res.locals.user = mockUser;
 
-			await checkIfUserIsAdmin(req, res, next);
+			// Act & Assert
+			await assert.doesNotReject(async () =>
+				checkIfUserIsAdmin(req, res, next),
+			);
 		});
 
-		test("Should throw 'AuthorizationError' if user is not admin", async () => {
+		test("Should throw 'ForbiddenError' if user is not admin", async () => {
+			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser({ isAdmin: false });
-
 			res.locals.user = mockUser;
 
-			try {
-				await checkIfUserIsAdmin(req, res, next);
-			} catch (error) {
-				assert.ok(error instanceof AuthorizationError);
-				assert.equal(error.statusCode, 403);
-				assert.equal(error.message, "Admin access required.");
-			}
+			// Act & Assert
+			await assert.rejects(
+				async () => checkIfUserIsAdmin(req, res, next),
+				ForbiddenError,
+			);
+		});
+
+		test("Should throw 'InternalError' if user is missing in res.locals", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+
+			// Act & Assert
+			await assert.rejects(
+				async () => checkIfUserIsAdmin(req, res, next),
+				InternalError,
+			);
 		});
 	});
 
