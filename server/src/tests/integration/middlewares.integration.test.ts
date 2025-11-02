@@ -12,7 +12,7 @@ import {
 import {
 	authenticate,
 	checkIfUserIsAdmin,
-	checkUserIdExists,
+	checkUserExists,
 	verifyReviewOwnership,
 } from "../../middlewares/index.js";
 import Review from "../../models/review.model.js";
@@ -50,7 +50,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			res.locals.userId = user._id.toString();
 
 			// Act
-			await checkUserIdExists(req, res, next);
+			await checkUserExists(req, res, next);
 
 			// Assert
 			assert.ok(res.locals.user);
@@ -65,7 +65,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			res.locals.userId = user._id.toString();
 
 			// Act
-			await checkUserIdExists(req, res, next);
+			await checkUserExists(req, res, next);
 
 			// Assert
 			assert.equal(res.locals.user?._id.toString(), user._id.toString());
@@ -80,7 +80,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => checkUserIdExists(req, res, next),
+				async () => checkUserExists(req, res, next),
 				NotFoundError,
 			);
 		});
@@ -91,7 +91,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => checkUserIdExists(req, res, next),
+				async () => checkUserExists(req, res, next),
 				InternalError,
 			);
 		});

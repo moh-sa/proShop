@@ -4,7 +4,7 @@ import { UserController } from "../../controllers/index.js";
 import {
 	authenticate,
 	checkIfUserIsAdmin,
-	checkUserIdExists,
+	checkUserExists,
 } from "../../middlewares/index.js";
 import {
 	adminLimiter,
@@ -22,15 +22,15 @@ const adminRouter = express.Router();
 
 profileRouter
 	.route("/")
-	.get(defaultLimiter, authenticate, checkUserIdExists, controller.getById)
-	.patch(strictLimiter, authenticate, checkUserIdExists, controller.update);
+	.get(defaultLimiter, authenticate, checkUserExists, controller.getById)
+	.patch(strictLimiter, authenticate, checkUserExists, controller.update);
 
 adminRouter
 	.route("/")
 	.get(
 		adminLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		checkIfUserIsAdmin,
 		controller.getAll,
 	);
@@ -40,21 +40,21 @@ adminRouter
 	.get(
 		adminLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		checkIfUserIsAdmin,
 		controller.getById,
 	)
 	.patch(
 		adminLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		checkIfUserIsAdmin,
 		controller.update,
 	)
 	.delete(
 		adminLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		checkIfUserIsAdmin,
 		controller.delete,
 	);

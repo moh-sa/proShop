@@ -11,7 +11,7 @@ const userService = new UserService();
  *
  * This middleware must be used *after* `authenticate` middleware and *before* other middlewares that needs `res.locals.user`.
  */
-export const checkUserIdExists = asyncHandler(async (req, res, next) => {
+export const checkUserExists = asyncHandler(async (_req, res, next) => {
 	// Get userId from res.locals
 	const userId = res.locals.userId;
 	if (!userId) {

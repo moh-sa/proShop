@@ -5,7 +5,7 @@ import { ProductController } from "../../controllers/index.js";
 import {
 	authenticate,
 	checkIfUserIsAdmin,
-	checkUserIdExists,
+	checkUserExists,
 } from "../../middlewares/index.js";
 import { adminLimiter, defaultLimiter } from "../../services/index.js";
 
@@ -27,7 +27,7 @@ adminRouter
 	.post(
 		adminLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		checkIfUserIsAdmin,
 		uploadSingleMiddleware,
 		controller.create,
@@ -39,14 +39,14 @@ adminRouter
 	.delete(
 		adminLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		checkIfUserIsAdmin,
 		controller.delete,
 	)
 	.patch(
 		adminLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		checkIfUserIsAdmin,
 		uploadSingleMiddleware,
 		controller.update,

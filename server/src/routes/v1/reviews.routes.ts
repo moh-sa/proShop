@@ -4,7 +4,7 @@ import { ReviewController } from "../../controllers/index.js";
 import {
 	authenticate,
 	checkIfUserIsAdmin,
-	checkUserIdExists,
+	checkUserExists,
 	verifyReviewOwnership,
 } from "../../middlewares/index.js";
 import {
@@ -30,45 +30,35 @@ publicRouter
 
 userRouter
 	.route("/")
-	.post(strictLimiter, authenticate, checkUserIdExists, controller.create);
+	.post(strictLimiter, authenticate, checkUserExists, controller.create);
 
 userRouter
 	.route("/count/user/:userId")
-	.get(
-		defaultLimiter,
-		authenticate,
-		checkUserIdExists,
-		controller.countByUserId,
-	);
+	.get(defaultLimiter, authenticate, checkUserExists, controller.countByUserId);
 
 userRouter
 	.route("/exists/user/:userId/product/:productId")
 	.get(
 		defaultLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		controller.existsByUserIdAndProductId,
 	);
 
 userRouter
 	.route("/:userId")
-	.get(
-		defaultLimiter,
-		authenticate,
-		checkUserIdExists,
-		controller.getAllByUserId,
-	)
+	.get(defaultLimiter, authenticate, checkUserExists, controller.getAllByUserId)
 	.patch(
 		strictLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		verifyReviewOwnership,
 		controller.update,
 	)
 	.delete(
 		defaultLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		verifyReviewOwnership,
 		controller.delete,
 	);
@@ -78,7 +68,7 @@ adminRouter
 	.get(
 		adminLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		checkIfUserIsAdmin,
 		controller.getAll,
 	);
@@ -88,7 +78,7 @@ adminRouter
 	.get(
 		adminLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		checkIfUserIsAdmin,
 		controller.count,
 	);
@@ -98,7 +88,7 @@ adminRouter
 	.get(
 		adminLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		checkIfUserIsAdmin,
 		controller.existsById,
 	);
@@ -108,7 +98,7 @@ adminRouter
 	.get(
 		adminLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		checkIfUserIsAdmin,
 		controller.getById,
 	);

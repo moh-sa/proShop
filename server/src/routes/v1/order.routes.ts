@@ -4,7 +4,7 @@ import { OrderController } from "../../controllers/index.js";
 import {
 	authenticate,
 	checkIfUserIsAdmin,
-	checkUserIdExists,
+	checkUserExists,
 } from "../../middlewares/index.js";
 import { defaultLimiter, strictLimiter } from "../../services/index.js";
 
@@ -17,27 +17,27 @@ const adminRouter = express.Router();
 
 userRouter
 	.route("/")
-	.post(strictLimiter, authenticate, checkUserIdExists, controller.create);
+	.post(strictLimiter, authenticate, checkUserExists, controller.create);
 
 userRouter
 	.route("/user/:userId")
 	.get(
 		defaultLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		controller.getAllByUserId,
 	);
 
 userRouter
 	.route("/:orderId")
-	.get(defaultLimiter, authenticate, checkUserIdExists, controller.getById);
+	.get(defaultLimiter, authenticate, checkUserExists, controller.getById);
 
 adminRouter
 	.route("/")
 	.get(
 		defaultLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		checkIfUserIsAdmin,
 		controller.getAll,
 	);
@@ -47,7 +47,7 @@ adminRouter
 	.patch(
 		strictLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		checkIfUserIsAdmin,
 		controller.updateToPaid,
 	);
@@ -57,7 +57,7 @@ adminRouter
 	.patch(
 		strictLimiter,
 		authenticate,
-		checkUserIdExists,
+		checkUserExists,
 		checkIfUserIsAdmin,
 		controller.updateToDelivered,
 	);

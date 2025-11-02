@@ -11,7 +11,7 @@ import {
 	InternalError,
 	ValidationError,
 } from "../../errors/index.js";
-import { authenticate, checkUserIdExists } from "../../middlewares/index.js";
+import { authenticate, checkUserExists } from "../../middlewares/index.js";
 import {
 	CookieService,
 	JwtService,
@@ -257,7 +257,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => checkUserIdExists(req as any, res as any, next),
+				async () => checkUserExists(req as any, res as any, next),
 				InternalError,
 			);
 		});
@@ -282,7 +282,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await checkUserIdExists(req as any, res as any, next);
+			await checkUserExists(req as any, res as any, next);
 
 			// Assert
 			assert.strictEqual(
@@ -307,7 +307,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => checkUserIdExists(req as any, res as any, next),
+				async () => checkUserExists(req as any, res as any, next),
 				ValidationError,
 			);
 		});
@@ -333,7 +333,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			}));
 
 			// Act
-			await checkUserIdExists(req as any, res as any, next);
+			await checkUserExists(req as any, res as any, next);
 
 			// Assert
 			assert.deepStrictEqual(res.locals.user, user);
@@ -355,7 +355,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			}));
 
 			// Act
-			await checkUserIdExists(req as any, res as any, next);
+			await checkUserExists(req as any, res as any, next);
 
 			// Assert
 			assert.strictEqual(next.mock.callCount(), 1);
