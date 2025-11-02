@@ -4,7 +4,6 @@ import test, { after, before, beforeEach, describe, suite } from "node:test";
 import { CookieName } from "../../constants/cookie.constants.js";
 import {
 	AuthenticationError,
-	AuthorizationError,
 	ConflictError,
 	ForbiddenError,
 	InternalError,
@@ -210,9 +209,10 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 	});
 
 	describe("verifyReviewOwnership", () => {
-		test("Should allow access if 'review.user' matches 'req.params.userId'", async () => {
+		test("Should not throw when user owns the review", async () => {
+			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockSelectUser();
+			const mockUser = generateMockSelectUser({ isAdmin: false });
 			res.locals.user = mockUser;
 
 			const mockReview = generateMockSelectReview();
@@ -222,27 +222,83 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			});
 			req.params.reviewId = created._id.toString();
 
-			await verifyReviewOwnership(req, res, next);
-
-			assert.equal(res.locals.review._id.toString(), mockReview._id.toString());
-			assert.equal(res.locals.review.comment, mockReview.comment);
+			// Act & Assert
+			await assert.doesNotReject(async () =>
+				verifyReviewOwnership(req, res, next),
+			);
 		});
 
-		test("Should throw 'AuthorizationError' if user is not the owner", async () => {
+		test("Should not throw when user is admin and not owner", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			const mockUser = generateMockSelectUser({ isAdmin: true });
+			res.locals.user = mockUser;
+
+			const mockReview = generateMockSelectReview();
+			const created = await Review.create({ ...mockReview });
+			req.params.reviewId = created._id.toString();
+
+			// Act & Assert
+			await assert.doesNotReject(async () =>
+				verifyReviewOwnership(req, res, next),
+			);
+		});
+
+		test("Should throw ForbiddenError when user is not owner and not admin", async () => {
+			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser({ isAdmin: false });
 			res.locals.user = mockUser;
 
 			const mockReview = generateMockSelectReview();
-			await Review.create(mockReview);
-			req.params.reviewId = mockReview._id.toString();
+			const created = await Review.create({ ...mockReview });
+			req.params.reviewId = created._id.toString();
 
-			try {
-				await verifyReviewOwnership(req, res, next);
-				assert.fail("Should throw 'AuthorizationError'");
-			} catch (error) {
-				assert.ok(error instanceof AuthorizationError);
-			}
+			// Act & Assert
+			await assert.rejects(
+				async () => verifyReviewOwnership(req, res, next),
+				ForbiddenError,
+			);
+		});
+
+		test("Should throw ValidationError when reviewId is invalid", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			const mockUser = generateMockSelectUser({ isAdmin: false });
+			res.locals.user = mockUser;
+			req.params.reviewId = "invalid";
+
+			// Act & Assert
+			await assert.rejects(
+				async () => verifyReviewOwnership(req, res, next),
+				ValidationError,
+			);
+		});
+
+		test("Should throw InternalError when res.locals.user is missing", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			req.params.reviewId = generateMockObjectId().toString();
+
+			// Act & Assert
+			await assert.rejects(
+				async () => verifyReviewOwnership(req, res, next),
+				InternalError,
+			);
+		});
+
+		test("Should throw NotFoundError when review does not exist", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			const mockUser = generateMockSelectUser({ isAdmin: false });
+			res.locals.user = mockUser;
+			req.params.reviewId = generateMockObjectId().toString();
+
+			// Act & Assert
+			await assert.rejects(
+				async () => verifyReviewOwnership(req, res, next),
+				NotFoundError,
+			);
 		});
 	});
 
