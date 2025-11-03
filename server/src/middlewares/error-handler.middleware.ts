@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 
+import * as Sentry from "@sentry/node";
 import { MulterError } from "multer";
 import { ZodError } from "zod";
 
@@ -14,6 +15,15 @@ export function errorHandler(
 	res: Response,
 	_next: NextFunction,
 ) {
+	// Sent error to Sentry
+	Sentry.captureException(error, {
+		level: "error",
+		user: {
+			id: res.locals.userId,
+			ip_address: req.ip,
+		},
+	});
+
 	// Handle different types of errors
 	if (error instanceof BaseError) {
 		return sendErrorResponse({
