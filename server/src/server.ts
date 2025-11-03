@@ -1,53 +1,55 @@
-import type { Request, Response } from "express";
+import type { Server } from "http";
 
-import * as Sentry from "@sentry/node";
-import cookieParser from "cookie-parser";
-import cors from "cors";
-import express from "express";
-import morgan from "morgan";
+import mongoose from "mongoose";
 
+import app from "./app.js";
 import connectDB from "./config/db.js";
 import { env } from "./config/env.js";
-import { errorHandler } from "./middlewares/error-handler.middleware.js";
-import routes from "./routes/index.js";
-
-const app = express();
-
-app.use(cookieParser(env.COOKIE_SECRET, { decode: decodeURIComponent }));
-
-if (env.NODE_ENV === "development") {
-	app.use(morgan("dev"));
-}
-
-connectDB();
-
-app.use(express.json());
-app.use(
-	cors({
-		credentials: true,
-		origin: [env.CLIENT_URL],
-	}),
-);
-
-app.use(express.urlencoded({ extended: true }));
-
-app.get("/", (req, res) => {
-	res.send("API is running...");
-});
-
-app.use(routes);
-
-app.get("/api/config/paypal", (_req: Request, res: Response) => {
-	res.send(env.PAYPAL_CLIENT_ID);
-});
-
-app.use("/uploads", express.static("uploads"));
-
-Sentry.setupExpressErrorHandler(app);
-
-app.use(errorHandler);
 
 const PORT = env.PORT || 5000;
-app.listen(PORT, () => {
-	console.info(`Server running on port ${PORT}`);
-});
+
+async function startServer(): Promise<void> {
+	try {
+		await connectDB();
+
+		const server = app.listen(PORT, () => {
+			console.info(`Server running on port ${PORT}`);
+		});
+
+		// Shutdown server on error
+		server.on("error", async (error: NodeJS.ErrnoException) => {
+			if (error.code === "EADDRINUSE") {
+				console.error(`Port ${PORT} is already in use`);
+			} else {
+				console.error("Server error:", error);
+			}
+
+			await gracefulShutdown(server, 1);
+		});
+
+		// Shutdown server on termination signals (CTRL+C, Close terminal)
+		process.on("SIGTERM", () => gracefulShutdown(server, 0));
+		process.on("SIGINT", () => gracefulShutdown(server, 0));
+	} catch (error) {
+		console.error("Failed to start server:", error);
+		await mongoose.connection.close();
+		process.exit(1); // eslint-disable-line n/no-process-exit
+	}
+}
+
+//
+async function gracefulShutdown(server: Server, code: number): Promise<void> {
+	console.info("Shutting down gracefully...");
+
+	try {
+		await new Promise<void>((resolve) => server.close(() => resolve()));
+		await mongoose.connection.close();
+		console.info("Database and server connections closed.");
+	} catch (err) {
+		console.error("Error during shutdown:", err);
+	} finally {
+		process.exit(code); // eslint-disable-line n/no-process-exit
+	}
+}
+
+startServer();
