@@ -4,6 +4,7 @@ import express from "express";
 
 import { env } from "./config/env.js";
 import { errorHandler } from "./middlewares/error-handler.middleware.js";
+import { httpLogger } from "./middlewares/http-logger.middleware.js";
 import routes from "./routes/index.js";
 
 const app = express();
@@ -22,9 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser(env.COOKIE_SECRET, { decode: decodeURIComponent }));
 
 // Logging middlewares
-if (env.NODE_ENV === "development") {
-	app.use(morgan("dev"));
-}
+app.use(httpLogger);
 
 // Routes
 app.get("/", (_req, res) => res.send("API is running..."));
