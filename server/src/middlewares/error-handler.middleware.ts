@@ -17,6 +17,9 @@ export function errorHandler(
 ) {
 	// Sent error to Sentry
 	Sentry.captureException(error, {
+		extra: {
+			requestId: req.id,
+		},
 		level: "error",
 		user: {
 			id: res.locals.userId,
