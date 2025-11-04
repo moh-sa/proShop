@@ -6,5 +6,8 @@ declare global {
 			user?: SafeSelectUser;
 			userId?: string;
 		}
+		interface Request {
+			id: string;
+		}
 	}
 }
