@@ -6,8 +6,8 @@
 	"main": "server.js",
 	"scripts": {
 		"build": "tsc",
-		"dev": "cross-env NODE_ENV=development tsx watch --import ./src/config/sentry.config.ts src/server.ts",
-		"dev:debug": "cross-env NODE_ENV=development tsx watch --inspect src/server.ts",
+		"dev": "cross-env NODE_ENV=development tsx watch --import ./src/config/sentry.config.ts src/server.ts | pino-pretty",
+		"dev:debug": "cross-env NODE_ENV=development tsx watch --inspect src/server.ts | pino-pretty",
 		"format:check": "prettier --check .",
 		"format:fix": "prettier --write .",
 		"lint": "eslint . --max-warnings=0",
