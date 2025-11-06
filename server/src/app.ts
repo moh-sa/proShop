@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 
 import { env } from "./config/env.js";
+import { addLoggerToContext } from "./middlewares/add-logger-to-context.middleware.js";
 import { errorHandler } from "./middlewares/error-handler.middleware.js";
 import { httpLogger } from "./middlewares/http-logger.middleware.js";
 import { requestId } from "./middlewares/request-id.middleware.js";
@@ -25,6 +26,7 @@ app.use(cookieParser(env.COOKIE_SECRET, { decode: decodeURIComponent }));
 
 // Logging middlewares
 app.use(requestId);
+app.use(addLoggerToContext);
 app.use(httpLogger);
 
 // Routes
