@@ -1,6 +1,7 @@
 import pino from "pino";
 
 import { loggerConfig } from "../config/index.js";
+import { asyncContext } from "./async-context.util.js";
 
 /**
  * Root logger instance.
@@ -15,3 +16,19 @@ import { loggerConfig } from "../config/index.js";
  * ```
  */
 export const logger = pino(loggerConfig);
+
+/**
+ * Gets the request-scoped logger from async context.
+ *
+ * **When to use:**
+ * - In controllers, services, etc.
+ * - Anywhere logs needs to include the `requestId`
+ * @example
+ * ```
+ * const logger = getLogger().child({...});
+ * logger.info({...}, "message");
+ * ```
+ */
+export function getLoggerFromContext(): typeof logger {
+	return asyncContext.getStore()?.logger ?? logger;
+}
