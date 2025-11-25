@@ -1,6 +1,7 @@
 import { model, Schema } from "mongoose";
 
-import { SessionSchema } from "../types/index.js";
+import type { SessionSchema } from "../types/index.js";
+
 import { uuidValidator } from "../validators/index.js";
 
 const SessionSchema = new Schema<SessionSchema>(
