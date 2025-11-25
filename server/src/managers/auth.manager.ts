@@ -29,6 +29,7 @@ import {
 	UserService,
 } from "../services/index.js";
 import { TokenType } from "../types/index.js";
+import { getLoggerFromContext } from "../utils/index.js";
 
 // helpers types
 type AuthResult<T> = Result<T>;
@@ -238,7 +239,10 @@ export class AuthManager implements IAuthManager {
 	public async signIn(
 		args: MethodParams<IAuthManager, "signIn">,
 	): MethodReturn<IAuthManager, "signIn"> {
+		const logger = this.getLogger({ method: "signIn" });
+
 		if (!args?.email || !args?.password) {
+			logger.warn("Sign in failed - missing email or password");
 			return {
 				error: new ValidationError("Email and password are required"),
 				success: false,
@@ -249,6 +253,7 @@ export class AuthManager implements IAuthManager {
 			email: args.email,
 		});
 		if (!userResult.success) {
+			logger.warn({ email: args.email }, "Sign in failed - invalid email");
 			return {
 				error: new InvalidCredentialsError("Invalid email or password"),
 				success: false,
@@ -260,6 +265,8 @@ export class AuthManager implements IAuthManager {
 			password: args.password,
 		});
 		if (!isPasswordValid.success) {
+			// Error already logged in password service
+			logger.warn({ email: args.email }, "Sign in failed - invalid password");
 			return {
 				error: new InvalidCredentialsError("Invalid email or password", {
 					cause: isPasswordValid.error,
@@ -270,16 +277,32 @@ export class AuthManager implements IAuthManager {
 
 		const sanitizeResult = this._user.sanitizeUser(userResult.data);
 		if (!sanitizeResult.success) {
+			// Error already logged in user service
 			return sanitizeResult;
 		}
 
-		return this._createAuthSession(sanitizeResult.data);
+		const authSessionResult = await this._createAuthSession(
+			sanitizeResult.data,
+		);
+		if (!authSessionResult.success) {
+			// Error already logged in _createAuthSession
+			return authSessionResult;
+		}
+
+		logger.info(
+			{ email: args.email, userId: sanitizeResult.data._id },
+			"User signed in successfully",
+		);
+		return authSessionResult;
 	}
 
 	public async signOut(
 		args: MethodParams<IAuthManager, "signOut">,
 	): MethodReturn<IAuthManager, "signOut"> {
+		const logger = this.getLogger({ method: "signOut" });
+
 		if (!args?.refreshToken) {
+			logger.warn("Sign out failed - missing refresh token");
 			return {
 				error: new ValidationError("Refresh token is required"),
 				success: false,
@@ -291,6 +314,7 @@ export class AuthManager implements IAuthManager {
 			token: args.refreshToken as string,
 		});
 		if (!tokenResult.success) {
+			// Error already logged in JWT service
 			return tokenResult;
 		}
 
@@ -299,9 +323,11 @@ export class AuthManager implements IAuthManager {
 			userId: tokenResult.data.userId,
 		});
 		if (!deletedSessionResult.success) {
+			// Error already logged in session service
 			return deletedSessionResult;
 		}
 
+		logger.info({ userId: tokenResult.data.userId }, "User signed out");
 		return {
 			data: undefined,
 			success: true,
@@ -311,7 +337,10 @@ export class AuthManager implements IAuthManager {
 	public async signOutAll(
 		args: MethodParams<IAuthManager, "signOutAll">,
 	): MethodReturn<IAuthManager, "signOutAll"> {
+		const logger = this.getLogger({ method: "signOutAll" });
+
 		if (!args?.refreshToken) {
+			logger.warn("Sign out all failed - missing refresh token");
 			return {
 				error: new ValidationError("Refresh token is required"),
 				success: false,
@@ -323,6 +352,7 @@ export class AuthManager implements IAuthManager {
 			token: args.refreshToken,
 		});
 		if (!refreshTokenResult.success) {
+			// Error already logged in JWT service
 			return refreshTokenResult;
 		}
 
@@ -332,9 +362,14 @@ export class AuthManager implements IAuthManager {
 			userId,
 		});
 		if (!result.success) {
+			// Error already logged in session service
 			return result;
 		}
 
+		logger.info(
+			{ deletedCount: result.data, userId },
+			"All sessions signed out",
+		);
 		return {
 			data: result.data,
 			success: true,
@@ -344,7 +379,10 @@ export class AuthManager implements IAuthManager {
 	public async signUp(
 		args: MethodParams<IAuthManager, "signUp">,
 	): MethodReturn<IAuthManager, "signUp"> {
+		const logger = this.getLogger({ method: "signUp" });
+
 		if (!args?.email || !args?.password || !args?.name) {
+			logger.warn("Sign up failed - missing required fields");
 			return {
 				error: new ValidationError("Email, password and name are required"),
 				success: false,
@@ -355,9 +393,14 @@ export class AuthManager implements IAuthManager {
 			email: args.email,
 		});
 		if (!userExistsResult.success) {
+			// Error already logged in user service
 			return userExistsResult;
 		}
 		if (userExistsResult.data) {
+			logger.warn(
+				{ email: args.email },
+				"Sign up failed - email already exists",
+			);
 			return {
 				error: new ConflictError("An account with this email already exists"),
 				success: false,
@@ -368,6 +411,7 @@ export class AuthManager implements IAuthManager {
 			password: args.password,
 		});
 		if (!hashedPasswordResult.success) {
+			// Error already logged in password service
 			return hashedPasswordResult;
 		}
 
@@ -376,10 +420,23 @@ export class AuthManager implements IAuthManager {
 			password: hashedPasswordResult.data,
 		});
 		if (!createUserResult.success) {
+			// Error already logged in user service
 			return createUserResult;
 		}
 
-		return this._createAuthSession(createUserResult.data);
+		const authSessionResult = await this._createAuthSession(
+			createUserResult.data,
+		);
+		if (!authSessionResult.success) {
+			// Error already logged in _createAuthSession
+			return authSessionResult;
+		}
+
+		logger.info(
+			{ email: args.email, userId: createUserResult.data._id },
+			"User signed up successfully",
+		);
+		return authSessionResult;
 	}
 
 	private async _createAuthSession(
@@ -391,10 +448,13 @@ export class AuthManager implements IAuthManager {
 			user: SafeSelectUser;
 		}>
 	> {
+		const logger = this.getLogger({ method: "_createAuthSession" });
+
 		const tokensResult = this._jwt.generateTokenPair({
 			userId: user._id.toString(),
 		});
 		if (!tokensResult.success) {
+			// Error already logged in JWT service
 			return tokensResult;
 		}
 
@@ -404,9 +464,14 @@ export class AuthManager implements IAuthManager {
 			userId: user._id,
 		});
 		if (!sessionResult.success) {
+			// Error already logged in session service
 			return sessionResult;
 		}
 
+		logger.debug(
+			{ sessionId: sessionResult.data.id, userId: user._id },
+			"Auth session created",
+		);
 		return {
 			data: {
 				sessionId: sessionResult.data.id.toString(),
@@ -415,5 +480,9 @@ export class AuthManager implements IAuthManager {
 			},
 			success: true,
 		};
+	}
+
+	private getLogger(args: { [key: string]: unknown; method: string }) {
+		return getLoggerFromContext().child(args);
 	}
 }

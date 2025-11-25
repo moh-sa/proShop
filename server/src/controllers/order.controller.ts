@@ -11,7 +11,7 @@ import type {
 
 import { HTTP_STATUS } from "../constants/index.js";
 import { OrderService } from "../services/index.js";
-import { asyncHandler } from "../utils/index.js";
+import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
 
 export interface IOrderController {
 	create: AsyncHandler<{
@@ -55,15 +55,27 @@ export class OrderController implements IOrderController {
 		reqBody: InsertOrder;
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "create" });
+		logger.debug(
+			{ data: req.body, userId: res.locals.user._id },
+			"Creating order",
+		);
+
 		const data = {
 			...req.body,
 			user: res.locals.user._id,
 		};
+		logger.debug({ data }, "Validated order data");
 
 		const result = await this._service.create(data);
 		if (!result.success) {
 			throw result.error;
 		}
+
+		logger.info(
+			{ orderId: result.data._id, userId: res.locals.user._id },
+			"Order created successfully",
+		);
 
 		res.status(HTTP_STATUS.CREATED).json({
 			data: result.data,
@@ -78,10 +90,18 @@ export class OrderController implements IOrderController {
 			meta: PaginatedResponse<AllOrdersResponse>["meta"];
 		};
 	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "getAll" });
+		logger.debug({ query: req.query }, "Getting all orders");
+
 		const result = await this._service.getAll(req.query);
 		if (!result.success) {
 			throw result.error;
 		}
+
+		logger.info(
+			{ totalOrders: result.data.meta.totalItems },
+			"Orders retrieved successfully",
+		);
 
 		res.status(HTTP_STATUS.OK).json({
 			data: result.data.items,
@@ -98,6 +118,12 @@ export class OrderController implements IOrderController {
 			meta: PaginatedResponse<AllOrdersResponse>["meta"];
 		};
 	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "getAllByUserId" });
+		logger.debug(
+			{ query: req.query, userId: req.params.userId },
+			"Getting all orders by user ID",
+		);
+
 		const result = await this._service.getAll({
 			...req.query,
 			user: req.params.userId,
@@ -105,6 +131,11 @@ export class OrderController implements IOrderController {
 		if (!result.success) {
 			throw result.error;
 		}
+
+		logger.info(
+			{ totalOrders: result.data.meta.totalItems, userId: req.params.userId },
+			"Orders retrieved by user ID successfully",
+		);
 
 		res.status(HTTP_STATUS.OK).json({
 			data: result.data.items,
@@ -117,10 +148,18 @@ export class OrderController implements IOrderController {
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "getById" });
+		logger.debug({ orderId: req.params.orderId }, "Getting order by ID");
+
 		const result = await this._service.getById({ orderId: req.params.orderId });
 		if (!result.success) {
 			throw result.error;
 		}
+
+		logger.info(
+			{ orderId: result.data._id },
+			"Order retrieved by ID successfully",
+		);
 
 		res.status(HTTP_STATUS.OK).json({
 			data: result.data,
@@ -132,12 +171,20 @@ export class OrderController implements IOrderController {
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "updateToDelivered" });
+		logger.debug(
+			{ orderId: req.params.orderId },
+			"Updating order to delivered",
+		);
+
 		const result = await this._service.updateToDelivered({
 			orderId: req.params.orderId,
 		});
 		if (!result.success) {
 			throw result.error;
 		}
+
+		logger.info({ orderId: result.data._id }, "Order marked as delivered");
 
 		res.status(HTTP_STATUS.OK).json({
 			data: result.data,
@@ -149,12 +196,20 @@ export class OrderController implements IOrderController {
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "updateToPaid" });
+		logger.debug({ orderId: req.params.orderId }, "Updating order to paid");
+
 		const result = await this._service.updateToPaid({
 			orderId: req.params.orderId,
 		});
 		if (!result.success) {
 			throw result.error;
 		}
+
+		logger.info(
+			{ orderId: result.data._id },
+			"Order marked as paid successfully",
+		);
 
 		res.status(HTTP_STATUS.OK).json({
 			data: result.data,
@@ -164,5 +219,9 @@ export class OrderController implements IOrderController {
 
 	constructor(service: IOrderService = new OrderService()) {
 		this._service = service;
+	}
+
+	private _getLogger(args: { [key: string]: unknown; method: string }) {
+		return getLoggerFromContext().child({ layer: "order controller", ...args });
 	}
 }

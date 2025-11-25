@@ -14,7 +14,7 @@ import {
 	PasswordValidationError,
 	PasswordVerifyError,
 } from "../errors/index.js";
-import { formatZodErrors } from "../utils/index.js";
+import { formatZodErrors, getLoggerFromContext } from "../utils/index.js";
 import { passwordValidator } from "../validators/index.js";
 
 export interface IPasswordService {
@@ -37,18 +37,32 @@ export class PasswordService implements IPasswordService {
 	public async hash(
 		args: MethodParams<IPasswordService, "hash">,
 	): MethodReturn<IPasswordService, "hash"> {
+		const logger = this._getLogger({ method: "hash" });
+		logger.debug({ password: args.password }, "Hashing password");
+
 		const validationResult = this._validateForHash(args.password);
 		if (!validationResult.success) {
+			logger.warn(
+				{ error: validationResult.error },
+				"Password zod validation failed",
+			);
 			return validationResult;
 		}
 
 		try {
 			const hashResult = await this._provider.hash(args.password);
+
+			logger.info("Password hashed successfully");
+
 			return {
 				data: hashResult,
 				success: true,
 			};
 		} catch (error) {
+			logger.error(
+				{ error },
+				"Unexpected error occurred while hashing password",
+			);
 			return {
 				error: new PasswordHashError({ cause: error }),
 				success: false,
@@ -59,11 +73,21 @@ export class PasswordService implements IPasswordService {
 	public async verify(
 		args: MethodParams<IPasswordService, "verify">,
 	): MethodReturn<IPasswordService, "verify"> {
+		const logger = this._getLogger({ method: "verify" });
+		logger.debug(
+			{ hashedPassword: args.hashedPassword, password: args.password },
+			"Verifying password",
+		);
+
 		const validationResult = this._validateForVerify(
 			args.hashedPassword,
 			args.password,
 		);
 		if (!validationResult.success) {
+			logger.warn(
+				{ error: validationResult.error },
+				"Password zod validation failed",
+			);
 			return validationResult;
 		}
 
@@ -73,6 +97,7 @@ export class PasswordService implements IPasswordService {
 				args.password,
 			);
 			if (!verificationResult) {
+				logger.warn("Invalid password");
 				return {
 					error: new PasswordVerifyError({
 						cause: new Error("Invalid password"),
@@ -81,16 +106,25 @@ export class PasswordService implements IPasswordService {
 				};
 			}
 
+			logger.info("Password verified successfully");
 			return {
 				data: undefined,
 				success: true,
 			};
 		} catch (error) {
+			logger.error(
+				{ error },
+				"Unexpected error occurred while verifying password",
+			);
 			return {
 				error: new PasswordVerifyError({ cause: error }),
 				success: false,
 			};
 		}
+	}
+
+	private _getLogger(args: { [key: string]: unknown; method: string }) {
+		return getLoggerFromContext().child({ layer: "password service", ...args });
 	}
 
 	private _handleValidationError(

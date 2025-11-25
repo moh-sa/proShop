@@ -9,7 +9,7 @@ import type {
 
 import { HTTP_STATUS } from "../constants/index.js";
 import { UserService } from "../services/index.js";
-import { asyncHandler } from "../utils/index.js";
+import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
 
 export interface IUserController {
 	delete: AsyncHandler<{
@@ -43,10 +43,15 @@ export class UserController implements IUserController {
 		params: { userId: string };
 		resBody: { data: null };
 	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "delete" });
+		logger.debug({ userId: req.params.userId }, "Deleting user");
+
 		const result = await this._service.delete({ userId: req.params.userId });
 		if (!result.success) {
 			throw result.error;
 		}
+
+		logger.info({ userId: result.data._id }, "User deleted successfully");
 
 		res.status(HTTP_STATUS.NO_CONTENT).json({
 			data: null,
@@ -61,10 +66,18 @@ export class UserController implements IUserController {
 			meta: PaginatedResponse<SafeSelectUser>["meta"];
 		};
 	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "getAll" });
+		logger.debug({ query: req.query }, "Getting all users");
+
 		const result = await this._service.getAll(req.query);
 		if (!result.success) {
 			throw result.error;
 		}
+
+		logger.info(
+			{ totalUsers: result.data.meta.totalItems },
+			"Users retrieved successfully",
+		);
 
 		res.status(HTTP_STATUS.OK).json({
 			data: result.data.items,
@@ -78,12 +91,20 @@ export class UserController implements IUserController {
 		params: { userId: string };
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "getById" });
+		logger.debug({ userId: req.params.userId }, "Getting user by ID");
+
 		const result = await this._service.getById({
 			userId: req.params.userId || res.locals.user._id.toString(),
 		});
 		if (!result.success) {
 			throw result.error;
 		}
+
+		logger.info(
+			{ userId: result.data._id },
+			"User retrieved by ID successfully",
+		);
 
 		res.status(HTTP_STATUS.OK).json({
 			data: result.data,
@@ -97,6 +118,9 @@ export class UserController implements IUserController {
 		reqBody: Partial<InsertUser>;
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "update" });
+		logger.debug({ userId: req.params.userId }, "Updating user");
+
 		const result = await this._service.updateById({
 			data: req.body,
 			userId: req.params.userId || res.locals.user._id.toString(),
@@ -104,6 +128,11 @@ export class UserController implements IUserController {
 		if (!result.success) {
 			throw result.error;
 		}
+
+		logger.info(
+			{ updateData: req.body, userId: result.data._id },
+			"User updated successfully",
+		);
 
 		res.status(HTTP_STATUS.OK).json({
 			data: result.data,
@@ -113,5 +142,9 @@ export class UserController implements IUserController {
 
 	constructor(service: IUserService = new UserService()) {
 		this._service = service;
+	}
+
+	private _getLogger(args: { [key: string]: unknown; method: string }) {
+		return getLoggerFromContext().child({ layer: "user controller", ...args });
 	}
 }

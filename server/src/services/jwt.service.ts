@@ -20,6 +20,7 @@ import {
 } from "../errors/index.js";
 import { tokenDecodedSchema, tokenTypeSchema } from "../schemas/index.js";
 import { type JwtConfig, type Result, TokenType } from "../types/index.js";
+import { getLoggerFromContext } from "../utils/index.js";
 import {
 	jwtTokenValidator,
 	objectIdStringValidator,
@@ -78,6 +79,9 @@ export class JwtService implements IJwtService {
 	public generateTokenPair(
 		args: MethodParams<IJwtService, "generateTokenPair">,
 	): MethodReturn<IJwtService, "generateTokenPair"> {
+		const logger = this._getLogger({ method: "generateTokenPair" });
+		logger.debug({ userId: args.userId }, "Generating token pair");
+
 		const accessTokenResult = this.generateAccessToken(args);
 		if (!accessTokenResult.success) {
 			return accessTokenResult;
@@ -87,6 +91,8 @@ export class JwtService implements IJwtService {
 		if (!refreshTokenResult.success) {
 			return refreshTokenResult;
 		}
+
+		logger.info("Token pair generated successfully");
 
 		return {
 			data: {
@@ -100,6 +106,12 @@ export class JwtService implements IJwtService {
 	public refreshAccessToken(
 		args: MethodParams<IJwtService, "refreshAccessToken">,
 	): MethodReturn<IJwtService, "refreshAccessToken"> {
+		const logger = this._getLogger({ method: "refreshAccessToken" });
+		logger.debug(
+			{ refreshToken: args.refreshToken },
+			"Refreshing access token",
+		);
+
 		const refreshTokenResult = this.verify({
 			expectedType: TokenType.REFRESH,
 			token: args.refreshToken,
@@ -115,6 +127,8 @@ export class JwtService implements IJwtService {
 			return accessTokenResult;
 		}
 
+		logger.info("Access token refreshed successfully");
+
 		return {
 			data: {
 				access: accessTokenResult.data,
@@ -127,19 +141,36 @@ export class JwtService implements IJwtService {
 	public verify(
 		args: MethodParams<IJwtService, "verify">,
 	): MethodReturn<IJwtService, "verify"> {
+		const logger = this._getLogger({ method: "verify" });
+		logger.debug(
+			{ expectedType: args.expectedType, token: args.token },
+			"Verifying token",
+		);
+
 		const tokenValidationResult = this._validateToken(args.token);
 		if (!tokenValidationResult.success) {
+			logger.warn({ error: tokenValidationResult.error }, "Invalid token");
 			return tokenValidationResult;
 		}
+		logger.debug({ token: tokenValidationResult.data }, "Validated token");
+
 		const typeValidationResult = this._validateExpectedType(args.expectedType);
 		if (!typeValidationResult.success) {
+			logger.warn({ error: typeValidationResult.error }, "Invalid token type");
 			return typeValidationResult;
 		}
 
+		logger.debug(
+			{ validatedTokenType: typeValidationResult.data },
+			"Validated token type",
+		);
+
 		const secret = this._getSecretByTokenType(typeValidationResult.data);
+		logger.debug({ secret }, "Got secret by token type");
 
 		const decoded = this._verifyToken(tokenValidationResult.data, secret);
 		if (!decoded.success) {
+			// Error already logged in _verifyToken
 			return decoded;
 		}
 
@@ -148,8 +179,17 @@ export class JwtService implements IJwtService {
 			decoded.data,
 		);
 		if (!expectedTokenTypeResult.success) {
+			logger.warn(
+				{ error: expectedTokenTypeResult.error },
+				"Invalid token type",
+			);
 			return expectedTokenTypeResult;
 		}
+
+		logger.info(
+			{ tokenId: decoded.data.tokenId, tokenType: decoded.data.type },
+			"Token verified successfully",
+		);
 
 		return {
 			data: decoded.data,
@@ -180,35 +220,64 @@ export class JwtService implements IJwtService {
 	private _generateToken(args: {
 		payload: TokenPayload;
 	}): JwtResult<TokenResult> {
+		const logger = this._getLogger({
+			method: "_generateToken",
+			tokenType: args.payload.type,
+		});
+
+		logger.debug({ payload: args.payload }, "Generating token");
+
 		const userIdResult = this._validateUserId(args.payload.userId);
 		if (!userIdResult.success) {
+			logger.warn(
+				{ error: userIdResult.error, payload: args.payload },
+				"Invalid user ID",
+			);
 			return userIdResult;
 		}
 
+		logger.debug({ userId: userIdResult.data }, "Validated user ID");
+
 		const tokenTypeResult = this._validateExpectedType(args.payload.type);
 		if (!tokenTypeResult.success) {
+			logger.warn({ error: tokenTypeResult.error }, "Invalid token type");
 			return tokenTypeResult;
 		}
 
+		logger.debug(
+			{ validatedTokenType: tokenTypeResult.data },
+			"Validated token type",
+		);
+
 		const secret = this._getSecretByTokenType(tokenTypeResult.data);
 		const expiresIn = this._getExpirationTimeByTokenType(tokenTypeResult.data);
+		logger.debug({ expiresIn }, "Expiration time");
+
 		const tokenId = this._generateTokenId();
 		const payload = {
 			tokenId,
 			type: tokenTypeResult.data,
 			userId: userIdResult.data,
 		};
+		logger.debug({ payload }, "Generated payload");
 
 		try {
 			const token = this._provider.sign(payload, secret, {
 				expiresIn,
 			});
 
+			logger.debug({ token }, "Token generated");
+
 			const expiresAt = this._extractExpirationDateFromToken(token);
 			if (!expiresAt.success) {
+				logger.warn(
+					{ error: expiresAt.error },
+					"Cannot extract expiration date from token",
+				);
 				return expiresAt;
 			}
 
+			logger.info("Token generated successfully");
 			return {
 				data: {
 					expiresAt: expiresAt.data,
@@ -218,6 +287,7 @@ export class JwtService implements IJwtService {
 				success: true,
 			};
 		} catch (error) {
+			logger.error({ error }, "Unexpected error while generating token");
 			return {
 				error: new JwtGenerationError({ cause: error }),
 				success: false,
@@ -233,6 +303,13 @@ export class JwtService implements IJwtService {
 		return tokenType === TokenType.ACCESS
 			? this._config.accessTokenExpiresIn
 			: this._config.refreshTokenExpiresIn;
+	}
+
+	private _getLogger(args: { [key: string]: unknown; method: string }) {
+		return getLoggerFromContext().child({
+			layer: "jwt service",
+			...args,
+		});
 	}
 
 	private _getSecretByTokenType(tokenType: TokenType): string {
@@ -307,11 +384,19 @@ export class JwtService implements IJwtService {
 	}
 
 	private _verifyToken(token: string, secret: string): JwtResult<TokenDecoded> {
+		const logger = this._getLogger({ method: "_verifyToken" });
+		logger.debug({ token }, "Verifying token");
+
 		try {
 			const decoded = this._provider.verify(token, secret);
+			logger.debug({ decoded }, "Decoded token");
 
 			const decodedValidationResult = tokenDecodedSchema.safeParse(decoded);
 			if (!decodedValidationResult.success) {
+				logger.warn(
+					{ error: decodedValidationResult.error },
+					"Invalid token structure",
+				);
 				return {
 					error: new JwtInvalidTokenError({
 						cause: decodedValidationResult.error,
@@ -320,12 +405,20 @@ export class JwtService implements IJwtService {
 				};
 			}
 
+			logger.info(
+				{
+					tokenId: decodedValidationResult.data.tokenId,
+					tokenType: decodedValidationResult.data.type,
+				},
+				"Token verified successfully",
+			);
 			return {
 				data: decodedValidationResult.data,
 				success: true,
 			};
 		} catch (error) {
 			if (error instanceof jwt.TokenExpiredError) {
+				logger.error({ error }, "Token expired");
 				return {
 					error: new JwtExpirationError({ cause: error }),
 					success: false,
@@ -333,12 +426,14 @@ export class JwtService implements IJwtService {
 			}
 
 			if (error instanceof jwt.JsonWebTokenError) {
+				logger.error({ error }, "Invalid token");
 				return {
 					error: new JwtVerificationError({ cause: error }),
 					success: false,
 				};
 			}
 
+			logger.error({ error }, "Unexpected error while verifying token");
 			return {
 				error: new JwtBaseError(`Unknown error: ${String(error)}`),
 				success: false,

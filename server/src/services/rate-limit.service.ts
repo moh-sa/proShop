@@ -4,6 +4,7 @@ import type { RateLimitConfig } from "../types/index.js";
 
 import { RATE_LIMIT_CONFIG } from "../config/index.js";
 import { RateLimitError } from "../errors/index.js";
+import { getLoggerFromContext } from "../utils/index.js";
 import { CacheService } from "./cache.service.js";
 
 interface RateLimitData {
@@ -19,12 +20,17 @@ export class RateLimiterService {
 	}
 
 	public clearCache(keys?: Array<string> | string): void {
+		const logger = this._getLogger({ method: "clearCache" });
+		logger.debug({ keys }, "Clearing rate limit cache");
+
 		// FIXME: refactor this. probably gonna split this into multiple functions
 		if (!(Array.isArray(keys) || typeof keys === "string")) {
 			return this._cache.flush();
 		}
 
 		// this.cache.delete({ keys });
+
+		logger.info("Rate limit cache cleared successfully");
 	}
 
 	public getLimiter(
@@ -40,6 +46,13 @@ export class RateLimiterService {
 
 	private _generateId(req: Request): string {
 		return `${req.ip}:${req.baseUrl + req.path}`;
+	}
+
+	private _getLogger(args: { [key: string]: unknown; method: string }) {
+		return getLoggerFromContext().child({
+			layer: "rate limiting service",
+			...args,
+		});
 	}
 
 	private _getRateLimitData(key: string): RateLimitData {
@@ -86,21 +99,33 @@ export class RateLimiterService {
 	}
 
 	private _limiter(config: RateLimitConfig = RATE_LIMIT_CONFIG.DEFAULT) {
+		const logger = this._getLogger({ method: "limiter" });
+		logger.debug({ config }, "Getting rate limit limiter");
+
 		return async (req: Request, res: Response, next: NextFunction) => {
 			try {
 				const key = this._generateId(req);
+				logger.debug({ key }, "Generated rate limit key");
+
 				const data = this._getRateLimitData(key);
+				logger.debug({ data }, "Got rate limit data");
 
 				const updatedData = this._updateRateLimitData(data, config);
+				logger.debug({ updatedData }, "Updated rate limit data");
+
 				this._setRateLimitHeaders(res, updatedData, config);
 
 				if (updatedData.count > config.maxRequests) {
+					logger.warn({ updatedData }, "Rate limit exceeded");
 					this._handleRateLimitExceeded(res, next, updatedData, config, key);
 				} else {
 					this._saveRateLimitData(updatedData, config, key);
 					next();
 				}
+
+				logger.info({ key }, "Rate limit data saved successfully");
 			} catch (error) {
+				logger.error({ error }, "Error in rate limit limiter");
 				this._handleError(error, next);
 			}
 		};

@@ -20,6 +20,7 @@ import {
 	CookieSerializationError,
 	CookieValidationError,
 } from "../errors/index.js";
+import { getLoggerFromContext } from "../utils/index.js";
 
 export interface ICookieService {
 	delete(args: {
@@ -52,25 +53,52 @@ export class CookieService implements ICookieService {
 	public delete(
 		args: MethodParams<ICookieService, "delete">,
 	): MethodReturn<ICookieService, "delete"> {
+		const logger = this._getLogger({ method: "delete" });
+
+		logger.debug({ name: args.name }, "Deleting cookie");
+
 		const nameValidationResult = this._validateName(args.name);
 		if (!nameValidationResult.success) {
+			logger.warn(
+				{ error: nameValidationResult.error, name: args.name },
+				"Invalid cookie name",
+			);
 			return nameValidationResult;
 		}
+		logger.debug({ name: args.name }, "Validated cookie name");
 
 		const resResult = this._validateResponse(args.response);
 		if (!resResult.success) {
+			logger.warn(
+				{ error: resResult.error, response: args.response },
+				"Invalid response object",
+			);
 			return resResult;
 		}
+		logger.debug("Validated response object");
 
 		const options: CookieItemOptions = this._mergeOptions({
 			expires: new Date(0),
 		});
 
-		return this._deleteCookie({
+		logger.debug({ options }, "Merged options");
+
+		const deleteResult = this._deleteCookie({
 			name: args.name,
 			options,
 			response: args.response,
 		});
+		if (!deleteResult.success) {
+			logger.error(
+				{ error: deleteResult.error, name: args.name },
+				"Failed to delete cookie",
+			);
+			return deleteResult;
+		}
+
+		logger.info({ name: args.name }, "Cookie deleted successfully");
+
+		return deleteResult;
 	}
 
 	public get<T>(args: {
@@ -78,29 +106,54 @@ export class CookieService implements ICookieService {
 		request: Request;
 		schema?: z.ZodSchema<T>;
 	}): CookieResult<T> {
+		const logger = this._getLogger({ method: "get" });
+		logger.debug({ name: args.name }, "Getting cookie");
+
 		const nameValidationResult = this._validateName(args.name);
 		if (!nameValidationResult.success) {
+			logger.warn(
+				{ error: nameValidationResult.error, name: args.name },
+				"Invalid cookie name",
+			);
 			return nameValidationResult;
 		}
 
 		const reqResult = this._validateRequest(args.request);
 		if (!reqResult.success) {
+			logger.warn(
+				{ error: reqResult.error, request: args.request },
+				"Invalid request object",
+			);
 			return reqResult;
 		}
 
 		const cookieResult = this._getCookie(args.request, args.name);
 		if (!cookieResult.success) {
+			logger.warn(
+				{ error: cookieResult.error, name: args.name },
+				"Cookie not found",
+			);
 			return cookieResult;
 		}
 
 		const parsedCookieResult = this._parseValue<T>(cookieResult.data);
 		if (!parsedCookieResult.success) {
+			logger.warn(
+				{ error: parsedCookieResult.error, name: args.name },
+				"Failed to parse cookie value",
+			);
 			return parsedCookieResult;
 		}
+
+		logger.debug({ parsedCookieResult }, "Parsed cookie value");
 
 		if (args.schema) {
 			const validationResult = args.schema.safeParse(parsedCookieResult.data);
 			if (!validationResult.success) {
+				logger.warn(
+					{ error: validationResult.error, name: args.name },
+					"Failed to validate cookie value",
+				);
 				return {
 					error: CookieValidationError.schemaValidationFailed(
 						args.name,
@@ -110,11 +163,15 @@ export class CookieService implements ICookieService {
 				};
 			}
 
+			logger.info({ name: args.name }, "Cookie value validated successfully");
+
 			return {
 				data: validationResult.data,
 				success: true,
 			};
 		}
+
+		logger.info({ name: args.name }, "Got cookie successfully");
 
 		return parsedCookieResult;
 	}
@@ -122,29 +179,63 @@ export class CookieService implements ICookieService {
 	public set(
 		args: MethodParams<ICookieService, "set">,
 	): MethodReturn<ICookieService, "set"> {
+		const logger = this._getLogger({ method: "set" });
+		logger.debug({ item: args.item }, "Setting cookie");
+
 		const nameValidationResult = this._validateName(args.item.name);
 		if (!nameValidationResult.success) {
+			logger.warn(
+				{ error: nameValidationResult.error, item: args.item },
+				"Invalid cookie name",
+			);
 			return nameValidationResult;
 		}
 
+		logger.debug({ item: args.item }, "Validated cookie name");
+
 		const resResult = this._validateResponse(args.response);
 		if (!resResult.success) {
+			logger.warn(
+				{ error: resResult.error, response: args.response },
+				"Invalid response object",
+			);
 			return resResult;
 		}
 
+		logger.debug("Validated response object");
+
 		const options = this._mergeOptions(args.options);
+
+		logger.debug({ options }, "Merged options");
 
 		const valueResult = this._stringifyValue(args.item.value);
 		if (!valueResult.success) {
+			logger.warn(
+				{ error: valueResult.error, item: args.item },
+				"Failed to stringify cookie value",
+			);
 			return valueResult;
 		}
 
-		return this._setCookie({
+		logger.debug({ valueResult }, "Stringified cookie value");
+
+		const setResult = this._setCookie({
 			name: args.item.name,
 			options,
 			response: args.response,
 			value: valueResult.data,
 		});
+		if (!setResult.success) {
+			logger.warn(
+				{ error: setResult.error, item: args.item },
+				"Failed to set cookie",
+			);
+			return setResult;
+		}
+
+		logger.info({ item: args.item }, "Cookie set successfully");
+
+		return setResult;
 	}
 
 	private _deleteCookie(args: {
@@ -189,6 +280,13 @@ export class CookieService implements ICookieService {
 				success: false,
 			};
 		}
+	}
+
+	private _getLogger(args: { [key: string]: unknown; method: string }) {
+		return getLoggerFromContext().child({
+			layer: "cookie service",
+			...args,
+		});
 	}
 
 	private _mergeOptions(options?: CookieItemOptions) {

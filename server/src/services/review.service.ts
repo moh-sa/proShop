@@ -16,6 +16,7 @@ import type {
 import { NotFoundError, ValidationError } from "../errors/index.js";
 import { ReviewRepository } from "../repositories/index.js";
 import { insertReviewSchema } from "../schemas/index.js";
+import { getLoggerFromContext } from "../utils/index.js";
 import {
 	objectIdValidator,
 	paginationParamsValidator,
@@ -62,11 +63,16 @@ export class ReviewService implements IReviewService {
 	}
 
 	async count(): MethodReturn<IReviewService, "count"> {
+		const logger = this._getLogger({ method: "count" });
+		logger.debug("Counting reviews");
+
 		const result = await this._repository.count();
 		if (!result.success) {
+			logger.error({ error: result.error }, "Failed to count reviews");
 			return result;
 		}
 
+		logger.debug({ totalReviews: result.data }, "Reviews counted successfully");
 		return {
 			data: result.data,
 			success: true,
@@ -79,17 +85,38 @@ export class ReviewService implements IReviewService {
 		IReviewService,
 		"countByProductId"
 	> {
+		const logger = this._getLogger({ method: "countByProductId" });
+		logger.debug({ productId }, "Counting reviews by product ID");
+
 		const validationResult = this._validateObjectId("productId", productId);
 		if (!validationResult.success) {
+			logger.warn(
+				{ error: validationResult.error },
+				"product ID validation failed",
+			);
 			return validationResult;
 		}
+
+		logger.debug(
+			{ validatedProductId: validationResult.data },
+			"Validated product ID",
+		);
 
 		const result = await this._repository.countByProductId({
 			productId: validationResult.data,
 		});
 		if (!result.success) {
+			logger.error(
+				{ error: result.error },
+				"Failed to count reviews by product ID",
+			);
 			return result;
 		}
+
+		logger.debug(
+			{ totalReviews: result.data },
+			"Reviews counted by product ID successfully",
+		);
 
 		return {
 			data: result.data,
@@ -103,17 +130,38 @@ export class ReviewService implements IReviewService {
 		IReviewService,
 		"countByUserId"
 	> {
+		const logger = this._getLogger({ method: "countByUserId" });
+		logger.debug({ userId }, "Counting reviews by user ID");
+
 		const validationResult = this._validateObjectId("userId", userId);
 		if (!validationResult.success) {
+			logger.warn(
+				{ error: validationResult.error },
+				"user ID validation failed",
+			);
 			return validationResult;
 		}
+
+		logger.debug(
+			{ validatedUserId: validationResult.data },
+			"Validated user ID",
+		);
 
 		const result = await this._repository.countByUserId({
 			userId: validationResult.data,
 		});
 		if (!result.success) {
+			logger.error(
+				{ error: result.error },
+				"Failed to count reviews by user ID",
+			);
 			return result;
 		}
+
+		logger.debug(
+			{ totalReviews: result.data },
+			"Reviews counted by user ID successfully",
+		);
 
 		return {
 			data: result.data,
@@ -124,16 +172,37 @@ export class ReviewService implements IReviewService {
 	async create(
 		data: MethodParams<IReviewService, "create">,
 	): MethodReturn<IReviewService, "create"> {
+		const logger = this._getLogger({ method: "create" });
+		logger.debug({ data }, "Creating review");
+
 		const validationResult = this._validateCreateData(data);
 		if (!validationResult.success) {
+			logger.warn(
+				{ error: validationResult.error },
+				"Create review data validation failed",
+			);
 			return validationResult;
 		}
 
+		logger.debug(
+			{ validatedData: validationResult.data },
+			"Validated review data",
+		);
+
 		const result = await this._repository.create(validationResult.data);
 		if (!result.success) {
+			logger.error({ error: result.error }, "Failed to create review");
 			return result;
 		}
 
+		logger.info(
+			{
+				productId: result.data.product,
+				reviewId: result.data._id,
+				userId: result.data.user,
+			},
+			"Review created successfully",
+		);
 		return {
 			data: result.data,
 			success: true,
@@ -146,25 +215,40 @@ export class ReviewService implements IReviewService {
 		IReviewService,
 		"delete"
 	> {
+		const logger = this._getLogger({ method: "delete" });
+		logger.debug({ reviewId }, "Deleting review");
+
 		const validationResult = this._validateObjectId("reviewId", reviewId);
 		if (!validationResult.success) {
+			logger.warn(
+				{ error: validationResult.error, reviewId },
+				"review ID validation failed",
+			);
 			return validationResult;
 		}
+
+		logger.debug(
+			{ validatedReviewId: validationResult.data },
+			"Validated review ID",
+		);
 
 		const result = await this._repository.delete({
 			reviewId: validationResult.data,
 		});
 		if (!result.success) {
+			logger.error({ error: result.error }, "Failed to delete review");
 			return result;
 		}
 
 		if (!result.data) {
+			logger.warn({ reviewId }, "Review not found");
 			return {
 				error: new NotFoundError("Review"),
 				success: false,
 			};
 		}
 
+		logger.info({ reviewId }, "Review deleted successfully");
 		return {
 			data: result.data,
 			success: true,
@@ -177,24 +261,43 @@ export class ReviewService implements IReviewService {
 		IReviewService,
 		"existsById"
 	> {
+		const logger = this._getLogger({ method: "existsById" });
+		logger.debug({ reviewId }, "Checking if review exists by ID");
+
 		const validationResult = this._validateObjectId("reviewId", reviewId);
 		if (!validationResult.success) {
+			logger.warn(
+				{ error: validationResult.error, reviewId },
+				"review ID validation failed",
+			);
 			return validationResult;
 		}
+
+		logger.debug(
+			{ validatedReviewId: validationResult.data },
+			"Validated review ID",
+		);
 
 		const result = await this._repository.existsById({
 			reviewId: validationResult.data,
 		});
 		if (!result.success) {
+			logger.error(
+				{ error: result.error },
+				"Failed to check if review exists by ID",
+			);
 			return result;
 		}
 
 		if (!result.data) {
+			logger.warn({ reviewId }, "Review not found");
 			return {
 				error: new NotFoundError("Review"),
 				success: false,
 			};
 		}
+
+		logger.info({ reviewId }, "Review exists by ID successfully");
 
 		return {
 			data: result.data,
@@ -209,16 +312,30 @@ export class ReviewService implements IReviewService {
 		IReviewService,
 		"existsByUserIdAndProductId"
 	> {
+		const logger = this._getLogger({ method: "existsByUserIdAndProductId" });
+		logger.debug(
+			{ productId, userId },
+			"Checking if review exists by user ID and product ID",
+		);
+
 		const productIdValidationResult = this._validateObjectId(
 			"productId",
 			productId,
 		);
 		if (!productIdValidationResult.success) {
+			logger.warn(
+				{ error: productIdValidationResult.error, productId },
+				"product ID validation failed",
+			);
 			return productIdValidationResult;
 		}
 
 		const userIdValidationResult = this._validateObjectId("userId", userId);
 		if (!userIdValidationResult.success) {
+			logger.warn(
+				{ error: userIdValidationResult.error, userId },
+				"user ID validation failed",
+			);
 			return userIdValidationResult;
 		}
 
@@ -227,15 +344,25 @@ export class ReviewService implements IReviewService {
 			userId: userIdValidationResult.data,
 		});
 		if (!result.success) {
+			logger.error(
+				{ error: result.error },
+				"Failed to check if review exists by user ID and product ID",
+			);
 			return result;
 		}
 
 		if (!result.data) {
+			logger.warn({ productId, userId }, "Review not found");
 			return {
 				error: new NotFoundError("Review"),
 				success: false,
 			};
 		}
+
+		logger.info(
+			{ productId, userId },
+			"Review exists by user ID and product ID successfully",
+		);
 
 		return {
 			data: result.data,
@@ -246,12 +373,19 @@ export class ReviewService implements IReviewService {
 	async getAll(
 		args: MethodParams<IReviewService, "getAll">,
 	): MethodReturn<IReviewService, "getAll"> {
+		const logger = this._getLogger({ method: "getAll" });
+		logger.debug({ args }, "Getting all reviews");
+
 		const paginationValidationResult = paginationParamsValidator.safeParse({
 			pageNumber: args.pageNumber,
 			pageSize: args.pageSize,
 			sort: args.sort,
 		});
 		if (!paginationValidationResult.success) {
+			logger.warn(
+				{ error: paginationValidationResult.error },
+				"Invalid pagination data",
+			);
 			return {
 				error: new ValidationError("Invalid pagination data", {
 					cause: paginationValidationResult.error,
@@ -260,14 +394,25 @@ export class ReviewService implements IReviewService {
 			};
 		}
 
+		logger.debug(
+			{ validatedPaginationData: paginationValidationResult.data },
+			"Validated pagination data",
+		);
+
 		const result = await this._repository.getAll({
 			pageNumber: paginationValidationResult.data.pageNumber,
 			pageSize: paginationValidationResult.data.pageSize,
 			sort: paginationValidationResult.data.sort,
 		});
 		if (!result.success) {
+			logger.error({ error: result.error }, "Failed to get all reviews");
 			return result;
 		}
+
+		logger.info(
+			{ totalReviews: result.data.meta.totalItems },
+			"Reviews retrieved successfully",
+		);
 
 		return {
 			data: result.data,
@@ -278,12 +423,19 @@ export class ReviewService implements IReviewService {
 	async getAllByProductId(
 		args: MethodParams<IReviewService, "getAllByProductId">,
 	): MethodReturn<IReviewService, "getAllByProductId"> {
+		const logger = this._getLogger({ method: "getAllByProductId" });
+		logger.debug({ args }, "Getting all reviews by product ID");
+
 		const paginationValidationResult = paginationParamsValidator.safeParse({
 			pageNumber: args.pageNumber,
 			pageSize: args.pageSize,
 			sort: args.sort,
 		});
 		if (!paginationValidationResult.success) {
+			logger.warn(
+				{ error: paginationValidationResult.error },
+				"Invalid pagination data",
+			);
 			return {
 				error: new ValidationError("Invalid pagination data", {
 					cause: paginationValidationResult.error,
@@ -292,11 +444,20 @@ export class ReviewService implements IReviewService {
 			};
 		}
 
+		logger.debug(
+			{ validatedPaginationData: paginationValidationResult.data },
+			"Validated pagination data",
+		);
+
 		const productIdValidationResult = this._validateObjectId(
 			"productId",
 			args.productId,
 		);
 		if (!productIdValidationResult.success) {
+			logger.warn(
+				{ error: productIdValidationResult.error, productId: args.productId },
+				"product ID validation failed",
+			);
 			return productIdValidationResult;
 		}
 
@@ -307,8 +468,17 @@ export class ReviewService implements IReviewService {
 			sort: paginationValidationResult.data.sort,
 		});
 		if (!result.success) {
+			logger.error(
+				{ error: result.error },
+				"Failed to get all reviews by product ID",
+			);
 			return result;
 		}
+
+		logger.info(
+			{ totalReviews: result.data.meta.totalItems },
+			"Reviews retrieved by product ID successfully",
+		);
 
 		return {
 			data: result.data,
@@ -319,12 +489,19 @@ export class ReviewService implements IReviewService {
 	async getAllByUserId(
 		args: MethodParams<IReviewService, "getAllByUserId">,
 	): MethodReturn<IReviewService, "getAllByUserId"> {
+		const logger = this._getLogger({ method: "getAllByUserId" });
+		logger.debug({ args }, "Getting all reviews by user ID");
+
 		const paginationValidationResult = paginationParamsValidator.safeParse({
 			pageNumber: args.pageNumber,
 			pageSize: args.pageSize,
 			sort: args.sort,
 		});
 		if (!paginationValidationResult.success) {
+			logger.warn(
+				{ error: paginationValidationResult.error },
+				"Invalid pagination data",
+			);
 			return {
 				error: new ValidationError("Invalid pagination data", {
 					cause: paginationValidationResult.error,
@@ -333,11 +510,20 @@ export class ReviewService implements IReviewService {
 			};
 		}
 
+		logger.debug(
+			{ validatedPaginationData: paginationValidationResult.data },
+			"Validated pagination data",
+		);
+
 		const userIdValidationResult = this._validateObjectId(
 			"userId",
 			args.userId,
 		);
 		if (!userIdValidationResult.success) {
+			logger.warn(
+				{ error: userIdValidationResult.error, userId: args.userId },
+				"user ID validation failed",
+			);
 			return userIdValidationResult;
 		}
 		const result = await this._repository.getAllByUserId({
@@ -347,8 +533,17 @@ export class ReviewService implements IReviewService {
 			userId: userIdValidationResult.data,
 		});
 		if (!result.success) {
+			logger.error(
+				{ error: result.error },
+				"Failed to get all reviews by user ID",
+			);
 			return result;
 		}
+
+		logger.info(
+			{ totalReviews: result.data.meta.totalItems },
+			"Reviews retrieved by user ID successfully",
+		);
 
 		return {
 			data: result.data,
@@ -362,11 +557,18 @@ export class ReviewService implements IReviewService {
 		IReviewService,
 		"getById"
 	> {
+		const logger = this._getLogger({ method: "getById" });
+		logger.debug({ reviewId }, "Getting review by ID");
+
 		const reviewIdValidationResult = this._validateObjectId(
 			"reviewId",
 			reviewId,
 		);
 		if (!reviewIdValidationResult.success) {
+			logger.warn(
+				{ error: reviewIdValidationResult.error, reviewId },
+				"review ID validation failed",
+			);
 			return reviewIdValidationResult;
 		}
 
@@ -374,15 +576,19 @@ export class ReviewService implements IReviewService {
 			reviewId: reviewIdValidationResult.data,
 		});
 		if (!result.success) {
+			logger.error({ error: result.error }, "Failed to get review by ID");
 			return result;
 		}
 
 		if (!result.data) {
+			logger.warn({ reviewId }, "Review not found");
 			return {
 				error: new NotFoundError("Review"),
 				success: false,
 			};
 		}
+
+		logger.info({ reviewId }, "Review retrieved by ID successfully");
 
 		return {
 			data: result.data,
@@ -397,16 +603,27 @@ export class ReviewService implements IReviewService {
 		IReviewService,
 		"update"
 	> {
+		const logger = this._getLogger({ method: "update" });
+		logger.debug({ data, reviewId }, "Updating review");
+
 		const reviewIdValidationResult = this._validateObjectId(
 			"reviewId",
 			reviewId,
 		);
 		if (!reviewIdValidationResult.success) {
+			logger.warn(
+				{ error: reviewIdValidationResult.error, reviewId },
+				"review ID validation failed",
+			);
 			return reviewIdValidationResult;
 		}
 
 		const updateDataValidationResult = this._validateUpdateData(data);
 		if (!updateDataValidationResult.success) {
+			logger.warn(
+				{ error: updateDataValidationResult.error, reviewId },
+				"update data validation failed",
+			);
 			return updateDataValidationResult;
 		}
 
@@ -415,20 +632,27 @@ export class ReviewService implements IReviewService {
 			reviewId: reviewIdValidationResult.data,
 		});
 		if (!result.success) {
+			logger.error({ error: result.error }, "Failed to update review");
 			return result;
 		}
 
 		if (!result.data) {
+			logger.warn({ reviewId }, "Review not found");
 			return {
 				error: new NotFoundError("Review"),
 				success: false,
 			};
 		}
 
+		logger.info({ reviewId }, "Review updated successfully");
 		return {
 			data: result.data,
 			success: true,
 		};
+	}
+
+	private _getLogger(args: { [key: string]: unknown; method: string }) {
+		return getLoggerFromContext().child({ layer: "review service", ...args });
 	}
 
 	private _validateCreateData(data: InsertReview): ReviewResult<InsertReview> {

@@ -27,7 +27,7 @@ import {
 	cacheKeySchema,
 	cacheKeysSchema,
 } from "../schemas/index.js";
-import { formatZodErrors } from "../utils/index.js";
+import { formatZodErrors, getLoggerFromContext } from "../utils/index.js";
 
 export interface ICacheService {
 	delete(args: { key: string }): CacheResult;
@@ -59,20 +59,38 @@ export class CacheService implements ICacheService {
 	delete(
 		args: MethodParams<ICacheService, "delete">,
 	): MethodReturn<ICacheService, "delete"> {
+		const logger = this._getLogger({ method: "delete" });
+		logger.debug({ key: args.key }, "Deleting cache key");
+
 		const parsedKey = this._validateSchema({
 			data: args.key,
 			schema: cacheKeySchema,
 		});
 
+		logger.debug({ parsedKey }, "Validated cache key");
+
 		const key = this._generateCacheKey({ id: parsedKey });
+
+		logger.debug({ key }, "Generated cache key");
 
 		try {
 			const result = this._cache.del(key) === 0 ? false : true;
 
-			return result
-				? this._createSuccessResult(key)
-				: this._createFailureResult(key, CacheOperationError.delete(key));
+			if (!result) {
+				logger.warn({ key }, "Cache key not found");
+
+				return this._createFailureResult(key, CacheOperationError.delete(key));
+			}
+
+			logger.info({ key }, "Cache item deleted successfully");
+
+			return this._createSuccessResult(key);
 		} catch (error) {
+			logger.error(
+				{ error, key },
+				"Unexpected error occurred while deleting cache item",
+			);
+
 			return this._createFailureResult(
 				key,
 				CacheOperationError.delete(key, error),
@@ -83,10 +101,16 @@ export class CacheService implements ICacheService {
 	deleteMany(
 		args: MethodParams<ICacheService, "deleteMany">,
 	): MethodReturn<ICacheService, "deleteMany"> {
+		const logger = this._getLogger({ method: "deleteMany" });
+
+		logger.debug({ keys: args.keys }, "Deleting cache keys");
+
 		const parsedKeys = this._validateSchema({
 			data: args.keys,
 			schema: cacheKeysSchema,
 		});
+
+		logger.debug({ parsedKeys }, "Validated cache keys");
 
 		return parsedKeys.map((key) => {
 			const cacheKey = this._generateCacheKey({ id: key });
@@ -107,36 +131,53 @@ export class CacheService implements ICacheService {
 	}
 
 	flush(): MethodReturn<ICacheService, "flush"> {
+		const logger = this._getLogger({ method: "flush" });
+
 		try {
 			this._cache.flushAll();
+			logger.info("Cache flushed successfully");
 		} catch (error) {
-			console.error("Failed to flush cache");
+			logger.error({ error }, "Failed to flush cache");
+
 			throw CacheOperationError.flush(error);
 		}
 	}
 
 	flushStats(): MethodReturn<ICacheService, "flushStats"> {
+		const logger = this._getLogger({ method: "flushStats" });
+
 		this._cache.flushStats();
+		logger.info("Cache stats flushed successfully");
 	}
 
 	get<T>(args: MethodParams<ICacheService, "get">): CacheResult<T | undefined> {
+		const logger = this._getLogger({ method: "get" });
+
+		logger.debug({ key: args.key }, "Getting cache item");
+
 		const parsedKey = this._validateSchema({
 			data: args.key,
 			schema: cacheKeySchema,
 		});
+
+		logger.debug({ parsedKey }, "Validated cache key");
+
 		const key = this._generateCacheKey({ id: parsedKey });
+
+		logger.debug({ key }, "Generated cache key");
 
 		try {
 			const result = this._cache.get<T>(key);
 			if (!result) {
-				console.error("Cache miss:", args.key);
+				logger.info({ key: args.key }, "Cache miss");
 				return this._createSuccessResult(undefined);
 			}
 
-			console.warn("Cache hit:", args.key);
+			logger.info({ key: args.key }, "Cache hit");
 			return this._createSuccessResult(result);
 		} catch (error) {
-			console.error("Failed to get key", key);
+			logger.error({ error, key }, "Failed to get cache item");
+
 			return this._createFailureResult(
 				key,
 				CacheOperationError.get(key, error),
@@ -145,16 +186,27 @@ export class CacheService implements ICacheService {
 	}
 
 	getKeys(): MethodReturn<ICacheService, "getKeys"> {
-		return this._cache.keys();
+		const logger = this._getLogger({ method: "getKeys" });
+
+		const keys = this._cache.keys();
+		logger.debug({ keys }, "Retrieved cache keys");
+
+		return keys;
 	}
 
 	getMany<T>(
 		args: MethodParams<ICacheService, "getMany">,
 	): Array<CacheResult<T>> {
+		const logger = this._getLogger({ method: "getMany" });
+
+		logger.debug({ keys: args.keys }, "Getting cache items");
+
 		const parsedKeys = this._validateSchema({
 			data: args.keys,
 			schema: cacheKeysSchema,
 		});
+
+		logger.debug({ parsedKeys }, "Validated cache keys");
 
 		return parsedKeys.map((item) => {
 			const key = this._generateCacheKey({ id: item });
@@ -175,7 +227,12 @@ export class CacheService implements ICacheService {
 	}
 
 	getStats(): MethodReturn<ICacheService, "getStats"> {
+		const logger = this._getLogger({ method: "getStats" });
+
 		const stats = this._cache.getStats();
+
+		logger.debug({ stats }, "Retrieved cache stats");
+
 		return {
 			hits: stats.hits,
 			keysSize: stats.ksize,
@@ -189,21 +246,33 @@ export class CacheService implements ICacheService {
 	isKeyCached(
 		args: MethodParams<ICacheService, "isKeyCached">,
 	): MethodReturn<ICacheService, "isKeyCached"> {
+		const logger = this._getLogger({ method: "isKeyCached" });
+
+		logger.debug({ key: args.key }, "Checking if key is cached");
+
 		const parsedKey = this._validateSchema({
 			data: args.key,
 			schema: cacheKeySchema,
 		});
 
+		logger.debug({ parsedKey }, "Validated cache key");
+
 		const key = this._generateCacheKey({ id: parsedKey });
+
+		logger.debug({ key }, "Generated cache key");
+
 		try {
 			const result = this._cache.has(key);
 			if (!result) {
+				logger.warn({ key }, "Cache key not found");
 				return this._createFailureResult(key, CacheOperationError.has(key));
 			}
 
+			logger.info({ key }, "Cache key found");
 			return this._createSuccessResult(key);
 		} catch (error) {
-			console.error("Failed to check if key is cached", key);
+			logger.error({ error, key }, "Failed to check if key is cached");
+
 			return this._createFailureResult(
 				key,
 				CacheOperationError.has(key, error),
@@ -214,6 +283,10 @@ export class CacheService implements ICacheService {
 	set(
 		args: MethodParams<ICacheService, "set">,
 	): MethodReturn<ICacheService, "set"> {
+		const logger = this._getLogger({ method: "set" });
+
+		logger.debug({ key: args.key, ttl: args.ttl }, "Setting cache item");
+
 		const parsedArgs = this._validateSchema({
 			data: {
 				key: args.key,
@@ -223,20 +296,29 @@ export class CacheService implements ICacheService {
 			schema: cacheItemSchema,
 		});
 
+		logger.debug({ parsedArgs }, "Validated cache item");
+
 		this._validateMemoryCapacity(1);
 
+		logger.debug("Validated memory capacity");
+
 		const key = this._generateCacheKey({ id: parsedArgs.key });
+
+		logger.debug({ key }, "Generated cache key");
 
 		try {
 			const result = this._cache.set(key, parsedArgs.val, parsedArgs.ttl);
 			if (!result) {
-				console.error("Failed to set key", key);
+				logger.warn({ key }, "Failed to set cache item");
 				return this._createFailureResult(key, CacheOperationError.set(key));
 			}
 
+			logger.info({ key }, "Cache item set successfully");
+
 			return this._createSuccessResult(key);
 		} catch (error) {
-			console.error("Failed to set key", key);
+			logger.error({ error, key }, "Failed to set cache item");
+
 			return this._createFailureResult(
 				key,
 				CacheOperationError.set(key, error),
@@ -247,7 +329,12 @@ export class CacheService implements ICacheService {
 	setMany(
 		args: MethodParams<ICacheService, "setMany">,
 	): MethodReturn<ICacheService, "setMany"> {
+		const logger = this._getLogger({ method: "setMany" });
+		logger.debug({ items: args }, "Setting cache items");
+
 		this._validateMemoryCapacity(args.length);
+
+		logger.debug("Validated memory capacity");
 
 		const parsedArgs = this._validateSchema({
 			data: args.map((arg) => ({
@@ -258,10 +345,14 @@ export class CacheService implements ICacheService {
 			schema: cacheItemsSchema,
 		});
 
+		logger.debug({ parsedArgs }, "Validated cache items");
+
 		const parsedArgsWithCacheKeys = parsedArgs.map((arg) => ({
 			...arg,
 			key: this._generateCacheKey({ id: arg.key }),
 		}));
+
+		logger.debug({ parsedArgsWithCacheKeys }, "Generated cache keys");
 
 		return parsedArgsWithCacheKeys.map((arg) => {
 			try {
@@ -286,23 +377,33 @@ export class CacheService implements ICacheService {
 	}
 
 	take<T>(args: MethodParams<ICacheService, "take">): CacheResult<T> {
+		const logger = this._getLogger({ method: "take" });
+
+		logger.debug({ key: args.key }, "Taking cache item");
+
 		const parsedKey = this._validateSchema({
 			data: args.key,
 			schema: cacheKeySchema,
 		});
 
+		logger.debug({ parsedKey }, "Validated cache key");
+
 		const key = this._generateCacheKey({ id: parsedKey });
+
+		logger.debug({ key }, "Generated cache key");
 
 		try {
 			const result = this._cache.take<T>(key);
 			if (!result) {
-				console.warn("Cache miss:", args.key);
+				logger.warn({ key: args.key }, "Cache miss");
 				return this._createFailureResult(key, CacheOperationError.take(key));
 			}
 
+			logger.info({ key: args.key }, "Cache item taken successfully");
+
 			return this._createSuccessResult(result);
 		} catch (error) {
-			console.error("Failed to take key", key);
+			logger.error({ error, key }, "Failed to take cache item");
 			return this._createFailureResult(
 				key,
 				CacheOperationError.take(key, error),
@@ -330,6 +431,13 @@ export class CacheService implements ICacheService {
 
 	private _generateCacheKey({ id }: { id: string }): string {
 		return `${this._namespace}:${id}`;
+	}
+
+	private _getLogger(args: { [key: string]: unknown; method: string }) {
+		return getLoggerFromContext().child({
+			layer: "cache service",
+			...args,
+		});
 	}
 
 	private _validateMemoryCapacity(batchSize: number): void {

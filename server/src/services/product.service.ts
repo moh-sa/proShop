@@ -21,6 +21,7 @@ import { NotFoundError, ValidationError } from "../errors/index.js";
 import { ProductRepository } from "../repositories/index.js";
 import { insertProductSchema } from "../schemas/index.js";
 import { ImageStorageService } from "../services/index.js";
+import { getLoggerFromContext } from "../utils/index.js";
 import {
 	objectIdValidator,
 	paginationParamsValidator,
@@ -56,23 +57,42 @@ export class ProductService implements IProductService {
 	async create(
 		data: MethodParams<IProductService, "create">,
 	): MethodReturn<IProductService, "create"> {
+		const logger = this._getLogger({ method: "create" });
+		logger.debug({ data }, "Creating product");
+
 		const validationResult = this._validateCreateData(data);
 		if (!validationResult.success) {
+			logger.warn(
+				{ error: validationResult.error },
+				"Create product zod validation failed",
+			);
 			return validationResult;
 		}
 
+		logger.debug(
+			{ validatedData: validationResult.data },
+			"Validated product data",
+		);
+
+		logger.info("Uploading product image");
 		const image = await this._storage.upload({
 			file: validationResult.data.image,
 		});
 		if (!image.success) {
+			// Error already logged in storage service
 			return image;
 		}
 		const dataWithImage = { ...validationResult.data, image: image.data };
 		const createdProduct = await this._repository.create(dataWithImage);
 		if (!createdProduct.success) {
+			logger.error({ error: createdProduct.error }, "Failed to create product");
 			return createdProduct;
 		}
 
+		logger.info(
+			{ name: createdProduct.data.name, productId: createdProduct.data._id },
+			"Product created successfully",
+		);
 		return {
 			data: createdProduct.data,
 			success: true,
@@ -85,8 +105,15 @@ export class ProductService implements IProductService {
 		IProductService,
 		"delete"
 	> {
+		const logger = this._getLogger({ method: "delete" });
+		logger.debug({ productId }, "Deleting product");
+
 		const validationResult = this._validateProductId(productId);
 		if (!validationResult.success) {
+			logger.warn(
+				{ error: validationResult.error, productId },
+				"Delete product zod validation failed",
+			);
 			return validationResult;
 		}
 
@@ -94,22 +121,30 @@ export class ProductService implements IProductService {
 			productId: validationResult.data,
 		});
 		if (!deletedProduct.success) {
+			logger.error({ error: deletedProduct.error }, "Failed to delete product");
 			return deletedProduct;
 		}
 		if (!deletedProduct.data) {
+			logger.warn({ productId }, "Product not found");
 			return {
 				error: new NotFoundError("Product"),
 				success: false,
 			};
 		}
 
+		logger.info(
+			{ imageUrl: deletedProduct.data.image, productId },
+			"Deleting product image",
+		);
 		const deleteResult = await this._storage.delete({
 			url: deletedProduct.data.image,
 		});
 		if (!deleteResult.success) {
+			// Error already logged in storage service
 			return deleteResult;
 		}
 
+		logger.info({ productId }, "Product deleted successfully");
 		return {
 			data: undefined,
 			success: true,
@@ -119,12 +154,16 @@ export class ProductService implements IProductService {
 	async getAll(
 		args: MethodParams<IProductService, "getAll">,
 	): MethodReturn<IProductService, "getAll"> {
+		const logger = this._getLogger({ method: "getAll" });
+		logger.debug({ args }, "Getting all products");
+
 		const paginationResult = paginationParamsValidator.safeParse({
 			pageNumber: args.pageNumber,
 			pageSize: args.pageSize,
 			sort: args.sort,
 		});
 		if (!paginationResult.success) {
+			logger.warn({ error: paginationResult.error }, "Invalid pagination data");
 			return {
 				error: new ValidationError("Invalid pagination data", {
 					cause: paginationResult.error,
@@ -133,12 +172,19 @@ export class ProductService implements IProductService {
 			};
 		}
 
+		logger.debug(
+			{ paginationResult: paginationResult.data },
+			"Validated pagination data",
+		);
+
 		const searchQuery =
 			args.keyword &&
 			typeof args.keyword === "string" &&
 			args.keyword.trim().length > 0
 				? { $text: { $search: args.keyword } }
 				: {};
+
+		logger.debug({ searchQuery }, "Search query");
 
 		const result = await this._repository.getAll({
 			pageNumber: paginationResult.data.pageNumber,
@@ -161,8 +207,17 @@ export class ProductService implements IProductService {
 		});
 
 		if (!result.success) {
+			logger.error(
+				{ error: result.error },
+				"Failed to retrieve paginated products",
+			);
 			return result;
 		}
+
+		logger.info(
+			{ totalProducts: result.data.meta.totalItems },
+			"Products retrieved successfully",
+		);
 
 		return {
 			data: {
@@ -179,8 +234,15 @@ export class ProductService implements IProductService {
 		IProductService,
 		"getById"
 	> {
+		const logger = this._getLogger({ method: "getById" });
+		logger.debug({ productId }, "Getting product by ID");
+
 		const validationResult = this._validateProductId(productId);
 		if (!validationResult.success) {
+			logger.warn(
+				{ error: validationResult.error, productId },
+				"Get product zod validation failed",
+			);
 			return validationResult;
 		}
 
@@ -188,15 +250,18 @@ export class ProductService implements IProductService {
 			productId: validationResult.data,
 		});
 		if (!product.success) {
+			logger.error({ error: product.error }, "Failed to retrieve product");
 			return product;
 		}
 		if (!product.data) {
+			logger.warn({ productId }, "Product not found");
 			return {
 				error: new NotFoundError("Product"),
 				success: false,
 			};
 		}
 
+		logger.info({ productId }, "Product retrieved successfully");
 		return {
 			data: product.data,
 			success: true,
@@ -204,12 +269,25 @@ export class ProductService implements IProductService {
 	}
 
 	async getTopRated(): MethodReturn<IProductService, "getTopRated"> {
+		const logger = this._getLogger({ method: "getTopRated" });
+		logger.debug("Getting top rated products");
+
 		const limit = MAX_TOP_RATED_PRODUCTS;
+		logger.debug({ limit }, "Limit for top rated products");
 
 		const result = await this._repository.getTopRated({ limit });
 		if (!result.success) {
+			logger.error(
+				{ error: result.error },
+				"Failed to retrieve top rated products",
+			);
 			return result;
 		}
+
+		logger.info(
+			{ totalProducts: result.data.length },
+			"Top rated products retrieved successfully",
+		);
 
 		return {
 			data: result.data,
@@ -220,13 +298,29 @@ export class ProductService implements IProductService {
 	async update(
 		args: MethodParams<IProductService, "update">,
 	): MethodReturn<IProductService, "update"> {
+		const logger = this._getLogger({ method: "update" });
+		logger.debug({ args }, "Updating product");
+
 		const updateDataValidationResult = this._validateUpdateData(args.data);
 		if (!updateDataValidationResult.success) {
+			logger.warn(
+				{ error: updateDataValidationResult.error, productId: args.productId },
+				"Update product data validation failed",
+			);
 			return updateDataValidationResult;
 		}
 
+		logger.debug(
+			{ validatedUpdateData: updateDataValidationResult.data },
+			"Validated update data",
+		);
+
 		const productIdValidationResult = this._validateProductId(args.productId);
 		if (!productIdValidationResult.success) {
+			logger.warn(
+				{ error: productIdValidationResult.error, productId: args.productId },
+				"Product ID validation failed",
+			);
 			return productIdValidationResult;
 		}
 
@@ -236,22 +330,33 @@ export class ProductService implements IProductService {
 		let updatedData;
 
 		if (!image) {
-			updatedData = { ...newData };
+			logger.info("No image provided, using existing image");
+			updatedData = newData;
 		} else {
 			const currentProduct = await this.getById({
 				productId: productId.toString(),
 			});
 			if (!currentProduct.success) {
+				// Error already logged in getById
 				return currentProduct;
 			}
 
+			logger.info(
+				{ oldImageUrl: currentProduct.data.image, productId },
+				"Replacing product image",
+			);
 			const newImageUrl = await this._storage.replace({
 				file: image,
 				url: currentProduct.data.image,
 			});
 			if (!newImageUrl.success) {
+				// Error already logged in storage service
 				return newImageUrl;
 			}
+			logger.info(
+				{ newImageUrl: newImageUrl.data, productId },
+				"Product image replaced successfully",
+			);
 			updatedData = { ...newData, image: newImageUrl.data };
 		}
 
@@ -260,19 +365,29 @@ export class ProductService implements IProductService {
 			productId,
 		});
 		if (!updatedProduct.success) {
+			logger.error({ error: updatedProduct.error }, "Failed to update product");
 			return updatedProduct;
 		}
 		if (!updatedProduct.data) {
+			logger.warn({ productId }, "Product not found");
 			return {
 				error: new NotFoundError("Product"),
 				success: false,
 			};
 		}
 
+		logger.info(
+			{ name: updatedProduct.data.name, productId },
+			"Product updated successfully",
+		);
 		return {
 			data: updatedProduct.data,
 			success: true,
 		};
+	}
+
+	private _getLogger(args: { [key: string]: unknown; method: string }) {
+		return getLoggerFromContext().child({ layer: "product service", ...args });
 	}
 
 	private _validateCreateData(

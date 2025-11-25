@@ -15,7 +15,7 @@ import type {
 import { CookieName, HTTP_STATUS } from "../constants/index.js";
 import { AuthManager } from "../managers/index.js";
 import { CookieService } from "../services/index.js";
-import { asyncHandler } from "../utils/index.js";
+import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
 import { jwtTokenValidator } from "../validators/index.js";
 
 /**
@@ -111,21 +111,25 @@ export class Auth2Controller implements IAuth2Controller {
 		reqBody: Pick<InsertUser, "email" | "password">;
 		resBody: { data: { user: SafeSelectUser } };
 	}>(async (req, res) => {
-		console.info("[AUTH] Sign-in attempt for email: ", req.body.email);
+		const logger = this._getLogger({ method: "signIn" });
+		logger.debug({ args: req.body }, "Signing in user");
 
 		// Create a session
 		const result = await this._authManager.signIn(req.body);
 		if (!result.success) {
-			console.error(
-				`[AUTH] Sign-in failed for email: ${req.body.email} - ${result.error.message}`,
-			);
 			throw result.error;
 		}
 
+		logger.debug({ result: result.data }, "User signed in");
+
 		// Set access and refresh tokens in cookies
 		this._setAuthCookies(result.data.tokens, res);
+		logger.debug("Set access and refresh tokens in cookies successfully");
 
-		console.info(`[AUTH] Sign-in successful for email: ${req.body.email}`);
+		logger.info(
+			{ userId: result.data.user._id },
+			"User signed in successfully",
+		);
 
 		res.status(HTTP_STATUS.OK).json({
 			data: {
@@ -142,21 +146,25 @@ export class Auth2Controller implements IAuth2Controller {
 		reqBody: InsertUser;
 		resBody: { data: { user: SafeSelectUser } };
 	}>(async (req, res) => {
-		console.info(`[AUTH] Sign-up attempt for email: ${req.body.email}`);
+		const logger = this._getLogger({ method: "signUp" });
+		logger.debug({ args: req.body }, "Signing up user");
 
 		// Create a session
 		const result = await this._authManager.signUp(req.body);
 		if (!result.success) {
-			console.error(
-				`[AUTH] Sign-up failed for email: ${req.body.email} - ${result.error.message}`,
-			);
 			throw result.error;
 		}
 
+		logger.debug({ result: result.data }, "User signed up");
+
 		// Set access and refresh tokens in cookies
 		this._setAuthCookies(result.data.tokens, res);
+		logger.debug("Set access and refresh tokens in cookies successfully");
 
-		console.info(`[AUTH] Sign-up successful for email: ${req.body.email}`);
+		logger.info(
+			{ userId: result.data.user._id },
+			"User signed up successfully",
+		);
 
 		res.status(HTTP_STATUS.CREATED).json({
 			data: {
@@ -171,24 +179,27 @@ export class Auth2Controller implements IAuth2Controller {
 	 */
 	signOut = asyncHandler<{ resBody: { data: { message: string } } }>(
 		async (req, res) => {
-			console.info(`[AUTH] Sign-out attempt`);
+			const logger = this._getLogger({ method: "signOut" });
+			logger.debug({ args: req.body }, "Signing out current session");
 
 			// Get refresh token from cookie
 			const refreshCookie = this._getRefreshTokenFromCookie(req);
+			logger.debug({ refreshCookie }, "Got refresh token from cookie");
 
 			// Delete the session
 			const result = await this._authManager.signOut({
 				refreshToken: refreshCookie,
 			});
 			if (!result.success) {
-				console.error(`[AUTH] Sign-out failed - ${result.error.message}`);
 				throw result.error;
 			}
+			logger.debug({ result: result.data }, "Session signed out");
 
 			// Clear the access and refresh tokens cookies
 			this._clearAuthCookies(res);
+			logger.debug("Cleared access and refresh tokens cookies successfully");
 
-			console.info(`[AUTH] Sign-out successful`);
+			logger.info("User signed out successfully");
 
 			res.status(HTTP_STATUS.OK).json({
 				data: {
@@ -208,25 +219,29 @@ export class Auth2Controller implements IAuth2Controller {
 			meta: { removedCount: number };
 		};
 	}>(async (req, res) => {
-		console.info(`[AUTH] Sign-out-all attempt`);
+		const logger = this._getLogger({ method: "signOutAll" });
+		logger.debug("Signing out all sessions");
 
 		// Get refresh token from cookie
 		const refreshCookie = this._getRefreshTokenFromCookie(req);
+		logger.debug({ refreshCookie }, "Got refresh token from cookie");
 
 		// Delete all sessions
 		const result = await this._authManager.signOutAll({
 			refreshToken: refreshCookie,
 		});
 		if (!result.success) {
-			console.error(`[AUTH] Sign-out-all failed - ${result.error.message}`);
 			throw result.error;
 		}
+		logger.debug({ result: result.data }, "All sessions signed out");
 
 		// Clear the access and refresh tokens cookies
 		this._clearAuthCookies(res);
+		logger.debug("Cleared access and refresh tokens cookies successfully");
 
-		console.info(
-			`[AUTH] Sign-out-all successful - revoked ${result.data} sessions`,
+		logger.info(
+			{ removedCount: result.data },
+			"User signed out from all devices successfully",
 		);
 
 		res.status(HTTP_STATUS.OK).json({
@@ -246,21 +261,21 @@ export class Auth2Controller implements IAuth2Controller {
 	refreshAccessToken = asyncHandler<{
 		resBody: { data: { message: string } };
 	}>(async (req, res) => {
-		console.info(`[AUTH] Access token refresh attempt`);
+		const logger = this._getLogger({ method: "refreshAccessToken" });
+		logger.debug("Refreshing access token");
 
 		// Get refresh token from cookie
 		const refreshCookie = this._getRefreshTokenFromCookie(req);
+		logger.debug({ refreshCookie }, "Got refresh token from cookie");
 
 		// Refresh access token
 		const accessTokenResult = await this._authManager.refreshAccessToken({
 			refreshToken: refreshCookie,
 		});
 		if (!accessTokenResult.success) {
-			console.error(
-				`[AUTH] Access token refresh failed - ${accessTokenResult.error.message}`,
-			);
 			throw accessTokenResult.error;
 		}
+		logger.debug({ result: accessTokenResult.data }, "Access token refreshed");
 
 		// Set the new access token in the cookie
 		this._setAccessTokenCookie({
@@ -268,8 +283,9 @@ export class Auth2Controller implements IAuth2Controller {
 			res,
 			token: accessTokenResult.data.token,
 		});
+		logger.debug("Set access token in cookie successfully");
 
-		console.info(`[AUTH] Access token refresh successful`);
+		logger.info("Access token refreshed successfully");
 
 		res.status(HTTP_STATUS.OK).json({
 			data: {
@@ -289,10 +305,12 @@ export class Auth2Controller implements IAuth2Controller {
 			meta: PaginatedResponse<SelectSession>["meta"];
 		};
 	}>(async (req, res) => {
-		console.info(`[AUTH] Get user sessions attempt`);
+		const logger = this._getLogger({ method: "getUserSessions" });
+		logger.debug({ query: req.query }, "Getting user sessions");
 
 		// Get refresh token from cookie
 		const refreshCookie = this._getRefreshTokenFromCookie(req);
+		logger.debug({ refreshCookie }, "Got refresh token from cookie");
 
 		// Get user sessions
 		const result = await this._authManager.getUserSessions({
@@ -302,14 +320,12 @@ export class Auth2Controller implements IAuth2Controller {
 			sort: req.query.sort,
 		});
 		if (!result.success) {
-			console.error(
-				`[AUTH] Get user sessions failed - ${result.error.message}`,
-			);
 			throw result.error;
 		}
 
-		console.info(
-			`[AUTH] Get user sessions successful - ${result.data.items.length} sessions found`,
+		logger.info(
+			{ sessionCount: result.data.items.length },
+			"User sessions retrieved successfully",
 		);
 
 		res.status(HTTP_STATUS.OK).json({
@@ -325,24 +341,27 @@ export class Auth2Controller implements IAuth2Controller {
 	revokeSession = asyncHandler<{
 		resBody: { data: { message: string } };
 	}>(async (req, res) => {
-		console.info(`[AUTH] Revoke session attempt`);
+		const logger = this._getLogger({ method: "revokeSession" });
+		logger.debug("Revoking current session");
 
 		// Get refresh token from cookie
 		const refreshCookie = this._getRefreshTokenFromCookie(req);
+		logger.debug({ refreshCookie }, "Got refresh token from cookie");
 
 		// Revoke session
 		const result = await this._authManager.revokeSession({
 			refreshToken: refreshCookie,
 		});
 		if (!result.success) {
-			console.error(`[AUTH] Revoke session failed - ${result.error.message}`);
 			throw result.error;
 		}
+		logger.debug({ result: result.data }, "Session revoked");
 
 		// Clear the access and refresh tokens cookies
 		this._clearAuthCookies(res);
+		logger.debug("Cleared access and refresh tokens cookies successfully");
 
-		console.info(`[AUTH] Revoke session successful`);
+		logger.info("Session revoked successfully");
 
 		res.status(HTTP_STATUS.OK).json({
 			data: {
@@ -358,27 +377,29 @@ export class Auth2Controller implements IAuth2Controller {
 	revokeAllSessions = asyncHandler<{
 		resBody: { data: { message: string }; meta: { revokedCount: number } };
 	}>(async (req, res) => {
-		console.info(`[AUTH] Revoke all sessions attempt`);
+		const logger = this._getLogger({ method: "revokeAllSessions" });
+		logger.debug("Revoking all sessions");
 
 		// Get refresh token from cookie
 		const refreshCookie = this._getRefreshTokenFromCookie(req);
+		logger.debug({ refreshCookie }, "Got refresh token from cookie");
 
 		// Revoke all sessions
 		const result = await this._authManager.revokeAllSessions({
 			refreshToken: refreshCookie,
 		});
 		if (!result.success) {
-			console.error(
-				`[AUTH] Revoke all sessions failed - ${result.error.message}`,
-			);
 			throw result.error;
 		}
+		logger.debug({ result: result.data }, "All sessions revoked");
 
 		// Clear the access and refresh tokens cookies
 		this._clearAuthCookies(res);
+		logger.debug("Cleared access and refresh tokens cookies successfully");
 
-		console.info(
-			`[AUTH] Revoke all sessions successful - revoked ${result.data} sessions`,
+		logger.info(
+			{ revokedCount: result.data },
+			"All sessions revoked successfully",
 		);
 
 		res.status(HTTP_STATUS.OK).json({
@@ -410,6 +431,10 @@ export class Auth2Controller implements IAuth2Controller {
 		if (!clearRefreshCookieResult.success) {
 			throw clearRefreshCookieResult.error;
 		}
+	}
+
+	private _getLogger(args: { [key: string]: unknown; method: string }) {
+		return getLoggerFromContext().child({ layer: "auth2 controller", ...args });
 	}
 
 	private _getRefreshTokenFromCookie(req: Request): string {

@@ -12,7 +12,7 @@ import type {
 
 import { HTTP_STATUS } from "../constants/index.js";
 import { ProductService } from "../services/index.js";
-import { asyncHandler } from "../utils/index.js";
+import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
 
 export interface IProductController {
 	create: AsyncHandler<{
@@ -52,16 +52,24 @@ export class ProductController implements IProductController {
 		reqBody: InsertProduct;
 		resBody: { data: SelectProduct };
 	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "create" });
+
 		const data = {
 			...req.body,
 			image: req.file,
 			user: res.locals.user._id,
 		};
+		logger.debug({ data }, "Creating product");
 
 		const result = await this._service.create(data);
 		if (!result.success) {
 			throw result.error;
 		}
+
+		logger.info(
+			{ name: result.data.name, productId: result.data._id },
+			"Product created successfully",
+		);
 
 		res.status(HTTP_STATUS.CREATED).json({
 			data: result.data,
@@ -73,12 +81,20 @@ export class ProductController implements IProductController {
 		params: { productId: string };
 		resBody: { data: null };
 	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "delete" });
+		logger.debug({ productId: req.params.productId }, "Deleting product");
+
 		const result = await this._service.delete({
 			productId: req.params.productId,
 		});
 		if (!result.success) {
 			throw result.error;
 		}
+
+		logger.info(
+			{ productId: req.params.productId },
+			"Product deleted successfully",
+		);
 
 		res.status(HTTP_STATUS.NO_CONTENT).json({
 			data: null,
@@ -93,10 +109,18 @@ export class ProductController implements IProductController {
 			meta: PaginatedResponse<AllProducts>["meta"];
 		};
 	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "getAll" });
+		logger.debug({ query: req.query }, "Getting all products");
+
 		const result = await this._service.getAll(req.query);
 		if (!result.success) {
 			throw result.error;
 		}
+
+		logger.info(
+			{ totalProducts: result.data.meta.totalItems },
+			"Products retrieved successfully",
+		);
 
 		res.status(HTTP_STATUS.OK).json({
 			data: result.data.items,
@@ -109,12 +133,20 @@ export class ProductController implements IProductController {
 		params: { productId: string };
 		resBody: { data: SelectProduct };
 	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "getById" });
+		logger.debug({ productId: req.params.productId }, "Getting product by ID");
+
 		const result = await this._service.getById({
 			productId: req.params.productId,
 		});
 		if (!result.success) {
 			throw result.error;
 		}
+
+		logger.info(
+			{ productId: result.data._id },
+			"Product retrieved by ID successfully",
+		);
 
 		res.status(HTTP_STATUS.OK).json({
 			data: result.data,
@@ -125,10 +157,18 @@ export class ProductController implements IProductController {
 	getTopRated = asyncHandler<{
 		resBody: { data: Array<TopRatedProduct> };
 	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "getTopRated" });
+		logger.debug("Getting top rated products");
+
 		const result = await this._service.getTopRated();
 		if (!result.success) {
 			throw result.error;
 		}
+
+		logger.info(
+			{ totalProducts: result.data.length },
+			"Top rated products retrieved successfully",
+		);
 
 		res.status(HTTP_STATUS.OK).json({
 			data: result.data,
@@ -141,10 +181,13 @@ export class ProductController implements IProductController {
 		reqBody: Partial<InsertProduct>;
 		resBody: { data: SelectProduct };
 	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "update" });
+
 		const data = {
 			...req.body,
 			image: req.file,
 		};
+		logger.debug({ data }, "Updating product");
 
 		const result = await this._service.update({
 			data,
@@ -154,6 +197,11 @@ export class ProductController implements IProductController {
 			throw result.error;
 		}
 
+		logger.info(
+			{ name: result.data.name, productId: result.data._id },
+			"Product updated successfully",
+		);
+
 		res.status(HTTP_STATUS.OK).json({
 			data: result.data,
 			success: true,
@@ -162,5 +210,12 @@ export class ProductController implements IProductController {
 
 	constructor(service: IProductService = new ProductService()) {
 		this._service = service;
+	}
+
+	private _getLogger(args: { [key: string]: unknown; method: string }) {
+		return getLoggerFromContext().child({
+			layer: "product controller",
+			...args,
+		});
 	}
 }
