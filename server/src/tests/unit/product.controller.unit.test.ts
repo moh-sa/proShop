@@ -13,15 +13,15 @@ import {
 	generateMockSelectProduct,
 	generateMockSelectProducts,
 	mockExpressCall,
-	mockProductService,
+	mockProductManager,
 } from "../mocks/index.js";
 
 suite("Product Controller 〖 Unit Tests 〗", () => {
-	const mockService = mockProductService();
-	const controller = new ProductController(mockService);
+	const mockManager = mockProductManager();
+	const controller = new ProductController(mockManager);
 
 	beforeEach(() => {
-		mockService.reset();
+		mockManager.reset();
 	});
 
 	describe("create", () => {
@@ -46,7 +46,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.create.mock.mockImplementationOnce(() =>
+			mockManager.create.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSelectProduct, success: true }),
 			);
 
@@ -58,9 +58,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.create.mock.callCount(), 1);
+			assert.strictEqual(mockManager.create.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.create.mock.calls[0].arguments[0],
+				mockManager.create.mock.calls[0].arguments[0],
 				expectedProduct,
 			);
 		});
@@ -87,7 +87,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.create.mock.mockImplementationOnce(() =>
+			mockManager.create.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSelectProduct, success: true }),
 			);
 
@@ -99,9 +99,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.create.mock.callCount(), 1);
+			assert.strictEqual(mockManager.create.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.create.mock.calls[0].arguments[0],
+				mockManager.create.mock.calls[0].arguments[0],
 				expectedProduct,
 			);
 		});
@@ -120,7 +120,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.create.mock.mockImplementationOnce(() =>
+			mockManager.create.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSelectProduct, success: true }),
 			);
 
@@ -150,7 +150,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.create.mock.mockImplementationOnce(() =>
+			mockManager.create.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSelectProduct, success: true }),
 			);
 
@@ -197,7 +197,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
@@ -210,7 +210,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(
-				mockService.getAll.mock.calls[0]?.arguments[0]?.keyword,
+				mockManager.getAll.mock.calls[0]?.arguments[0]?.keyword,
 				mockProducts[0].name,
 			);
 		});
@@ -227,7 +227,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
@@ -240,7 +240,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(
-				mockService.getAll.mock.calls[0]?.arguments[0]?.keyword?.length,
+				mockManager.getAll.mock.calls[0]?.arguments[0]?.keyword?.length,
 				0,
 			);
 		});
@@ -257,7 +257,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
@@ -270,7 +270,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(
-				mockService.getAll.mock.calls[0]?.arguments[0]?.pageNumber,
+				mockManager.getAll.mock.calls[0]?.arguments[0]?.pageNumber,
 				pageNumber,
 			);
 		});
@@ -288,7 +288,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
@@ -297,7 +297,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(
-				mockService.getAll.mock.calls[0]?.arguments[0]?.pageSize,
+				mockManager.getAll.mock.calls[0]?.arguments[0]?.pageSize,
 				pageSize,
 			);
 		});
@@ -315,7 +315,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
@@ -328,7 +328,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(
-				mockService.getAll.mock.calls[0]?.arguments[0]?.sort,
+				mockManager.getAll.mock.calls[0]?.arguments[0]?.sort,
 				sort,
 			);
 		});
@@ -352,7 +352,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
@@ -364,8 +364,8 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(mockService.getAll.mock.calls[0]?.arguments[0], {
+			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
+			assert.deepStrictEqual(mockManager.getAll.mock.calls[0]?.arguments[0], {
 				keyword,
 				pageNumber,
 				pageSize,
@@ -380,7 +380,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
@@ -392,8 +392,8 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(mockService.getAll.mock.calls[0]?.arguments[0], {
+			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
+			assert.deepStrictEqual(mockManager.getAll.mock.calls[0]?.arguments[0], {
 				pageNumber: "1",
 			});
 		});
@@ -405,7 +405,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
@@ -428,7 +428,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
@@ -460,7 +460,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getTopRated.mock.mockImplementationOnce(() =>
+			mockManager.getTopRated.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
@@ -470,9 +470,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				next,
 			);
 
-			assert.strictEqual(mockService.getTopRated.mock.callCount(), 1);
+			assert.strictEqual(mockManager.getTopRated.mock.callCount(), 1);
 			assert.strictEqual(
-				mockService.getTopRated.mock.calls[0].arguments.length,
+				mockManager.getTopRated.mock.calls[0].arguments.length,
 				0,
 			);
 		});
@@ -482,7 +482,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getTopRated.mock.mockImplementationOnce(() =>
+			mockManager.getTopRated.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
@@ -501,7 +501,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getTopRated.mock.mockImplementationOnce(() =>
+			mockManager.getTopRated.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
@@ -532,7 +532,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getById.mock.mockImplementationOnce(() =>
+			mockManager.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
@@ -544,9 +544,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.getById.mock.callCount(), 1);
+			assert.strictEqual(mockManager.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.getById.mock.calls[0].arguments[0].productId,
+				mockManager.getById.mock.calls[0].arguments[0].productId,
 				productId.toString(),
 			);
 		});
@@ -558,7 +558,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getById.mock.mockImplementationOnce(() =>
+			mockManager.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
@@ -581,7 +581,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getById.mock.mockImplementationOnce(() =>
+			mockManager.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
@@ -619,7 +619,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.update.mock.mockImplementationOnce(() =>
+			mockManager.update.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
@@ -631,9 +631,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.update.mock.callCount(), 1);
+			assert.strictEqual(mockManager.update.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.update.mock.calls[0].arguments[0].productId,
+				mockManager.update.mock.calls[0].arguments[0].productId,
 				productId.toString(),
 			);
 		});
@@ -648,7 +648,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.update.mock.mockImplementationOnce(() =>
+			mockManager.update.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
@@ -674,7 +674,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.update.mock.mockImplementationOnce(() =>
+			mockManager.update.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockProduct, success: true }),
 			);
 
@@ -704,7 +704,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.delete.mock.mockImplementationOnce(() =>
+			mockManager.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: undefined, success: true }),
 			);
 
@@ -716,9 +716,9 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.delete.mock.callCount(), 1);
+			assert.strictEqual(mockManager.delete.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.delete.mock.calls[0].arguments[0].productId,
+				mockManager.delete.mock.calls[0].arguments[0].productId,
 				productId.toString(),
 			);
 		});
@@ -730,7 +730,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.delete.mock.mockImplementationOnce(() =>
+			mockManager.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: undefined, success: true }),
 			);
 
@@ -753,7 +753,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.delete.mock.mockImplementationOnce(() =>
+			mockManager.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: undefined, success: true }),
 			);
 

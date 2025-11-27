@@ -5,6 +5,7 @@ import type { AllProducts, InsertProduct } from "../../types/index.js";
 
 import { ProductController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
+import { ProductManager } from "../../managers/index.js";
 import Product from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { CacheService, ProductService } from "../../services/index.js";
@@ -26,8 +27,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 	const cache = new CacheService("product");
 	const repo = new ProductRepository(Product, cache);
 	const storage = mockImageStorage();
-	const service = new ProductService(repo, storage);
-	const controller = new ProductController(service);
+	const service = new ProductService(repo);
+	const manager = new ProductManager(service, storage);
+	const controller = new ProductController(manager);
 
 	before(async () => await connectTestDatabase());
 	after(async () => await disconnectTestDatabase());
@@ -35,6 +37,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 	beforeEach(async () => {
 		await Product.deleteMany({});
 		await cache.flush();
+		storage.reset();
 	});
 
 	describe("create", () => {

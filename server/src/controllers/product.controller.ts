@@ -1,4 +1,4 @@
-import type { IProductService } from "../services/index.js";
+import type { IProductManager } from "../managers/index.js";
 import type {
 	AllProducts,
 	AsyncHandler,
@@ -11,7 +11,7 @@ import type {
 } from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
-import { ProductService } from "../services/index.js";
+import { ProductManager } from "../managers/index.js";
 import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
 
 export interface IProductController {
@@ -45,7 +45,7 @@ export interface IProductController {
 	}>;
 }
 export class ProductController implements IProductController {
-	private readonly _service: IProductService;
+	private readonly _manager: IProductManager;
 
 	create = asyncHandler<{
 		locals: { user: SafeSelectUser };
@@ -61,7 +61,7 @@ export class ProductController implements IProductController {
 		};
 		logger.debug({ data }, "Creating product");
 
-		const result = await this._service.create(data);
+		const result = await this._manager.create(data);
 		if (!result.success) {
 			throw result.error;
 		}
@@ -84,7 +84,7 @@ export class ProductController implements IProductController {
 		const logger = this._getLogger({ method: "delete" });
 		logger.debug({ productId: req.params.productId }, "Deleting product");
 
-		const result = await this._service.delete({
+		const result = await this._manager.delete({
 			productId: req.params.productId,
 		});
 		if (!result.success) {
@@ -112,7 +112,7 @@ export class ProductController implements IProductController {
 		const logger = this._getLogger({ method: "getAll" });
 		logger.debug({ query: req.query }, "Getting all products");
 
-		const result = await this._service.getAll(req.query);
+		const result = await this._manager.getAll(req.query);
 		if (!result.success) {
 			throw result.error;
 		}
@@ -136,7 +136,7 @@ export class ProductController implements IProductController {
 		const logger = this._getLogger({ method: "getById" });
 		logger.debug({ productId: req.params.productId }, "Getting product by ID");
 
-		const result = await this._service.getById({
+		const result = await this._manager.getById({
 			productId: req.params.productId,
 		});
 		if (!result.success) {
@@ -160,7 +160,7 @@ export class ProductController implements IProductController {
 		const logger = this._getLogger({ method: "getTopRated" });
 		logger.debug("Getting top rated products");
 
-		const result = await this._service.getTopRated();
+		const result = await this._manager.getTopRated();
 		if (!result.success) {
 			throw result.error;
 		}
@@ -189,7 +189,7 @@ export class ProductController implements IProductController {
 		};
 		logger.debug({ data }, "Updating product");
 
-		const result = await this._service.update({
+		const result = await this._manager.update({
 			data,
 			productId: req.params.productId,
 		});
@@ -208,8 +208,8 @@ export class ProductController implements IProductController {
 		});
 	});
 
-	constructor(service: IProductService = new ProductService()) {
-		this._service = service;
+	constructor(manager: IProductManager = new ProductManager()) {
+		this._manager = manager;
 	}
 
 	private _getLogger(args: { [key: string]: unknown; method: string }) {
