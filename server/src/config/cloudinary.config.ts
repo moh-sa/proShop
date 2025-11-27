@@ -12,14 +12,13 @@ cloudinary.config({
 
 export default cloudinary;
 
-export const DEFAULT_CLOUDINARY_TRANSFORMATION: UploadApiOptions["transformation"] =
-	{
-		aspect_ratio: "16:9",
-		crop: "auto",
-		gravity: "auto",
-		height: 272,
-		width: 482,
-	};
+const DEFAULT_CLOUDINARY_TRANSFORMATION: UploadApiOptions["transformation"] = {
+	aspect_ratio: "16:9",
+	crop: "auto",
+	gravity: "auto",
+	height: 272,
+	width: 482,
+};
 
 export const DEFAULT_CLOUDINARY_UPLOAD_CONFIG: UploadApiOptions = {
 	folder: "proShop",
