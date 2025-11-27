@@ -70,7 +70,9 @@ export class RateLimiterService {
 	}
 
 	private _handleError(error: unknown, next: NextFunction): void {
-		console.error("Rate limiter error: ", error);
+		const logger = this._getLogger({ method: "_handleError" });
+		logger.error({ err: error }, "Rate limiter error occurred");
+
 		if (error instanceof RateLimitError) {
 			next(error);
 		} else {
@@ -85,14 +87,25 @@ export class RateLimiterService {
 		config: RateLimitConfig,
 		key: string,
 	): void {
+		const logger = this._getLogger({ method: "_handleRateLimitExceeded" });
+
 		const currentTime = Date.now();
 		const retryAfter = Math.ceil(
 			(config.windowMs - (currentTime - data.firstRequestTime)) / 1000,
 		);
 
 		res.setHeader("Retry-After", retryAfter);
-		console.warn(
-			`Rate limit exceeded for ${key}. Retry after ${retryAfter} seconds.`,
+		logger.warn(
+			{
+				config: {
+					maxRequests: config.maxRequests,
+					windowMs: config.windowMs,
+				},
+				currentCount: data.count,
+				key,
+				retryAfter,
+			},
+			"Rate limit exceeded",
 		);
 
 		this._handleError(new RateLimitError(config.message), next);
@@ -136,13 +149,18 @@ export class RateLimiterService {
 		config: RateLimitConfig,
 		key: string,
 	): void {
+		const logger = this._getLogger({ method: "_saveRateLimitData" });
+
 		const isSet = this._cache.set({
 			key,
 			ttl: Math.ceil(config.windowMs / 1000),
 			value: data,
 		});
 		if (!isSet.success) {
-			console.error("Failed to set rate limit data", key);
+			logger.error(
+				{ error: isSet.error, key },
+				"Failed to save rate limit data to cache",
+			);
 			throw isSet.error;
 		}
 	}

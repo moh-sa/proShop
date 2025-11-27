@@ -18,8 +18,6 @@ import {
 export function handleDatabaseErrorResult(
 	error: unknown,
 ): FailureResult<DatabaseBaseError> {
-	console.error("Database error:", error);
-
 	if (error instanceof mongoose.mongo.MongoNetworkTimeoutError) {
 		return {
 			error: new DatabaseTimeoutError(error.message, { cause: error }),

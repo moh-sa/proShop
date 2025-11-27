@@ -358,7 +358,7 @@ export class CacheService implements ICacheService {
 			try {
 				const result = this._cache.set(arg.key, arg.val, arg.ttl);
 				if (!result) {
-					console.error("Failed to set key", arg.key);
+					logger.error({ key: arg.key }, "Failed to set cache item");
 					return this._createFailureResult(
 						arg.key,
 						CacheOperationError.set(arg.key),
@@ -367,7 +367,7 @@ export class CacheService implements ICacheService {
 
 				return this._createSuccessResult(arg.key);
 			} catch (error) {
-				console.error("Failed to set key", arg.key);
+				logger.error({ error, key: arg.key }, "Failed to set cache item");
 				return this._createFailureResult(
 					arg.key,
 					CacheOperationError.set(arg.key, error),
@@ -441,6 +441,8 @@ export class CacheService implements ICacheService {
 	}
 
 	private _validateMemoryCapacity(batchSize: number): void {
+		const logger = this._getLogger({ method: "_validateMemoryCapacity" });
+
 		if (batchSize === 0) {
 			return;
 		}
@@ -477,9 +479,22 @@ export class CacheService implements ICacheService {
 
 		try {
 			this._cache.del(keysToDelete);
-			console.warn(`[Cache] Deleted ${keysToDelete.length} keys`, keysToDelete);
+			logger.warn(
+				{
+					availableSpace,
+					batchSize,
+					deletedCount: keysToDelete.length,
+					maxCacheSize: MAX_CACHE_SIZE,
+					spaceNeeded,
+					usedCacheSpace,
+				},
+				"Cache capacity limit reached, deleted oldest keys",
+			);
 		} catch (error) {
-			console.error("Failed to delete keys", keysToDelete);
+			logger.error(
+				{ error, keysToDelete },
+				"Failed to delete keys during cache deleting",
+			);
 			throw CacheOperationError.delete(keysToDelete, error);
 		}
 	}

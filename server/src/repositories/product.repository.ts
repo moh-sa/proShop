@@ -16,7 +16,11 @@ import type {
 
 import Product from "../models/product.model.js";
 import { CacheService } from "../services/index.js";
-import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
+import {
+	getLoggerFromContext,
+	handleDatabaseErrorResult,
+	Paginator,
+} from "../utils/index.js";
 
 export interface IProductRepository {
 	count(query: Record<string, unknown>): Promise<ProductResult<number>>;
@@ -78,6 +82,8 @@ export class ProductRepository implements IProductRepository {
 	async create(
 		data: MethodParams<IProductRepository, "create">,
 	): MethodReturn<IProductRepository, "create"> {
+		const logger = this._getLogger({ method: "create" });
+
 		try {
 			const product = (await this._db.create(data)).toObject();
 			const setCacheResult = this._cache.set({
@@ -85,10 +91,13 @@ export class ProductRepository implements IProductRepository {
 				value: product,
 			});
 			if (!setCacheResult.success) {
-				console.error("[PRODUCT REPOSITORY] Failed to set product cache", {
-					cacheKey: product._id.toString(),
-					cause: setCacheResult.error,
-				});
+				logger.error(
+					{
+						cacheKey: product._id.toString(),
+						error: setCacheResult.error,
+					},
+					"Failed to cache created product",
+				);
 			}
 			// invalidate `all` and `top-rated` caches
 			this._invalidateProductCache();
@@ -149,6 +158,8 @@ export class ProductRepository implements IProductRepository {
 		IProductRepository,
 		"getById"
 	> {
+		const logger = this._getLogger({ method: "getById" });
+
 		const cacheId = productId.toString();
 		const getCachedResult = this._cache.get<SelectProduct>({
 			key: cacheId,
@@ -171,10 +182,13 @@ export class ProductRepository implements IProductRepository {
 					value: product,
 				});
 				if (setCacheResult && !setCacheResult.success) {
-					console.error("[PRODUCT REPOSITORY] Failed to set product cache", {
-						cacheKey: cacheId,
-						cause: setCacheResult.error,
-					});
+					logger.error(
+						{
+							cacheKey: cacheId,
+							error: setCacheResult.error,
+						},
+						"Failed to cache retrieved product",
+					);
 				}
 			}
 
@@ -193,6 +207,8 @@ export class ProductRepository implements IProductRepository {
 		IProductRepository,
 		"getTopRated"
 	> {
+		const logger = this._getLogger({ method: "getTopRated" });
+
 		const getCachedResult = this._cache.get<Array<TopRatedProduct>>({
 			key: this._getTopRatedCacheKey,
 		});
@@ -220,12 +236,12 @@ export class ProductRepository implements IProductRepository {
 					value: products,
 				});
 				if (setCacheResult && !setCacheResult.success) {
-					console.error(
-						"[PRODUCT REPOSITORY] Failed to set top-rated products cache",
+					logger.error(
 						{
 							cacheKey: this._getTopRatedCacheKey,
-							cause: setCacheResult.error,
+							error: setCacheResult.error,
 						},
+						"Failed to cache top-rated products",
 					);
 				}
 			}
@@ -270,17 +286,26 @@ export class ProductRepository implements IProductRepository {
 		return handleDatabaseErrorResult(error);
 	}
 
+	private _getLogger(args: { [key: string]: unknown; method: string }) {
+		return getLoggerFromContext().child({
+			layer: "product repository",
+			...args,
+		});
+	}
+
 	private _invalidateProductCache({ id }: { id?: string } = {}): void {
+		const logger = this._getLogger({ method: "_invalidateProductCache" });
+
 		// delete specific product cache
 		if (id && id.trim().length > 0) {
 			const productCacheDeleteResult = this._cache.delete({ key: id });
 			if (!productCacheDeleteResult.success) {
-				console.error(
-					"[PRODUCT REPOSITORY] Failed to invalidate product cache",
+				logger.error(
 					{
-						cause: productCacheDeleteResult.error,
-						id,
+						error: productCacheDeleteResult.error,
+						productId: id,
 					},
+					"Failed to invalidate product cache",
 				);
 			}
 		}
@@ -290,9 +315,12 @@ export class ProductRepository implements IProductRepository {
 			key: this._getTopRatedCacheKey,
 		});
 		if (!topRatedDelResult.success) {
-			console.error(
-				"[PRODUCT REPOSITORY] Failed to invalidate top-rated products cache",
-				{ cause: topRatedDelResult.error },
+			logger.error(
+				{
+					cacheKey: this._getTopRatedCacheKey,
+					error: topRatedDelResult.error,
+				},
+				"Failed to invalidate top-rated products cache",
 			);
 		}
 
@@ -301,9 +329,12 @@ export class ProductRepository implements IProductRepository {
 			key: this._getAllCacheKey,
 		});
 		if (!allProductsDeleteResult.success) {
-			console.error(
-				"[PRODUCT REPOSITORY] Failed to invalidate all products cache",
-				{ cause: allProductsDeleteResult.error },
+			logger.error(
+				{
+					cacheKey: this._getAllCacheKey,
+					error: allProductsDeleteResult.error,
+				},
+				"Failed to invalidate all products cache",
 			);
 		}
 	}

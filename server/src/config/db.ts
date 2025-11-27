@@ -1,21 +1,22 @@
 import mongoose from "mongoose";
 
+import { logger } from "../utils/logger.util.js";
 import { env } from "./env.js";
 
 const connectDB = async () => {
 	try {
 		mongoose.set("strictQuery", true);
 		const conn = await mongoose.connect(env.DB_URL);
-		console.info(`MongoDB connected: ${conn.connection.host}`);
+		logger.info(
+			{
+				database: conn.connection.name,
+				host: conn.connection.host,
+			},
+			"Database connection established",
+		);
 	} catch (error) {
-		if (error instanceof mongoose.Error) {
-			console.error(`Error: ${error.message}`);
-		} else if (error instanceof Error) {
-			console.error(`Error: ${error.message}`);
-		} else {
-			console.error(`Error: ${String(error)}`);
-		}
-		process.exit(1); // eslint-disable-line n/no-process-exit
+		logger.fatal(error, "Failed to connect to database");
+		throw error;
 	}
 };
 
