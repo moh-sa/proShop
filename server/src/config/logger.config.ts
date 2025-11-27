@@ -14,5 +14,8 @@ export const loggerConfig: pino.LoggerOptions = {
 	},
 	level: isProd ? "info" : isDev ? "debug" : "silent",
 	redact: ["req.headers.cookie", "**.email", "**.password"],
+	serializers: {
+		error: pino.stdSerializers.err,
+	},
 	timestamp: pino.stdTimeFunctions.isoTimeNano,
 };
