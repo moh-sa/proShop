@@ -84,9 +84,6 @@ export class ProductRepository implements IProductRepository {
 				value: product,
 			});
 
-			// invalidate `top-rated` caches
-			this._invalidateProductCache();
-
 			return {
 				data: product,
 				success: true,
