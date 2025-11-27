@@ -13,25 +13,28 @@ import {
 	generateMockInsertProductWithMulterImage,
 	generateMockSelectProduct,
 	generateMockSelectProducts,
-	mockImageStorage,
-	mockMulterImageFile,
 	mockProductRepository,
 } from "../mocks/index.js";
 
 suite("Product Service 〖 Unit Tests 〗", () => {
 	const mockRepo = mockProductRepository();
-	const mockStorage = mockImageStorage();
 
-	const service = new ProductService(mockRepo, mockStorage);
+	const service = new ProductService(mockRepo);
 
 	beforeEach(() => {
 		mockRepo.reset();
-		mockStorage.reset();
 	});
 
 	describe("create", () => {
-		const mockInsertProduct = generateMockInsertProductWithMulterImage();
+		const mockProductWithFile = generateMockInsertProductWithMulterImage();
 		const mockSelectProduct = generateMockSelectProduct();
+
+		// Convert File image to string URL for ProductService
+		const mockInsertProduct = {
+			...mockProductWithFile,
+			image: mockSelectProduct.image, // Use string URL instead of File
+		};
+
 		const expectedResult = {
 			...mockInsertProduct,
 			_id: mockSelectProduct._id,
@@ -44,10 +47,6 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 		test("Should return product object when 'repo.create' is called once with product data", async () => {
 			// Arrange
-			mockStorage.upload.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: expectedResult.image, success: true }),
-			);
-
 			mockRepo.create.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: expectedResult, success: true }),
 			);
@@ -60,43 +59,20 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			assert.deepEqual(result.data, expectedResult);
 
 			assert.strictEqual(mockRepo.create.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.create.mock.calls[0].arguments[0], {
-				...mockInsertProduct,
-				image: expectedResult.image,
-			});
-		});
-
-		test("Should return a string when 'storage.upload' is called once with 'data.file'", async () => {
-			// Arrange
-			mockStorage.upload.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: expectedResult.image, success: true }),
-			);
-
-			mockRepo.create.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: expectedResult, success: true }),
-			);
-
-			// Act
-			const result = await service.create(mockInsertProduct);
-
-			// Assert
-			assert.ok(result.success);
-			assert.strictEqual(result.data.image, expectedResult.image);
-
-			assert.strictEqual(mockStorage.upload.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockStorage.upload.mock.calls[0].arguments[0].file,
-				mockInsertProduct.image,
-			);
+			assert.deepStrictEqual(mockRepo.create.mock.calls[0].arguments[0], mockInsertProduct);
 		});
 
 		test("Should return validation error if 'product.user' is invalid objectId", async () => {
 			// Arrange
-			const mockInsertProduct = generateMockInsertProductWithMulterImage();
-			mockInsertProduct.user = "invalid-user-id" as unknown as Types.ObjectId;
+			const mockProductWithFile = generateMockInsertProductWithMulterImage();
+			const invalidProduct = {
+				...mockProductWithFile,
+				image: "https://example.com/image.jpg", // Use string URL
+				user: "invalid-user-id" as unknown as Types.ObjectId,
+			};
 
 			// Act
-			const result = await service.create(mockInsertProduct);
+			const result = await service.create(invalidProduct);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -105,11 +81,15 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 		test("Should return validation error if 'product.name' is empty", async () => {
 			// Arrange
-			const mockInsertProduct = generateMockInsertProductWithMulterImage();
-			mockInsertProduct.name = "";
+			const mockProductWithFile = generateMockInsertProductWithMulterImage();
+			const invalidProduct = {
+				...mockProductWithFile,
+				image: "https://example.com/image.jpg", // Use string URL
+				name: "",
+			};
 
 			// Act
-			const result = await service.create(mockInsertProduct);
+			const result = await service.create(invalidProduct);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -118,11 +98,15 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 		test("Should return validation error if 'product.name' is not a string", async () => {
 			// Arrange
-			const mockInsertProduct = generateMockInsertProductWithMulterImage();
-			mockInsertProduct.name = 123 as unknown as string;
+			const mockProductWithFile = generateMockInsertProductWithMulterImage();
+			const invalidProduct = {
+				...mockProductWithFile,
+				image: "https://example.com/image.jpg", // Use string URL
+				name: 123 as unknown as string,
+			};
 
 			// Act
-			const result = await service.create(mockInsertProduct);
+			const result = await service.create(invalidProduct);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -131,11 +115,15 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 		test("Should return validation error if 'product.brand' is empty", async () => {
 			// Arrange
-			const mockInsertProduct = generateMockInsertProductWithMulterImage();
-			mockInsertProduct.brand = "";
+			const mockProductWithFile = generateMockInsertProductWithMulterImage();
+			const invalidProduct = {
+				...mockProductWithFile,
+				image: "https://example.com/image.jpg", // Use string URL
+				brand: "",
+			};
 
 			// Act
-			const result = await service.create(mockInsertProduct);
+			const result = await service.create(invalidProduct);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -144,11 +132,15 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 		test("Should return validation error if 'product.brand' is not a string", async () => {
 			// Arrange
-			const mockInsertProduct = generateMockInsertProductWithMulterImage();
-			mockInsertProduct.brand = 123 as unknown as string;
+			const mockProductWithFile = generateMockInsertProductWithMulterImage();
+			const invalidProduct = {
+				...mockProductWithFile,
+				image: "https://example.com/image.jpg", // Use string URL
+				brand: 123 as unknown as string,
+			};
 
 			// Act
-			const result = await service.create(mockInsertProduct);
+			const result = await service.create(invalidProduct);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -157,11 +149,15 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 		test("Should return validation error if 'product.category' is empty", async () => {
 			// Arrange
-			const mockInsertProduct = generateMockInsertProductWithMulterImage();
-			mockInsertProduct.category = "";
+			const mockProductWithFile = generateMockInsertProductWithMulterImage();
+			const invalidProduct = {
+				...mockProductWithFile,
+				image: "https://example.com/image.jpg", // Use string URL
+				category: "",
+			};
 
 			// Act
-			const result = await service.create(mockInsertProduct);
+			const result = await service.create(invalidProduct);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -170,11 +166,15 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 		test("Should return validation error if 'product.category' is not a string", async () => {
 			// Arrange
-			const mockInsertProduct = generateMockInsertProductWithMulterImage();
-			mockInsertProduct.category = 123 as unknown as string;
+			const mockProductWithFile = generateMockInsertProductWithMulterImage();
+			const invalidProduct = {
+				...mockProductWithFile,
+				image: "https://example.com/image.jpg", // Use string URL
+				category: 123 as unknown as string,
+			};
 
 			// Act
-			const result = await service.create(mockInsertProduct);
+			const result = await service.create(invalidProduct);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -183,11 +183,15 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 		test("Should return validation error if 'product.description' is empty", async () => {
 			// Arrange
-			const mockInsertProduct = generateMockInsertProductWithMulterImage();
-			mockInsertProduct.description = "";
+			const mockProductWithFile = generateMockInsertProductWithMulterImage();
+			const invalidProduct = {
+				...mockProductWithFile,
+				image: "https://example.com/image.jpg", // Use string URL
+				description: "",
+			};
 
 			// Act
-			const result = await service.create(mockInsertProduct);
+			const result = await service.create(invalidProduct);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -196,11 +200,15 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 		test("Should return validation error if 'product.description' is not a string", async () => {
 			// Arrange
-			const mockInsertProduct = generateMockInsertProductWithMulterImage();
-			mockInsertProduct.description = 123 as unknown as string;
+			const mockProductWithFile = generateMockInsertProductWithMulterImage();
+			const invalidProduct = {
+				...mockProductWithFile,
+				image: "https://example.com/image.jpg", // Use string URL
+				description: 123 as unknown as string,
+			};
 
 			// Act
-			const result = await service.create(mockInsertProduct);
+			const result = await service.create(invalidProduct);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -209,11 +217,15 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 		test("Should return validation error if 'product.price' is not a number", async () => {
 			// Arrange
-			const mockInsertProduct = generateMockInsertProductWithMulterImage();
-			mockInsertProduct.price = "invalid-price" as unknown as number;
+			const mockProductWithFile = generateMockInsertProductWithMulterImage();
+			const invalidProduct = {
+				...mockProductWithFile,
+				image: "https://example.com/image.jpg", // Use string URL
+				price: "invalid-price" as unknown as number,
+			};
 
 			// Act
-			const result = await service.create(mockInsertProduct);
+			const result = await service.create(invalidProduct);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -222,11 +234,15 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 		test("Should return validation error if 'product.countInStock' is not a number", async () => {
 			// Arrange
-			const mockInsertProduct = generateMockInsertProductWithMulterImage();
-			mockInsertProduct.countInStock = "invalid-stock" as unknown as number;
+			const mockProductWithFile = generateMockInsertProductWithMulterImage();
+			const invalidProduct = {
+				...mockProductWithFile,
+				image: "https://example.com/image.jpg", // Use string URL
+				countInStock: "invalid-stock" as unknown as number,
+			};
 
 			// Act
-			const result = await service.create(mockInsertProduct);
+			const result = await service.create(invalidProduct);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -577,60 +593,8 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 				mockUpdateData,
 			);
 
-			// Ensure that 'repo.getById' wasn't called
+			// Ensure that update didn't require fetching product first
 			assert.strictEqual(mockRepo.getById.mock.callCount(), 0);
-		});
-
-		test("Should return product object when 'repo.getById' is called once with 'productId', and 'storage.replace' is called once with 'url' and 'file'", async () => {
-			// Arrange
-			const mockUpdateData = { image: mockMulterImageFile() };
-
-			mockRepo.getById.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockProduct, success: true }),
-			);
-
-			mockStorage.replace.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockProduct.image, success: true }),
-			);
-
-			mockRepo.update.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockProduct, success: true }),
-			);
-
-			// Act
-			const result = await service.update({
-				data: mockUpdateData,
-				productId: productId.toString(),
-			});
-
-			// Assert
-			assert.ok(result.success);
-			assert.deepStrictEqual(result.data, mockProduct);
-
-			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockRepo.getById.mock.calls[0].arguments[0].productId,
-				productId,
-			);
-
-			assert.strictEqual(mockStorage.replace.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockStorage.replace.mock.calls[0].arguments[0].file,
-				mockUpdateData.image,
-			);
-			assert.deepStrictEqual(
-				mockStorage.replace.mock.calls[0].arguments[0].url,
-				mockProduct.image,
-			);
-
-			assert.strictEqual(mockRepo.update.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockRepo.update.mock.calls[0].arguments[0].productId,
-				productId,
-			);
-			assert.deepStrictEqual(mockRepo.update.mock.calls[0].arguments[0].data, {
-				image: mockProduct.image,
-			});
 		});
 
 		test("Should return not found error if 'repo.update' returns 'null'", async () => {
@@ -677,10 +641,6 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			// Arrange
 			mockRepo.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: expectedResult, success: true }),
-			);
-
-			mockStorage.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: undefined, success: true }),
 			);
 
 			// Act

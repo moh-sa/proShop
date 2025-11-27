@@ -6,11 +6,7 @@ import { NotFoundError, ValidationError } from "../../errors/index.js";
 import Product from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { CacheService, ProductService } from "../../services/index.js";
-import {
-	generateMockObjectId,
-	mockImageStorage,
-	mockMulterImageFile,
-} from "../mocks/index.js";
+import { generateMockObjectId } from "../mocks/index.js";
 import {
 	generateMockInsertProductWithMulterImage,
 	generateMockSelectProduct,
@@ -22,14 +18,12 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 	let productService: ProductService;
 	let productRepository: ProductRepository;
 	let cacheService: CacheService;
-	let imageStorageMock: ReturnType<typeof mockImageStorage>; // Don't have storage for testing
 
 	before(async () => {
 		await connectTestDatabase();
 		cacheService = new CacheService("product");
 		productRepository = new ProductRepository(Product, cacheService);
-		imageStorageMock = mockImageStorage();
-		productService = new ProductService(productRepository, imageStorageMock);
+		productService = new ProductService(productRepository);
 	});
 
 	after(async () => {
@@ -40,18 +34,17 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 	beforeEach(async () => {
 		await Product.deleteMany({});
 		cacheService.flush();
-		imageStorageMock.reset();
 	});
 
 	describe("create", () => {
 		test("should create and return product when 'repo.create' is called with valid data", async () => {
 			// Arrange
-			const mockProduct = generateMockInsertProductWithMulterImage();
+			const mockProductWithFile = generateMockInsertProductWithMulterImage();
 			const mockImageUrl = "https://example.com/image.jpg";
-			imageStorageMock.upload.mock.mockImplementationOnce(async () => ({
-				data: mockImageUrl,
-				success: true,
-			}));
+			const mockProduct = {
+				...mockProductWithFile,
+				image: mockImageUrl, // Use string URL instead of File
+			};
 
 			// Act
 			const result = await productService.create(mockProduct);
@@ -69,33 +62,6 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.image, mockImageUrl);
 			assert.strictEqual(result.data.rating, 0);
 			assert.strictEqual(result.data.numReviews, 0);
-
-			assert.strictEqual(imageStorageMock.upload.mock.calls.length, 1);
-			assert.deepStrictEqual(
-				imageStorageMock.upload.mock.calls[0].arguments[0].file,
-				mockProduct.image,
-			);
-		});
-
-		test("should upload image to storage when 'repo.create' is called with valid image", async () => {
-			// Arrange
-			const mockProduct = generateMockInsertProductWithMulterImage();
-			const mockImageUrl = "https://example.com/image.jpg";
-			imageStorageMock.upload.mock.mockImplementationOnce(async () => ({
-				data: mockImageUrl,
-				success: true,
-			}));
-
-			// Act
-			const result = await productService.create(mockProduct);
-
-			// Assert
-			assert.strictEqual(result.success, true);
-			assert.strictEqual(imageStorageMock.upload.mock.calls.length, 1);
-			assert.deepStrictEqual(
-				imageStorageMock.upload.mock.calls[0].arguments[0].file,
-				mockProduct.image,
-			);
 		});
 
 		test("should return validation error when 'repo.create' is called with invalid data", async () => {
@@ -547,43 +513,6 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.image, mockProduct.image);
-			assert.strictEqual(imageStorageMock.replace.mock.calls.length, 0);
-		});
-
-		test("should replace old image with new one in storage when updating product image", async () => {
-			// Arrange
-			const mockProduct = generateMockSelectProduct();
-			const productId = mockProduct._id.toString();
-			await Product.create(mockProduct);
-			const newImage = mockMulterImageFile();
-			const newImageUrl = "https://example.com/new-image.jpg";
-			const updateData = {
-				image: newImage,
-				name: "Updated Product Name",
-			};
-			imageStorageMock.replace.mock.mockImplementationOnce(async () => ({
-				data: newImageUrl,
-				success: true,
-			}));
-
-			// Act
-			const result = await productService.update({
-				data: updateData,
-				productId,
-			});
-
-			// Assert
-			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.image, newImageUrl);
-			assert.strictEqual(imageStorageMock.replace.mock.calls.length, 1);
-			assert.deepStrictEqual(
-				imageStorageMock.replace.mock.calls[0].arguments[0].file,
-				newImage,
-			);
-			assert.deepStrictEqual(
-				imageStorageMock.replace.mock.calls[0].arguments[0].url,
-				mockProduct.image,
-			);
 		});
 
 		test("should return not found error when 'repo.update' is called with non-existent ID", async () => {
@@ -643,65 +572,12 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const mockProduct = generateMockSelectProduct();
 			const productId = mockProduct._id.toString();
 			await productRepository.create(mockProduct);
-			imageStorageMock.delete.mock.mockImplementationOnce(async () => ({
-				data: undefined,
-				success: true,
-			}));
 
 			// Act
 			const result = await productService.delete({ productId });
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			const deletedProduct = await Product.findById(mockProduct._id);
-			assert.strictEqual(deletedProduct, null);
-			assert.strictEqual(imageStorageMock.delete.mock.calls.length, 1);
-			assert.deepStrictEqual(
-				imageStorageMock.delete.mock.calls[0].arguments[0].url,
-				mockProduct.image,
-			);
-		});
-
-		test("should verify image is actually deleted from storage", async () => {
-			// Arrange
-			const mockProduct = generateMockSelectProduct();
-			const productId = mockProduct._id.toString();
-			await productRepository.create(mockProduct);
-
-			imageStorageMock.delete.mock.mockImplementationOnce(async () => {
-				return {
-					data: undefined,
-					success: true,
-				};
-			});
-
-			// Act
-			const result = await productService.delete({ productId });
-
-			// Assert
-			assert.strictEqual(result.success, true);
-			assert.strictEqual(imageStorageMock.delete.mock.calls.length, 1);
-		});
-
-		test("should handle case where storage deletion fails but product was deleted", async () => {
-			// Arrange
-			const mockProduct = generateMockSelectProduct();
-			const productId = mockProduct._id.toString();
-			await productRepository.create(mockProduct);
-			const mockError = new Error("Delete failed");
-
-			imageStorageMock.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve({ error: mockError, success: false }),
-			);
-
-			// Act
-			const result = await productService.delete({ productId });
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.strictEqual(result.error, mockError);
-
-			// Verify product was still deleted from database
 			const deletedProduct = await Product.findById(mockProduct._id);
 			assert.strictEqual(deletedProduct, null);
 		});
