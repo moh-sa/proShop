@@ -462,7 +462,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should return 'null' when user does not exist", async () => {
+		test("Should return 'NotFoundError' when user does not exist", async () => {
 			// Arrange
 			const { email } = generateMockSelectUser();
 
@@ -477,8 +477,8 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			const result = await service.existsByEmail({ email });
 
 			// Assert
-			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data, null);
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 
 		test("Should return 'ValidationError' when email is invalid", async () => {
