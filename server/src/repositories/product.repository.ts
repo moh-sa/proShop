@@ -230,7 +230,12 @@ export class ProductRepository implements IProductRepository {
 				.lean();
 
 			if (product) {
-				this._invalidateProductCache({ id: productId.toString() });
+				const cacheKey = productId.toString();
+				this._invalidateProductCache({ id: cacheKey });
+				this._cache.set({
+					key: cacheKey,
+					value: product,
+				});
 			}
 
 			return {
