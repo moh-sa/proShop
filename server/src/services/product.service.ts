@@ -39,7 +39,7 @@ export interface IProductService {
 		productId: string;
 	}): Promise<ProductResult<SelectProduct>>;
 }
-export type ProductResult<T> = Result<T>;
+type ProductResult<T> = Result<T>;
 
 export class ProductService implements IProductService {
 	private readonly _repository: IProductRepository;
