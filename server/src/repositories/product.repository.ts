@@ -49,7 +49,6 @@ export class ProductRepository implements IProductRepository {
 	private _paginator: Paginator<SelectProduct>;
 
 	// Cache keys
-	private readonly _getAllCacheKey = "all";
 	private readonly _getTopRatedCacheKey = "top-rated";
 
 	constructor(
@@ -85,7 +84,7 @@ export class ProductRepository implements IProductRepository {
 				value: product,
 			});
 
-			// invalidate `all` and `top-rated` caches
+			// invalidate `top-rated` caches
 			this._invalidateProductCache();
 
 			return {
@@ -259,11 +258,6 @@ export class ProductRepository implements IProductRepository {
 		// delete top-rated products cache
 		this._cache.delete({
 			key: this._getTopRatedCacheKey,
-		});
-
-		// delete all products cache
-		this._cache.delete({
-			key: this._getAllCacheKey,
 		});
 	}
 }
