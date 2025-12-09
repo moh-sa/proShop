@@ -55,7 +55,7 @@ export const httpLogger = pinoHttp({
 			url: req.url,
 			// Only log body, params, query in development mode
 			...(env.NODE_ENV === "development" && {
-				body: req.raw.body,
+				body: Buffer.isBuffer(req.raw.body) ? "[Buffer]" : req.raw.body,
 				params: req.params,
 				query: req.query,
 			}),
