@@ -1,6 +1,6 @@
 import pino from "pino";
 
-import { loggerConfig } from "../config/index.js";
+import { loggerConfig } from "../config/logger.config.js";
 import { asyncContext } from "./async-context.util.js";
 
 /**
