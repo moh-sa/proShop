@@ -87,26 +87,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			});
 		});
 
-		test("Should call 'cache.delete' two times", async (t) => {
-			// Arrange
-			mockSetCache({ cacheKey, instance: mockCache });
-
-			mockCacheInvalidation({
-				cacheKey,
-				instance: mockCache,
-			});
-
-			t.mock.method(Product, "create", () => ({
-				toObject: () => mockSelectProduct,
-			}));
-
-			// Act
-			await repo.create(mockInsertProduct);
-
-			// Assert
-			assert.strictEqual(mockCache.delete.mock.callCount(), 2);
-		});
-
 		test("Should return 'DatabaseValidationError' when 'db.create' throws 'ValidationError'", async (t) => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
@@ -886,7 +866,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Assert
-			assert.strictEqual(mockCache.delete.mock.callCount(), 3);
+			assert.strictEqual(mockCache.delete.mock.callCount(), 2);
 			assert.deepStrictEqual(
 				mockCache.delete.mock.calls[0].arguments[0].key,
 				cacheKey,
@@ -1059,7 +1039,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			await repo.delete({ productId });
 
 			// Assert
-			assert.strictEqual(mockCache.delete.mock.callCount(), 3);
+			assert.strictEqual(mockCache.delete.mock.callCount(), 2);
 			assert.deepStrictEqual(
 				mockCache.delete.mock.calls[0].arguments[0].key,
 				cacheKey,

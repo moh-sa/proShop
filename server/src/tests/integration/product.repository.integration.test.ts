@@ -508,7 +508,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			assert.equal(updatedProduct.data.category, mockProduct.category);
 		});
 
-		test("should invalidate product cache when 'db.update' is called successfully", async () => {
+		test("should update the cached product when 'db.update' is called", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
 			await productRepository.create(mockProduct);
@@ -527,7 +527,8 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(cachedProduct.success, true);
-			assert.strictEqual(cachedProduct.data, undefined);
+			assert.ok(cachedProduct.data);
+			assert.strictEqual(cachedProduct.data.name, updateData.name);
 		});
 
 		test("should return null when 'db.update' is called with non-existent ID", async () => {
