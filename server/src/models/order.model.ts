@@ -18,7 +18,7 @@ const orderSchema = new Schema<OrderSchema>(
 			type: Boolean,
 		},
 		itemsPrice: {
-			default: 0.0,
+			default: 0,
 			required: true,
 			type: Number,
 		},
@@ -55,17 +55,17 @@ const orderSchema = new Schema<OrderSchema>(
 			postalCode: { required: true, type: String },
 		},
 		shippingPrice: {
-			default: 0.0,
+			default: 0,
 			required: true,
 			type: Number,
 		},
 		taxPrice: {
-			default: 0.0,
+			default: 0,
 			required: true,
 			type: Number,
 		},
 		totalPrice: {
-			default: 0.0,
+			default: 0,
 			required: true,
 			type: Number,
 		},
