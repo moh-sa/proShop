@@ -1,7 +1,8 @@
 import assert from "node:assert";
 import test, { describe, suite } from "node:test";
 
-import { formatZodErrors } from "../../utils/index.js";
+import { ValidationError } from "../../errors/index.js";
+import { formatZodErrors, validateNumber } from "../../utils/index.js";
 import { mockZodError1, mockZodErrors } from "../mocks/index.js";
 
 suite("Util Functions Unit Tests", () => {
@@ -33,6 +34,47 @@ suite("Util Functions Unit Tests", () => {
 				errors[2],
 				"user.password Password should be at least 6 characters long",
 			);
+		});
+	});
+
+	describe("validateNumber", () => {
+		test("Should return a number for numeric input", () => {
+			// Arrange
+			const input = 123;
+
+			// Act
+			const result = validateNumber(input);
+
+			// Assert
+			assert.strictEqual(result, input);
+		});
+
+		test("Should return a number for numeric string input", () => {
+			// Arrange
+			const input = "123";
+			const expected = 123;
+
+			// Act
+			const result = validateNumber(input);
+
+			// Assert
+			assert.strictEqual(result, expected);
+		});
+
+		test("Should throw ValidationError for NaN input", () => {
+			// Arrange
+			const input = NaN;
+
+			// Act & Assert
+			assert.throws(() => validateNumber(input), ValidationError);
+		});
+
+		test("Should throw ValidationError for non-numeric input", () => {
+			// Arrange
+			const input = "123a";
+
+			// Act & Assert
+			assert.throws(() => validateNumber(input), ValidationError);
 		});
 	});
 });

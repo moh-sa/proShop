@@ -10,3 +10,4 @@ export * from "./remove-empty-fields.util.js";
 export * from "./remove-object-fields.js";
 export * from "./success-response.util.js";
 export * from "./validate-file-type.util.js";
+export * from "./validate-number.util.js";
