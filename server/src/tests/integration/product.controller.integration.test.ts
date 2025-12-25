@@ -40,6 +40,15 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		storage.reset();
 	});
 
+	function mockImageUpload() {
+		storage.upload.mock.mockImplementationOnce(() =>
+			Promise.resolve({
+				data: "http://example.com/image.jpg",
+				success: true,
+			}),
+		);
+	}
+
 	describe("create", () => {
 		test("Should return success response when 'service.create' is called with valid data", async () => {
 			// Arrange
@@ -52,12 +61,8 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// @ts-expect-error - `req.file` expect the type to be diskStorage
 			req.file = image;
 			res.locals.user = mockUser;
-			storage.upload.mock.mockImplementationOnce(() =>
-				Promise.resolve({
-					data: "http://example.com/image.jpg",
-					success: true,
-				}),
-			);
+
+			mockImageUpload();
 
 			// Act
 			await controller.create(req, res, next);
@@ -80,12 +85,8 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// @ts-expect-error - `req.file` expect the type to be diskStorage
 			req.file = image;
 			res.locals.user = mockUser;
-			storage.upload.mock.mockImplementationOnce(() =>
-				Promise.resolve({
-					data: "http://example.com/image.jpg",
-					success: true,
-				}),
-			);
+
+			mockImageUpload();
 
 			// Act
 			await controller.create(req, res, next);
@@ -105,12 +106,8 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// @ts-expect-error - `req.file` expect the type to be diskStorage
 			req.file = image;
 			res.locals.user = mockUser;
-			storage.upload.mock.mockImplementationOnce(() =>
-				Promise.resolve({
-					data: "http://example.com/image.jpg",
-					success: true,
-				}),
-			);
+
+			mockImageUpload();
 
 			// Act
 			await controller.create(req, res, next);
