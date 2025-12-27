@@ -21,7 +21,7 @@ import {
 	connectTestDatabase,
 	disconnectTestDatabase,
 } from "../utils/database-connection.utils.js";
-import { createMockExpressContext } from "../utils/index.js";
+import { createMockExpressContext, toCents } from "../utils/index.js";
 
 suite("Product Controller 〖 Integration Tests 〗", () => {
 	const cache = new CacheService("product");
@@ -131,7 +131,12 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when 'service.getAll' is called with valid data", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 3 });
-			await Product.insertMany(mockProducts);
+			const mockProductsInCents = mockProducts.map((product) => ({
+				...product,
+				price: toCents(product.price),
+			}));
+
+			await Product.insertMany(mockProductsInCents);
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -181,7 +186,12 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockProducts = generateMockSelectProducts({ count: 3 });
-			await Product.insertMany(mockProducts);
+			const mockProductsInCents = mockProducts.map((product) => ({
+				...product,
+				price: toCents(product.price),
+			}));
+
+			await Product.insertMany(mockProductsInCents);
 
 			// Act
 			await controller.getAll(req, res, next);
@@ -201,7 +211,12 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			const targetProduct = mockProducts[0];
 			const keyword = targetProduct.name;
 
-			await Product.insertMany(mockProducts);
+			const mockProductsInCents = mockProducts.map((product) => ({
+				...product,
+				price: toCents(product.price),
+			}));
+
+			await Product.insertMany(mockProductsInCents);
 			req.query = { keyword };
 
 			// Act
@@ -222,7 +237,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockProducts = generateMockSelectProducts({ count: 13 });
-			await Product.insertMany(mockProducts);
+
+			const mockProductsInCents = mockProducts.map((product) => ({
+				...product,
+				price: toCents(product.price),
+			}));
+
+			await Product.insertMany(mockProductsInCents);
 			req.query = { pageNumber: "1" };
 
 			// Act
@@ -243,7 +264,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockProducts = generateMockSelectProducts({ count: 13 });
-			await Product.insertMany(mockProducts);
+
+			const mockProductsInCents = mockProducts.map((product) => ({
+				...product,
+				price: toCents(product.price),
+			}));
+
+			await Product.insertMany(mockProductsInCents);
 			req.query = { pageNumber: "2" };
 
 			// Act
@@ -278,7 +305,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockProducts = generateMockSelectProducts({ count: 15 });
-			await Product.insertMany(mockProducts);
+
+			const mockProductsInCents = mockProducts.map((product) => ({
+				...product,
+				price: toCents(product.price),
+			}));
+
+			await Product.insertMany(mockProductsInCents);
 			req.query = { pageSize: "5" };
 
 			// Act
@@ -301,7 +334,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			mockProducts[0].name = "Zebra Product";
 			mockProducts[1].name = "Apple Product";
 			mockProducts[2].name = "Banana Product";
-			await Product.insertMany(mockProducts);
+
+			const mockProductsInCents = mockProducts.map((product) => ({
+				...product,
+				price: toCents(product.price),
+			}));
+
+			await Product.insertMany(mockProductsInCents);
 			req.query = { sort: "name:asc" };
 
 			// Act
@@ -323,7 +362,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockProducts = generateMockSelectProducts({ count: 3 });
-			await Product.insertMany(mockProducts);
+
+			const mockProductsInCents = mockProducts.map((product) => ({
+				...product,
+				price: toCents(product.price),
+			}));
+
+			await Product.insertMany(mockProductsInCents);
 
 			// Act
 			await controller.getTopRated(req, res, next);
@@ -340,7 +385,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockProducts = generateMockSelectProducts({ count: 3 });
-			await Product.insertMany(mockProducts);
+
+			const mockProductsInCents = mockProducts.map((product) => ({
+				...product,
+				price: toCents(product.price),
+			}));
+
+			await Product.insertMany(mockProductsInCents);
 
 			// Act
 			await controller.getTopRated(req, res, next);
@@ -354,7 +405,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockProducts = generateMockSelectProducts({ count: 3 });
-			await Product.insertMany(mockProducts);
+
+			const mockProductsInCents = mockProducts.map((product) => ({
+				...product,
+				price: toCents(product.price),
+			}));
+
+			await Product.insertMany(mockProductsInCents);
 
 			// Act
 			await controller.getTopRated(req, res, next);
@@ -386,7 +443,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockProduct = generateMockSelectProduct();
-			await Product.insertMany([mockProduct]);
+
+			const mockProductInCents = {
+				...mockProduct,
+				price: toCents(mockProduct.price),
+			};
+
+			await Product.insertMany([mockProductInCents]);
 
 			req.params = { productId: mockProduct._id.toString() };
 
@@ -404,7 +467,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockProduct = generateMockSelectProduct();
-			await Product.insertMany([mockProduct]);
+
+			const mockProductInCents = {
+				...mockProduct,
+				price: toCents(mockProduct.price),
+			};
+
+			await Product.insertMany([mockProductInCents]);
 			req.params = { productId: mockProduct._id.toString() };
 
 			// Act
@@ -419,7 +488,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockProduct = generateMockSelectProduct();
-			await Product.insertMany([mockProduct]);
+
+			const mockProductInCents = {
+				...mockProduct,
+				price: toCents(mockProduct.price),
+			};
+
+			await Product.insertMany([mockProductInCents]);
 			req.params = { productId: mockProduct._id.toString() };
 
 			// Act
@@ -461,8 +536,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			const mockProduct = generateMockSelectProduct();
 			req.params = { productId: mockProduct._id.toString() };
 
-			await Product.insertMany([mockProduct]);
-			cache.set({ key: mockProduct._id.toString(), value: mockProduct });
+			const mockProductInCents = {
+				...mockProduct,
+				price: toCents(mockProduct.price),
+			};
+
+			await Product.insertMany([mockProductInCents]);
+			cache.set({ key: mockProduct._id.toString(), value: mockProductInCents });
 
 			// Act
 			await controller.update(req, res, next);
@@ -482,8 +562,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			req.params = { productId };
 
-			await Product.insertMany([mockProduct]);
-			cache.set({ key: productId, value: mockProduct });
+			const mockProductInCents = {
+				...mockProduct,
+				price: toCents(mockProduct.price),
+			};
+
+			await Product.insertMany([mockProductInCents]);
+			cache.set({ key: productId, value: mockProductInCents });
 
 			// Act
 			await controller.update(req, res, next);
@@ -504,8 +589,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			req.params = { productId };
 			req.body = updateData;
 
-			await Product.insertMany([mockProduct]);
-			cache.set({ key: productId, value: mockProduct });
+			const mockProductInCents = {
+				...mockProduct,
+				price: toCents(mockProduct.price),
+			};
+
+			await Product.insertMany([mockProductInCents]);
+			cache.set({ key: productId, value: mockProductInCents });
 
 			// Act
 			await controller.update(req, res, next);
@@ -539,8 +629,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			req.params = { productId };
 
-			await Product.insertMany([mockProduct]);
-			cache.set({ key: productId, value: mockProduct });
+			const mockProductInCents = {
+				...mockProduct,
+				price: toCents(mockProduct.price),
+			};
+
+			await Product.insertMany([mockProductInCents]);
+			cache.set({ key: productId, value: mockProductInCents });
 
 			storage.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: undefined, success: true }),
@@ -563,8 +658,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			req.params = { productId };
 
-			await Product.insertMany([mockProduct]);
-			cache.set({ key: productId, value: mockProduct });
+			const mockProductInCents = {
+				...mockProduct,
+				price: toCents(mockProduct.price),
+			};
+
+			await Product.insertMany([mockProductInCents]);
+			cache.set({ key: productId, value: mockProductInCents });
 
 			storage.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: undefined, success: true }),
@@ -586,8 +686,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			req.params = { productId };
 
-			await Product.insertMany([mockProduct]);
-			cache.set({ key: productId, value: mockProduct });
+			const mockProductInCents = {
+				...mockProduct,
+				price: toCents(mockProduct.price),
+			};
+
+			await Product.insertMany([mockProductInCents]);
+			cache.set({ key: productId, value: mockProductInCents });
 
 			storage.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: undefined, success: true }),

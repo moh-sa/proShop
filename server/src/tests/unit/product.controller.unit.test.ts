@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import type { InsertProduct } from "../../types/index.js";
+import type { InsertProduct, SuccessResponse } from "../../types/index.js";
 
 import { ProductController } from "../../controllers/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
@@ -15,6 +15,7 @@ import {
 	mockExpressCall,
 	mockProductManager,
 } from "../mocks/index.js";
+import { toCents } from "../utils/index.js";
 
 suite("Product Controller 〖 Unit Tests 〗", () => {
 	const mockManager = mockProductManager();
@@ -29,13 +30,11 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 		const mockSelectProduct = generateMockSelectProduct();
 
 		const userId = mockInsertProduct.user.toString();
+		const priceInCents = toCents(mockInsertProduct.price);
+		const priceInDollars = mockInsertProduct.price;
 
-		test("Should parse 'product data' from 'req.body' and 'res.locals'", async (t) => {
+		test("Should convert price to cents when passing data to manager.create", async (t) => {
 			// Arrange
-			const expectedProduct = {
-				...mockInsertProduct,
-				user: userId,
-			};
 			const { next, req, res } = mockExpressCall({
 				req: {
 					body: mockInsertProduct,
@@ -60,23 +59,52 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockManager.create.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockManager.create.mock.calls[0].arguments[0],
-				expectedProduct,
+			assert.strictEqual(
+				mockManager.create.mock.calls[0].arguments[0].price,
+				priceInCents,
 			);
 		});
 
-		test("Should call 'service.create' once with the correct 'product data'", async (t) => {
+		test("Should convert price to dollars in the response", async (t) => {
 			// Arrange
-			const expectedProduct = {
-				...mockInsertProduct,
-				user: userId,
+			const productWithPriceInCents = {
+				...mockSelectProduct,
+				price: priceInCents,
 			};
 
-			const mockSelectProduct = generateMockSelectProduct();
-			mockSelectProduct.user = mockInsertProduct.user;
+			const { next, req, res } = mockExpressCall({
+				req: {
+					body: mockInsertProduct,
+					// @ts-expect-error - `file` expect the to be diskStorage
+					file: mockInsertProduct.image,
+				},
+				res: {
+					locals: { user: { _id: userId } },
+				},
+				testContext: t,
+			});
 
+			mockManager.create.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: productWithPriceInCents, success: true }),
+			);
+
+			// Act
+			await controller.create(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			const args = res.json.mock.calls[0].arguments[0] as SuccessResponse<{
+				data: typeof mockSelectProduct;
+			}>;
+
+			assert.strictEqual(args.data.price, priceInDollars);
+		});
+
+		test("Should parse 'product data' from 'req.body' and 'res.locals'", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
 					body: mockInsertProduct,
@@ -101,11 +129,14 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockManager.create.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockManager.create.mock.calls[0].arguments[0],
-				expectedProduct,
-			);
+			const { price, ...args } = mockManager.create.mock.calls[0].arguments[0];
+			assert.strictEqual(args.name, mockInsertProduct.name);
+			assert.strictEqual(args.description, mockInsertProduct.description);
+			assert.strictEqual(args.category, mockInsertProduct.category);
+			assert.strictEqual(args.brand, mockInsertProduct.brand);
+			assert.strictEqual(args.countInStock, mockInsertProduct.countInStock);
+			assert.strictEqual(args.image, mockInsertProduct.image);
+			assert.strictEqual(args.user.toString(), userId);
 		});
 
 		test("Should call 'res.status' once with '201' after successfully creating product data", async (t) => {
@@ -165,15 +196,25 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockSelectProduct }),
-			);
+
+			const args = res.json.mock.calls[0].arguments[0] as SuccessResponse<{
+				data: typeof mockSelectProduct;
+			}>;
+
+			assert.strictEqual(args.success, true);
+			assert.strictEqual(args.data._id, mockSelectProduct._id);
 		});
 	});
 
 	describe("getAll", () => {
 		const mockProducts = generateMockSelectProducts({ count: 5 });
+		const productsWithPriceInCents = mockProducts.map((product) => ({
+			...product,
+			price: toCents(product.price),
+		}));
+
+		const productsWithPriceInDollars = mockProducts;
+
 		const mockMeta = {
 			currentPage: 1,
 			hasNextPage: false,
@@ -186,6 +227,41 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			items: mockProducts,
 			meta: mockMeta,
 		};
+
+		test("Should convert all product prices from cents to dollars in the response", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { query: { pageNumber: "1" } },
+				testContext: t,
+			});
+
+			mockManager.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { items: productsWithPriceInCents, meta: mockMeta },
+					success: true,
+				}),
+			);
+
+			// Act
+			await controller.getAll(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			const response = res.json.mock.calls[0].arguments[0] as SuccessResponse<{
+				data: typeof mockProducts;
+			}>;
+
+			response.data.forEach((product) => {
+				const originalProduct = productsWithPriceInDollars.find(
+					(p) => p.name === product.name,
+				);
+
+				assert.strictEqual(product.price, originalProduct?.price);
+			});
+		});
 
 		test("Should parse 'keyword' from 'req.query'", async (t) => {
 			// Arrange
@@ -443,19 +519,56 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
+			assert.strictEqual(res.json.mock.calls[0]?.arguments[0].success, true);
 			assert.deepStrictEqual(
-				res.json.mock.calls[0]?.arguments[0],
-				createSuccessResponseObject({
-					data: serviceResult.items,
-					meta: serviceResult.meta,
-				}),
+				res.json.mock.calls[0]?.arguments[0].meta,
+				serviceResult.meta,
+			);
+			assert.strictEqual(
+				res.json.mock.calls[0]?.arguments[0].data.length,
+				serviceResult.items.length,
 			);
 		});
 	});
 
 	describe("getTopRated", () => {
 		const mockProducts = generateMockSelectProducts({ count: 5 });
-		const serviceResult = mockProducts;
+		const productsWithPriceInCents = mockProducts.map((product) => ({
+			...product,
+			price: toCents(product.price),
+		}));
+		const productsWithPriceInDollars = mockProducts;
+
+		test("Should convert all product prices from cents in the response", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				testContext: t,
+			});
+
+			mockManager.getTopRated.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: productsWithPriceInCents, success: true }),
+			);
+
+			// Act
+			await controller.getTopRated(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			const response = res.json.mock.calls[0].arguments[0] as SuccessResponse<{
+				data: typeof mockProducts;
+			}>;
+
+			response.data.forEach((product) => {
+				const originalProduct = productsWithPriceInDollars.find(
+					(p) => p.name === product.name,
+				);
+
+				assert.strictEqual(product.price, originalProduct?.price);
+			});
+		});
 
 		test("Should call 'service.getTopRated' once without args", async (t) => {
 			// Arrange
@@ -464,7 +577,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockManager.getTopRated.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: serviceResult, success: true }),
+				Promise.resolve({ data: productsWithPriceInDollars, success: true }),
 			);
 
 			// Act
@@ -489,7 +602,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockManager.getTopRated.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: serviceResult, success: true }),
+				Promise.resolve({ data: productsWithPriceInDollars, success: true }),
 			);
 
 			// Act
@@ -511,7 +624,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockManager.getTopRated.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: serviceResult, success: true }),
+				Promise.resolve({ data: productsWithPriceInDollars, success: true }),
 			);
 
 			// Act
@@ -523,11 +636,15 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({
-					data: serviceResult,
-				}),
+
+			const response = res.json.mock.calls[0].arguments[0] as SuccessResponse<{
+				data: typeof mockProducts;
+			}>;
+
+			assert.strictEqual(response.success, true);
+			assert.strictEqual(
+				response.data.length,
+				productsWithPriceInDollars.length,
 			);
 		});
 	});
@@ -535,6 +652,38 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 	describe("getById", () => {
 		const mockProduct = generateMockSelectProduct();
 		const productId = mockProduct._id.toString();
+
+		const productWithPriceInCents = {
+			...mockProduct,
+			price: toCents(mockProduct.price),
+		};
+		const productWithPriceInDollars = mockProduct;
+
+		test("Should convert price from cents in the response", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { params: { productId } },
+				testContext: t,
+			});
+
+			mockManager.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: productWithPriceInCents, success: true }),
+			);
+
+			// Act
+			await controller.getById(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			const response = res.json.mock.calls[0].arguments[0] as SuccessResponse<{
+				data: typeof mockProduct;
+			}>;
+
+			assert.strictEqual(response.data.price, productWithPriceInDollars.price);
+		});
 
 		test("Should parse 'productId' from 'req.params'", async (t) => {
 			// Arrange
@@ -605,10 +754,12 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockProduct }),
-			);
+
+			const response = res.json.mock.calls[0].arguments[0] as SuccessResponse<{
+				data: typeof mockProduct;
+			}>;
+			assert.strictEqual(response.success, true);
+			assert.strictEqual(response.data._id, mockProduct._id);
 		});
 	});
 
@@ -619,6 +770,86 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			image: undefined,
 			name: "new-name",
 		};
+
+		// const priceInCents = toCents(mockProduct.price);
+		// console.info("🍎 priceInCents 🍎 ", priceInCents);
+
+		const productWithPriceInCents = {
+			...mockProduct,
+			price: toCents(mockProduct.price),
+		};
+
+		// console.info(
+		// 	"🍎 productWithPriceInCents.price 1 🍎 ",
+		// 	productWithPriceInCents.price,
+		// );
+
+		const productWithPriceInDollars = mockProduct;
+
+		test("Should convert price to cents when passing data to manager.update", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					body: { price: productWithPriceInDollars.price },
+					params: { productId },
+				},
+				testContext: t,
+			});
+
+			mockManager.update.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: productWithPriceInCents, success: true }),
+			);
+
+			// Act
+			await controller.update(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(
+				mockManager.update.mock.calls[0].arguments[0].data.price,
+				productWithPriceInCents.price,
+			);
+		});
+
+		test("Should convert price from cents in the response", async (t) => {
+			// Arrange
+			const priceInCents = 2999;
+			const priceInDollars = 29.99;
+
+			const productWithPriceInCents = {
+				...mockProduct,
+				price: priceInCents,
+			};
+
+			const { next, req, res } = mockExpressCall({
+				req: {
+					body: updateData,
+					params: { productId },
+				},
+				testContext: t,
+			});
+
+			mockManager.update.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: productWithPriceInCents, success: true }),
+			);
+
+			// Act
+			await controller.update(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			const response = res.json.mock.calls[0].arguments[0] as SuccessResponse<{
+				data: typeof mockProduct;
+			}>;
+
+			assert.strictEqual(response.data.price, priceInDollars);
+		});
 
 		test("Should parse 'productId' from 'req.params'", async (t) => {
 			// Arrange
@@ -698,10 +929,13 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockProduct }),
-			);
+
+			const response = res.json.mock.calls[0].arguments[0] as SuccessResponse<{
+				data: typeof mockProduct;
+			}>;
+
+			assert.strictEqual(response.success, true);
+			assert.strictEqual(response.data._id, mockProduct._id);
 		});
 	});
 

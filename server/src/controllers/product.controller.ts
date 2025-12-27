@@ -12,7 +12,12 @@ import type {
 
 import { HTTP_STATUS } from "../constants/index.js";
 import { ProductManager } from "../managers/index.js";
-import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
+import {
+	asyncHandler,
+	fromCurrencySmallestUnit,
+	getLoggerFromContext,
+	toCurrencySmallestUnit,
+} from "../utils/index.js";
 
 export interface IProductController {
 	create: AsyncHandler<{
@@ -54,14 +59,16 @@ export class ProductController implements IProductController {
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "create" });
 
-		const data = {
+		const dataToCreate = {
 			...req.body,
 			image: req.file,
+			price: this._toCents(req.body.price),
 			user: res.locals.user._id,
 		};
-		logger.debug({ data }, "Creating product");
 
-		const result = await this._manager.create(data);
+		logger.debug({ data: dataToCreate }, "Creating product");
+
+		const result = await this._manager.create(dataToCreate);
 		if (!result.success) {
 			throw result.error;
 		}
@@ -71,8 +78,11 @@ export class ProductController implements IProductController {
 			"Product created successfully",
 		);
 
+		const dataToSend = { ...result.data };
+		dataToSend.price = this._toDollars(result.data.price);
+
 		res.status(HTTP_STATUS.CREATED).json({
-			data: result.data,
+			data: dataToSend,
 			success: true,
 		});
 	});
@@ -122,8 +132,13 @@ export class ProductController implements IProductController {
 			"Products retrieved successfully",
 		);
 
+		const dataToSend = result.data.items.map((product) => {
+			product.price = this._toDollars(product.price);
+			return product;
+		});
+
 		res.status(HTTP_STATUS.OK).json({
-			data: result.data.items,
+			data: dataToSend,
 			meta: result.data.meta,
 			success: true,
 		});
@@ -148,8 +163,11 @@ export class ProductController implements IProductController {
 			"Product retrieved by ID successfully",
 		);
 
+		const dataToSend = { ...result.data };
+		dataToSend.price = this._toDollars(result.data.price);
+
 		res.status(HTTP_STATUS.OK).json({
-			data: result.data,
+			data: dataToSend,
 			success: true,
 		});
 	});
@@ -170,8 +188,13 @@ export class ProductController implements IProductController {
 			"Top rated products retrieved successfully",
 		);
 
+		const dataToSend = result.data.map((product) => {
+			product.price = this._toDollars(product.price);
+			return product;
+		});
+
 		res.status(HTTP_STATUS.OK).json({
-			data: result.data,
+			data: dataToSend,
 			success: true,
 		});
 	});
@@ -183,14 +206,19 @@ export class ProductController implements IProductController {
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "update" });
 
-		const data = {
+		const dataToUpdate = {
 			...req.body,
 			image: req.file,
 		};
-		logger.debug({ data }, "Updating product");
+
+		if (req.body.price !== undefined) {
+			dataToUpdate.price = this._toCents(req.body.price);
+		}
+
+		logger.debug({ data: dataToUpdate }, "Updating product");
 
 		const result = await this._manager.update({
-			data,
+			data: dataToUpdate,
 			productId: req.params.productId,
 		});
 		if (!result.success) {
@@ -202,8 +230,11 @@ export class ProductController implements IProductController {
 			"Product updated successfully",
 		);
 
+		const dataToSend = { ...result.data };
+		dataToSend.price = this._toDollars(result.data.price);
+
 		res.status(HTTP_STATUS.OK).json({
-			data: result.data,
+			data: dataToSend,
 			success: true,
 		});
 	});
@@ -216,6 +247,22 @@ export class ProductController implements IProductController {
 		return getLoggerFromContext().child({
 			layer: "product controller",
 			...args,
+		});
+	}
+
+	private _toCents(amount: number): number {
+		return toCurrencySmallestUnit({
+			amount,
+			currency: "USD",
+			locale: "en",
+		});
+	}
+
+	private _toDollars(amount: number): number {
+		return fromCurrencySmallestUnit({
+			amount,
+			currency: "USD",
+			locale: "en",
 		});
 	}
 }
