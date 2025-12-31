@@ -12,11 +12,7 @@ import type {
 	SelectOrder,
 } from "../types/index.js";
 
-import {
-	EmptyCartError,
-	NotFoundError,
-	ValidationError,
-} from "../errors/index.js";
+import { NotFoundError, ValidationError } from "../errors/index.js";
 import { OrderRepository } from "../repositories/index.js";
 import { insertOrderSchema, orderQuerySchema } from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
@@ -59,17 +55,6 @@ export class OrderService implements IOrderService {
 			{ validatedData: validationResult.data },
 			"Validated order data",
 		);
-
-		if (
-			validationResult.data.orderItems &&
-			validationResult.data.orderItems.length === 0
-		) {
-			logger.warn({ userId: data.user }, "Empty cart");
-			return {
-				error: new EmptyCartError(),
-				success: false,
-			};
-		}
 
 		const result = await this._repository.create(validationResult.data);
 		if (!result.success) {
