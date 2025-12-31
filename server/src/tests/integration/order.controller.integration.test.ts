@@ -6,6 +6,7 @@ import { NotFoundError } from "../../errors/index.js";
 import Order from "../../models/order.model.js";
 import Product from "../../models/product.model.js";
 import User from "../../models/user.model.js";
+import { SuccessResponse } from "../../types/api-response.type.js";
 import {
 	generateMockInsertOrder,
 	generateMockObjectId,
@@ -15,8 +16,11 @@ import {
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
+	convertOrderToCents,
+	convertOrderToDollars,
 	createMockExpressContext,
 	disconnectTestDatabase,
+	normalizeOrderPrices,
 } from "../utils/index.js";
 
 suite("Order Controller 〖 Integration Tests 〗", () => {
@@ -34,12 +38,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 	describe("create", () => {
 		test("Should return success response when 'service.create' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockSelectUser();
 			const mockOrderData = generateMockInsertOrder();
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockOrderData;
-			res.locals.user = mockUser;
+			res.locals.user = mockOrderData.user;
 
 			// Act
 			await controller.create(req, res, next);
@@ -53,12 +56,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '201' status code when 'service.create' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockSelectUser();
 			const mockOrderData = generateMockInsertOrder();
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockOrderData;
-			res.locals.user = mockUser;
+			res.locals.user = mockOrderData.user;
 
 			// Act
 			await controller.create(req, res, next);
@@ -70,12 +72,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should create order when 'service.create' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockSelectUser();
 			const mockOrderData = generateMockInsertOrder();
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockOrderData;
-			res.locals.user = mockUser;
+			res.locals.user = mockOrderData.user;
 
 			// Act
 			await controller.create(req, res, next);
@@ -85,7 +86,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response);
 			assert.ok(response.data);
 			assert.ok(response.data._id);
-			assert.strictEqual(response.data.user, mockUser._id.toString());
+			assert.strictEqual(response.data.user, mockOrderData.user.toString());
 			assert.strictEqual(
 				response.data.orderItems.length,
 				mockOrderData.orderItems.length,
@@ -94,17 +95,15 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 				response.data.paymentMethod,
 				mockOrderData.paymentMethod,
 			);
-			assert.strictEqual(response.data.totalPrice, mockOrderData.totalPrice);
 		});
 
 		test("Should include user ID in created order when 'service.create' is called with valid data", async () => {
 			// Arrange
-			const mockUser = generateMockSelectUser();
 			const mockOrderData = generateMockInsertOrder();
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockOrderData;
-			res.locals.user = mockUser;
+			res.locals.user = mockOrderData.user;
 
 			// Act
 			await controller.create(req, res, next);
@@ -113,14 +112,73 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const response = res._getJSONData();
 			assert.ok(response);
 			assert.ok(response.data);
-			assert.strictEqual(response.data.user, mockUser._id.toString());
+			assert.strictEqual(response.data.user, mockOrderData.user.toString());
+		});
+
+		test("Should convert all price fields from dollars to cents when creating order", async () => {
+			// Arrange
+			const mockOrderData = generateMockInsertOrder();
+			const expectedData = convertOrderToCents(mockOrderData);
+
+			const { next, req, res } = createMockExpressContext();
+			req.body = mockOrderData;
+			res.locals.user = mockOrderData.user;
+
+			// Act
+			await controller.create(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			const createdOrder = await Order.findById(response.data._id);
+			assert.ok(createdOrder);
+
+			assert.strictEqual(createdOrder.itemsPrice, expectedData.itemsPrice);
+			assert.strictEqual(
+				createdOrder.shippingPrice,
+				expectedData.shippingPrice,
+			);
+			assert.strictEqual(createdOrder.taxPrice, expectedData.taxPrice);
+			assert.strictEqual(createdOrder.totalPrice, expectedData.totalPrice);
+
+			createdOrder.orderItems.forEach((order, index) => {
+				assert.strictEqual(order.price, expectedData.orderItems[index].price);
+			});
+		});
+
+		test("Should convert all price fields from cents to dollars in response when creating order", async () => {
+			// Arrange
+			const mockOrderData = normalizeOrderPrices(generateMockInsertOrder());
+
+			const { next, req, res } = createMockExpressContext();
+			req.body = mockOrderData;
+			res.locals.user = mockOrderData.user;
+
+			// Act
+			await controller.create(req, res, next);
+
+			// Assert
+			const response = res._getJSONData() as SuccessResponse<{
+				data: typeof mockOrderData;
+			}>;
+
+			assert.strictEqual(response.data.itemsPrice, mockOrderData.itemsPrice);
+			assert.strictEqual(
+				response.data.shippingPrice,
+				mockOrderData.shippingPrice,
+			);
+			assert.strictEqual(response.data.taxPrice, mockOrderData.taxPrice);
+			assert.strictEqual(response.data.totalPrice, mockOrderData.totalPrice);
+
+			response.data.orderItems.forEach((order, index) => {
+				assert.strictEqual(order.price, mockOrderData.orderItems[index].price);
+			});
 		});
 	});
 
 	describe("getById", () => {
 		test("Should return success response when 'service.getById' is called with valid data", async () => {
 			// Arrange
-			const mockOrder = generateMockSelectOrder();
+			const mockOrder = convertOrderToCents(generateMockSelectOrder());
 			await Order.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
@@ -138,7 +196,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when 'service.getById' is called with valid data", async () => {
 			// Arrange
-			const mockOrder = generateMockSelectOrder();
+			const mockOrder = convertOrderToCents(generateMockSelectOrder());
 			await Order.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
@@ -168,16 +226,16 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response);
 			assert.ok(response.data);
 			assert.strictEqual(response.data._id, mockOrder._id.toString());
-			assert.strictEqual(response.data.totalPrice, mockOrder.totalPrice);
-			assert.strictEqual(response.data.paymentMethod, mockOrder.paymentMethod);
 		});
 
-		test("Should return order with correct user reference when 'service.getById' is called with existing order", async () => {
+		test("Should return order with correct user data when 'service.getById' is called with existing order", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.insertMany([mockUser]);
 
-			const mockOrder = generateMockSelectOrder({ user: mockUser });
+			const mockOrder = convertOrderToCents(
+				generateMockSelectOrder({ user: mockUser }),
+			);
 			await Order.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
@@ -188,9 +246,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.data);
-			assert.ok(response.data.user);
+			assert.strictEqual(response.data.user._id, mockUser._id.toString());
+			assert.strictEqual(response.data.user.email, mockUser.email);
+			assert.strictEqual(response.data.user.name, mockUser.name);
 		});
 
 		test("Should throw 'NotFoundError' when 'service.getById' is called with non-existent order id", async () => {
@@ -209,6 +267,36 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 					return true;
 				},
 			);
+		});
+
+		test("Should convert all price fields from cents to dollars in response when retrieving order by id", async () => {
+			// Arrange
+			const mockOrderData = convertOrderToCents(generateMockSelectOrder());
+			await Order.insertMany([mockOrderData]);
+			const expectedData = convertOrderToDollars(mockOrderData);
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { orderId: mockOrderData._id.toString() };
+
+			// Act
+			await controller.getById(req, res, next);
+
+			// Assert
+			const response = res._getJSONData() as SuccessResponse<{
+				data: typeof mockOrderData;
+			}>;
+
+			assert.strictEqual(response.data.itemsPrice, expectedData.itemsPrice);
+			assert.strictEqual(
+				response.data.shippingPrice,
+				expectedData.shippingPrice,
+			);
+			assert.strictEqual(response.data.taxPrice, expectedData.taxPrice);
+			assert.strictEqual(response.data.totalPrice, expectedData.totalPrice);
+
+			response.data.orderItems.forEach((order, index) => {
+				assert.strictEqual(order.price, expectedData.orderItems[index].price);
+			});
 		});
 	});
 
@@ -323,6 +411,33 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response.data);
 			assert.ok(response.meta);
 		});
+
+		test("Should convert totalPrice from cents to dollars in response when retrieving all orders", async () => {
+			// Arrange
+			const mockOrders = generateMockSelectOrders(2).map(convertOrderToCents);
+			await Order.insertMany(mockOrders);
+
+			const expectedData = mockOrders.map(convertOrderToDollars);
+
+			const { next, req, res } = createMockExpressContext();
+			req.query = { pageNumber: "1", pageSize: "10" };
+
+			// Act
+			await controller.getAll(req, res, next);
+
+			// Assert
+			const response = res._getJSONData() as SuccessResponse<{
+				data: typeof mockOrders;
+			}>;
+
+			response.data.forEach((order) => {
+				const originalOrder = expectedData.find(
+					(o) => o._id.toString() === order._id.toString(),
+				);
+
+				assert.strictEqual(order.totalPrice, originalOrder?.totalPrice);
+			});
+		});
 	});
 
 	describe("getAllByUserId", () => {
@@ -367,7 +482,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const mockUser = generateMockSelectUser();
 			const mockOrders = generateMockSelectOrders(3, { user: mockUser });
 			const otherOrders = generateMockSelectOrders(2);
-			await Order.insertMany([mockOrders, otherOrders].flat());
+			await Order.insertMany([...mockOrders, ...otherOrders]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockUser._id.toString() };
@@ -486,6 +601,38 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response.data);
 			assert.ok(response.meta);
 		});
+
+		test("Should convert totalPrice from cents to dollars in response when retrieving orders by user id", async () => {
+			// Arrange
+			const mockUser = generateMockSelectUser();
+
+			const mockOrders = generateMockSelectOrders(2, {
+				user: mockUser,
+			}).map(convertOrderToCents);
+			await Order.insertMany(mockOrders);
+
+			const expectedData = mockOrders.map(convertOrderToDollars);
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { userId: mockUser._id.toString() };
+			req.query = { pageNumber: "1", pageSize: "10" };
+
+			// Act
+			await controller.getAllByUserId(req, res, next);
+
+			// Assert
+			const response = res._getJSONData() as SuccessResponse<{
+				data: typeof mockOrders;
+			}>;
+
+			response.data.forEach((order) => {
+				const originalOrder = expectedData.find(
+					(o) => o._id.toString() === order._id.toString(),
+				);
+
+				assert.strictEqual(order.totalPrice, originalOrder?.totalPrice);
+			});
+		});
 	});
 
 	describe("updateToPaid", () => {
@@ -584,6 +731,39 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 				},
 			);
 		});
+
+		test("Should convert all price fields from cents to dollars in response when updating order to paid", async () => {
+			// Arrange
+			const mockOrder = convertOrderToCents(
+				generateMockSelectOrder({ isPaid: false }),
+			);
+			await Order.insertMany([mockOrder]);
+
+			const expectedData = convertOrderToDollars(mockOrder);
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { orderId: mockOrder._id.toString() };
+
+			// Act
+			await controller.updateToPaid(req, res, next);
+
+			// Assert
+			const response = res._getJSONData() as SuccessResponse<{
+				data: typeof mockOrder;
+			}>;
+
+			assert.strictEqual(response.data.itemsPrice, expectedData.itemsPrice);
+			assert.strictEqual(
+				response.data.shippingPrice,
+				expectedData.shippingPrice,
+			);
+			assert.strictEqual(response.data.taxPrice, expectedData.taxPrice);
+			assert.strictEqual(response.data.totalPrice, expectedData.totalPrice);
+
+			response.data.orderItems.forEach((order, index) => {
+				assert.strictEqual(order.price, expectedData.orderItems[index].price);
+			});
+		});
 	});
 
 	describe("updateToDelivered", () => {
@@ -681,6 +861,39 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 					return true;
 				},
 			);
+		});
+
+		test("Should convert all price fields from cents to dollars in response when updating order to delivered", async () => {
+			// Arrange
+			const mockOrder = convertOrderToCents(
+				generateMockSelectOrder({ isDelivered: false }),
+			);
+			await Order.insertMany([mockOrder]);
+
+			const expectedData = convertOrderToDollars(mockOrder);
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { orderId: mockOrder._id.toString() };
+
+			// Act
+			await controller.updateToDelivered(req, res, next);
+
+			// Assert
+			const response = res._getJSONData() as SuccessResponse<{
+				data: typeof mockOrder;
+			}>;
+
+			assert.strictEqual(response.data.itemsPrice, expectedData.itemsPrice);
+			assert.strictEqual(
+				response.data.shippingPrice,
+				expectedData.shippingPrice,
+			);
+			assert.strictEqual(response.data.taxPrice, expectedData.taxPrice);
+			assert.strictEqual(response.data.totalPrice, expectedData.totalPrice);
+
+			response.data.orderItems.forEach((order, index) => {
+				assert.strictEqual(order.price, expectedData.orderItems[index].price);
+			});
 		});
 	});
 });

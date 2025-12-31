@@ -11,7 +11,12 @@ import type {
 
 import { HTTP_STATUS } from "../constants/index.js";
 import { OrderService } from "../services/index.js";
-import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
+import {
+	asyncHandler,
+	fromCurrencySmallestUnit,
+	getLoggerFromContext,
+	toCurrencySmallestUnit,
+} from "../utils/index.js";
 
 export interface IOrderController {
 	create: AsyncHandler<{
@@ -61,13 +66,13 @@ export class OrderController implements IOrderController {
 			"Creating order",
 		);
 
-		const data = {
+		const dataToCreate = this._convertOrderToCents({
 			...req.body,
 			user: res.locals.user._id,
-		};
-		logger.debug({ data }, "Validated order data");
+		});
+		logger.debug({ data: dataToCreate }, "Validated order data");
 
-		const result = await this._service.create(data);
+		const result = await this._service.create(dataToCreate);
 		if (!result.success) {
 			throw result.error;
 		}
@@ -77,8 +82,10 @@ export class OrderController implements IOrderController {
 			"Order created successfully",
 		);
 
+		const dataToSend = this._convertOrderToDollars(result.data);
+
 		res.status(HTTP_STATUS.CREATED).json({
-			data: result.data,
+			data: dataToSend,
 			success: true,
 		});
 	});
@@ -103,8 +110,13 @@ export class OrderController implements IOrderController {
 			"Orders retrieved successfully",
 		);
 
+		const dataToSend = result.data.items.map((order) => ({
+			...order,
+			totalPrice: this._toDollars(order.totalPrice),
+		}));
+
 		res.status(HTTP_STATUS.OK).json({
-			data: result.data.items,
+			data: dataToSend,
 			meta: result.data.meta,
 			success: true,
 		});
@@ -137,8 +149,13 @@ export class OrderController implements IOrderController {
 			"Orders retrieved by user ID successfully",
 		);
 
+		const dataToSend = result.data.items.map((order) => ({
+			...order,
+			totalPrice: this._toDollars(order.totalPrice),
+		}));
+
 		res.status(HTTP_STATUS.OK).json({
-			data: result.data.items,
+			data: dataToSend,
 			meta: result.data.meta,
 			success: true,
 		});
@@ -161,8 +178,10 @@ export class OrderController implements IOrderController {
 			"Order retrieved by ID successfully",
 		);
 
+		const dataToSend = this._convertOrderToDollars(result.data);
+
 		res.status(HTTP_STATUS.OK).json({
-			data: result.data,
+			data: dataToSend,
 			success: true,
 		});
 	});
@@ -186,8 +205,10 @@ export class OrderController implements IOrderController {
 
 		logger.info({ orderId: result.data._id }, "Order marked as delivered");
 
+		const dataToSend = this._convertOrderToDollars(result.data);
+
 		res.status(HTTP_STATUS.OK).json({
-			data: result.data,
+			data: dataToSend,
 			success: true,
 		});
 	});
@@ -211,8 +232,10 @@ export class OrderController implements IOrderController {
 			"Order marked as paid successfully",
 		);
 
+		const dataToSend = this._convertOrderToDollars(result.data);
+
 		res.status(HTTP_STATUS.OK).json({
-			data: result.data,
+			data: dataToSend,
 			success: true,
 		});
 	});
@@ -221,7 +244,51 @@ export class OrderController implements IOrderController {
 		this._service = service;
 	}
 
+	private _convertOrderToCents(order: InsertOrder): InsertOrder {
+		return {
+			...order,
+			itemsPrice: this._toCents(order.itemsPrice),
+			orderItems: order.orderItems.map((item) => ({
+				...item,
+				price: this._toCents(item.price),
+			})),
+			shippingPrice: this._toCents(order.shippingPrice),
+			taxPrice: this._toCents(order.taxPrice),
+			totalPrice: this._toCents(order.totalPrice),
+		};
+	}
+
+	private _convertOrderToDollars(order: SelectOrder): SelectOrder {
+		return {
+			...order,
+			itemsPrice: this._toDollars(order.itemsPrice),
+			orderItems: order.orderItems.map((item) => ({
+				...item,
+				price: this._toDollars(item.price),
+			})),
+			shippingPrice: this._toDollars(order.shippingPrice),
+			taxPrice: this._toDollars(order.taxPrice),
+			totalPrice: this._toDollars(order.totalPrice),
+		};
+	}
+
 	private _getLogger(args: { [key: string]: unknown; method: string }) {
 		return getLoggerFromContext().child({ layer: "order controller", ...args });
+	}
+
+	private _toCents(amount: number): number {
+		return toCurrencySmallestUnit({
+			amount,
+			currency: "USD",
+			locale: "en",
+		});
+	}
+
+	private _toDollars(amount: number): number {
+		return fromCurrencySmallestUnit({
+			amount,
+			currency: "USD",
+			locale: "en",
+		});
 	}
 }
