@@ -249,7 +249,7 @@ suite("Paginator 〖 Integration Tests 〗", async () => {
 			const page2 = await paginator.paginate({
 				pageNumber: 2,
 				pageSize: 3,
-				sort: { price: 1 },
+				sort: { price: 1, _id: 1 },
 			});
 
 			// Assert
