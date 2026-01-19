@@ -25,12 +25,13 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 
 	describe("getById", () => {
 		const mockUser = generateMockSelectUser();
-		const userId = mockUser._id;
+		const userId = mockUser._id.toString();
 
 		test("Should call 'service.getById' once with the correct 'userId'", async (t) => {
 			// Arrange
+
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
+				req: { params: { userId } },
 				testContext: t,
 			});
 
@@ -49,14 +50,14 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockService.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockService.getById.mock.calls[0].arguments[0].userId,
-				userId.toString(),
+				userId,
 			);
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching user data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
+				req: { params: { userId } },
 				testContext: t,
 			});
 
@@ -79,7 +80,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing user data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
+				req: { params: { userId } },
 				testContext: t,
 			});
 
@@ -237,7 +238,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 
 	describe("update", () => {
 		const mockUser = generateMockSelectUser();
-		const userId = mockUser._id;
+		const userId = mockUser._id.toString();
 
 		test("Should call 'service.updateById' once with the correct 'userId'", async (t) => {
 			// Arrange
@@ -246,7 +247,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			const { next, req, res } = mockExpressCall({
 				req: {
 					body: updateData,
-					params: { userId: userId.toString() },
+					params: { userId },
 				},
 				testContext: t,
 			});
@@ -266,7 +267,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockService.updateById.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockService.updateById.mock.calls[0].arguments[0].userId,
-				userId.toString(),
+				userId,
 			);
 			assert.deepStrictEqual(
 				mockService.updateById.mock.calls[0].arguments[0].data,
@@ -277,7 +278,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.status' once with '200' after successfully updating user data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
+				req: { params: { userId } },
 				testContext: t,
 			});
 
@@ -300,7 +301,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing user data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
+				req: { params: { userId } },
 				testContext: t,
 			});
 
@@ -326,12 +327,12 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 
 	describe("delete", () => {
 		const mockUser = generateMockSelectUser();
-		const userId = mockUser._id;
+		const userId = mockUser._id.toString();
 
 		test("Should call 'service.delete' once with the correct 'userId'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
+				req: { params: { userId } },
 				testContext: t,
 			});
 
@@ -350,14 +351,14 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockService.delete.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockService.delete.mock.calls[0].arguments[0].userId,
-				userId.toString(),
+				userId,
 			);
 		});
 
 		test("Should throw 'NotFoundError' if 'service.delete' returns failure result", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
+				req: { params: { userId } },
 				testContext: t,
 			});
 
@@ -383,7 +384,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.status' once with '204' after successfully deleting user data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
+				req: { params: { userId } },
 				testContext: t,
 			});
 
@@ -406,7 +407,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing null data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
+				req: { params: { userId } },
 				testContext: t,
 			});
 

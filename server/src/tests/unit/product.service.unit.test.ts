@@ -59,7 +59,10 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			assert.deepEqual(result.data, expectedResult);
 
 			assert.strictEqual(mockRepo.create.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.create.mock.calls[0].arguments[0], mockInsertProduct);
+			assert.deepStrictEqual(
+				mockRepo.create.mock.calls[0].arguments[0],
+				mockInsertProduct,
+			);
 		});
 
 		test("Should return validation error if 'product.user' is invalid objectId", async () => {
@@ -506,7 +509,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 	describe("getById", () => {
 		const expectedResult = generateMockSelectProduct();
-		const productId = expectedResult._id;
+		const productId = expectedResult._id.toString();
 
 		test("Should return product object when 'repo.getById' is called once with 'productId'", async () => {
 			// Arrange
@@ -516,7 +519,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = await service.getById({
-				productId: productId.toString(),
+				productId,
 			});
 
 			// Assert
@@ -525,7 +528,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockRepo.getById.mock.calls[0].arguments[0].productId,
+				mockRepo.getById.mock.calls[0].arguments[0].productId.toString(),
 				productId,
 			);
 		});
@@ -538,7 +541,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = await service.getById({
-				productId: productId.toString(),
+				productId,
 			});
 
 			// Assert
@@ -561,7 +564,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 	describe("update", () => {
 		const mockProduct = generateMockSelectProduct();
-		const productId = mockProduct._id;
+		const productId = mockProduct._id.toString();
 
 		test("Should return product object when 'repo.update' is called once with 'productId' and 'data'", async () => {
 			// Arrange
@@ -575,7 +578,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.update({
 				data: mockUpdateData,
-				productId: productId.toString(),
+				productId,
 			});
 
 			// Assert
@@ -585,7 +588,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockRepo.update.mock.callCount(), 1);
 
 			assert.deepStrictEqual(
-				mockRepo.update.mock.calls[0].arguments[0].productId,
+				mockRepo.update.mock.calls[0].arguments[0].productId.toString(),
 				productId,
 			);
 			assert.deepStrictEqual(
@@ -608,7 +611,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.update({
 				data: mockUpdateData,
-				productId: productId.toString(),
+				productId,
 			});
 
 			// Assert
@@ -635,7 +638,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 	describe("delete", () => {
 		const expectedResult = generateMockSelectProduct();
-		const productId = expectedResult._id;
+		const productId = expectedResult._id.toString();
 
 		test("Should return 'undefined' when 'repo.delete' is called once with 'productId'", async () => {
 			// Arrange
@@ -645,7 +648,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = await service.delete({
-				productId: productId.toString(),
+				productId,
 			});
 
 			// Assert
@@ -654,7 +657,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockRepo.delete.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockRepo.delete.mock.calls[0].arguments[0].productId,
+				mockRepo.delete.mock.calls[0].arguments[0].productId.toString(),
 				productId,
 			);
 		});
@@ -667,7 +670,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = await service.delete({
-				productId: productId.toString(),
+				productId,
 			});
 
 			// Assert

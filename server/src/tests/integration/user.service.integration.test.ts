@@ -18,6 +18,7 @@ import {
 suite("User Service 〖 Integration Tests 〗", () => {
 	let userService: UserService;
 	const mockUser = generateMockSelectUser();
+	const userId = mockUser._id.toString();
 	const mockUsers = generateMockSelectUsers({ count: 3 });
 
 	before(async () => connectTestDatabase());
@@ -34,7 +35,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
 			// Act
 			const result = await userService.getById({
-				userId: mockUser._id.toString(),
+				userId,
 			});
 
 			// Assert
@@ -169,7 +170,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			// Act
 			const result = await userService.updateById({
 				data: updateData,
-				userId: mockUser._id.toString(),
+				userId,
 			});
 
 			// Assert
@@ -187,7 +188,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			// Act
 			const result = await userService.updateById({
 				data: updateData,
-				userId: mockUser._id.toString(),
+				userId,
 			});
 
 			// Assert
@@ -205,7 +206,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			// Act
 			const result = await userService.updateById({
 				data: updateData,
-				userId: mockUser._id.toString(),
+				userId,
 			});
 
 			// Assert
@@ -223,7 +224,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			// Act
 			const result = await userService.updateById({
 				data: updateData,
-				userId: mockUser._id.toString(),
+				userId,
 			});
 
 			// Assert
@@ -251,7 +252,6 @@ suite("User Service 〖 Integration Tests 〗", () => {
 		test("Should return 'ValidationError' when 'repo.updateById' is called with invalid update data", async () => {
 			// Arrange
 			const updateData = { email: "invalid-email" };
-			const userId = generateMockObjectId().toString();
 
 			// Act
 			const result = await userService.updateById({
@@ -267,7 +267,6 @@ suite("User Service 〖 Integration Tests 〗", () => {
 		test("Should return 'ValidationError' when 'repo.updateById' is called with a short password", async () => {
 			// Arrange
 			const updateData = { password: "123" };
-			const userId = generateMockObjectId().toString();
 
 			// Act
 			const result = await userService.updateById({
@@ -304,7 +303,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
 			// Act
 			const result = await userService.delete({
-				userId: mockUser._id.toString(),
+				userId,
 			});
 
 			// Assert
@@ -314,7 +313,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
 			// Verify user is actually deleted
 			const getResult = await userService.getById({
-				userId: mockUser._id.toString(),
+				userId,
 			});
 			assert.strictEqual(getResult.success, false);
 			assert.ok(getResult.error instanceof NotFoundError);

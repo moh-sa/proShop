@@ -28,11 +28,13 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 		const mockInsertProduct = generateMockInsertProductWithMulterImage();
 		const mockSelectProduct = generateMockSelectProduct();
 
+		const userId = mockInsertProduct.user.toString();
+
 		test("Should parse 'product data' from 'req.body' and 'res.locals'", async (t) => {
 			// Arrange
 			const expectedProduct = {
 				...mockInsertProduct,
-				user: mockInsertProduct.user.toString(),
+				user: userId,
 			};
 			const { next, req, res } = mockExpressCall({
 				req: {
@@ -41,7 +43,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 					file: mockInsertProduct.image,
 				},
 				res: {
-					locals: { user: { _id: mockInsertProduct.user.toString() } },
+					locals: { user: { _id: userId } },
 				},
 				testContext: t,
 			});
@@ -69,7 +71,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const expectedProduct = {
 				...mockInsertProduct,
-				user: mockInsertProduct.user.toString(),
+				user: userId,
 			};
 
 			const mockSelectProduct = generateMockSelectProduct();
@@ -82,7 +84,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 					file: mockInsertProduct.image,
 				},
 				res: {
-					locals: { user: { _id: mockInsertProduct.user.toString() } },
+					locals: { user: { _id: userId } },
 				},
 				testContext: t,
 			});
@@ -115,7 +117,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 					file: mockInsertProduct.image,
 				},
 				res: {
-					locals: { user: { _id: mockInsertProduct.user.toString() } },
+					locals: { user: { _id: userId } },
 				},
 				testContext: t,
 			});
@@ -145,7 +147,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 					file: mockInsertProduct.image,
 				},
 				res: {
-					locals: { user: { _id: mockInsertProduct.user.toString() } },
+					locals: { user: { _id: userId } },
 				},
 				testContext: t,
 			});
@@ -523,12 +525,12 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 	describe("getById", () => {
 		const mockProduct = generateMockSelectProduct();
-		const productId = mockProduct._id;
+		const productId = mockProduct._id.toString();
 
 		test("Should parse 'productId' from 'req.params'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: productId.toString() } },
+				req: { params: { productId } },
 				testContext: t,
 			});
 
@@ -547,14 +549,14 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockManager.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockManager.getById.mock.calls[0].arguments[0].productId,
-				productId.toString(),
+				productId,
 			);
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching product data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: productId.toString() } },
+				req: { params: { productId } },
 				testContext: t,
 			});
 
@@ -577,7 +579,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing product data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: productId.toString() } },
+				req: { params: { productId } },
 				testContext: t,
 			});
 
@@ -603,7 +605,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 	describe("update", () => {
 		const mockProduct = generateMockSelectProduct();
-		const productId = mockProduct._id;
+		const productId = mockProduct._id.toString();
 		const updateData: Partial<InsertProduct> = {
 			image: undefined,
 			name: "new-name",
@@ -614,7 +616,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			const { next, req, res } = mockExpressCall({
 				req: {
 					body: updateData,
-					params: { productId: productId.toString() },
+					params: { productId },
 				},
 				testContext: t,
 			});
@@ -634,7 +636,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockManager.update.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockManager.update.mock.calls[0].arguments[0].productId,
-				productId.toString(),
+				productId,
 			);
 		});
 
@@ -643,7 +645,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			const { next, req, res } = mockExpressCall({
 				req: {
 					body: updateData,
-					params: { productId: productId.toString() },
+					params: { productId },
 				},
 				testContext: t,
 			});
@@ -669,7 +671,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			const { next, req, res } = mockExpressCall({
 				req: {
 					body: updateData,
-					params: { productId: productId.toString() },
+					params: { productId },
 				},
 				testContext: t,
 			});
@@ -695,12 +697,12 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 	});
 
 	describe("delete", () => {
-		const productId = generateMockObjectId();
+		const productId = generateMockObjectId().toString();
 
 		test("Should parse 'productId' from 'req.params'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: productId.toString() } },
+				req: { params: { productId } },
 				testContext: t,
 			});
 
@@ -719,14 +721,14 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockManager.delete.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockManager.delete.mock.calls[0].arguments[0].productId,
-				productId.toString(),
+				productId,
 			);
 		});
 
 		test("Should call 'res.status' once with '204' after successfully deleting product data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: productId.toString() } },
+				req: { params: { productId } },
 				testContext: t,
 			});
 
@@ -749,7 +751,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing product data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: productId.toString() } },
+				req: { params: { productId } },
 				testContext: t,
 			});
 

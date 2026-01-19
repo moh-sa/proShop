@@ -478,10 +478,12 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockProduct = generateMockSelectProduct();
-			req.params = { productId: mockProduct._id.toString() };
+			const productId = mockProduct._id.toString();
+
+			req.params = { productId };
 
 			await Product.insertMany([mockProduct]);
-			cache.set({ key: mockProduct._id.toString(), value: mockProduct });
+			cache.set({ key: productId, value: mockProduct });
 
 			// Act
 			await controller.update(req, res, next);
@@ -495,13 +497,15 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockProduct = generateMockSelectProduct();
+			const productId = mockProduct._id.toString();
+
 			const updateData: Partial<InsertProduct> = { name: "UPDATED NAME" };
 
-			req.params = { productId: mockProduct._id.toString() };
+			req.params = { productId };
 			req.body = updateData;
 
 			await Product.insertMany([mockProduct]);
-			cache.set({ key: mockProduct._id.toString(), value: mockProduct });
+			cache.set({ key: productId, value: mockProduct });
 
 			// Act
 			await controller.update(req, res, next);
@@ -531,10 +535,12 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockProduct = generateMockSelectProduct();
-			req.params = { productId: mockProduct._id.toString() };
+			const productId = mockProduct._id.toString();
+
+			req.params = { productId };
 
 			await Product.insertMany([mockProduct]);
-			cache.set({ key: mockProduct._id.toString(), value: mockProduct });
+			cache.set({ key: productId, value: mockProduct });
 
 			storage.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: undefined, success: true }),
@@ -553,10 +559,12 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockProduct = generateMockSelectProduct();
-			req.params = { productId: mockProduct._id.toString() };
+			const productId = mockProduct._id.toString();
+
+			req.params = { productId };
 
 			await Product.insertMany([mockProduct]);
-			cache.set({ key: mockProduct._id.toString(), value: mockProduct });
+			cache.set({ key: productId, value: mockProduct });
 
 			storage.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: undefined, success: true }),
@@ -574,10 +582,12 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockProduct = generateMockSelectProduct();
-			req.params = { productId: mockProduct._id.toString() };
+			const productId = mockProduct._id.toString();
+
+			req.params = { productId };
 
 			await Product.insertMany([mockProduct]);
-			cache.set({ key: mockProduct._id.toString(), value: mockProduct });
+			cache.set({ key: productId, value: mockProduct });
 
 			storage.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: undefined, success: true }),

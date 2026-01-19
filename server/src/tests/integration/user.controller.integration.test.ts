@@ -123,8 +123,10 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser();
+			const userId = mockUser._id.toString();
+
 			await User.insertMany([mockUser]);
-			req.params = { userId: mockUser._id.toString() };
+			req.params = { userId };
 
 			// Act
 			await controller.getById(req, res, next);
@@ -134,7 +136,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response);
 			assert.ok(response.success);
 			assert.ok(response.data);
-			assert.equal(response.data._id.toString(), mockUser._id.toString());
+			assert.equal(response.data._id.toString(), userId);
 		});
 
 		test("Should return success response when 'service.getById' is called with valid 'userId' from locals", async () => {
@@ -175,8 +177,8 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should throw 'NotFoundError' when user does not exist", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const nonExistentId = generateMockObjectId();
-			req.params = { userId: nonExistentId.toString() };
+			const nonExistentId = generateMockObjectId().toString();
+			req.params = { userId: nonExistentId };
 
 			// Act & Assert
 			await assert.rejects(
@@ -301,8 +303,8 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should throw 'NotFoundError' when user does not exist", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const nonExistentId = generateMockObjectId();
-			req.params = { userId: nonExistentId.toString() };
+			const nonExistentId = generateMockObjectId().toString();
+			req.params = { userId: nonExistentId };
 			req.body = { name: "Updated Name" };
 
 			// Act & Assert

@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
+import { Types } from "mongoose";
 import { OrderController } from "../../controllers/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
 import {
@@ -26,12 +27,12 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		const mockSelectOrder = generateMockSelectOrder();
 		mockSelectOrder.user._id = mockInsertOrder.user;
 
-		const userId = mockInsertOrder.user;
+		const userId = mockInsertOrder.user.toString();
 
 		test("Should parse 'order data' from 'req.body' and 'userId' from 'res.locals'", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
-				res: { locals: { user: { _id: userId.toString() } } },
+				res: { locals: { user: { _id: userId } } },
 				testContext: t,
 			});
 
@@ -50,9 +51,10 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'service.create' once with the correct 'order data'", async (t) => {
+			const userIdObject = new Types.ObjectId(userId);
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
-				res: { locals: { user: { _id: userId } } },
+				res: { locals: { user: { _id: userIdObject } } },
 				testContext: t,
 			});
 
@@ -76,7 +78,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.status' once with '201' after successfully creating order data", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
-				res: { locals: { user: { _id: userId.toString() } } },
+				res: { locals: { user: { _id: userId } } },
 				testContext: t,
 			});
 
@@ -97,7 +99,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing order data", async (t) => {
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
-				res: { locals: { user: { _id: userId.toString() } } },
+				res: { locals: { user: { _id: userId } } },
 				testContext: t,
 			});
 
@@ -264,7 +266,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 	describe("getAllByUserId", () => {
 		const mockOrders = generateMockSelectOrders(2);
-		const userId = mockOrders[0].user._id;
+		const userId = mockOrders[0].user._id.toString();
 		const mockMeta = {
 			currentPage: 1,
 			hasNextPage: false,
@@ -282,7 +284,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
-					params: { userId: userId.toString() },
+					params: { userId },
 					query: { pageNumber: "1" },
 				},
 				testContext: t,
@@ -303,7 +305,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockService.getAll.mock.calls[0].arguments[0].user?.toString(),
-				userId.toString(),
+				userId,
 			);
 		});
 
@@ -317,7 +319,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 			const { next, req, res } = mockExpressCall({
 				req: {
-					params: { userId: userId.toString() },
+					params: { userId },
 					query: queryParams,
 				},
 				testContext: t,
@@ -355,7 +357,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
-					params: { userId: userId.toString() },
+					params: { userId },
 					query: { pageNumber: "1" },
 				},
 				testContext: t,
@@ -381,7 +383,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
-					params: { userId: userId.toString() },
+					params: { userId },
 					query: { pageNumber: "1" },
 				},
 				testContext: t,
@@ -411,7 +413,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
-					params: { userId: userId.toString() },
+					params: { userId },
 					query: {},
 				},
 				testContext: t,
@@ -430,20 +432,21 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(mockService.getAll.mock.calls[0].arguments[0], {
-				user: userId.toString(),
-			});
+			assert.deepStrictEqual(
+				mockService.getAll.mock.calls[0].arguments[0].user?.toString(),
+				userId,
+			);
 		});
 	});
 
 	describe("getById", () => {
 		const mockOrder = generateMockSelectOrder();
-		const orderId = mockOrder._id;
+		const orderId = mockOrder._id.toString();
 
 		test("Should call 'service.getById' once with the correct 'orderId'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: orderId.toString() } },
+				req: { params: { orderId } },
 				testContext: t,
 			});
 
@@ -461,15 +464,15 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(mockService.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.getById.mock.calls[0].arguments[0].orderId,
-				orderId.toString(),
+				mockService.getById.mock.calls[0].arguments[0].orderId.toString(),
+				orderId,
 			);
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching order data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: orderId.toString() } },
+				req: { params: { orderId } },
 				testContext: t,
 			});
 
@@ -492,7 +495,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing order data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: orderId.toString() } },
+				req: { params: { orderId } },
 				testContext: t,
 			});
 
@@ -518,12 +521,12 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 	describe("updateToPaid", () => {
 		const mockOrder = generateMockSelectOrder();
-		const orderId = mockOrder._id;
+		const orderId = mockOrder._id.toString();
 
 		test("Should parse 'orderId' from 'req.params'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: orderId.toString() } },
+				req: { params: { orderId } },
 				testContext: t,
 			});
 
@@ -548,7 +551,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'service.updateToPaid' once with the correct 'orderId'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: orderId.toString() } },
+				req: { params: { orderId } },
 				testContext: t,
 			});
 
@@ -566,17 +569,16 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(mockService.updateToPaid.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.updateToPaid.mock.calls[0].arguments[0],
-				{
-					orderId: orderId.toString(),
-				},
+				mockService.updateToPaid.mock.calls[0].arguments[0].orderId.toString(),
+
+				orderId,
 			);
 		});
 
 		test("Should call 'res.status' once with '200' after successfully updating order data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: orderId.toString() } },
+				req: { params: { orderId } },
 				testContext: t,
 			});
 
@@ -599,7 +601,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing order data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: orderId.toString() } },
+				req: { params: { orderId } },
 				testContext: t,
 			});
 
@@ -625,12 +627,12 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 	describe("updateToDelivered", () => {
 		const mockOrder = generateMockSelectOrder();
-		const orderId = mockOrder._id;
+		const orderId = mockOrder._id.toString();
 
 		test("Should parse 'orderId' from 'req.params'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: orderId.toString() } },
+				req: { params: { orderId } },
 				testContext: t,
 			});
 
@@ -655,7 +657,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'service.updateToDelivered' once with the correct 'orderId'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: orderId.toString() } },
+				req: { params: { orderId } },
 				testContext: t,
 			});
 
@@ -673,17 +675,15 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(mockService.updateToDelivered.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.updateToDelivered.mock.calls[0].arguments[0],
-				{
-					orderId: orderId.toString(),
-				},
+				mockService.updateToDelivered.mock.calls[0].arguments[0].orderId.toString(),
+				orderId,
 			);
 		});
 
 		test("Should call 'res.status' once with '200' after successfully updating order data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: orderId.toString() } },
+				req: { params: { orderId } },
 				testContext: t,
 			});
 
@@ -706,7 +706,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing order data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId: orderId.toString() } },
+				req: { params: { orderId } },
 				testContext: t,
 			});
 

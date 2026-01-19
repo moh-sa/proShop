@@ -304,7 +304,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 	describe("getById", () => {
 		const mockOrder = generateMockSelectOrder();
-		const orderId = mockOrder._id;
+		const orderId = mockOrder._id.toString();
 
 		test("Should return order object when 'repo.getById' is called once with 'orderId'", async () => {
 			// Arrange
@@ -313,7 +313,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const order = await service.getById({ orderId: orderId.toString() });
+			const order = await service.getById({ orderId });
 
 			// Assert
 			assert.strictEqual(order.success, true);
@@ -321,7 +321,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockRepo.getById.mock.calls[0].arguments[0].orderId,
+				mockRepo.getById.mock.calls[0].arguments[0].orderId.toString(),
 				orderId,
 			);
 		});
@@ -333,7 +333,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const order = await service.getById({ orderId: orderId.toString() });
+			const order = await service.getById({ orderId });
 
 			// Assert
 			assert.strictEqual(order.success, false);
@@ -357,7 +357,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 	describe("updateToPaid", () => {
 		const mockOrder = generateMockSelectOrder();
-		const orderId = mockOrder._id;
+		const orderId = mockOrder._id.toString();
 
 		test("Should return the order object when 'repo.updateToPaid' is called once with 'orderId'", async () => {
 			// Arrange
@@ -367,7 +367,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 			// Act
 			const updatedOrder = await service.updateToPaid({
-				orderId: orderId.toString(),
+				orderId,
 			});
 
 			// Assert
@@ -376,7 +376,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockRepo.updateToPaid.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockRepo.updateToPaid.mock.calls[0].arguments[0].orderId,
+				mockRepo.updateToPaid.mock.calls[0].arguments[0].orderId.toString(),
 				orderId,
 			);
 		});
@@ -389,7 +389,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 			// Act
 			const updatedOrder = await service.updateToPaid({
-				orderId: orderId.toString(),
+				orderId,
 			});
 
 			// Assert
@@ -416,7 +416,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 	describe("updateToDelivered", () => {
 		const mockOrder = generateMockSelectOrder();
-		const orderId = mockOrder._id;
+		const orderId = mockOrder._id.toString();
 
 		test("Should return the order object when 'repo.updateToDelivered' is called once with 'orderId", async () => {
 			// Arrange
@@ -426,7 +426,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 			// Act
 			const updatedOrder = await service.updateToDelivered({
-				orderId: orderId.toString(),
+				orderId,
 			});
 
 			// Assert
@@ -435,7 +435,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockRepo.updateToDelivered.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockRepo.updateToDelivered.mock.calls[0].arguments[0].orderId,
+				mockRepo.updateToDelivered.mock.calls[0].arguments[0].orderId.toString(),
 				orderId,
 			);
 		});
@@ -448,7 +448,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 			// Act
 			const updatedOrder = await service.updateToDelivered({
-				orderId: orderId.toString(),
+				orderId,
 			});
 
 			// Assert

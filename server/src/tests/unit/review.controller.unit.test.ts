@@ -269,7 +269,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
 	describe("getAllByUserId", () => {
 		const mockReviews = generateMockSelectReviews({ count: 2 });
-		const userId = mockReviews[0].user;
+		const userId = mockReviews[0].user.toString();
 		const mockPaginationMeta = {
 			currentPage: 1,
 			hasNextPage: false,
@@ -283,7 +283,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
-					params: { userId: userId.toString() },
+					params: { userId },
 					query: { pageNumber: "1", pageSize: "10" },
 				},
 				testContext: t,
@@ -306,8 +306,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(mockService.getAllByUserId.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.getAllByUserId.mock.calls[0].arguments[0].userId,
-				userId.toString(),
+				mockService.getAllByUserId.mock.calls[0].arguments[0].userId.toString(),
+				userId,
 			);
 			assert.strictEqual(
 				mockService.getAllByUserId.mock.calls[0].arguments[0].pageNumber,
@@ -323,7 +323,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
-					params: { userId: userId.toString() },
+					params: { userId },
 					query: { pageNumber: "1" },
 				},
 				testContext: t,
@@ -346,8 +346,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(mockService.getAllByUserId.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.getAllByUserId.mock.calls[0].arguments[0].userId,
-				userId.toString(),
+				mockService.getAllByUserId.mock.calls[0].arguments[0].userId.toString(),
+				userId,
 			);
 			assert.strictEqual(
 				mockService.getAllByUserId.mock.calls[0].arguments[0].pageNumber,
@@ -359,7 +359,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
-					params: { userId: userId.toString() },
+					params: { userId },
 					query: { pageNumber: "1" },
 				},
 				testContext: t,
@@ -388,7 +388,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
-					params: { userId: userId.toString() },
+					params: { userId },
 					query: { pageNumber: "1" },
 				},
 				testContext: t,
@@ -420,7 +420,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
 	describe("getAllByProductId", () => {
 		const mockReviews = generateMockSelectReviews({ count: 2 });
-		const productId = mockReviews[0].product;
+		const productId = mockReviews[0].product.toString();
 		const mockPaginationMeta = {
 			currentPage: 1,
 			hasNextPage: false,
@@ -434,7 +434,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
-					params: { productId: productId.toString() },
+					params: { productId },
 					query: { pageNumber: "1", pageSize: "10" },
 				},
 				testContext: t,
@@ -457,8 +457,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(mockService.getAllByProductId.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.getAllByProductId.mock.calls[0].arguments[0].productId,
-				productId.toString(),
+				mockService.getAllByProductId.mock.calls[0].arguments[0].productId.toString(),
+				productId,
 			);
 			assert.strictEqual(
 				mockService.getAllByProductId.mock.calls[0].arguments[0].pageNumber,
@@ -474,7 +474,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
-					params: { productId: productId.toString() },
+					params: { productId },
 					query: { pageNumber: "1" },
 				},
 				testContext: t,
@@ -497,8 +497,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(mockService.getAllByProductId.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.getAllByProductId.mock.calls[0].arguments[0].productId,
-				productId.toString(),
+				mockService.getAllByProductId.mock.calls[0].arguments[0].productId.toString(),
+				productId,
 			);
 			assert.strictEqual(
 				mockService.getAllByProductId.mock.calls[0].arguments[0].pageNumber,
@@ -510,7 +510,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
-					params: { productId: productId.toString() },
+					params: { productId },
 					query: { pageNumber: "1" },
 				},
 				testContext: t,
@@ -539,7 +539,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
-					params: { productId: productId.toString() },
+					params: { productId },
 					query: { pageNumber: "1" },
 				},
 				testContext: t,
@@ -571,12 +571,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
 	describe("getById", () => {
 		const mockReview = generateMockSelectReview();
-		const reviewId = mockReview._id;
+		const reviewId = mockReview._id.toString();
 
 		test("Should call 'service.getById' once with the correct 'reviewId'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { reviewId: reviewId.toString() } },
+				req: { params: { reviewId } },
 				testContext: t,
 			});
 
@@ -594,15 +594,15 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(mockService.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.getById.mock.calls[0].arguments[0].reviewId,
-				reviewId.toString(),
+				mockService.getById.mock.calls[0].arguments[0].reviewId.toString(),
+				reviewId,
 			);
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching review data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { reviewId: reviewId.toString() } },
+				req: { params: { reviewId } },
 				testContext: t,
 			});
 
@@ -625,7 +625,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing review data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { reviewId: reviewId.toString() } },
+				req: { params: { reviewId } },
 				testContext: t,
 			});
 
@@ -651,7 +651,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
 	describe("update", () => {
 		const mockReview = generateMockSelectReview();
-		const reviewId = mockReview._id;
+		const reviewId = mockReview._id.toString();
 
 		test("Should call 'service.update' once with the correct 'reviewId'", async (t) => {
 			// Arrange
@@ -660,7 +660,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			const { next, req, res } = mockExpressCall({
 				req: {
 					body: updateData,
-					params: { reviewId: reviewId.toString() },
+					params: { reviewId },
 				},
 				testContext: t,
 			});
@@ -679,8 +679,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(mockService.update.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.update.mock.calls[0].arguments[0].reviewId,
-				reviewId.toString(),
+				mockService.update.mock.calls[0].arguments[0].reviewId.toString(),
+				reviewId,
 			);
 			assert.deepStrictEqual(
 				mockService.update.mock.calls[0].arguments[0].data,
@@ -691,7 +691,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.status' once with '200' after successfully updating review data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { reviewId: reviewId.toString() } },
+				req: { params: { reviewId } },
 				testContext: t,
 			});
 
@@ -714,7 +714,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing review data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { reviewId: reviewId.toString() } },
+				req: { params: { reviewId } },
 				testContext: t,
 			});
 
@@ -740,12 +740,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
 	describe("delete", () => {
 		const mockReview = generateMockSelectReview();
-		const reviewId = mockReview._id;
+		const reviewId = mockReview._id.toString();
 
 		test("Should call 'service.delete' once with the correct 'reviewId'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { reviewId: reviewId.toString() } },
+				req: { params: { reviewId } },
 				testContext: t,
 			});
 
@@ -763,15 +763,15 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(mockService.delete.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.delete.mock.calls[0].arguments[0].reviewId,
-				reviewId.toString(),
+				mockService.delete.mock.calls[0].arguments[0].reviewId.toString(),
+				reviewId,
 			);
 		});
 
 		test("Should call 'res.status' once with '204' after successfully deleting review data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { reviewId: reviewId.toString() } },
+				req: { params: { reviewId } },
 				testContext: t,
 			});
 
@@ -794,7 +794,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing review data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { reviewId: reviewId.toString() } },
+				req: { params: { reviewId } },
 				testContext: t,
 			});
 
@@ -893,12 +893,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
 	describe("countByUserId", () => {
 		const mockCount = 5;
-		const userId = generateMockObjectId();
+		const userId = generateMockObjectId().toString();
 
 		test("Should call 'service.countByUserId' once with the correct 'userId'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
+				req: { params: { userId } },
 				testContext: t,
 			});
 
@@ -916,15 +916,15 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(mockService.countByUserId.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.countByUserId.mock.calls[0].arguments[0].userId,
-				userId.toString(),
+				mockService.countByUserId.mock.calls[0].arguments[0].userId.toString(),
+				userId,
 			);
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching review count", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
+				req: { params: { userId } },
 				testContext: t,
 			});
 
@@ -947,7 +947,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing review count", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId: userId.toString() } },
+				req: { params: { userId } },
 				testContext: t,
 			});
 
@@ -973,12 +973,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
 	describe("countByProductId", () => {
 		const mockCount = 5;
-		const productId = generateMockObjectId();
+		const productId = generateMockObjectId().toString();
 
 		test("Should call 'service.countByProductId' once with the correct 'productId'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: productId.toString() } },
+				req: { params: { productId } },
 				testContext: t,
 			});
 
@@ -996,15 +996,15 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(mockService.countByProductId.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.countByProductId.mock.calls[0].arguments[0].productId,
-				productId.toString(),
+				mockService.countByProductId.mock.calls[0].arguments[0].productId.toString(),
+				productId,
 			);
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching review count", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: productId.toString() } },
+				req: { params: { productId } },
 				testContext: t,
 			});
 
@@ -1027,7 +1027,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing review count", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: productId.toString() } },
+				req: { params: { productId } },
 				testContext: t,
 			});
 
@@ -1052,13 +1052,14 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 	});
 
 	describe("existsById", () => {
-		const mockReviewId = generateMockObjectId();
-		const serviceResult = { _id: mockReviewId };
+		const id = generateMockObjectId();
+		const reviewId = id.toString();
+		const serviceResult = { _id: id };
 
 		test("Should call 'service.existsById' once with the correct 'reviewId'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { reviewId: mockReviewId.toString() } },
+				req: { params: { reviewId } },
 				testContext: t,
 			});
 
@@ -1076,15 +1077,15 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(mockService.existsById.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.existsById.mock.calls[0].arguments[0].reviewId,
-				mockReviewId.toString(),
+				mockService.existsById.mock.calls[0].arguments[0].reviewId.toString(),
+				reviewId,
 			);
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching review data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { reviewId: mockReviewId.toString() } },
+				req: { params: { reviewId } },
 				testContext: t,
 			});
 
@@ -1107,7 +1108,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing review data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { reviewId: mockReviewId.toString() } },
+				req: { params: { reviewId } },
 				testContext: t,
 			});
 
@@ -1132,8 +1133,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 	});
 
 	describe("existsByUserIdAndProductId", () => {
-		const mockUserId = generateMockObjectId();
-		const mockProductId = generateMockObjectId();
+		const userId = generateMockObjectId().toString();
+		const productId = generateMockObjectId().toString();
 		const serviceResult = { _id: generateMockObjectId() };
 
 		test("Should call 'service.existsByUserIdAndProductId' once with the correct 'userId' and 'productId'", async (t) => {
@@ -1141,8 +1142,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			const { next, req, res } = mockExpressCall({
 				req: {
 					params: {
-						productId: mockProductId.toString(),
-						userId: mockUserId.toString(),
+						productId: productId,
+						userId: userId,
 					},
 				},
 				testContext: t,
@@ -1165,14 +1166,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 				1,
 			);
 			assert.deepStrictEqual(
-				mockService.existsByUserIdAndProductId.mock.calls[0].arguments[0]
-					.productId,
-				mockProductId.toString(),
+				mockService.existsByUserIdAndProductId.mock.calls[0].arguments[0].productId.toString(),
+				productId,
 			);
 			assert.deepStrictEqual(
-				mockService.existsByUserIdAndProductId.mock.calls[0].arguments[0]
-					.userId,
-				mockUserId.toString(),
+				mockService.existsByUserIdAndProductId.mock.calls[0].arguments[0].userId.toString(),
+				userId,
 			);
 		});
 
@@ -1181,8 +1180,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			const { next, req, res } = mockExpressCall({
 				req: {
 					params: {
-						productId: mockProductId.toString(),
-						userId: mockUserId.toString(),
+						productId: productId,
+						userId: userId,
 					},
 				},
 				testContext: t,
@@ -1209,8 +1208,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			const { next, req, res } = mockExpressCall({
 				req: {
 					params: {
-						productId: mockProductId.toString(),
-						userId: mockUserId.toString(),
+						productId: productId,
+						userId: userId,
 					},
 				},
 				testContext: t,
