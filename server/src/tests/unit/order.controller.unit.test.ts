@@ -30,6 +30,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		const userId = mockInsertOrder.user.toString();
 
 		test("Should parse 'order data' from 'req.body' and 'userId' from 'res.locals'", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
 				res: { locals: { user: { _id: userId } } },
@@ -40,6 +41,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockSelectOrder, success: true }),
 			);
 
+			// Act & Assert
 			await assert.doesNotReject(
 				async () =>
 					await controller.create(
@@ -51,6 +53,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'service.create' once with the correct 'order data'", async (t) => {
+			// Arrange
 			const userIdObject = new Types.ObjectId(userId);
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
@@ -62,12 +65,14 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockSelectOrder, success: true }),
 			);
 
+			// Act
 			await controller.create(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(mockService.create.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockService.create.mock.calls[0].arguments[0],
@@ -76,6 +81,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '201' after successfully creating order data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
 				res: { locals: { user: { _id: userId } } },
@@ -86,17 +92,20 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockSelectOrder, success: true }),
 			);
 
+			// Act
 			await controller.create(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 201);
 		});
 
 		test("Should call 'res.json' once with the success response object containing order data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
 				res: { locals: { user: { _id: userId } } },
@@ -107,12 +116,14 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockSelectOrder, success: true }),
 			);
 
+			// Act
 			await controller.create(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -534,7 +545,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
-			// Act
+			// Act & Assert
 			await assert.doesNotReject(
 				async () =>
 					await controller.updateToPaid(
@@ -543,9 +554,6 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 						next,
 					),
 			);
-
-			// Assert
-			// Test passes if no error is thrown
 		});
 
 		test("Should call 'service.updateToPaid' once with the correct 'orderId'", async (t) => {
@@ -640,7 +648,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
-			// Act
+			// Act & Assert
 			await assert.doesNotReject(
 				async () =>
 					await controller.updateToDelivered(
@@ -649,9 +657,6 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 						next,
 					),
 			);
-
-			// Assert
-			// Test passes if no error is thrown
 		});
 
 		test("Should call 'service.updateToDelivered' once with the correct 'orderId'", async (t) => {

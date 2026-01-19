@@ -28,8 +28,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 
 	describe("Constructor", () => {
 		test("Should create a new CacheService instance with default config", () => {
+			// Act
 			const cacheService = new CacheService(namespace);
 
+			// Assert
 			assert.ok(cacheService);
 			assert.ok(cacheService instanceof CacheService);
 			assert.strictEqual(cacheService["_namespace"], namespace);
@@ -40,9 +42,13 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should create a new CacheService instance with custom config", () => {
+			// Arrange
 			const cacheConfig: Partial<CacheConfig> = { stdTTL: 1000 };
+
+			// Act
 			const cacheService = new CacheService(namespace, cacheConfig);
 
+			// Assert
 			assert.ok(cacheService);
 			assert.ok(cacheService instanceof CacheService);
 			assert.strictEqual(cacheService["_namespace"], namespace);
@@ -174,7 +180,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Act
 			const result = cacheService.setMany([{ key, value: val }]);
 
-			// Arrest
+			// Assert
 			assert.ok(Array.isArray(result));
 			assert.ok(result.length === 1);
 			assert.ok(result[0].success);
@@ -194,7 +200,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Act
 			const result = cacheService.setMany([{ key, value: val }]);
 
-			// Arrest
+			// Assert
 			assert.ok(Array.isArray(result));
 			assert.ok(result.length === 1);
 			assert.ok(!result[0].success);
@@ -215,7 +221,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Act
 			const result = cacheService.setMany([{ key, value: val }]);
 
-			// Arrest
+			// Assert
 			assert.ok(Array.isArray(result));
 			assert.ok(result.length === 1);
 			assert.ok(result[0].success);
@@ -235,7 +241,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Act
 			const result = cacheService.setMany([{ key, value: val }]);
 
-			// Arrest
+			// Assert
 			assert.ok(Array.isArray(result));
 			assert.ok(result.length === 1);
 			assert.ok(!result[0].success);
@@ -255,7 +261,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Act
 			const result = cacheService.setMany([{ key, value: val }]);
 
-			// Arrest
+			// Assert
 			assert.ok(Array.isArray(result));
 			assert.ok(result.length === 1);
 			assert.ok(!result[0].success);
@@ -277,7 +283,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Act
 			const result = cacheService.setMany([{ key, value: val }]);
 
-			// Arrest
+			// Assert
 			assert.ok(Array.isArray(result));
 			assert.ok(result.length === 1);
 			assert.ok(!result[0].success);
@@ -368,7 +374,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Act
 			const result = cacheService.getMany({ keys: [key] });
 
-			// Arrest
+			// Assert
 			assert.ok(Array.isArray(result));
 			assert.ok(result.length === 1);
 			assert.ok(result[0].success);
@@ -386,7 +392,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Act
 			const result = cacheService.getMany({ keys: [key] });
 
-			// Arrest
+			// Assert
 			assert.ok(Array.isArray(result));
 			assert.ok(result.length === 1);
 			assert.ok(!result[0].success);
@@ -406,7 +412,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Act
 			const result = cacheService.getMany({ keys: [key] });
 
-			// Arrest
+			// Assert
 			assert.ok(Array.isArray(result));
 			assert.ok(result.length === 1);
 			assert.ok(result[0].success);
@@ -424,7 +430,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Act
 			const result = cacheService.getMany({ keys: [key] });
 
-			// Arrest
+			// Assert
 			assert.ok(Array.isArray(result));
 			assert.ok(result.length === 1);
 			assert.ok(!result[0].success);
@@ -442,7 +448,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Act
 			const result = cacheService.getMany({ keys: [key] });
 
-			// Arrest
+			// Assert
 			assert.ok(Array.isArray(result));
 			assert.ok(result.length === 1);
 			assert.ok(!result[0].success);
@@ -462,7 +468,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			// Act
 			const result = cacheService.getMany({ keys: [key] });
 
-			// Arrest
+			// Assert
 			assert.ok(Array.isArray(result));
 			assert.ok(result.length === 1);
 			assert.ok(!result[0].success);
@@ -781,10 +787,12 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 
 	describe("Flush", () => {
 		test("Should throw 'CacheOperationError' when '_cache.flushAll' throws", () => {
+			// Arrange
 			mockCache.flushAll.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});
 
+			// Act & Assert
 			assert.throws(() => {
 				cacheService.flush();
 			}, CacheOperationError);

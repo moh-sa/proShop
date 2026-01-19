@@ -458,6 +458,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 		const serviceResult = mockProducts;
 
 		test("Should call 'service.getTopRated' once without args", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				testContext: t,
 			});
@@ -466,12 +467,14 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
+			// Act
 			await controller.getTopRated(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(mockManager.getTopRated.mock.callCount(), 1);
 			assert.strictEqual(
 				mockManager.getTopRated.mock.calls[0].arguments.length,
@@ -480,6 +483,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '200' after successfully fetching top rated products", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				testContext: t,
 			});
@@ -488,17 +492,20 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
+			// Act
 			await controller.getTopRated(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing top rated products", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				testContext: t,
 			});
@@ -507,12 +514,14 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: serviceResult, success: true }),
 			);
 
+			// Act
 			await controller.getTopRated(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],

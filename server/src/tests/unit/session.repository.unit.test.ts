@@ -1341,8 +1341,9 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof DatabaseTimeoutError);
 		});
 
-		test("Should return 'DatabaseQueryError' when 'db.findOneAndUpdate' throws 'MongooseError'", async (t) => {
-			const queryError = new mongoose.Error("Query failed");
+	test("Should return 'DatabaseQueryError' when 'db.findOneAndUpdate' throws 'MongooseError'", async (t) => {
+		// Arrange
+		const queryError = new mongoose.Error("Query failed");
 
 			t.mock.method(Session, "findOneAndUpdate", () => {
 				throw queryError;
@@ -1360,8 +1361,9 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof DatabaseQueryError);
 		});
 
-		test("Should return 'DatabaseNetworkError' when 'db.findOneAndUpdate' throws 'MongoError'", async (t) => {
-			const networkError = new mongoose.mongo.MongoError("Network error");
+	test("Should return 'DatabaseNetworkError' when 'db.findOneAndUpdate' throws 'MongoError'", async (t) => {
+		// Arrange
+		const networkError = new mongoose.mongo.MongoError("Network error");
 
 			t.mock.method(Session, "findOneAndUpdate", () => {
 				throw networkError;
@@ -1379,8 +1381,9 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof DatabaseNetworkError);
 		});
 
-		test("Should return 'GenericDatabaseError' when 'db.findOneAndUpdate' throws unknown error", async (t) => {
-			const unknownError = new Error("Something unexpected happened");
+	test("Should return 'GenericDatabaseError' when 'db.findOneAndUpdate' throws unknown error", async (t) => {
+		// Arrange
+		const unknownError = new Error("Something unexpected happened");
 
 			t.mock.method(Session, "findOneAndUpdate", () => {
 				throw unknownError;

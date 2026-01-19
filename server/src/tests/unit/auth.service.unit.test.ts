@@ -25,6 +25,7 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 		const mockSelectUser = generateMockSelectUser({ ...mockInsertUser });
 
 		test("Should return user object including token and no password. Call 'repo.existsByEmail' and 'repo.create' once with correct data", async () => {
+			// Arrange
 			mockRepo.existsByEmail.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					data: null,
@@ -46,8 +47,10 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
+			// Act
 			const user = await service.signup(mockInsertUser);
 
+			// Assert
 			assert.ok(user);
 			assert.ok(!Object.keys(user).includes("password"));
 			assert.ok(Object.keys(user).includes("token"));
@@ -68,6 +71,7 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should throw 'AuthenticationError' if 'repo.existsByEmail' returns a value", async () => {
+			// Arrange
 			mockRepo.existsByEmail.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					data: mockSelectUser,
@@ -75,6 +79,7 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
+			// Act & Assert
 			await assert.rejects(async () => {
 				await service.signup(mockInsertUser);
 			}, AuthenticationError);
@@ -86,6 +91,7 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 		const mockSelectUser = generateMockSelectUser({ ...mockInsertUser });
 
 		test("Should return user object including  token and no password. Call 'repo.getByEmail' and 'compare' once with correct data", async () => {
+			// Arrange
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					data: mockSelectUser,
@@ -100,8 +106,10 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
+			// Act
 			const user = await service.signin(mockInsertUser);
 
+			// Assert
 			assert.ok(user);
 			assert.ok(!Object.keys(user).includes("password"));
 			assert.ok(Object.keys(user).includes("token"));
@@ -126,6 +134,7 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should throw 'AuthenticationError' if 'repo.getByEmail' returns 'null'", async () => {
+			// Arrange
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					data: null,
@@ -133,6 +142,7 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
+			// Act & Assert
 			await assert.rejects(
 				async () => await service.signin(mockInsertUser),
 				AuthenticationError,
@@ -140,6 +150,7 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should throw 'AuthenticationError' if 'passwordService.verify' returns 'false'", async () => {
+			// Arrange
 			mockRepo.getByEmail.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					data: mockSelectUser,
@@ -154,6 +165,7 @@ suite("Auth Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
+			// Act & Assert
 			await assert.rejects(
 				async () => await service.signin(mockInsertUser),
 				AuthenticationError,

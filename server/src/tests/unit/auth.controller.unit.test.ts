@@ -26,6 +26,7 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 		const mockSelectUser = generateMockSelectUser({ ...mockInsertUser });
 
 		test("Should parse 'user data' from 'req.body", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertUser },
 				testContext: t,
@@ -35,6 +36,7 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockSelectUser),
 			);
 
+			// Act & Assert
 			await assert.doesNotReject(
 				async () =>
 					await controller.signup(
@@ -46,11 +48,13 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should throw 'ZodError' if 'user.email' is invalid", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: { ...mockInsertUser, email: "invalid-email" } },
 				testContext: t,
 			});
 
+			// Act & Assert
 			await assert.rejects(
 				async () =>
 					await controller.signup(
@@ -68,11 +72,13 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should throw 'ZodError' if 'user.password' is less than 6 chars", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: { ...mockInsertUser, password: "12345" } },
 				testContext: t,
 			});
 
+			// Act & Assert
 			await assert.rejects(
 				async () =>
 					await controller.signup(
@@ -93,6 +99,7 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'service.signup' once with the correct 'user data'", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertUser },
 				testContext: t,
@@ -102,12 +109,14 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockSelectUser),
 			);
 
+			// Act
 			await controller.signup(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			const expectedParsedData = {
 				email: mockInsertUser.email.toLowerCase(),
 				isAdmin: mockInsertUser.isAdmin,
@@ -123,6 +132,7 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '201' after successfully fetching user data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertUser },
 				testContext: t,
@@ -132,17 +142,20 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockSelectUser),
 			);
 
+			// Act
 			await controller.signup(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 201);
 		});
 
 		test("Should call 'res.json' once with the success response object containing user data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertUser },
 				testContext: t,
@@ -152,12 +165,14 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockSelectUser),
 			);
 
+			// Act
 			await controller.signup(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
@@ -171,6 +186,7 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 		const mockSelectUser = generateMockSelectUser({ ...mockInsertUser });
 
 		test("Should parse 'user data' from 'req.body", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertUser },
 				testContext: t,
@@ -180,6 +196,7 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockSelectUser),
 			);
 
+			// Act & Assert
 			await assert.doesNotReject(
 				async () =>
 					await controller.signin(
@@ -191,6 +208,7 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should parse 'user data' from 'res.locals'", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				res: { locals: { user: mockInsertUser } },
 				testContext: t,
@@ -200,6 +218,7 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockSelectUser),
 			);
 
+			// Act & Assert
 			await assert.doesNotReject(
 				async () =>
 					await controller.signin(
@@ -211,11 +230,13 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should throw 'ZodError' if 'user.password' is less than 6 chars", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: { ...mockInsertUser, password: "12345" } },
 				testContext: t,
 			});
 
+			// Act & Assert
 			await assert.rejects(
 				async () =>
 					await controller.signin(
@@ -236,11 +257,13 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should throw 'ZodError' if 'user.email' is invalid", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: { ...mockInsertUser, email: "invalid-email" } },
 				testContext: t,
 			});
 
+			// Act & Assert
 			await assert.rejects(
 				async () =>
 					await controller.signin(
@@ -258,6 +281,7 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'service.signin' once with the correct 'user data'", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertUser },
 				testContext: t,
@@ -267,12 +291,14 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockSelectUser),
 			);
 
+			// Act
 			await controller.signin(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			const expectedParsedData = {
 				email: mockInsertUser.email.toLowerCase(),
 				password: mockInsertUser.password,
@@ -286,6 +312,7 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 		});
 
 		test("Should call 'res.status' once with '201' after successfully fetching user data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertUser },
 				testContext: t,
@@ -295,17 +322,20 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockSelectUser),
 			);
 
+			// Act
 			await controller.signin(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
 		test("Should call 'res.json' once with the success response object containing user data", async (t) => {
+			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertUser },
 				testContext: t,
@@ -315,12 +345,14 @@ suite("Auth Controller 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockSelectUser),
 			);
 
+			// Act
 			await controller.signin(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
+			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
