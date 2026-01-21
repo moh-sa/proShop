@@ -1,0 +1,1 @@
+export const PAYMENT_MIN_USD_CHARGE = 100; // 1.00 USD
