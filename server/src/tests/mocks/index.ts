@@ -28,6 +28,7 @@ export * from "./review.mock.js";
 export * from "./session-repository.mock.js";
 export * from "./session-service.mock.js";
 export * from "./session.mock.js";
+export * from "./stripe.mock.js";
 export * from "./user-repository.mock.js";
 export * from "./user-service.mock.js";
 export * from "./user.mock.js";
