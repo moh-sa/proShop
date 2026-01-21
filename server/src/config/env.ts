@@ -16,6 +16,8 @@ const EnvSchema = z.object({
 	PAYPAL_CLIENT_ID: z.string().min(1),
 	PORT: z.coerce.number().min(1),
 	SENTRY_DNS: z.string().min(1).url(),
+	STRIPE_SECRET: z.string().min(1),
+	STRIPE_WEBHOOK_SECRET: z.string().min(1),
 });
 
 config();
