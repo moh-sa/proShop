@@ -3,6 +3,7 @@ export * from "./async-handler.util.js";
 export * from "./currency-unit-conversion.util.js";
 export * from "./error-response.util.js";
 export * from "./format-zod-errors.util.js";
+export * from "./frontend-url-builder.util.js";
 export * from "./get-currency-factor.util.js";
 export * from "./handle-database-error.util.js";
 export * from "./jwt-generate-token.util.js";
