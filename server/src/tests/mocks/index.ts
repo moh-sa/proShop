@@ -18,6 +18,7 @@ export * from "./order-repository.mock.js";
 export * from "./order-service.mock.js";
 export * from "./order.mock.js";
 export * from "./password-service.mock.js";
+export * from "./payment-service.mock.js";
 export * from "./product-manager.mock.js";
 export * from "./product-repository.mock.js";
 export * from "./product-service.mock.js";
