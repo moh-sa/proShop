@@ -1,11 +1,14 @@
 import assert from "node:assert";
 import { beforeEach, describe, it, suite } from "node:test";
+import Stripe from "stripe";
 import { PAYMENT_MIN_USD_CHARGE } from "../../constants";
 import { InternalError, ValidationError } from "../../errors";
 import { PaymentService } from "../../services";
 import {
 	generateMockCheckoutSessionItem,
 	generateMockCreateSessionParams,
+	generateMockStripeEvent,
+	generateMockVerifyWebhookParams,
 	mockStripe,
 } from "../mocks/index.js";
 
@@ -198,6 +201,117 @@ suite("Payment Service 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.id, sessionId);
 			assert.strictEqual(result.data.url, sessionUrl);
+		});
+	});
+
+	describe("verifyWebhook", () => {
+		it("Should call 'constructEvent' with payload, signature, and webhook secret", () => {
+			// Arrange
+			const params = generateMockVerifyWebhookParams();
+			const mockEvent = generateMockStripeEvent();
+
+			mockProvider.webhooks.constructEvent.mock.mockImplementationOnce(
+				() => mockEvent,
+			);
+
+			// Act
+			service.verifyWebhook(params);
+
+			// Assert
+			assert.strictEqual(
+				mockProvider.webhooks.constructEvent.mock.callCount(),
+				1,
+			);
+
+			const callArgs =
+				mockProvider.webhooks.constructEvent.mock.calls[0].arguments;
+			assert.strictEqual(callArgs[0], params.payload);
+			assert.strictEqual(callArgs[1], params.signature);
+			// Third argument is the webhook secret from env
+			assert.strictEqual(typeof callArgs[2], "string");
+		});
+
+		it("Should return success with metadata and event type when event has metadata", () => {
+			// Arrange
+			const params = generateMockVerifyWebhookParams();
+			const expectedMetadata = { orderId: "order_123456" };
+			const expectedType = "checkout.session.completed" as const;
+			const mockEvent = generateMockStripeEvent({
+				metadata: expectedMetadata,
+				type: expectedType,
+			});
+
+			mockProvider.webhooks.constructEvent.mock.mockImplementationOnce(
+				() => mockEvent,
+			);
+
+			// Act
+			const result = service.verifyWebhook(params);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data.metadata, expectedMetadata);
+			assert.strictEqual(result.data.type, expectedType);
+		});
+
+		it("Should return 'ValidationError' when event object has no metadata property", () => {
+			// Arrange
+			const params = generateMockVerifyWebhookParams();
+			const mockEventWithoutMetadata = generateMockStripeEvent({
+				metadata: null,
+			});
+
+			mockProvider.webhooks.constructEvent.mock.mockImplementationOnce(
+				() => mockEventWithoutMetadata,
+			);
+
+			// Act
+			const result = service.verifyWebhook(params);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error instanceof ValidationError, true);
+			assert.strictEqual(result.error.message.includes("metadata"), true);
+		});
+
+		it("Should return 'ValidationError' when signature verification fails", () => {
+			// Arrange
+			const params = generateMockVerifyWebhookParams();
+			const signatureError = new Stripe.errors.StripeSignatureVerificationError(
+				{
+					message: "Invalid signature",
+					type: "invalid_request_error",
+				},
+			);
+
+			mockProvider.webhooks.constructEvent.mock.mockImplementationOnce(() => {
+				throw signatureError;
+			});
+
+			// Act
+			const result = service.verifyWebhook(params);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error instanceof ValidationError, true);
+			assert.strictEqual(result.error.message.includes("signature"), true);
+		});
+
+		it("Should return 'InternalError' when unexpected error occurs", () => {
+			// Arrange
+			const params = generateMockVerifyWebhookParams();
+			const unexpectedError = new Error("Something went wrong");
+
+			mockProvider.webhooks.constructEvent.mock.mockImplementationOnce(() => {
+				throw unexpectedError;
+			});
+
+			// Act
+			const result = service.verifyWebhook(params);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error instanceof InternalError, true);
 		});
 	});
 });

@@ -11,10 +11,13 @@ import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 export function mockPaymentService(): FunctionMocksWithReset<IPaymentService> {
 	return {
 		createCheckoutSession: mock.fn(),
+		verifyWebhook: mock.fn(),
 		reset() {
 			this.createCheckoutSession.mock.resetCalls();
+			this.verifyWebhook.mock.resetCalls();
 
 			this.createCheckoutSession.mock.restore();
+			this.verifyWebhook.mock.restore();
 		},
 	};
 }
@@ -56,7 +59,6 @@ export function generateMockCreateSessionParams(
 		...override,
 	};
 }
-
 export function generateMockCheckoutSessionResponse(
 	override: Partial<CreateCheckoutSessionResponse> = {},
 ): CreateCheckoutSessionResponse {

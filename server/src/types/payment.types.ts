@@ -1,3 +1,4 @@
+import type Stripe from "stripe";
 import type { z } from "zod";
 
 import type {
@@ -17,3 +18,16 @@ export interface CreateCheckoutSessionResponse {
 export type LineItem = z.infer<typeof createCheckoutSessionItem>;
 
 export type LineItems = Array<LineItem>;
+
+export interface VerifyWebhookParams {
+	/** **MUST** be raw body, not parsed JSON */
+	payload: Buffer;
+	signature: string;
+}
+
+export interface VerifyWebhookResponse {
+	metadata: {
+		orderId: string;
+	};
+	type: Stripe.Event.Type;
+}

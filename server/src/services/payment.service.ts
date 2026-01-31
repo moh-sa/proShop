@@ -10,9 +10,11 @@ import type {
 	MethodParams,
 	MethodReturn,
 	Result,
+	VerifyWebhookParams,
+	VerifyWebhookResponse,
 } from "../types/index.js";
 
-import { stripeClient } from "../config/index.js";
+import { env, stripeClient } from "../config/index.js";
 import { PAYMENT_MIN_USD_CHARGE } from "../constants/payment.constants.js";
 import {
 	InternalError,
@@ -32,6 +34,15 @@ export interface IPaymentService {
 	createCheckoutSession(
 		args: CreateCheckoutSessionParams,
 	): Promise<PaymentResult<CreateCheckoutSessionResponse>>;
+
+	/**
+	 * Verifies webhook signature to ensure request came from Stripe.
+	 *
+	 * Payload **MUST** be the raw request body (Buffer), not parsed JSON.
+	 */
+	verifyWebhook(
+		params: VerifyWebhookParams,
+	): PaymentResult<VerifyWebhookResponse>;
 }
 
 type PaymentResult<T> = Result<T>;
@@ -130,6 +141,69 @@ export class PaymentService implements IPaymentService {
 			};
 		} catch (error) {
 			return this._handleProviderError(error, logger);
+		}
+	}
+
+	public verifyWebhook(
+		params: MethodParams<IPaymentService, "verifyWebhook">,
+	): MethodReturn<IPaymentService, "verifyWebhook"> {
+		const logger = this._getLogger({ method: "verifyWebhook" });
+		logger.debug("Verifying webhook");
+
+		try {
+			const event = this._provider.webhooks.constructEvent(
+				params.payload,
+				params.signature,
+				env.STRIPE_WEBHOOK_SECRET,
+			);
+
+			logger.info(
+				{
+					eventId: event.id,
+					eventType: event.type,
+				},
+				"Webhook event verified successfully",
+			);
+
+			if (!("metadata" in event.data.object) || !event.data.object.metadata) {
+				logger.warn(
+					{ eventData: event.data.object },
+					"Invalid webhook metadata",
+				);
+				return {
+					error: new ValidationError("Invalid webhook metadata"),
+					success: false,
+				};
+			}
+
+			const metadata = event.data.object
+				.metadata as VerifyWebhookResponse["metadata"];
+
+			return {
+				data: {
+					metadata,
+					type: event.type,
+				},
+				success: true,
+			};
+		} catch (error) {
+			if (error instanceof Stripe.errors.StripeSignatureVerificationError) {
+				logger.error(error, "Invalid webhook signature");
+				return {
+					error: new ValidationError("Invalid webhook signature", {
+						cause: error,
+					}),
+					success: false,
+				};
+			}
+
+			logger.error(error, "Failed to verify webhook signature");
+			return {
+				error: new InternalError("Failed to verify webhook signature", {
+					cause: error,
+				}),
+				success: false,
+			};
 		}
 	}
 

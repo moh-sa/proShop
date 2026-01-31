@@ -43,7 +43,7 @@ sequenceDiagram
     Frontend->>Stripe_API: Load Stripe checkout
 
     alt Payment successful
-        Stripe_API->>Backend: Webhook: payment successful (order ID)
+        Stripe_API->>Backend: POST /api/v1/webhooks/stripe (payment successful)
         Backend->>Order_Manager: Update order status to "paid"
         Order_Manager->>Order_Service: Set status to "paid"
         Order_Service-->>Order_Manager: Order updated
@@ -51,7 +51,7 @@ sequenceDiagram
         Backend-->>Frontend: Notify payment success
         Frontend->>User: Show order confirmation
     else Payment failed
-        Stripe_API->>Backend: Webhook: payment failed (order ID, error message)
+        Stripe_API->>Backend: POST /api/v1/webhooks/stripe (payment failed)
         Backend->>Order_Manager: Update order status to "canceled"
         Order_Manager->>Order_Service: Set status to "canceled"
         Order_Service-->>Order_Manager: Order updated
