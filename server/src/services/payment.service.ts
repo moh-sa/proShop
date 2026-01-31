@@ -1,4 +1,5 @@
 import type { Logger } from "pino";
+import type { z } from "zod";
 
 import Stripe from "stripe";
 
@@ -50,7 +51,11 @@ export class PaymentService implements IPaymentService {
 		logger.debug({ params }, "Creating checkout session");
 
 		// validate parameters
-		const validationResult = this._validateCreateSessionParams(params, logger);
+		const validationResult = this._safeValidate(
+			createCheckoutSessionParamsSchema,
+			params,
+			logger,
+		);
 		if (!validationResult.success) {
 			return validationResult;
 		}
@@ -180,11 +185,12 @@ export class PaymentService implements IPaymentService {
 		};
 	}
 
-	private _validateCreateSessionParams(
-		params: CreateCheckoutSessionParams,
+	private _safeValidate<T>(
+		schema: z.ZodSchema<T>,
+		params: unknown,
 		logger: Logger,
-	): PaymentResult<CreateCheckoutSessionParams> {
-		const result = createCheckoutSessionParamsSchema.safeParse(params);
+	): PaymentResult<T> {
+		const result = schema.safeParse(params);
 
 		if (!result.success) {
 			const formattedZodErrorsMessage = formatZodErrors(result.error);
