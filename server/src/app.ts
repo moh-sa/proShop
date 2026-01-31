@@ -19,6 +19,9 @@ app.use(
 	}),
 );
 
+// webhooks - MUST be before request parsing middlewares
+app.use("/api/v1/webhooks/*", express.raw({ type: "application/json" }));
+
 // Request parsing middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
