@@ -31,7 +31,9 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 	describe("create", () => {
 		test("Should create a new order when 'db.create' is called with valid data", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder();
+			const mockUser = generateMockSelectUser();
+			await User.create(mockUser);
+			const mockOrder = generateMockInsertOrder({ user: mockUser._id });
 
 			// Act
 			const createdOrder = await orderRepository.create(mockOrder);
@@ -41,7 +43,12 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(createdOrder.success, true);
 
 			const resData = createdOrder.data;
-			assert.strictEqual(resData.user.toString(), mockOrder.user.toString());
+			assert.strictEqual(
+				resData.user._id.toString(),
+				mockOrder.user.toString(),
+			);
+			assert.strictEqual(resData.user.name, mockUser.name);
+			assert.strictEqual(resData.user.email, mockUser.email);
 			assert.strictEqual(resData.paymentMethod, mockOrder.paymentMethod);
 			assert.strictEqual(resData.itemsPrice, mockOrder.itemsPrice);
 			assert.strictEqual(resData.shippingPrice, mockOrder.shippingPrice);

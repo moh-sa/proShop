@@ -5,11 +5,11 @@ import type {
 	InsertOrder,
 	InsertOrderItem,
 	SelectOrder,
+	SelectUser,
 } from "../../types/index.js";
 
 import { generateMockObjectId } from "./objectid.mock.js";
 import { generateMockSelectProduct } from "./product.mock.js";
-import { generateMockSelectUser } from "./user.mock.js";
 
 // Constants for mock data generation
 const MOCK_DATA_CONSTANTS = {
@@ -90,6 +90,16 @@ function generateMockShippingAddress(
 		city: options.city ?? faker.location.city(),
 		country: options.country ?? faker.location.country(),
 		postalCode: options.postalCode ?? faker.location.zipCode(),
+	};
+}
+
+function generateMockPopulatedOrderUser(
+	options: Partial<Pick<SelectUser, "_id" | "name" | "email">> = {},
+): Pick<SelectUser, "_id" | "name" | "email"> {
+	return {
+		_id: options._id ?? generateMockObjectId(),
+		email: options.email ?? faker.internet.exampleEmail().toLowerCase(),
+		name: options.name ?? faker.person.fullName(),
 	};
 }
 
@@ -175,7 +185,14 @@ export function generateMockInsertOrders(
 export function generateMockSelectOrder(
 	options: Partial<GenerateSelectOrderOptions> = {},
 ): SelectOrder {
-	const mockUser = options.user ?? generateMockSelectUser();
+	const mockUser = options.user
+		? {
+				_id: options.user._id,
+				email: options.user.email,
+				name: options.user.name,
+			}
+		: generateMockPopulatedOrderUser();
+
 	const baseOrder = generateMockInsertOrder({
 		...options,
 		user: mockUser._id,

@@ -22,24 +22,37 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 	const repo = new OrderRepository();
 
 	describe("create", () => {
-		const mockOrder = generateMockInsertOrder();
+		const mockInsertOrder = generateMockInsertOrder();
+		const mockSelectOrder = generateMockSelectOrder({
+			user: {
+				_id: mockInsertOrder.user,
+				name: "Test User",
+				email: "test@example.com",
+			},
+		});
 
 		test("Should return the user object when 'db.create' is called once with user data", async (t) => {
 			// Arrange
+
 			const mockCreate = t.mock.method(Order, "create", () => ({
-				toObject: () => mockOrder,
+				populate: () => ({
+					toObject: () => mockSelectOrder,
+				}),
 			}));
 
 			// Act
-			const order = await repo.create(mockOrder);
+			const order = await repo.create(mockInsertOrder);
 
 			// Assert
 			assert.ok(order);
 			assert.strictEqual(order.success, true);
-			assert.deepStrictEqual(order.data, mockOrder);
+			assert.deepStrictEqual(order.data, mockSelectOrder);
 
 			assert.strictEqual(mockCreate.mock.callCount(), 1);
-			assert.deepStrictEqual(mockCreate.mock.calls[0].arguments[0], mockOrder);
+			assert.deepStrictEqual(
+				mockCreate.mock.calls[0].arguments[0],
+				mockInsertOrder,
+			);
 		});
 
 		test("Should return 'DatabaseValidationError' when 'db.create' throws 'ValidationError'", async (t) => {
@@ -51,7 +64,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.create(mockOrder);
+			const result = await repo.create(mockInsertOrder);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -69,7 +82,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.create(mockOrder);
+			const result = await repo.create(mockInsertOrder);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -85,7 +98,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.create(mockOrder);
+			const result = await repo.create(mockInsertOrder);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -101,7 +114,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.create(mockOrder);
+			const result = await repo.create(mockInsertOrder);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -117,7 +130,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.create(mockOrder);
+			const result = await repo.create(mockInsertOrder);
 
 			// Assert
 			assert.strictEqual(result.success, false);

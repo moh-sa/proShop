@@ -11,6 +11,7 @@ import {
 	generateMockInsertOrders,
 	generateMockSelectOrders,
 } from "../mocks/order.mock.js";
+import { generateMockSelectUser } from "../mocks/user.mock.js";
 import {
 	connectTestDatabase,
 	disconnectTestDatabase,
@@ -31,8 +32,13 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 	describe("create", async () => {
 		test("Should create and return order object when 'repo.create' is called with '1' order item", async () => {
 			// Arrange
+			const mockUser = generateMockSelectUser();
+			await User.create(mockUser);
 			const orderItemsCount = 1;
-			const mockOrder = generateMockInsertOrder({ orderItemsCount });
+			const mockOrder = generateMockInsertOrder({
+				orderItemsCount,
+				user: mockUser._id,
+			});
 
 			// Act
 			const result = await orderService.create(mockOrder);
@@ -41,12 +47,21 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.orderItems.length, orderItemsCount);
 			assert.strictEqual(result.data.totalPrice, mockOrder.totalPrice);
+			assert.strictEqual(
+				result.data.user._id.toString(),
+				mockUser._id.toString(),
+			);
 		});
 
 		test("Should create and return order object when 'repo.create' is called with '3' order items", async () => {
 			// Arrange
+			const mockUser = generateMockSelectUser();
+			await User.create(mockUser);
 			const orderItemsCount = 3;
-			const mockOrder = generateMockInsertOrder({ orderItemsCount });
+			const mockOrder = generateMockInsertOrder({
+				orderItemsCount,
+				user: mockUser._id,
+			});
 
 			// Act
 			const result = await orderService.create(mockOrder);
@@ -55,6 +70,10 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.orderItems.length, orderItemsCount);
 			assert.strictEqual(result.data.totalPrice, mockOrder.totalPrice);
+			assert.strictEqual(
+				result.data.user._id.toString(),
+				mockUser._id.toString(),
+			);
 		});
 
 		test("Should throw 'ValidationError' when 'repo.create' is called with empty array of order items", async () => {
@@ -71,7 +90,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should create and return order object when 'repo.create' is called with shipping address", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder();
+			const mockUser = generateMockSelectUser();
+			await User.create(mockUser);
+			const mockOrder = generateMockInsertOrder({ user: mockUser._id });
 			const expectedAddress = mockOrder.shippingAddress;
 
 			// Act
@@ -84,8 +105,13 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should create and return order object when 'repo.create' is called with payment method", async () => {
 			// Arrange
+			const mockUser = generateMockSelectUser();
+			await User.create(mockUser);
 			const paymentMethod = "PayPal";
-			const mockOrder = generateMockInsertOrder({ paymentMethod });
+			const mockOrder = generateMockInsertOrder({
+				paymentMethod,
+				user: mockUser._id,
+			});
 
 			// Act
 			const result = await orderService.create(mockOrder);
@@ -97,8 +123,13 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should create and return order object when 'repo.create' is called with tax price", async () => {
 			// Arrange
+			const mockUser = generateMockSelectUser();
+			await User.create(mockUser);
 			const taxPrice = 10.99;
-			const mockOrder = generateMockInsertOrder({ taxPrice });
+			const mockOrder = generateMockInsertOrder({
+				taxPrice,
+				user: mockUser._id,
+			});
 
 			// Act
 			const result = await orderService.create(mockOrder);
@@ -110,8 +141,13 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should create and return order object when 'repo.create' is called with shipping price", async () => {
 			// Arrange
+			const mockUser = generateMockSelectUser();
+			await User.create(mockUser);
 			const shippingPrice = 5.99;
-			const mockOrder = generateMockInsertOrder({ shippingPrice });
+			const mockOrder = generateMockInsertOrder({
+				shippingPrice,
+				user: mockUser._id,
+			});
 
 			// Act
 			const result = await orderService.create(mockOrder);
@@ -123,6 +159,8 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should create and return order object when 'repo.create' is called with total price", async () => {
 			// Arrange
+			const mockUser = generateMockSelectUser();
+			await User.create(mockUser);
 			const itemsPrice = 100;
 			const taxPrice = 20;
 			const shippingPrice = 10;
@@ -132,6 +170,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 				shippingPrice,
 				taxPrice,
 				totalPrice,
+				user: mockUser._id,
 			});
 
 			// Act
@@ -147,8 +186,10 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should create and return order object when 'repo.create' is called with isPaid false by default", async () => {
 			// Arrange
+			const mockUser = generateMockSelectUser();
+			await User.create(mockUser);
 			const isPaid = false;
-			const mockOrder = generateMockInsertOrder({ isPaid });
+			const mockOrder = generateMockInsertOrder({ isPaid, user: mockUser._id });
 
 			// Act
 			const result = await orderService.create(mockOrder);
@@ -161,8 +202,13 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should create and return order object when 'repo.create' is called with isDelivered false by default", async () => {
 			// Arrange
+			const mockUser = generateMockSelectUser();
+			await User.create(mockUser);
 			const isDelivered = false;
-			const mockOrder = generateMockInsertOrder({ isDelivered });
+			const mockOrder = generateMockInsertOrder({
+				isDelivered,
+				user: mockUser._id,
+			});
 
 			// Act
 			const result = await orderService.create(mockOrder);
@@ -175,8 +221,10 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should create and return order object when 'repo.create' is called with current timestamp as createdAt", async () => {
 			// Arrange
+			const mockUser = generateMockSelectUser();
+			await User.create(mockUser);
 			const beforeCreate = new Date();
-			const mockOrder = generateMockInsertOrder();
+			const mockOrder = generateMockInsertOrder({ user: mockUser._id });
 
 			// Act
 			const result = await orderService.create(mockOrder);
@@ -190,7 +238,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should set 'PaymentMethod' to 'PayPal' if not provided when 'repo.create' is called", async () => {
 			// Arrange
-			const mockInsertOrder = generateMockInsertOrder();
+			const mockUser = generateMockSelectUser();
+			await User.create(mockUser);
+			const mockInsertOrder = generateMockInsertOrder({ user: mockUser._id });
 			// @ts-expect-error - test case
 			mockInsertOrder.paymentMethod = undefined;
 

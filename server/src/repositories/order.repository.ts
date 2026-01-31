@@ -53,9 +53,10 @@ export class OrderRepository implements IOrderRepository {
 		data: MethodParams<IOrderRepository, "create">,
 	): MethodReturn<IOrderRepository, "create"> {
 		try {
-			const result = await this._db.create(data);
+			const order = await this._db.create(data);
+			const populated = await order.populate("user", "_id name email");
 			return {
-				data: result.toObject(),
+				data: populated.toObject(),
 				success: true,
 			};
 		} catch (error) {
