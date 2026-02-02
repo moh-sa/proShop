@@ -25,3 +25,11 @@ export type OrderPaginationParams = PaginationParamsString & {
 	isPaid?: string;
 	user?: string;
 };
+
+/** Response from creating an order with checkout session */
+export type CreateOrderResponse = {
+	order: SelectOrder;
+	session: {
+		url: string;
+	};
+};
