@@ -3,16 +3,20 @@ import { after, before, beforeEach, describe, suite, test } from "node:test";
 
 import { OrderController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
+import { OrderManager } from "../../managers/index.js";
 import Order from "../../models/order.model.js";
 import Product from "../../models/product.model.js";
 import User from "../../models/user.model.js";
 import { SuccessResponse } from "../../types/api-response.type.js";
+import type { CreateOrderResponse } from "../../types/index.js";
 import {
+	generateMockCheckoutSessionResponse,
 	generateMockInsertOrder,
 	generateMockObjectId,
 	generateMockSelectOrder,
 	generateMockSelectOrders,
 	generateMockSelectUser,
+	mockPaymentService,
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
@@ -24,7 +28,9 @@ import {
 } from "../utils/index.js";
 
 suite("Order Controller 〖 Integration Tests 〗", () => {
-	const controller = new OrderController();
+	const paymentService = mockPaymentService();
+	const managerWithMockedPayment = new OrderManager(undefined, paymentService);
+	const controller = new OrderController(managerWithMockedPayment);
 
 	before(async () => await connectTestDatabase());
 	after(async () => await disconnectTestDatabase());
@@ -33,10 +39,13 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		await Order.deleteMany({});
 		await User.deleteMany({});
 		await Product.deleteMany({});
+		paymentService.reset();
 	});
 
 	describe("create", () => {
-		test("Should return success response when 'service.create' is called with valid data", async () => {
+		const mockSession = generateMockCheckoutSessionResponse();
+
+		test("Should return success response when 'manager.create' is called with valid data", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
@@ -45,6 +54,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockOrderData;
 			res.locals.user = { _id: mockUser._id };
+
+			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockSession, success: true }),
+			);
 
 			// Act
 			await controller.create(req, res, next);
@@ -54,9 +67,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response);
 			assert.ok(response.success);
 			assert.ok(response.data);
+			assert.ok(response.data.order);
+			assert.ok(response.data.session);
 		});
 
-		test("Should return '201' status code when 'service.create' is called with valid data", async () => {
+		test("Should return '201' status code when 'manager.create' is called with valid data", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
@@ -65,6 +80,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockOrderData;
 			res.locals.user = { _id: mockUser._id };
+
+			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockSession, success: true }),
+			);
 
 			// Act
 			await controller.create(req, res, next);
@@ -74,7 +93,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(code, 201);
 		});
 
-		test("Should create order when 'service.create' is called with valid data", async () => {
+		test("Should create order when 'manager.create' is called with valid data", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
@@ -83,6 +102,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockOrderData;
 			res.locals.user = { _id: mockUser._id };
+
+			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockSession, success: true }),
+			);
 
 			// Act
 			await controller.create(req, res, next);
@@ -91,21 +114,21 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const response = res._getJSONData();
 			assert.ok(response);
 			assert.ok(response.data);
-			assert.ok(response.data._id);
-			assert.strictEqual(response.data.user._id, mockUser._id.toString());
-			assert.strictEqual(response.data.user.name, mockUser.name);
-			assert.strictEqual(response.data.user.email, mockUser.email);
+			assert.ok(response.data.order._id);
+			assert.strictEqual(response.data.order.user._id, mockUser._id.toString());
+			assert.strictEqual(response.data.order.user.name, mockUser.name);
+			assert.strictEqual(response.data.order.user.email, mockUser.email);
 			assert.strictEqual(
-				response.data.orderItems.length,
+				response.data.order.orderItems.length,
 				mockOrderData.orderItems.length,
 			);
 			assert.strictEqual(
-				response.data.paymentMethod,
+				response.data.order.paymentMethod,
 				mockOrderData.paymentMethod,
 			);
 		});
 
-		test("Should include user ID in created order when 'service.create' is called with valid data", async () => {
+		test("Should include user ID in created order when 'manager.create' is called with valid data", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
@@ -114,6 +137,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockOrderData;
 			res.locals.user = { _id: mockUser._id };
+
+			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockSession, success: true }),
+			);
 
 			// Act
 			await controller.create(req, res, next);
@@ -123,9 +150,32 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response);
 			assert.ok(response.data);
 			// User should be populated with _id, name, email
-			assert.strictEqual(response.data.user._id, mockUser._id.toString());
-			assert.strictEqual(response.data.user.name, mockUser.name);
-			assert.strictEqual(response.data.user.email, mockUser.email);
+			assert.strictEqual(response.data.order.user._id, mockUser._id.toString());
+			assert.strictEqual(response.data.order.user.name, mockUser.name);
+			assert.strictEqual(response.data.order.user.email, mockUser.email);
+		});
+
+		test("Should include session URL in response when 'manager.create' is called with valid data", async () => {
+			// Arrange
+			const mockUser = generateMockSelectUser();
+			await User.create(mockUser);
+			const mockOrderData = generateMockInsertOrder({ user: mockUser._id });
+
+			const { next, req, res } = createMockExpressContext();
+			req.body = mockOrderData;
+			res.locals.user = { _id: mockUser._id };
+
+			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockSession, success: true }),
+			);
+
+			// Act
+			await controller.create(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.ok(response.data.session);
+			assert.strictEqual(response.data.session.url, mockSession.url);
 		});
 
 		test("Should convert all price fields from dollars to cents when creating order", async () => {
@@ -139,12 +189,16 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			req.body = mockOrderData;
 			res.locals.user = { _id: mockUser._id };
 
+			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockSession, success: true }),
+			);
+
 			// Act
 			await controller.create(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			const createdOrder = await Order.findById(response.data._id);
+			const createdOrder = await Order.findById(response.data.order._id);
 			assert.ok(createdOrder);
 
 			assert.strictEqual(createdOrder.itemsPrice, expectedData.itemsPrice);
@@ -172,23 +226,33 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			req.body = mockOrderData;
 			res.locals.user = { _id: mockUser._id };
 
+			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockSession, success: true }),
+			);
+
 			// Act
 			await controller.create(req, res, next);
 
 			// Assert
 			const response = res._getJSONData() as SuccessResponse<{
-				data: typeof mockOrderData;
+				data: CreateOrderResponse;
 			}>;
 
-			assert.strictEqual(response.data.itemsPrice, mockOrderData.itemsPrice);
 			assert.strictEqual(
-				response.data.shippingPrice,
+				response.data.order.itemsPrice,
+				mockOrderData.itemsPrice,
+			);
+			assert.strictEqual(
+				response.data.order.shippingPrice,
 				mockOrderData.shippingPrice,
 			);
-			assert.strictEqual(response.data.taxPrice, mockOrderData.taxPrice);
-			assert.strictEqual(response.data.totalPrice, mockOrderData.totalPrice);
+			assert.strictEqual(response.data.order.taxPrice, mockOrderData.taxPrice);
+			assert.strictEqual(
+				response.data.order.totalPrice,
+				mockOrderData.totalPrice,
+			);
 
-			response.data.orderItems.forEach((order, index) => {
+			response.data.order.orderItems.forEach((order, index) => {
 				assert.strictEqual(order.price, mockOrderData.orderItems[index].price);
 			});
 		});
@@ -913,6 +977,91 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			response.data.orderItems.forEach((order, index) => {
 				assert.strictEqual(order.price, expectedData.orderItems[index].price);
 			});
+		});
+	});
+
+	describe("handleStripeWebhook", () => {
+		// Note: These tests focus on validation logic that doesn't require Stripe.
+		// Full webhook processing tests would require mocking Stripe signature verification.
+
+		test("Should return 400 when 'stripe-signature' header is missing", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			req.body = Buffer.from("test-payload");
+			req.headers = {};
+
+			// Act
+			await controller.handleStripeWebhook(req, res, next);
+
+			// Assert
+			const code = res._getStatusCode();
+			assert.strictEqual(code, 400);
+
+			const response = res._getJSONData();
+			assert.ok(response.errors);
+			assert.strictEqual(response.success, false);
+		});
+
+		test("Should return 400 when 'stripe-signature' header is an array instead of string", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			req.body = Buffer.from("test-payload");
+			req.headers = {
+				"stripe-signature": ["sig1", "sig2"] as unknown as string,
+			};
+
+			// Act
+			await controller.handleStripeWebhook(req, res, next);
+
+			// Assert
+			const code = res._getStatusCode();
+			assert.strictEqual(code, 400);
+
+			const response = res._getJSONData();
+			assert.ok(response.errors);
+			assert.strictEqual(response.success, false);
+		});
+
+		test("Should return 400 when body is not a Buffer", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			req.body = { notABuffer: true };
+			req.headers = { "stripe-signature": "valid-signature" };
+
+			// Act
+			await controller.handleStripeWebhook(req, res, next);
+
+			// Assert
+			const code = res._getStatusCode();
+			assert.strictEqual(code, 400);
+
+			const response = res._getJSONData();
+			assert.ok(response.errors);
+			assert.strictEqual(response.success, false);
+		});
+
+		test("Should return 400 with appropriate error message when body is missing", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			req.body = undefined;
+			req.headers = { "stripe-signature": "valid-signature" };
+
+			// Act
+			await controller.handleStripeWebhook(req, res, next);
+
+			// Assert
+			const code = res._getStatusCode();
+			assert.strictEqual(code, 400);
+
+			const response = res._getJSONData();
+			assert.strictEqual(response.success, false);
+			assert.ok(
+				response.errors.some(
+					(e: { message: string }) =>
+						e.message.toLowerCase().includes("body") ||
+						e.message.toLowerCase().includes("invalid"),
+				),
+			);
 		});
 	});
 });

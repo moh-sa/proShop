@@ -1,7 +1,8 @@
-import type { IOrderService } from "../services/index.js";
+import type { IOrderManager } from "../managers/index.js";
 import type {
 	AllOrdersResponse,
 	AsyncHandler,
+	CreateOrderResponse,
 	InsertOrder,
 	OrderPaginationParams,
 	PaginatedResponse,
@@ -9,12 +10,13 @@ import type {
 	SelectOrder,
 } from "../types/index.js";
 
-import { HTTP_STATUS } from "../constants/index.js";
-import { OrderService } from "../services/index.js";
+import { ErrorType, HTTP_STATUS } from "../constants/index.js";
+import { OrderManager } from "../managers/index.js";
 import {
 	asyncHandler,
 	fromCurrencySmallestUnit,
 	getLoggerFromContext,
+	sendErrorResponse,
 	toCurrencySmallestUnit,
 } from "../utils/index.js";
 
@@ -22,7 +24,7 @@ export interface IOrderController {
 	create: AsyncHandler<{
 		locals: { user: SafeSelectUser };
 		reqBody: InsertOrder;
-		resBody: { data: SelectOrder };
+		resBody: { data: CreateOrderResponse };
 	}>;
 	getAll: AsyncHandler<{
 		query: Omit<OrderPaginationParams, "user">;
@@ -43,6 +45,9 @@ export interface IOrderController {
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
 	}>;
+	handleStripeWebhook: AsyncHandler<{
+		resBody: { data: { success: boolean } };
+	}>;
 	updateToDelivered: AsyncHandler<{
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
@@ -53,17 +58,17 @@ export interface IOrderController {
 	}>;
 }
 export class OrderController implements IOrderController {
-	private readonly _service: IOrderService;
+	private readonly _manager: IOrderManager;
 
 	create = asyncHandler<{
 		locals: { user: SafeSelectUser };
 		reqBody: InsertOrder;
-		resBody: { data: SelectOrder };
+		resBody: { data: CreateOrderResponse };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "create" });
 		logger.debug(
 			{ data: req.body, userId: res.locals.user._id },
-			"Creating order",
+			"Creating order with checkout session",
 		);
 
 		const dataToCreate = this._convertOrderToCents({
@@ -72,20 +77,25 @@ export class OrderController implements IOrderController {
 		});
 		logger.debug({ data: dataToCreate }, "Validated order data");
 
-		const result = await this._service.create(dataToCreate);
+		const result = await this._manager.create(dataToCreate);
 		if (!result.success) {
 			throw result.error;
 		}
 
 		logger.info(
-			{ orderId: result.data._id, userId: res.locals.user._id },
-			"Order created successfully",
+			{
+				orderId: result.data.order._id,
+				sessionUrl: result.data.session.url,
+				userId: res.locals.user._id,
+			},
+			"Order and checkout session created successfully",
 		);
 
-		const dataToSend = this._convertOrderToDollars(result.data);
-
 		res.status(HTTP_STATUS.CREATED).json({
-			data: dataToSend,
+			data: {
+				order: this._convertOrderToDollars(result.data.order),
+				session: result.data.session,
+			},
 			success: true,
 		});
 	});
@@ -100,7 +110,7 @@ export class OrderController implements IOrderController {
 		const logger = this._getLogger({ method: "getAll" });
 		logger.debug({ query: req.query }, "Getting all orders");
 
-		const result = await this._service.getAll(req.query);
+		const result = await this._manager.getAll(req.query);
 		if (!result.success) {
 			throw result.error;
 		}
@@ -136,7 +146,7 @@ export class OrderController implements IOrderController {
 			"Getting all orders by user ID",
 		);
 
-		const result = await this._service.getAll({
+		const result = await this._manager.getAll({
 			...req.query,
 			user: req.params.userId,
 		});
@@ -168,7 +178,7 @@ export class OrderController implements IOrderController {
 		const logger = this._getLogger({ method: "getById" });
 		logger.debug({ orderId: req.params.orderId }, "Getting order by ID");
 
-		const result = await this._service.getById({ orderId: req.params.orderId });
+		const result = await this._manager.getById({ orderId: req.params.orderId });
 		if (!result.success) {
 			throw result.error;
 		}
@@ -186,6 +196,49 @@ export class OrderController implements IOrderController {
 		});
 	});
 
+	handleStripeWebhook = asyncHandler<{
+		resBody: { data: { success: boolean } };
+	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "handleStripeWebhook" });
+		logger.debug("Processing stripe webhook");
+
+		// Validate signature header exists and is a string
+		const signature = req.headers["stripe-signature"];
+		if (!signature || typeof signature !== "string") {
+			logger.warn("Missing or invalid stripe-signature header");
+			return sendErrorResponse({
+				code: ErrorType.BAD_REQUEST,
+				errors: [{ message: "Missing or invalid stripe-signature header" }],
+				responseContext: res,
+				statusCode: HTTP_STATUS.BAD_REQUEST,
+			});
+		}
+
+		// Validate body is a buffer
+		const payload = req.body;
+		if (!Buffer.isBuffer(payload)) {
+			logger.warn("Missing or invalid body");
+			return sendErrorResponse({
+				code: ErrorType.BAD_REQUEST,
+				errors: [{ message: "Missing or invalid body" }],
+				responseContext: res,
+				statusCode: HTTP_STATUS.BAD_REQUEST,
+			});
+		}
+
+		// Verify webhook signature and extract event data
+		const verifyResult = await this._manager.processPaymentWebhook({
+			payload,
+			signature,
+		});
+		if (!verifyResult.success) {
+			throw verifyResult.error;
+		}
+
+		logger.info("Payment webhook processed successfully");
+		res.status(HTTP_STATUS.OK).json({ data: { success: true }, success: true });
+	});
+
 	updateToDelivered = asyncHandler<{
 		params: { orderId: string };
 		resBody: { data: SelectOrder };
@@ -196,7 +249,7 @@ export class OrderController implements IOrderController {
 			"Updating order to delivered",
 		);
 
-		const result = await this._service.updateToDelivered({
+		const result = await this._manager.updateToDelivered({
 			orderId: req.params.orderId,
 		});
 		if (!result.success) {
@@ -220,7 +273,7 @@ export class OrderController implements IOrderController {
 		const logger = this._getLogger({ method: "updateToPaid" });
 		logger.debug({ orderId: req.params.orderId }, "Updating order to paid");
 
-		const result = await this._service.updateToPaid({
+		const result = await this._manager.updateToPaid({
 			orderId: req.params.orderId,
 		});
 		if (!result.success) {
@@ -240,8 +293,8 @@ export class OrderController implements IOrderController {
 		});
 	});
 
-	constructor(service: IOrderService = new OrderService()) {
-		this._service = service;
+	constructor(manager: IOrderManager = new OrderManager()) {
+		this._manager = manager;
 	}
 
 	private _convertOrderToCents(order: InsertOrder): InsertOrder {

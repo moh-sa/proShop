@@ -8,11 +8,12 @@ import { Types } from "mongoose";
 import { OrderController } from "../../controllers/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
 import {
+	generateMockCheckoutSessionResponse,
 	generateMockInsertOrder,
 	generateMockSelectOrder,
 	generateMockSelectOrders,
 	mockExpressCall,
-	mockOrderService,
+	mockOrderManager,
 } from "../mocks/index.js";
 import {
 	convertOrderToCents,
@@ -21,11 +22,11 @@ import {
 } from "../utils/index.js";
 
 suite("Order Controller 〖 Unit Tests 〗", () => {
-	const mockService = mockOrderService();
-	const controller = new OrderController(mockService);
+	const mockManager = mockOrderManager();
+	const controller = new OrderController(mockManager);
 
 	beforeEach(() => {
-		mockService.reset();
+		mockManager.reset();
 	});
 
 	describe("create", () => {
@@ -41,6 +42,8 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		});
 		const mockSelectOrderInDollars = convertOrderToDollars(mockSelectOrder);
 
+		const mockSession = generateMockCheckoutSessionResponse();
+
 		const userId = mockInsertOrderInCents.user.toString();
 
 		test("Should parse 'order data' from 'req.body' and 'userId' from 'res.locals'", async (t) => {
@@ -51,8 +54,11 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockSelectOrder, success: true }),
+			mockManager.create.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { order: mockSelectOrder, session: mockSession },
+					success: true,
+				}),
 			);
 
 			// Act & Assert
@@ -66,7 +72,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should convert order prices from dollars to cents before calling service", async (t) => {
+		test("Should convert order prices from dollars to cents before calling manager", async (t) => {
 			// Arrange
 			const userIdObject = new Types.ObjectId(userId);
 			const { next, req, res } = mockExpressCall({
@@ -75,8 +81,11 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockSelectOrder, success: true }),
+			mockManager.create.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { order: mockSelectOrder, session: mockSession },
+					success: true,
+				}),
 			);
 
 			// Act
@@ -87,9 +96,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.create.mock.callCount(), 1);
+			assert.strictEqual(mockManager.create.mock.callCount(), 1);
 
-			const args = mockService.create.mock.calls[0].arguments[0];
+			const args = mockManager.create.mock.calls[0].arguments[0];
 			assert.strictEqual(args.itemsPrice, mockSelectOrder.itemsPrice);
 			assert.strictEqual(args.shippingPrice, mockSelectOrder.shippingPrice);
 			assert.strictEqual(args.taxPrice, mockSelectOrder.taxPrice);
@@ -108,8 +117,11 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockSelectOrder, success: true }),
+			mockManager.create.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { order: mockSelectOrder, session: mockSession },
+					success: true,
+				}),
 			);
 
 			// Act
@@ -121,29 +133,60 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			const response = res.json.mock.calls[0].arguments[0] as SuccessResponse<{
-				data: typeof mockSelectOrder;
+				data: { order: typeof mockSelectOrder; session: typeof mockSession };
 			}>;
 
 			assert.strictEqual(
-				response.data.itemsPrice,
+				response.data.order.itemsPrice,
 				mockSelectOrderInDollars.itemsPrice,
 			);
 			assert.strictEqual(
-				response.data.shippingPrice,
+				response.data.order.shippingPrice,
 				mockSelectOrderInDollars.shippingPrice,
 			);
 			assert.strictEqual(
-				response.data.taxPrice,
+				response.data.order.taxPrice,
 				mockSelectOrderInDollars.taxPrice,
 			);
 			assert.strictEqual(
-				response.data.totalPrice,
+				response.data.order.totalPrice,
 				mockSelectOrderInDollars.totalPrice,
 			);
 			assert.strictEqual(
-				response.data.orderItems[0].price,
+				response.data.order.orderItems[0].price,
 				mockSelectOrderInDollars.orderItems[0].price,
 			);
+		});
+
+		test("Should include session URL in response", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { body: mockInsertOrder },
+				res: { locals: { user: { _id: userId } } },
+				testContext: t,
+			});
+
+			mockManager.create.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { order: mockSelectOrder, session: mockSession },
+					success: true,
+				}),
+			);
+
+			// Act
+			await controller.create(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			const response = res.json.mock.calls[0].arguments[0] as SuccessResponse<{
+				data: { order: typeof mockSelectOrder; session: typeof mockSession };
+			}>;
+
+			assert.ok(response.data.session);
+			assert.strictEqual(response.data.session.url, mockSession.url);
 		});
 
 		test("Should call 'res.status' once with '201' after successfully creating order data", async (t) => {
@@ -154,8 +197,11 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockSelectOrder, success: true }),
+			mockManager.create.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { order: mockSelectOrder, session: mockSession },
+					success: true,
+				}),
 			);
 
 			// Act
@@ -170,7 +216,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 201);
 		});
 
-		test("Should call 'res.json' once with the success response object containing order data", async (t) => {
+		test("Should call 'res.json' once with the success response object containing order and session data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
@@ -178,8 +224,11 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.create.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockSelectOrder, success: true }),
+			mockManager.create.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { order: mockSelectOrder, session: mockSession },
+					success: true,
+				}),
 			);
 
 			// Act
@@ -191,10 +240,13 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockSelectOrderInDollars }),
-			);
+			assert.deepStrictEqual(res.json.mock.calls[0].arguments[0], {
+				data: {
+					order: mockSelectOrderInDollars,
+					session: mockSession,
+				},
+				success: true,
+			});
 		});
 	});
 
@@ -224,7 +276,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
@@ -236,8 +288,8 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
-			assert.strictEqual(mockService.getAll.mock.calls[0].arguments.length, 1);
+			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
+			assert.strictEqual(mockManager.getAll.mock.calls[0].arguments.length, 1);
 		});
 
 		test("Should pass query parameters to service.getAll", async (t) => {
@@ -252,7 +304,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
@@ -264,9 +316,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
+			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.getAll.mock.calls[0].arguments[0],
+				mockManager.getAll.mock.calls[0].arguments[0],
 				queryParams,
 			);
 		});
@@ -278,7 +330,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
@@ -309,7 +361,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
@@ -332,7 +384,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
@@ -364,7 +416,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
@@ -376,8 +428,8 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(mockService.getAll.mock.calls[0].arguments[0], {});
+			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
+			assert.deepStrictEqual(mockManager.getAll.mock.calls[0].arguments[0], {});
 		});
 	});
 
@@ -411,7 +463,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
@@ -423,9 +475,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
+			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.getAll.mock.calls[0].arguments[0].user?.toString(),
+				mockManager.getAll.mock.calls[0].arguments[0].user?.toString(),
 				userId,
 			);
 		});
@@ -446,7 +498,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
@@ -458,18 +510,18 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
+			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
 
 			assert.deepStrictEqual(
-				mockService.getAll.mock.calls[0].arguments[0].pageNumber,
+				mockManager.getAll.mock.calls[0].arguments[0].pageNumber,
 				queryParams.pageNumber,
 			);
 			assert.deepStrictEqual(
-				mockService.getAll.mock.calls[0].arguments[0].pageSize,
+				mockManager.getAll.mock.calls[0].arguments[0].pageSize,
 				queryParams.pageSize,
 			);
 			assert.deepStrictEqual(
-				mockService.getAll.mock.calls[0].arguments[0].sort,
+				mockManager.getAll.mock.calls[0].arguments[0].sort,
 				queryParams.sort,
 			);
 		});
@@ -484,7 +536,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
@@ -518,7 +570,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
@@ -544,7 +596,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
@@ -578,7 +630,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getAll.mock.mockImplementationOnce(() =>
+			mockManager.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
@@ -590,9 +642,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
+			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.getAll.mock.calls[0].arguments[0].user?.toString(),
+				mockManager.getAll.mock.calls[0].arguments[0].user?.toString(),
 				userId,
 			);
 		});
@@ -620,7 +672,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getById.mock.mockImplementationOnce(() =>
+			mockManager.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
@@ -632,9 +684,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.getById.mock.callCount(), 1);
+			assert.strictEqual(mockManager.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.getById.mock.calls[0].arguments[0].orderId.toString(),
+				mockManager.getById.mock.calls[0].arguments[0].orderId.toString(),
 				orderId,
 			);
 		});
@@ -646,7 +698,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getById.mock.mockImplementationOnce(() =>
+			mockManager.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
@@ -669,7 +721,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getById.mock.mockImplementationOnce(() =>
+			mockManager.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
@@ -711,7 +763,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.getById.mock.mockImplementationOnce(() =>
+			mockManager.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
@@ -753,7 +805,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.updateToPaid.mock.mockImplementationOnce(() =>
+			mockManager.updateToPaid.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
@@ -775,7 +827,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.updateToPaid.mock.mockImplementationOnce(() =>
+			mockManager.updateToPaid.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
@@ -787,9 +839,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.updateToPaid.mock.callCount(), 1);
+			assert.strictEqual(mockManager.updateToPaid.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.updateToPaid.mock.calls[0].arguments[0].orderId.toString(),
+				mockManager.updateToPaid.mock.calls[0].arguments[0].orderId.toString(),
 
 				orderId,
 			);
@@ -802,7 +854,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.updateToPaid.mock.mockImplementationOnce(() =>
+			mockManager.updateToPaid.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
@@ -844,7 +896,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.updateToPaid.mock.mockImplementationOnce(() =>
+			mockManager.updateToPaid.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
@@ -867,7 +919,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.updateToPaid.mock.mockImplementationOnce(() =>
+			mockManager.updateToPaid.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
@@ -909,7 +961,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.updateToDelivered.mock.mockImplementationOnce(() =>
+			mockManager.updateToDelivered.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
@@ -931,7 +983,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.updateToDelivered.mock.mockImplementationOnce(() =>
+			mockManager.updateToDelivered.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
@@ -943,9 +995,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			assert.strictEqual(mockService.updateToDelivered.mock.callCount(), 1);
+			assert.strictEqual(mockManager.updateToDelivered.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockService.updateToDelivered.mock.calls[0].arguments[0].orderId.toString(),
+				mockManager.updateToDelivered.mock.calls[0].arguments[0].orderId.toString(),
 				orderId,
 			);
 		});
@@ -957,7 +1009,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.updateToDelivered.mock.mockImplementationOnce(() =>
+			mockManager.updateToDelivered.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
@@ -999,7 +1051,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.updateToDelivered.mock.mockImplementationOnce(() =>
+			mockManager.updateToDelivered.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
@@ -1022,7 +1074,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 
-			mockService.updateToDelivered.mock.mockImplementationOnce(() =>
+			mockManager.updateToDelivered.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
@@ -1038,6 +1090,167 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
 				createSuccessResponseObject({ data: mockOrderInDollars }),
+			);
+		});
+	});
+
+	describe("handleStripeWebhook", () => {
+		const mockPayload = Buffer.from("test-payload");
+		const mockSignature = "test-signature";
+
+		test("Should return 400 when 'stripe-signature' header is missing", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					body: mockPayload,
+					headers: {},
+				},
+				testContext: t,
+			});
+
+			// Act
+			await controller.handleStripeWebhook(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(res.status.mock.callCount(), 1);
+			assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+		});
+
+		test("Should return 400 when 'stripe-signature' header is not a string", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					body: mockPayload,
+					headers: { "stripe-signature": ["array", "value"] },
+				},
+				testContext: t,
+			});
+
+			// Act
+			await controller.handleStripeWebhook(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(res.status.mock.callCount(), 1);
+			assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+		});
+
+		test("Should return 400 when body is not a Buffer", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					body: { notABuffer: true },
+					headers: { "stripe-signature": mockSignature },
+				},
+				testContext: t,
+			});
+
+			// Act
+			await controller.handleStripeWebhook(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(res.status.mock.callCount(), 1);
+			assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+		});
+
+		test("Should call 'manager.processPaymentWebhook' with correct params", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					body: mockPayload,
+					headers: { "stripe-signature": mockSignature },
+				},
+				testContext: t,
+			});
+
+			mockManager.processPaymentWebhook.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: undefined, success: true }),
+			);
+
+			// Act
+			await controller.handleStripeWebhook(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockManager.processPaymentWebhook.mock.callCount(), 1);
+
+			const args = mockManager.processPaymentWebhook.mock.calls[0].arguments[0];
+			assert.ok(Buffer.isBuffer(args.payload));
+			assert.strictEqual(args.signature, mockSignature);
+		});
+
+		test("Should return 200 with success response on successful processing", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					body: mockPayload,
+					headers: { "stripe-signature": mockSignature },
+				},
+				testContext: t,
+			});
+
+			mockManager.processPaymentWebhook.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: undefined, success: true }),
+			);
+
+			// Act
+			await controller.handleStripeWebhook(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(res.status.mock.callCount(), 1);
+			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+			assert.strictEqual(res.json.mock.callCount(), 1);
+			assert.deepStrictEqual(res.json.mock.calls[0].arguments[0], {
+				data: { success: true },
+				success: true,
+			});
+		});
+
+		test("Should throw error when 'manager.processPaymentWebhook' fails", async (t) => {
+			// Arrange
+			const mockError = new Error("Webhook verification failed");
+			const { next, req, res } = mockExpressCall({
+				req: {
+					body: mockPayload,
+					headers: { "stripe-signature": mockSignature },
+				},
+				testContext: t,
+			});
+
+			mockManager.processPaymentWebhook.mock.mockImplementationOnce(() =>
+				Promise.resolve({ error: mockError, success: false }),
+			);
+
+			// Act & Assert
+			await assert.rejects(
+				async () =>
+					await controller.handleStripeWebhook(
+						req as unknown as Request,
+						res as unknown as Response,
+						next,
+					),
+				(error: Error) => {
+					assert.strictEqual(error.message, "Webhook verification failed");
+					return true;
+				},
 			);
 		});
 	});

@@ -14,6 +14,7 @@ export * from "./image.mock.js";
 export * from "./jwt-service.mock.js";
 export * from "./jwt.mock.js";
 export * from "./objectid.mock.js";
+export * from "./order-manager.mock.js";
 export * from "./order-repository.mock.js";
 export * from "./order-service.mock.js";
 export * from "./order.mock.js";
