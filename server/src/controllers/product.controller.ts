@@ -254,7 +254,6 @@ export class ProductController implements IProductController {
 		return toCurrencySmallestUnit({
 			amount,
 			currency: "USD",
-			locale: "en",
 		});
 	}
 
@@ -262,7 +261,6 @@ export class ProductController implements IProductController {
 		return fromCurrencySmallestUnit({
 			amount,
 			currency: "USD",
-			locale: "en",
 		});
 	}
 }

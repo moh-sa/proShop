@@ -280,7 +280,6 @@ export class OrderController implements IOrderController {
 		return toCurrencySmallestUnit({
 			amount,
 			currency: "USD",
-			locale: "en",
 		});
 	}
 
@@ -288,7 +287,6 @@ export class OrderController implements IOrderController {
 		return fromCurrencySmallestUnit({
 			amount,
 			currency: "USD",
-			locale: "en",
 		});
 	}
 }
