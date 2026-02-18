@@ -157,6 +157,47 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 				mockOrder.shippingAddress.country,
 			);
 		});
+
+		test("Should create order with 'Stripe' when 'paymentMethod' is a valid enum value", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({ paymentMethod: "Stripe" });
+
+			// Act
+			const result = await orderRepository.create(mockOrder);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.paymentMethod, "Stripe");
+		});
+
+		test("Should return 'DatabaseValidationError' when 'paymentMethod' is not a valid enum value", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder();
+			// @ts-expect-error - test case
+			mockOrder.paymentMethod = "PayPal";
+
+			// Act
+			const result = await orderRepository.create(mockOrder);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
+		});
+
+		test("Should default 'paymentMethod' to 'Stripe' when not provided", async () => {
+			// Arrange
+			const { paymentMethod: _, ...mockOrder } = generateMockInsertOrder();
+
+			// Act
+			const result = await orderRepository.create(
+				// @ts-expect-error -test case
+				mockOrder,
+			);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.paymentMethod, "Stripe");
+		});
 	});
 
 	describe("getById", () => {

@@ -29,6 +29,8 @@ const orderSchema = new Schema<OrderSchema>(
 			type: Date,
 		},
 		paymentMethod: {
+			default: "Stripe",
+			enum: ["Stripe"],
 			required: true,
 			type: String,
 		},
