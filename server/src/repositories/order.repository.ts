@@ -7,6 +7,7 @@ import type {
 	InsertOrder,
 	MethodParams,
 	MethodReturn,
+	OrderStatus,
 	PaginatedResponse,
 	PaginationParamsQuery,
 	Result,
@@ -26,15 +27,12 @@ export interface IOrderRepository {
 	}: {
 		orderId: Types.ObjectId;
 	}): Promise<OrderResult<null | SelectOrder>>;
-	updateToDelivered({
+	updateStatus({
 		orderId,
+		status,
 	}: {
 		orderId: Types.ObjectId;
-	}): Promise<OrderResult<null | SelectOrder>>;
-	updateToPaid({
-		orderId,
-	}: {
-		orderId: Types.ObjectId;
+		status: OrderStatus;
 	}): Promise<OrderResult<null | SelectOrder>>;
 }
 
@@ -68,8 +66,6 @@ export class OrderRepository implements IOrderRepository {
 		args: MethodParams<IOrderRepository, "getAll">,
 	): MethodReturn<IOrderRepository, "getAll"> {
 		try {
-			// _id createdAt isPaid paidAt isDelivered deliveredAt totalPrice user
-
 			const result = await this._paginator.paginate<AllOrdersResponse>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
@@ -108,55 +104,25 @@ export class OrderRepository implements IOrderRepository {
 		}
 	}
 
-	async updateToDelivered({
+	async updateStatus({
 		orderId,
-	}: MethodParams<IOrderRepository, "getById">): MethodReturn<
+		status,
+	}: MethodParams<IOrderRepository, "updateStatus">): MethodReturn<
 		IOrderRepository,
-		"getById"
+		"updateStatus"
 	> {
-		try {
-			const result = await this._db
-				.findByIdAndUpdate(
-					orderId,
-					{
-						$set: {
-							deliveredAt: new Date(),
-							isDelivered: true,
-						},
-					},
-					{ new: true },
-				)
-				.lean();
+		const updateFields: Record<string, unknown> = { status };
+		const now = new Date();
 
-			return {
-				data: result,
-				success: true,
-			};
-		} catch (error) {
-			return this._errorHandler(error);
+		if (status === "processing") {
+			updateFields.paidAt = now;
+		} else if (status === "delivered") {
+			updateFields.deliveredAt = now;
 		}
-	}
 
-	async updateToPaid({
-		orderId,
-	}: MethodParams<IOrderRepository, "updateToDelivered">): MethodReturn<
-		IOrderRepository,
-		"updateToDelivered"
-	> {
 		try {
 			const result = await this._db
-				.findByIdAndUpdate(
-					orderId,
-					{
-						$set: {
-							isPaid: true,
-							paidAt: new Date(),
-						},
-					},
-					{
-						new: true,
-					},
-				)
+				.findByIdAndUpdate(orderId, { $set: updateFields }, { new: true })
 				.lean();
 
 			return {

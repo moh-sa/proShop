@@ -3,6 +3,7 @@ import type { z } from "zod";
 import type {
 	allOrdersResponseSchema,
 	insertOrderSchema,
+	orderStatusSchema,
 	selectOrderSchema,
 } from "../schemas/index.js";
 import type {
@@ -15,14 +16,14 @@ export type AllOrdersResponse = z.infer<typeof allOrdersResponseSchema>;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
 export type OrderSchema = SelectOrder;
+export type OrderStatus = z.infer<typeof orderStatusSchema>;
 
 export type SelectOrder = z.infer<typeof selectOrderSchema>;
 export type SelectOrderItem = z.infer<typeof selectOrderItemSchema>;
 
 // Pagination
 export type OrderPaginationParams = PaginationParamsString & {
-	isDelivered?: string;
-	isPaid?: string;
+	status?: string;
 	user?: string;
 };
 

@@ -6,11 +6,15 @@ import { shippingAddressSchema } from "../shipping/shipping-address.schema.js";
 import { selectUserSchema } from "../user/user.schema.js";
 import { insertOrderItemSchema } from "./order-item.schema.js";
 
+export const orderStatusSchema = z.enum([
+	"pending",
+	"processing",
+	"delivered",
+	"cancelled",
+]);
+
 const baseOrderSchema = z.object({
 	deliveredAt: z.date().optional(),
-	isDelivered: z.boolean().default(false),
-
-	isPaid: z.boolean().default(false),
 
 	itemsPrice: z
 		.number()
@@ -21,7 +25,7 @@ const baseOrderSchema = z.object({
 	}),
 
 	paidAt: z.date().optional(),
-	paymentMethod: z.enum(["PayPal", "Stripe"]).default("PayPal"),
+	paymentMethod: z.enum(["Stripe"]).default("Stripe"),
 	paymentResult: paymentResultSchema,
 	shippingAddress: shippingAddressSchema,
 
@@ -29,6 +33,7 @@ const baseOrderSchema = z.object({
 		.number()
 		.min(0, { message: "Shipping price is required." })
 		.default(0),
+	status: orderStatusSchema.default("pending"),
 	taxPrice: z.number().min(0, { message: "Tax price is required." }).default(0),
 
 	totalPrice: z
@@ -51,9 +56,8 @@ export const allOrdersResponseSchema = selectOrderSchema.pick({
 	_id: true,
 	createdAt: true,
 	deliveredAt: true,
-	isDelivered: true,
-	isPaid: true,
 	paidAt: true,
+	status: true,
 	totalPrice: true,
 	user: true,
 });

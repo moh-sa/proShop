@@ -460,7 +460,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const { next, req, res } = createMockExpressContext();
 			req.query = {
-				isPaid: "true",
+				status: "processing",
 				pageNumber: "1",
 				pageSize: "2",
 				sort: "createdAt:desc",
@@ -637,11 +637,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const paidOrders = generateMockSelectOrders(2, {
-				isPaid: true,
+				status: "processing",
 				user: mockUser,
 			});
 			const unpaidOrders = generateMockSelectOrders(1, {
-				isPaid: false,
+				status: "pending",
 				user: mockUser,
 			});
 			await Order.insertMany([...paidOrders, ...unpaidOrders]);
@@ -649,7 +649,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockUser._id.toString() };
 			req.query = {
-				isPaid: "true",
+				status: "processing",
 				pageNumber: "1",
 				pageSize: "10",
 			};
@@ -663,7 +663,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(Array.isArray(response.data));
 			assert.ok(response.meta);
 			assert.strictEqual(response.data.length, 2);
-			assert.ok(response.data.every((order: any) => order.isPaid === true));
+			assert.ok(
+				response.data.every((order: any) => order.status === "processing"),
+			);
 		});
 
 		test("Should handle empty query parameters with userId", async () => {
@@ -718,17 +720,18 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		});
 	});
 
-	describe("updateToPaid", () => {
-		test("Should return success response when 'service.updateToPaid' is called with valid data", async () => {
+	describe("updateStatus", () => {
+		test("Should return success response when 'service.updateStatus' is called with valid data", async () => {
 			// Arrange
-			const mockOrder = generateMockSelectOrder({ isPaid: true });
+			const mockOrder = generateMockSelectOrder({ status: "pending" });
 			await Order.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrder._id.toString() };
+			req.body = { status: "processing" };
 
 			// Act
-			await controller.updateToPaid(req, res, next);
+			await controller.updateStatus(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
@@ -737,55 +740,58 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response.data);
 		});
 
-		test("Should return '200' status code when 'service.updateToPaid' is called with valid data", async () => {
+		test("Should return '200' status code when 'service.updateStatus' is called with valid data", async () => {
 			// Arrange
-			const mockOrder = generateMockSelectOrder({ isPaid: false });
+			const mockOrder = generateMockSelectOrder({ status: "pending" });
 			await Order.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrder._id.toString() };
+			req.body = { status: "processing" };
 
 			// Act
-			await controller.updateToPaid(req, res, next);
+			await controller.updateStatus(req, res, next);
 
 			// Assert
 			const code = res._getStatusCode();
 			assert.strictEqual(code, 200);
 		});
 
-		test("Should set 'isPaid' to true when 'service.updateToPaid' is called with existing order", async () => {
+		test("Should update status to 'processing' when 'service.updateStatus' is called", async () => {
 			// Arrange
-			const mockOrder = generateMockSelectOrder({ isPaid: false });
+			const mockOrder = generateMockSelectOrder({ status: "pending" });
 			await Order.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrder._id.toString() };
+			req.body = { status: "processing" };
 
 			// Act
-			await controller.updateToPaid(req, res, next);
+			await controller.updateStatus(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
 			assert.ok(response);
 			assert.ok(response.data);
-			assert.strictEqual(response.data.isPaid, true);
+			assert.strictEqual(response.data.status, "processing");
 		});
 
-		test("Should set 'paidAt' timestamp when 'service.updateToPaid' is called with existing order", async (t) => {
+		test("Should set 'paidAt' timestamp when 'service.updateStatus' is called with existing order", async (t) => {
 			// Arrange
 			t.mock.timers.enable({ apis: ["Date"], now: new Date() });
 
 			const mockOrder = generateMockSelectOrder({
-				isPaid: false,
+				status: "pending",
 				paidAt: undefined,
 			});
 			await Order.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrder._id.toString() };
+			req.body = { status: "processing" };
 
 			// Act
-			await controller.updateToPaid(req, res, next);
+			await controller.updateStatus(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
@@ -797,16 +803,17 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(new Date(response.data.paidAt) < new Date());
 		});
 
-		test("Should throw 'NotFoundError' when 'service.updateToPaid' is called with non-existent order id", async () => {
+		test("Should throw 'NotFoundError' when 'service.updateStatus' is called with non-existent order id", async () => {
 			// Arrange
 			const orderId = generateMockObjectId();
 			const { next, req, res } = createMockExpressContext();
 
 			req.params = { orderId: orderId.toString() };
+			req.body = { status: "processing" };
 
 			// Act & Assert
 			await assert.rejects(
-				async () => await controller.updateToPaid(req, res, next),
+				async () => await controller.updateStatus(req, res, next),
 				(error: unknown) => {
 					assert.ok(error instanceof NotFoundError);
 					assert.strictEqual(error.message, "Order not found");
@@ -818,7 +825,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should convert all price fields from cents to dollars in response when updating order to paid", async () => {
 			// Arrange
 			const mockOrder = convertOrderToCents(
-				generateMockSelectOrder({ isPaid: false }),
+				generateMockSelectOrder({ status: "pending" }),
 			);
 			await Order.insertMany([mockOrder]);
 
@@ -826,9 +833,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrder._id.toString() };
+			req.body = { status: "processing" };
 
 			// Act
-			await controller.updateToPaid(req, res, next);
+			await controller.updateStatus(req, res, next);
 
 			// Assert
 			const response = res._getJSONData() as SuccessResponse<{
@@ -847,19 +855,18 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 				assert.strictEqual(order.price, expectedData.orderItems[index].price);
 			});
 		});
-	});
 
-	describe("updateToDelivered", () => {
-		test("Should return success response when 'service.updateToDelivered' is called with valid data", async () => {
+		test("Should return success response when 'service.updateStatus' is called with valid data", async () => {
 			// Arrange
-			const mockOrder = generateMockSelectOrder({ isDelivered: false });
+			const mockOrder = generateMockSelectOrder({ status: "processing" });
 			await Order.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrder._id.toString() };
+			req.body = { status: "delivered" };
 
 			// Act
-			await controller.updateToDelivered(req, res, next);
+			await controller.updateStatus(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
@@ -868,55 +875,58 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response.data);
 		});
 
-		test("Should return '200' status code when 'service.updateToDelivered' is called with valid data", async () => {
+		test("Should return '200' status code when 'service.updateStatus' is called with valid data", async () => {
 			// Arrange
-			const mockOrder = generateMockSelectOrder({ isDelivered: false });
+			const mockOrder = generateMockSelectOrder({ status: "processing" });
 			await Order.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrder._id.toString() };
+			req.body = { status: "delivered" };
 
 			// Act
-			await controller.updateToDelivered(req, res, next);
+			await controller.updateStatus(req, res, next);
 
 			// Assert
 			const code = res._getStatusCode();
 			assert.strictEqual(code, 200);
 		});
 
-		test("Should set 'isDelivered' to true when 'service.updateToDelivered' is called with existing order", async () => {
+		test("Should set status to 'delivered' when 'service.updateStatus' is called with existing order", async () => {
 			// Arrange
-			const mockOrder = generateMockSelectOrder({ isDelivered: false });
+			const mockOrder = generateMockSelectOrder({ status: "processing" });
 			await Order.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrder._id.toString() };
+			req.body = { status: "delivered" };
 
 			// Act
-			await controller.updateToDelivered(req, res, next);
+			await controller.updateStatus(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
 			assert.ok(response);
 			assert.ok(response.data);
-			assert.strictEqual(response.data.isDelivered, true);
+			assert.strictEqual(response.data.status, "delivered");
 		});
 
-		test("Should set 'deliveredAt' timestamp when 'service.updateToDelivered' is called with existing order", async (t) => {
+		test("Should set 'deliveredAt' timestamp when 'service.updateStatus' is called with existing order", async (t) => {
 			// Arrange
 			t.mock.timers.enable({ apis: ["Date"], now: new Date() });
 
 			const mockOrder = generateMockSelectOrder({
+				status: "processing",
 				deliveredAt: undefined,
-				isDelivered: false,
 			});
 			await Order.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrder._id.toString() };
+			req.body = { status: "delivered" };
 
 			// Act
-			await controller.updateToDelivered(req, res, next);
+			await controller.updateStatus(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
@@ -926,57 +936,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			t.mock.timers.tick(100); // Ensure that current date is at least 100ms ahead of response date
 			assert.ok(new Date(response.data.deliveredAt) < new Date());
-		});
-
-		test("Should throw 'NotFoundError' when 'service.updateToDelivered' is called with non-existent order id", async () => {
-			// Arrange
-			const orderId = generateMockObjectId();
-
-			const { next, req, res } = createMockExpressContext();
-			req.params = { orderId: orderId.toString() };
-
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.updateToDelivered(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof NotFoundError);
-					assert.strictEqual(error.message, "Order not found");
-					return true;
-				},
-			);
-		});
-
-		test("Should convert all price fields from cents to dollars in response when updating order to delivered", async () => {
-			// Arrange
-			const mockOrder = convertOrderToCents(
-				generateMockSelectOrder({ isDelivered: false }),
-			);
-			await Order.insertMany([mockOrder]);
-
-			const expectedData = convertOrderToDollars(mockOrder);
-
-			const { next, req, res } = createMockExpressContext();
-			req.params = { orderId: mockOrder._id.toString() };
-
-			// Act
-			await controller.updateToDelivered(req, res, next);
-
-			// Assert
-			const response = res._getJSONData() as SuccessResponse<{
-				data: typeof mockOrder;
-			}>;
-
-			assert.strictEqual(response.data.itemsPrice, expectedData.itemsPrice);
-			assert.strictEqual(
-				response.data.shippingPrice,
-				expectedData.shippingPrice,
-			);
-			assert.strictEqual(response.data.taxPrice, expectedData.taxPrice);
-			assert.strictEqual(response.data.totalPrice, expectedData.totalPrice);
-
-			response.data.orderItems.forEach((order, index) => {
-				assert.strictEqual(order.price, expectedData.orderItems[index].price);
-			});
 		});
 	});
 

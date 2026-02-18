@@ -7,24 +7,18 @@ export function mockOrderService(): FunctionMocksWithReset<IOrderService> {
 	return {
 		create: mock.fn(),
 		getAll: mock.fn(),
-		getAllByUserId: mock.fn(),
 		getById: mock.fn(),
 		reset() {
 			this.create.mock.resetCalls();
 			this.getAll.mock.resetCalls();
 			this.getById.mock.resetCalls();
-			this.getAllByUserId.mock.resetCalls();
-			this.updateToDelivered.mock.resetCalls();
-			this.updateToPaid.mock.resetCalls();
+			this.updateStatus.mock.resetCalls();
 
 			this.create.mock.restore();
 			this.getAll.mock.restore();
 			this.getById.mock.restore();
-			this.getAllByUserId.mock.restore();
-			this.updateToDelivered.mock.restore();
-			this.updateToPaid.mock.restore();
+			this.updateStatus.mock.restore();
 		},
-		updateToDelivered: mock.fn(),
-		updateToPaid: mock.fn(),
+		updateStatus: mock.fn(),
 	};
 }

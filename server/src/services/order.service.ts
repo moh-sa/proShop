@@ -1,4 +1,5 @@
 import type { Types } from "mongoose";
+import type { Logger } from "pino";
 
 import type { IOrderRepository } from "../repositories/index.js";
 import type {
@@ -7,6 +8,7 @@ import type {
 	MethodParams,
 	MethodReturn,
 	OrderPaginationParams,
+	OrderStatus,
 	PaginatedResponse,
 	Result,
 	SelectOrder,
@@ -14,7 +16,11 @@ import type {
 
 import { NotFoundError, ValidationError } from "../errors/index.js";
 import { OrderRepository } from "../repositories/index.js";
-import { insertOrderSchema, orderQuerySchema } from "../schemas/index.js";
+import {
+	insertOrderSchema,
+	orderQuerySchema,
+	orderStatusSchema,
+} from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 import { objectIdValidator } from "../validators/object-id.validator.js";
 import { paginationParamsValidator } from "../validators/pagination.validator.js";
@@ -25,14 +31,23 @@ export interface IOrderService {
 		args: OrderPaginationParams,
 	): Promise<OrderResult<PaginatedResponse<AllOrdersResponse>>>;
 	getById(data: { orderId: string }): Promise<OrderResult<SelectOrder>>;
-	updateToDelivered(data: {
+	updateStatus(data: {
 		orderId: string;
+		status: OrderStatus;
 	}): Promise<OrderResult<SelectOrder>>;
-	updateToPaid(data: { orderId: string }): Promise<OrderResult<SelectOrder>>;
 }
 
 type OrderResult<T> = Result<T>;
 export class OrderService implements IOrderService {
+	private readonly _allowedTransitions: Record<
+		OrderStatus,
+		ReadonlyArray<OrderStatus>
+	> = {
+		cancelled: [],
+		delivered: [],
+		pending: ["processing", "cancelled"],
+		processing: ["delivered"],
+	};
 	private readonly _repository: IOrderRepository;
 
 	constructor(repository: IOrderRepository = new OrderRepository()) {
@@ -101,8 +116,7 @@ export class OrderService implements IOrderService {
 		);
 
 		const queryResult = orderQuerySchema.safeParse({
-			isDelivered: args.isDelivered,
-			isPaid: args.isPaid,
+			status: args.status,
 			user: args.user,
 		});
 		if (!queryResult.success) {
@@ -126,9 +140,8 @@ export class OrderService implements IOrderService {
 						_id: 1,
 						createdAt: 1,
 						deliveredAt: 1,
-						isDelivered: 1,
-						isPaid: 1,
 						paidAt: 1,
+						status: 1,
 						totalPrice: 1,
 						user: 1,
 					},
@@ -202,41 +215,53 @@ export class OrderService implements IOrderService {
 		};
 	}
 
-	async updateToDelivered({
+	async updateStatus({
 		orderId,
-	}: MethodParams<IOrderService, "updateToDelivered">): MethodReturn<
+		status,
+	}: MethodParams<IOrderService, "updateStatus">): MethodReturn<
 		IOrderService,
-		"updateToDelivered"
+		"updateStatus"
 	> {
-		const logger = this._getLogger({ method: "updateToDelivered" });
-		logger.debug({ orderId }, "Updating order to delivered");
+		const logger = this._getLogger({ method: "updateStatus" });
+		logger.debug({ orderId, status }, "Updating order status");
 
-		const validationResult = this._validateObjectId("orderId", orderId);
-		if (!validationResult.success) {
-			logger.warn(
-				{ error: validationResult.error, orderId },
-				"Invalid order ID",
-			);
-			return validationResult;
+		// Validate orderId
+		const idResult = this._validateObjectId("orderId", orderId);
+		if (!idResult.success) {
+			logger.warn({ error: idResult.error, orderId }, "Invalid order ID");
+			return idResult;
 		}
 
-		logger.debug(
-			{ validatedOrderId: validationResult.data },
-			"Validated order ID",
-		);
+		// Validate status
+		const statusResult = orderStatusSchema.safeParse(status);
+		if (!statusResult.success) {
+			logger.warn(
+				{ error: statusResult.error, status },
+				"Invalid status value",
+			);
+			return {
+				error: new ValidationError("Invalid status value", {
+					cause: statusResult.error,
+				}),
+				success: false,
+			};
+		}
 
-		const result = await this._repository.updateToDelivered({
-			orderId: validationResult.data,
+		const newStatus = statusResult.data;
+
+		// Get the current order
+		const currentOrderResult = await this._repository.getById({
+			orderId: idResult.data,
 		});
-		if (!result.success) {
+		if (!currentOrderResult.success) {
 			logger.error(
-				{ error: result.error },
-				"Failed to update order to delivered",
+				{ error: currentOrderResult.error },
+				"Failed to retrieve order for status update",
 			);
-			return result;
+			return currentOrderResult;
 		}
 
-		if (!result.data) {
+		if (!currentOrderResult.data) {
 			logger.warn({ orderId }, "Order not found");
 			return {
 				error: new NotFoundError("Order"),
@@ -244,44 +269,31 @@ export class OrderService implements IOrderService {
 			};
 		}
 
-		logger.info(
-			{ deliveredAt: result.data.deliveredAt, orderId },
-			"Order marked as delivered successfully",
-		);
-		return {
-			data: result.data,
-			success: true,
-		};
-	}
+		// Validate the status transition
+		const currentStatus = currentOrderResult.data.status;
 
-	async updateToPaid({
-		orderId,
-	}: MethodParams<IOrderService, "updateToPaid">): MethodReturn<
-		IOrderService,
-		"updateToPaid"
-	> {
-		const logger = this._getLogger({ method: "updateToPaid" });
-		logger.debug({ orderId }, "Updating order to paid");
-
-		const validationResult = this._validateObjectId("orderId", orderId);
-		if (!validationResult.success) {
-			logger.warn(
-				{ error: validationResult.error, orderId },
-				"Invalid order ID",
-			);
-			return validationResult;
+		const statusTransitionResult = this._validateStatusTransition({
+			currentStatus,
+			logger,
+			newStatus,
+			orderId: idResult.data.toString(),
+		});
+		if (!statusTransitionResult.success) {
+			return statusTransitionResult;
 		}
 
-		const result = await this._repository.updateToPaid({
-			orderId: validationResult.data,
+		// update the status
+		const result = await this._repository.updateStatus({
+			orderId: idResult.data,
+			status: newStatus,
 		});
 		if (!result.success) {
-			logger.error({ error: result.error }, "Failed to update order to paid");
+			logger.error({ error: result.error }, "Failed to update order status");
 			return result;
 		}
 
 		if (!result.data) {
-			logger.warn({ orderId }, "Order not found");
+			logger.warn({ orderId }, "Order not found after update");
 			return {
 				error: new NotFoundError("Order"),
 				success: false,
@@ -289,9 +301,10 @@ export class OrderService implements IOrderService {
 		}
 
 		logger.info(
-			{ orderId, paidAt: result.data.paidAt },
-			"Order marked as paid successfully",
+			{ orderId, previousStatus: currentStatus, status: newStatus },
+			"Order status updated successfully",
 		);
+
 		return {
 			data: result.data,
 			success: true,
@@ -333,6 +346,37 @@ export class OrderService implements IOrderService {
 
 		return {
 			data: result.data,
+			success: true,
+		};
+	}
+
+	private _validateStatusTransition(params: {
+		currentStatus: OrderStatus;
+		logger: Logger;
+		newStatus: OrderStatus;
+		orderId: string;
+	}): OrderResult<void> {
+		const allowedStatus = this._allowedTransitions[params.currentStatus];
+
+		if (!allowedStatus.includes(params.newStatus)) {
+			params.logger.warn(
+				{
+					currentStatus: params.currentStatus,
+					orderId: params.orderId,
+					requestedStatus: params.newStatus,
+				},
+				"Invalid status transition",
+			);
+			return {
+				error: new ValidationError(
+					`Cannot transition order from '${params.currentStatus}' to '${params.newStatus}'`,
+				),
+				success: false,
+			};
+		}
+
+		return {
+			data: undefined,
 			success: true,
 		};
 	}

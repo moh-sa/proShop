@@ -107,7 +107,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
-			const paymentMethod = "PayPal";
+			const paymentMethod = "Stripe";
 			const mockOrder = generateMockInsertOrder({
 				paymentMethod,
 				user: mockUser._id,
@@ -184,29 +184,12 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.totalPrice, totalPrice);
 		});
 
-		test("Should create and return order object when 'repo.create' is called with isPaid false by default", async () => {
+		test("Should NOT set 'paidAt' when 'repo.create' is called", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
-			const isPaid = false;
-			const mockOrder = generateMockInsertOrder({ isPaid, user: mockUser._id });
-
-			// Act
-			const result = await orderService.create(mockOrder);
-
-			// Assert
-			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.isPaid, isPaid);
-			assert.strictEqual(result.data.paidAt, undefined);
-		});
-
-		test("Should create and return order object when 'repo.create' is called with isDelivered false by default", async () => {
-			// Arrange
-			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
-			const isDelivered = false;
 			const mockOrder = generateMockInsertOrder({
-				isDelivered,
+				status: "pending",
 				user: mockUser._id,
 			});
 
@@ -215,7 +198,25 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.isDelivered, isDelivered);
+			assert.strictEqual(result.data.status, "pending");
+			assert.strictEqual(result.data.paidAt, undefined);
+		});
+
+		test("Should NOT set 'deliveredAt' when 'repo.create' is called", async () => {
+			// Arrange
+			const mockUser = generateMockSelectUser();
+			await User.create(mockUser);
+			const mockOrder = generateMockInsertOrder({
+				status: "pending",
+				user: mockUser._id,
+			});
+
+			// Act
+			const result = await orderService.create(mockOrder);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.status, "pending");
 			assert.strictEqual(result.data.deliveredAt, undefined);
 		});
 
@@ -236,7 +237,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.ok(result.data.createdAt <= new Date());
 		});
 
-		test("Should set 'PaymentMethod' to 'PayPal' if not provided when 'repo.create' is called", async () => {
+		test("Should set 'PaymentMethod' to 'Stripe' if not provided when 'repo.create' is called", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
@@ -249,7 +250,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.paymentMethod, "PayPal");
+			assert.strictEqual(result.data.paymentMethod, "Stripe");
 		});
 	});
 
@@ -314,7 +315,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should return order object with payment details when 'repo.getById' is called with existing order ID", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({ isPaid: true });
+			const mockOrder = generateMockInsertOrder({ status: "processing" });
 			const createdOrder = (await Order.create(mockOrder)).toObject();
 			const orderId = createdOrder._id.toString();
 
@@ -325,7 +326,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.isPaid, true);
+			assert.strictEqual(result.data.status, "processing");
 			assert.deepStrictEqual(
 				result.data.paymentResult,
 				createdOrder.paymentResult,
@@ -334,7 +335,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should return order object with delivery status when 'repo.getById' is called with existing order ID", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({ isDelivered: true });
+			const mockOrder = generateMockInsertOrder({ status: "delivered" });
 			const createdOrder = (await Order.create(mockOrder)).toObject();
 			const orderId = createdOrder._id.toString();
 
@@ -345,13 +346,13 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.isDelivered, true);
+			assert.strictEqual(result.data.status, "delivered");
 			assert.ok(result.data.deliveredAt instanceof Date);
 		});
 
 		test("Should return order object with payment status when 'repo.getById' is called with existing order ID", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({ isPaid: true });
+			const mockOrder = generateMockInsertOrder({ status: "processing" });
 			const createdOrder = (await Order.create(mockOrder)).toObject();
 			const orderId = createdOrder._id.toString();
 
@@ -362,7 +363,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.isPaid, true);
+			assert.strictEqual(result.data.status, "processing");
 			assert.ok(result.data.paidAt instanceof Date);
 		});
 
@@ -452,14 +453,14 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			);
 		});
 
-		test("Should filter orders by isPaid when isPaid parameter is provided", async () => {
+		test("Should filter orders by status when it is processing", async () => {
 			// Arrange
-			const paidOrders = generateMockInsertOrders(2, { isPaid: true });
-			const unpaidOrders = generateMockInsertOrders(3, { isPaid: false });
+			const paidOrders = generateMockInsertOrders(2, { status: "processing" });
+			const unpaidOrders = generateMockInsertOrders(3, { status: "pending" });
 			await Order.insertMany([...paidOrders, ...unpaidOrders]);
 
 			const paginationArgs = {
-				isPaid: "true",
+				status: "processing",
 				pageNumber: "1",
 			};
 
@@ -469,21 +470,21 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.items.length, 2);
-			assert.ok(result.data.items.every((o) => o.isPaid === true));
+			assert.ok(result.data.items.every((o) => o.status === "processing"));
 		});
 
-		test("Should filter orders by isDelivered when isDelivered parameter is provided", async () => {
+		test("Should filter orders by status when it is delivered", async () => {
 			// Arrange
 			const deliveredOrders = generateMockInsertOrders(2, {
-				isDelivered: true,
+				status: "delivered",
 			});
 			const undeliveredOrders = generateMockInsertOrders(3, {
-				isDelivered: false,
+				status: "pending",
 			});
 			await Order.insertMany([...deliveredOrders, ...undeliveredOrders]);
 
 			const paginationArgs = {
-				isDelivered: "true",
+				status: "delivered",
 				pageNumber: "1",
 			};
 
@@ -493,7 +494,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.items.length, 2);
-			assert.ok(result.data.items.every((o) => o.isDelivered === true));
+			assert.ok(result.data.items.every((o) => o.status === "delivered"));
 		});
 
 		test("Should sort orders by createdAt descending when sort parameter is provided", async () => {
@@ -599,10 +600,10 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should return ValidationError when isPaid parameter is invalid boolean", async () => {
+		test("Should return ValidationError when status parameter is invalid", async () => {
 			// Arrange
 			const invalidArgs = {
-				isPaid: "invalid-boolean",
+				status: "invalid-status",
 				pageNumber: "1",
 			};
 
@@ -612,47 +613,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof ValidationError);
-		});
-
-		test("Should return ValidationError when isDelivered parameter is invalid boolean", async () => {
-			// Arrange
-			const invalidArgs = {
-				isDelivered: "invalid-boolean",
-				pageNumber: "1",
-			};
-
-			// Act
-			const result = await orderService.getAll(invalidArgs);
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof ValidationError);
-		});
-
-		test("Should handle database connection errors gracefully", async () => {
-			// Arrange
-			const paginationArgs = {
-				pageNumber: "1",
-			};
-
-			// Note: This test would require mocking database connection failure
-			// In a real scenario, you might disconnect the database or use a test double
-			// For now, we'll test that the service handles the error structure correctly
-
-			// Act
-			const result = await orderService.getAll(paginationArgs);
-
-			// Assert
-			// The service should either succeed or return a proper error structure
-			assert.ok(typeof result.success === "boolean");
-			if (!result.success) {
-				assert.ok(result.error);
-			}
 		});
 
 		test("Should return orders with correct field projection", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder();
+			const mockOrder = generateMockInsertOrder({ status: "delivered" });
 			await Order.create(mockOrder);
 
 			const paginationArgs = {
@@ -670,8 +635,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Verify that only the projected fields are present
 			assert.strictEqual("_id" in order, true);
 			assert.strictEqual("createdAt" in order, true);
-			assert.strictEqual("isPaid" in order, true);
-			assert.strictEqual("isDelivered" in order, true);
+			assert.strictEqual("status" in order, true);
+			assert.strictEqual("paidAt" in order, true);
+			assert.strictEqual("deliveredAt" in order, true);
 			assert.strictEqual("totalPrice" in order, true);
 			assert.strictEqual("user" in order, true);
 			assert.strictEqual("orderItems" in order, false);
@@ -682,17 +648,15 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
 			const paidDeliveredOrders = generateMockInsertOrders(2, {
-				isDelivered: true,
-				isPaid: true,
+				status: "delivered",
 				user: userId,
 			});
 			const paidUndeliveredOrders = generateMockInsertOrders(2, {
-				isDelivered: false,
-				isPaid: true,
+				status: "processing",
 				user: userId,
 			});
 			const unpaidOrders = generateMockInsertOrders(2, {
-				isPaid: false,
+				status: "pending",
 				user: userId,
 			});
 			await Order.insertMany([
@@ -702,8 +666,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			]);
 
 			const paginationArgs = {
-				isDelivered: "true",
-				isPaid: "true",
+				status: "delivered",
 				pageNumber: "1",
 				user: userId.toString(),
 			};
@@ -717,39 +680,40 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.ok(
 				result.data.items.every((o) => o.user.toString() === userId.toString()),
 			);
-			assert.ok(result.data.items.every((o) => o.isPaid === true));
-			assert.ok(result.data.items.every((o) => o.isDelivered === true));
+			assert.ok(result.data.items.every((o) => o.status === "delivered"));
 		});
 	});
 
-	describe("updateToPaid", async () => {
-		test("Should update order to paid when 'repo.updateToPaid' is called with order ID", async () => {
+	describe("updateStatus", async () => {
+		test("Should update order status to 'processing' when 'repo.updateStatus' is called with status 'processing'", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({ isPaid: false });
+			const mockOrder = generateMockInsertOrder({ status: "pending" });
 			const createdOrder = await Order.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
 			// Act
-			const updatedOrder = await orderService.updateToPaid({
+			const updatedOrder = await orderService.updateStatus({
 				orderId,
+				status: "processing",
 			});
 
 			// Assert
 			assert.strictEqual(updatedOrder.success, true);
-			assert.strictEqual(updatedOrder.data.isPaid, true);
+			assert.strictEqual(updatedOrder.data.status, "processing");
 			assert.ok(updatedOrder.data.paidAt instanceof Date);
 		});
 
-		test("Should update 'paidAt' timestamp when 'repo.updateToPaid' is called with order ID", async () => {
+		test("Should update 'paidAt' when 'repo.updateStatus' is called with status 'processing'", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({ isPaid: false });
+			const mockOrder = generateMockInsertOrder({ status: "pending" });
 			const createdOrder = await Order.create(mockOrder);
 			const beforeUpdate = new Date();
 			const orderId = createdOrder._id.toString();
 
 			// Act
-			const updatedOrder = await orderService.updateToPaid({
+			const updatedOrder = await orderService.updateStatus({
 				orderId,
+				status: "processing",
 			});
 
 			// Assert
@@ -759,49 +723,35 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.ok(updatedOrder.data.paidAt <= new Date());
 		});
 
-		test("Should throw 'NotFoundError' when 'repo.updateToPaid' is called with non-existent order ID", async () => {
+		test("Should update order status to 'delivered' when 'repo.updateStatus' is called with status 'delivered'", async () => {
 			// Arrange
-			const nonExistentId = generateMockObjectId().toString();
-
-			// Act
-			const updatedOrder = await orderService.updateToPaid({
-				orderId: nonExistentId,
-			});
-
-			// Assert
-			assert.strictEqual(updatedOrder.success, false);
-			assert.ok(updatedOrder.error instanceof NotFoundError);
-		});
-	});
-
-	describe("updateToDelivered", async () => {
-		test("Should update order to delivered when 'repo.updateToDelivered' is called with order ID", async () => {
-			// Arrange
-			const mockOrder = generateMockInsertOrder({ isDelivered: false });
+			const mockOrder = generateMockInsertOrder({ status: "processing" });
 			const createdOrder = await Order.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
 			// Act
-			const updatedOrder = await orderService.updateToDelivered({
+			const updatedOrder = await orderService.updateStatus({
 				orderId,
+				status: "delivered",
 			});
 
 			// Assert
 			assert.strictEqual(updatedOrder.success, true);
-			assert.strictEqual(updatedOrder.data.isDelivered, true);
+			assert.strictEqual(updatedOrder.data.status, "delivered");
 			assert.ok(updatedOrder.data.deliveredAt instanceof Date);
 		});
 
-		test("Should update 'deliveredAt' timestamp when 'repo.updateToDelivered' is called with order ID", async () => {
+		test("Should update 'deliveredAt' when 'repo.updateStatus' is called with status 'delivered'", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({ isDelivered: false });
+			const mockOrder = generateMockInsertOrder({ status: "processing" });
 			const createdOrder = await Order.create(mockOrder);
 			const beforeUpdate = new Date();
 			const orderId = createdOrder._id.toString();
 
 			// Act
-			const updatedOrder = await orderService.updateToDelivered({
+			const updatedOrder = await orderService.updateStatus({
 				orderId,
+				status: "delivered",
 			});
 
 			// Assert
@@ -811,13 +761,54 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.ok(updatedOrder.data.deliveredAt <= new Date());
 		});
 
-		test("Should throw 'NotFoundError' when 'repo.updateToDelivered' is called with non-existent order ID", async () => {
+		test("Should update order status to 'cancelled' when 'repo.updateStatus' is called with status 'cancelled'", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({
+				status: "pending",
+				paidAt: undefined,
+				deliveredAt: undefined,
+			});
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+
+			// Act
+			const updatedOrder = await orderService.updateStatus({
+				orderId,
+				status: "cancelled",
+			});
+
+			// Assert
+			assert.strictEqual(updatedOrder.success, true);
+			assert.strictEqual(updatedOrder.data.status, "cancelled");
+			assert.strictEqual(updatedOrder.data.paidAt, undefined);
+			assert.strictEqual(updatedOrder.data.deliveredAt, undefined);
+		});
+
+		test("Should return 'ValidationError' when transition is not allowed (pending -> delivered)", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({ status: "pending" });
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+
+			// Act
+			const result = await orderService.updateStatus({
+				orderId,
+				status: "delivered",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("Should throw 'NotFoundError' when 'repo.updateStatus' is called with non-existent order ID", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId().toString();
 
 			// Act
-			const updatedOrder = await orderService.updateToDelivered({
+			const updatedOrder = await orderService.updateStatus({
 				orderId: nonExistentId,
+				status: "processing",
 			});
 
 			// Assert

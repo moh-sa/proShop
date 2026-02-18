@@ -7,16 +7,6 @@ const orderSchema = new Schema<OrderSchema>(
 		deliveredAt: {
 			type: Date,
 		},
-		isDelivered: {
-			default: false,
-			required: true,
-			type: Boolean,
-		},
-		isPaid: {
-			default: false,
-			required: true,
-			type: Boolean,
-		},
 		itemsPrice: {
 			default: 0,
 			required: true,
@@ -58,6 +48,12 @@ const orderSchema = new Schema<OrderSchema>(
 			default: 0,
 			required: true,
 			type: Number,
+		},
+		status: {
+			default: "pending",
+			enum: ["pending", "processing", "delivered", "cancelled"],
+			required: true,
+			type: String,
 		},
 		taxPrice: {
 			default: 0,

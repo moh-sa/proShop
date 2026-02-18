@@ -54,8 +54,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(resData.shippingPrice, mockOrder.shippingPrice);
 			assert.strictEqual(resData.taxPrice, mockOrder.taxPrice);
 			assert.strictEqual(resData.totalPrice, mockOrder.totalPrice);
-			assert.strictEqual(resData.isPaid, mockOrder.isPaid);
-			assert.strictEqual(resData.isDelivered, mockOrder.isDelivered);
+			assert.strictEqual(resData.status, mockOrder.status);
 			assert.strictEqual(
 				resData.orderItems.length,
 				mockOrder.orderItems.length,
@@ -258,17 +257,19 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 		});
 	});
 
-	describe("updateToDelivered", () => {
-		test("Should mark order as delivered when 'db.updateToDelivered' is called", async () => {
+	describe("updateStatus", () => {
+		test("Should update status to 'delivered' when 'db.updateStatus' is called with status 'delivered'", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder();
-			mockOrder.isDelivered = false;
-			mockOrder.deliveredAt = undefined;
+			const mockOrder = generateMockInsertOrder({
+				status: "processing",
+				deliveredAt: undefined,
+			});
 			const order = await Order.create(mockOrder);
 
 			// Act
-			const updatedOrder = await orderRepository.updateToDelivered({
+			const updatedOrder = await orderRepository.updateStatus({
 				orderId: order._id,
+				status: "delivered",
 			});
 
 			// Assert
@@ -276,68 +277,21 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(updatedOrder.success, true);
 			assert.ok(updatedOrder.data);
 			assert.ok(updatedOrder.data.deliveredAt instanceof Date);
-			assert.strictEqual(updatedOrder.data.isDelivered, true);
+			assert.strictEqual(updatedOrder.data.status, "delivered");
 		});
 
-		test("Should return null when 'db.updateToDelivered' is called with non-existent ID", async () => {
+		test("Should update status to 'processing' when 'db.updateStatus' is called with status 'processing'", async () => {
 			// Arrange
-			const nonExistentId = generateMockObjectId();
-
-			// Act
-			const order = await orderRepository.updateToDelivered({
-				orderId: nonExistentId,
+			const mockOrder = generateMockInsertOrder({
+				status: "pending",
+				paidAt: undefined,
 			});
-
-			// Assert
-			assert.strictEqual(order.success, true);
-			assert.strictEqual(order.data, null);
-		});
-
-		test("Should update deliveredAt when 'db.updateToDelivered' is called on already delivered order", async () => {
-			// Arrange
-			const mockOrder = generateMockInsertOrder();
-			mockOrder.isDelivered = true;
-			mockOrder.deliveredAt = new Date(2023, 0, 1); // January 1, 2023
 			const order = await Order.create(mockOrder);
 
 			// Act
-			const updatedOrder = await orderRepository.updateToDelivered({
+			const updatedOrder = await orderRepository.updateStatus({
 				orderId: order._id,
-			});
-
-			// Assert
-			assert.ok(updatedOrder);
-			assert.strictEqual(updatedOrder.success, true);
-			assert.ok(updatedOrder.data);
-			assert.ok(updatedOrder.data.deliveredAt! > mockOrder.deliveredAt);
-		});
-
-		test("Should throw 'DatabaseValidationError' when 'db.updateToDelivered' is called with invalid ObjectId", async () => {
-			// Arrange
-			const invalidId = "invalid-id" as any;
-
-			// Act
-			const result = await orderRepository.updateToDelivered({
-				orderId: invalidId,
-			});
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof DatabaseValidationError);
-		});
-	});
-
-	describe("updateToPaid", () => {
-		test("Should mark order as paid when 'db.updateToPaid' is called", async () => {
-			// Arrange
-			const mockOrder = generateMockInsertOrder();
-			mockOrder.isPaid = false;
-			mockOrder.paidAt = undefined;
-			const order = await Order.create(mockOrder);
-
-			// Act
-			const updatedOrder = await orderRepository.updateToPaid({
-				orderId: order._id,
+				status: "processing",
 			});
 
 			// Assert
@@ -345,16 +299,92 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(updatedOrder.success, true);
 			assert.ok(updatedOrder.data);
 			assert.ok(updatedOrder.data.paidAt instanceof Date);
-			assert.strictEqual(updatedOrder.data.isPaid, true);
+			assert.strictEqual(updatedOrder.data.status, "processing");
 		});
 
-		test("Should return null when 'db.updateToPaid' is called with non-existent ID", async () => {
+		test("Should set 'paidAt' when 'db.updateStatus' is called with status 'processing'", async (t) => {
+			// Arrange
+			const date = new Date(2025, 9, 20);
+			t.mock.timers.enable({ apis: ["Date"], now: date });
+
+			const mockOrder = generateMockInsertOrder({
+				status: "pending",
+				paidAt: undefined,
+			});
+			const order = await Order.create(mockOrder);
+
+			// Act
+			const updatedOrder = await orderRepository.updateStatus({
+				orderId: order._id,
+				status: "processing",
+			});
+
+			// Assert
+			assert.ok(updatedOrder.success);
+			assert.ok(updatedOrder.data);
+			assert.ok(updatedOrder.data.paidAt);
+			assert.strictEqual(updatedOrder.data.paidAt.getTime(), date.getTime());
+		});
+
+		test("Should set 'deliveredAt' when 'db.updateStatus' is called with status 'delivered'", async (t) => {
+			// Arrange
+			const date = new Date(2025, 9, 20);
+			t.mock.timers.enable({ apis: ["Date"], now: date });
+
+			const mockOrder = generateMockInsertOrder({
+				status: "processing",
+				deliveredAt: undefined,
+			});
+			const order = await Order.create(mockOrder);
+
+			// Act
+			const updatedOrder = await orderRepository.updateStatus({
+				orderId: order._id,
+				status: "delivered",
+			});
+
+			// Assert
+			assert.ok(updatedOrder.success);
+			assert.ok(updatedOrder.data);
+			assert.ok(updatedOrder.data.deliveredAt);
+			assert.strictEqual(
+				updatedOrder.data.deliveredAt.getTime(),
+				date.getTime(),
+			);
+		});
+
+		test("Should update status to 'cancelled' without setting 'paidAt' or 'deliveredAt'", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({
+				status: "pending",
+				paidAt: undefined,
+				deliveredAt: undefined,
+			});
+			const order = await Order.create(mockOrder);
+
+			// Act
+			const updatedOrder = await orderRepository.updateStatus({
+				orderId: order._id,
+				status: "cancelled",
+			});
+
+			// Assert
+			assert.ok(updatedOrder);
+			assert.strictEqual(updatedOrder.success, true);
+			assert.ok(updatedOrder.data);
+			assert.strictEqual(updatedOrder.data.status, "cancelled");
+			assert.strictEqual(updatedOrder.data.paidAt, undefined);
+			assert.strictEqual(updatedOrder.data.deliveredAt, undefined);
+		});
+
+		test("Should return null when 'db.updateStatus' is called with non-existent ID", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId();
 
 			// Act
-			const order = await orderRepository.updateToPaid({
+			const order = await orderRepository.updateStatus({
 				orderId: nonExistentId,
+				status: "delivered",
 			});
 
 			// Assert
@@ -362,31 +392,15 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(order.data, null);
 		});
 
-		test("Should update paidAt when 'db.updateToPaid' is called on already paid order", async () => {
-			// Arrange
-			const mockOrder = generateMockInsertOrder();
-			mockOrder.isPaid = true;
-			mockOrder.paidAt = new Date(2023, 0, 1); // January 1, 2023
-			const order = await Order.create(mockOrder);
-
-			// Act
-			const updatedOrder = await orderRepository.updateToPaid({
-				orderId: order._id,
-			});
-
-			// Assert
-			assert.ok(updatedOrder);
-			assert.strictEqual(updatedOrder.success, true);
-			assert.ok(updatedOrder.data);
-			assert.ok(updatedOrder.data.paidAt! > mockOrder.paidAt);
-		});
-
-		test("Should return 'DatabaseValidationError' when 'db.updateToPaid' is called with invalid ObjectId", async () => {
+		test("Should throw 'DatabaseValidationError' when 'db.updateStatus' is called with invalid ObjectId", async () => {
 			// Arrange
 			const invalidId = "invalid-id" as any;
 
 			// Act
-			const result = await orderRepository.updateToPaid({ orderId: invalidId });
+			const result = await orderRepository.updateStatus({
+				status: "delivered",
+				orderId: invalidId,
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -544,15 +558,15 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			);
 		});
 
-		test("Should filter orders by isPaid when query contains isPaid filter", async () => {
+		test("Should filter orders by 'processing' when query has status 'processing'", async () => {
 			// Arrange
-			const paidOrders = generateMockInsertOrders(2, { isPaid: true });
-			const unpaidOrders = generateMockInsertOrders(3, { isPaid: false });
+			const paidOrders = generateMockInsertOrders(2, { status: "processing" });
+			const unpaidOrders = generateMockInsertOrders(3, { status: "pending" });
 			await Order.insertMany([...paidOrders, ...unpaidOrders]);
 
 			const paginationArgs = {
 				pageNumber: 1,
-				query: { isPaid: true },
+				query: { status: "processing" },
 			};
 
 			// Act
@@ -563,7 +577,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 
 			assert.strictEqual(result.data.items.length, paidOrders.length);
 			assert.strictEqual(result.data.meta.totalItems, paidOrders.length);
-			assert.ok(result.data.items.every((o) => o.isPaid));
+			assert.ok(result.data.items.every((o) => o.status === "processing"));
 		});
 
 		test("Should sort orders by createdAt descending when sort is not provided", async () => {

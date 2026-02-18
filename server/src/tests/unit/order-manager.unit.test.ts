@@ -249,7 +249,7 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 		};
 		const mockOrderId = faker.database.mongodbObjectId();
 		const mockUpdatedOrder = generateMockSelectOrder({
-			isPaid: true,
+			status: "processing",
 			paidAt: new Date(),
 		});
 
@@ -269,10 +269,10 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.error, verifyError);
 
 			assert.strictEqual(mockPaymentSvc.verifyWebhook.mock.callCount(), 1);
-			assert.strictEqual(mockOrderSvc.updateToPaid.mock.callCount(), 0);
+			assert.strictEqual(mockOrderSvc.updateStatus.mock.callCount(), 0);
 		});
 
-		test("should update order to paid and return success for checkout.session.completed event", async () => {
+		test("should update order status to 'processing' and return success for checkout.session.completed event", async () => {
 			// Arrange
 			mockPaymentSvc.verifyWebhook.mock.mockImplementationOnce(() => ({
 				data: {
@@ -281,7 +281,7 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 				},
 				success: true,
 			}));
-			mockOrderSvc.updateToPaid.mock.mockImplementationOnce(() =>
+			mockOrderSvc.updateStatus.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockUpdatedOrder, success: true }),
 			);
 
@@ -293,14 +293,18 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.data, undefined);
 
 			assert.strictEqual(mockPaymentSvc.verifyWebhook.mock.callCount(), 1);
-			assert.strictEqual(mockOrderSvc.updateToPaid.mock.callCount(), 1);
+			assert.strictEqual(mockOrderSvc.updateStatus.mock.callCount(), 1);
 			assert.strictEqual(
-				mockOrderSvc.updateToPaid.mock.calls[0].arguments[0].orderId,
+				mockOrderSvc.updateStatus.mock.calls[0].arguments[0].orderId,
 				mockOrderId,
+			);
+			assert.strictEqual(
+				mockOrderSvc.updateStatus.mock.calls[0].arguments[0].status,
+				"processing",
 			);
 		});
 
-		test("should return error when updateToPaid fails for checkout.session.completed event", async () => {
+		test("should return error when updateStatus fails for checkout.session.completed event", async () => {
 			// Arrange
 			const updateError = new Error("Failed to update order");
 			mockPaymentSvc.verifyWebhook.mock.mockImplementationOnce(() => ({
@@ -310,7 +314,7 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 				},
 				success: true,
 			}));
-			mockOrderSvc.updateToPaid.mock.mockImplementationOnce(() =>
+			mockOrderSvc.updateStatus.mock.mockImplementationOnce(() =>
 				Promise.resolve({ error: updateError, success: false }),
 			);
 
@@ -321,11 +325,15 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.success, false);
 			assert.strictEqual(result.error, updateError);
 
-			assert.strictEqual(mockOrderSvc.updateToPaid.mock.callCount(), 1);
+			assert.strictEqual(mockOrderSvc.updateStatus.mock.callCount(), 1);
 		});
 
-		test("should return success for checkout.session.expired event without updating order", async () => {
+		test("should update order status to 'cancelled' for checkout.session.expired event", async () => {
 			// Arrange
+			const mockCancelledOrder = generateMockSelectOrder({
+				status: "cancelled",
+			});
+
 			mockPaymentSvc.verifyWebhook.mock.mockImplementationOnce(() => ({
 				data: {
 					metadata: { orderId: mockOrderId },
@@ -333,6 +341,9 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 				},
 				success: true,
 			}));
+			mockOrderSvc.updateStatus.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockCancelledOrder, success: true }),
+			);
 
 			// Act
 			const result = await manager.processPaymentWebhook(mockWebhookParams);
@@ -341,8 +352,37 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data, undefined);
 
-			assert.strictEqual(mockPaymentSvc.verifyWebhook.mock.callCount(), 1);
-			assert.strictEqual(mockOrderSvc.updateToPaid.mock.callCount(), 0);
+			assert.strictEqual(mockOrderSvc.updateStatus.mock.callCount(), 1);
+			assert.strictEqual(
+				mockOrderSvc.updateStatus.mock.calls[0].arguments[0].orderId,
+				mockOrderId,
+			);
+			assert.strictEqual(
+				mockOrderSvc.updateStatus.mock.calls[0].arguments[0].status,
+				"cancelled",
+			);
+		});
+
+		test("should return error when updateStatus fails for checkout.session.expired event", async () => {
+			// Arrange
+			const updateError = new Error("Failed to cancel order");
+			mockPaymentSvc.verifyWebhook.mock.mockImplementationOnce(() => ({
+				data: {
+					metadata: { orderId: mockOrderId },
+					type: "checkout.session.expired",
+				},
+				success: true,
+			}));
+			mockOrderSvc.updateStatus.mock.mockImplementationOnce(() =>
+				Promise.resolve({ error: updateError, success: false }),
+			);
+
+			// Act
+			const result = await manager.processPaymentWebhook(mockWebhookParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, updateError);
 		});
 
 		test("should return success for unhandled event types", async () => {
@@ -363,89 +403,52 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.data, undefined);
 
 			assert.strictEqual(mockPaymentSvc.verifyWebhook.mock.callCount(), 1);
-			assert.strictEqual(mockOrderSvc.updateToPaid.mock.callCount(), 0);
+			assert.strictEqual(mockOrderSvc.updateStatus.mock.callCount(), 0);
 		});
 	});
 
-	describe("updateToDelivered", () => {
+	describe("updateStatus", () => {
 		const mockOrder = generateMockSelectOrder({
-			isDelivered: true,
-			deliveredAt: new Date(),
-		});
-		const orderId = mockOrder._id.toString();
-
-		test("should return updated order when order service succeeds", async () => {
-			// Arrange
-			mockOrderSvc.updateToDelivered.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrder, success: true }),
-			);
-
-			// Act
-			const result = await manager.updateToDelivered({ orderId });
-
-			// Assert
-			assert.strictEqual(result.success, true);
-			assert.deepStrictEqual(result.data, mockOrder);
-
-			assert.strictEqual(mockOrderSvc.updateToDelivered.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockOrderSvc.updateToDelivered.mock.calls[0].arguments[0],
-				{ orderId },
-			);
-		});
-
-		test("should pass through error from order service", async () => {
-			// Arrange
-			const updateError = new Error("Order not found");
-			mockOrderSvc.updateToDelivered.mock.mockImplementationOnce(() =>
-				Promise.resolve({ error: updateError, success: false }),
-			);
-
-			// Act
-			const result = await manager.updateToDelivered({ orderId });
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.strictEqual(result.error, updateError);
-		});
-	});
-
-	describe("updateToPaid", () => {
-		const mockOrder = generateMockSelectOrder({
-			isPaid: true,
+			status: "processing",
 			paidAt: new Date(),
 		});
 		const orderId = mockOrder._id.toString();
 
 		test("should return updated order when order service succeeds", async () => {
 			// Arrange
-			mockOrderSvc.updateToPaid.mock.mockImplementationOnce(() =>
+			mockOrderSvc.updateStatus.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			// Act
-			const result = await manager.updateToPaid({ orderId });
+			const result = await manager.updateStatus({
+				orderId,
+				status: "delivered",
+			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.deepStrictEqual(result.data, mockOrder);
 
-			assert.strictEqual(mockOrderSvc.updateToPaid.mock.callCount(), 1);
+			assert.strictEqual(mockOrderSvc.updateStatus.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockOrderSvc.updateToPaid.mock.calls[0].arguments[0],
-				{ orderId },
+				mockOrderSvc.updateStatus.mock.calls[0].arguments[0],
+				{ orderId, status: "delivered" },
 			);
 		});
 
 		test("should pass through error from order service", async () => {
 			// Arrange
 			const updateError = new Error("Order not found");
-			mockOrderSvc.updateToPaid.mock.mockImplementationOnce(() =>
+			mockOrderSvc.updateStatus.mock.mockImplementationOnce(() =>
 				Promise.resolve({ error: updateError, success: false }),
 			);
 
 			// Act
-			const result = await manager.updateToPaid({ orderId });
+			const result = await manager.updateStatus({
+				orderId,
+				status: "delivered",
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);

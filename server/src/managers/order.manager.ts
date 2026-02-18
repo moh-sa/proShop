@@ -7,6 +7,7 @@ import type {
 	MethodParams,
 	MethodReturn,
 	OrderPaginationParams,
+	OrderStatus,
 	PaginatedResponse,
 	Result,
 	SelectOrder,
@@ -43,25 +44,19 @@ export interface IOrderManager {
 	 * Processes Stripe webhook events for checkout sessions.
 	 *
 	 * Handles:
-	 * - `checkout.session.completed`: Updates order to paid
-	 * - `checkout.session.expired`: Logs the expiration
+	 * - `checkout.session.completed`: Updates order status to "processing"
+	 * - `checkout.session.expired`: Updates order status to "cancelled"
 	 */
 	processPaymentWebhook(
 		params: VerifyWebhookParams,
 	): Promise<OrderManagerResult<void>>;
 
 	/**
-	 * Updates an order to delivered status
+	 * Updates the status of an order
 	 */
-	updateToDelivered(params: {
+	updateStatus(params: {
 		orderId: string;
-	}): Promise<OrderManagerResult<SelectOrder>>;
-
-	/**
-	 * Updates an order to paid status
-	 */
-	updateToPaid(params: {
-		orderId: string;
+		status: OrderStatus;
 	}): Promise<OrderManagerResult<SelectOrder>>;
 }
 
@@ -130,7 +125,6 @@ export class OrderManager implements IOrderManager {
 				{ error: checkoutResult.error, orderId },
 				"Failed to create checkout session",
 			);
-			// TODO: implement order status field in order model and set it to 'payment_failed' here
 			return checkoutResult;
 		}
 
@@ -181,27 +175,42 @@ export class OrderManager implements IOrderManager {
 
 		switch (eventType) {
 			case "checkout.session.completed": {
-				logger.info({ orderId }, "Processing checkout.session.completed");
-
-				const updateResult = await this._orderService.updateToPaid({ orderId });
+				const updateResult = await this._orderService.updateStatus({
+					orderId,
+					status: "processing",
+				});
 				if (!updateResult.success) {
 					logger.error(
 						{ error: updateResult.error, orderId },
-						"Failed to update order to paid",
+						"Failed to update order status to processing",
 					);
 					return updateResult;
 				}
 
 				logger.info(
 					{ orderId, paidAt: updateResult.data.paidAt },
-					"Order marked as paid via payment provider webhook",
+					"Order marked as processing via payment provider webhook",
 				);
 				return { data: undefined, success: true };
 			}
 
 			case "checkout.session.expired": {
-				logger.info({ orderId }, "Checkout session expired");
-				// TODO: implement order status field in order model and set it to 'payment_failed' here
+				const cancelResult = await this._orderService.updateStatus({
+					orderId,
+					status: "cancelled",
+				});
+				if (!cancelResult.success) {
+					logger.error(
+						{ error: cancelResult.error, orderId },
+						"Failed to update order status to cancelled",
+					);
+					return cancelResult;
+				}
+
+				logger.info(
+					{ orderId },
+					"Order cancelled due to expired checkout session",
+				);
 				return { data: undefined, success: true };
 			}
 
@@ -212,16 +221,10 @@ export class OrderManager implements IOrderManager {
 		}
 	}
 
-	async updateToDelivered(
-		params: MethodParams<IOrderManager, "updateToDelivered">,
-	): MethodReturn<IOrderManager, "updateToDelivered"> {
-		return this._orderService.updateToDelivered(params);
-	}
-
-	async updateToPaid(
-		params: MethodParams<IOrderManager, "updateToPaid">,
-	): MethodReturn<IOrderManager, "updateToPaid"> {
-		return this._orderService.updateToPaid(params);
+	async updateStatus(
+		params: MethodParams<IOrderManager, "updateStatus">,
+	): MethodReturn<IOrderManager, "updateStatus"> {
+		return this._orderService.updateStatus(params);
 	}
 
 	private _getLogger(params: { [key: string]: unknown; method: string }) {

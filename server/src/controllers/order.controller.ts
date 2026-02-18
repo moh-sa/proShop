@@ -5,6 +5,7 @@ import type {
 	CreateOrderResponse,
 	InsertOrder,
 	OrderPaginationParams,
+	OrderStatus,
 	PaginatedResponse,
 	SafeSelectUser,
 	SelectOrder,
@@ -48,12 +49,9 @@ export interface IOrderController {
 	handleStripeWebhook: AsyncHandler<{
 		resBody: { data: { success: boolean } };
 	}>;
-	updateToDelivered: AsyncHandler<{
+	updateStatus: AsyncHandler<{
 		params: { orderId: string };
-		resBody: { data: SelectOrder };
-	}>;
-	updateToPaid: AsyncHandler<{
-		params: { orderId: string };
+		reqBody: { status: OrderStatus };
 		resBody: { data: SelectOrder };
 	}>;
 }
@@ -239,50 +237,28 @@ export class OrderController implements IOrderController {
 		res.status(HTTP_STATUS.OK).json({ data: { success: true }, success: true });
 	});
 
-	updateToDelivered = asyncHandler<{
+	updateStatus = asyncHandler<{
 		params: { orderId: string };
+		reqBody: { status: OrderStatus };
 		resBody: { data: SelectOrder };
 	}>(async (req, res) => {
-		const logger = this._getLogger({ method: "updateToDelivered" });
+		const logger = this._getLogger({ method: "updateStatus" });
 		logger.debug(
-			{ orderId: req.params.orderId },
-			"Updating order to delivered",
+			{ orderId: req.params.orderId, status: req.body.status },
+			"Updating order status",
 		);
 
-		const result = await this._manager.updateToDelivered({
+		const result = await this._manager.updateStatus({
 			orderId: req.params.orderId,
-		});
-		if (!result.success) {
-			throw result.error;
-		}
-
-		logger.info({ orderId: result.data._id }, "Order marked as delivered");
-
-		const dataToSend = this._convertOrderToDollars(result.data);
-
-		res.status(HTTP_STATUS.OK).json({
-			data: dataToSend,
-			success: true,
-		});
-	});
-
-	updateToPaid = asyncHandler<{
-		params: { orderId: string };
-		resBody: { data: SelectOrder };
-	}>(async (req, res) => {
-		const logger = this._getLogger({ method: "updateToPaid" });
-		logger.debug({ orderId: req.params.orderId }, "Updating order to paid");
-
-		const result = await this._manager.updateToPaid({
-			orderId: req.params.orderId,
+			status: req.body.status,
 		});
 		if (!result.success) {
 			throw result.error;
 		}
 
 		logger.info(
-			{ orderId: result.data._id },
-			"Order marked as paid successfully",
+			{ orderId: result.data._id, status: result.data.status },
+			"Order status updated successfully",
 		);
 
 		const dataToSend = this._convertOrderToDollars(result.data);

@@ -47,13 +47,13 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should set 'PaymentMethod' to 'PayPal' if not provided when 'service.create' is called", async () => {
+		test("Should set 'PaymentMethod' to 'Stripe' if not provided when 'service.create' is called", async () => {
 			// Arrange
 			const mockInsertOrder = generateMockInsertOrder({
 				paymentMethod: undefined,
 			});
 			const mockSelectOrder = generateMockSelectOrder({
-				paymentMethod: "PayPal",
+				paymentMethod: "Stripe",
 			});
 
 			mockRepo.create.mock.mockImplementationOnce(() =>
@@ -65,7 +65,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(order.success, true);
-			assert.strictEqual(order.data.paymentMethod, "PayPal");
+			assert.strictEqual(order.data.paymentMethod, "Stripe");
 		});
 
 		test("Should return 'ValidationError' if 'data.orderItems' length is '0'", async () => {
@@ -197,28 +197,11 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockRepo.getAll.mock.callCount(), 0);
 		});
 
-		test("Should return ValidationError when isPaid parameter is invalid boolean", async () => {
+		test("Should return ValidationError when status parameter is invalid", async () => {
 			// Arrange
 			const invalidArgs = {
-				isPaid: "invalid-boolean",
 				pageNumber: "1",
-			};
-
-			// Act
-			const result = await service.getAll(invalidArgs);
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof ValidationError);
-
-			assert.strictEqual(mockRepo.getAll.mock.callCount(), 0);
-		});
-
-		test("Should return ValidationError when isDelivered parameter is invalid boolean", async () => {
-			// Arrange
-			const invalidArgs = {
-				isDelivered: "invalid-boolean",
-				pageNumber: "1",
+				status: "invalid-status",
 			};
 
 			// Act
@@ -242,11 +225,10 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			const sort = "createdAt:desc";
 
 			const paginationArgs = {
-				isDelivered: "false",
-				isPaid: "true",
 				pageNumber,
 				pageSize,
 				sort,
+				status: "pending",
 				user: userId,
 			};
 
@@ -269,12 +251,8 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 				createdAt: -1,
 			});
 			assert.strictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].query?.isDelivered,
-				false,
-			);
-			assert.strictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].query.isPaid,
-				true,
+				mockRepo.getAll.mock.calls[0].arguments[0].query?.status,
+				"pending",
 			);
 			assert.strictEqual(
 				mockRepo.getAll.mock.calls[0].arguments[0].query.user.toString(),
@@ -355,46 +333,123 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("updateToPaid", () => {
-		const mockOrder = generateMockSelectOrder();
+	describe("updateStatus", () => {
+		const mockOrder = generateMockSelectOrder({ status: "pending" });
 		const orderId = mockOrder._id.toString();
 
-		test("Should return the order object when 'repo.updateToPaid' is called once with 'orderId'", async () => {
+		test("Should return the updated order when a valid transition is performed", async () => {
 			// Arrange
-			mockRepo.updateToPaid.mock.mockImplementationOnce(() =>
+			const updatedOrder = { ...mockOrder, status: "processing" as const };
+
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrder, success: true }),
+			);
+			mockRepo.updateStatus.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: updatedOrder, success: true }),
+			);
+
+			// Act
+			const result = await service.updateStatus({
+				orderId,
+				status: "processing",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, updatedOrder);
+
+			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
+			assert.strictEqual(mockRepo.updateStatus.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRepo.updateStatus.mock.calls[0].arguments[0].orderId.toString(),
+				orderId,
+			);
+			assert.strictEqual(
+				mockRepo.updateStatus.mock.calls[0].arguments[0].status,
+				"processing",
+			);
+		});
+
+		test("Should return the updated order when transitioning from 'pending' to 'cancelled'", async () => {
+			// Arrange
+			const cancelledOrder = { ...mockOrder, status: "cancelled" as const };
+
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrder, success: true }),
+			);
+			mockRepo.updateStatus.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: cancelledOrder, success: true }),
+			);
+
+			// Act
+			const result = await service.updateStatus({
+				orderId,
+				status: "cancelled",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, cancelledOrder);
+
+			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
+			assert.strictEqual(mockRepo.updateStatus.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRepo.updateStatus.mock.calls[0].arguments[0].status,
+				"cancelled",
+			);
+		});
+
+		test("Should return the updated order when transitioning from 'processing' to 'delivered'", async () => {
+			// Arrange
+			const processingOrder = generateMockSelectOrder({ status: "processing" });
+			const deliveredOrder = {
+				...processingOrder,
+				status: "delivered" as const,
+			};
+
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: processingOrder, success: true }),
+			);
+			mockRepo.updateStatus.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: deliveredOrder, success: true }),
+			);
+
+			// Act
+			const result = await service.updateStatus({
+				orderId: processingOrder._id.toString(),
+				status: "delivered",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, deliveredOrder);
+
+			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
+			assert.strictEqual(mockRepo.updateStatus.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRepo.updateStatus.mock.calls[0].arguments[0].status,
+				"delivered",
+			);
+		});
+
+		test("Should return 'ValidationError' when transition is not allowed (pending -> delivered)", async () => {
+			// Arrange
+			mockRepo.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrder, success: true }),
 			);
 
 			// Act
-			const updatedOrder = await service.updateToPaid({
+			const result = await service.updateStatus({
 				orderId,
+				status: "delivered",
 			});
 
 			// Assert
-			assert.strictEqual(updatedOrder.success, true);
-			assert.deepStrictEqual(updatedOrder.data, mockOrder);
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 
-			assert.strictEqual(mockRepo.updateToPaid.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockRepo.updateToPaid.mock.calls[0].arguments[0].orderId.toString(),
-				orderId,
-			);
-		});
-
-		test("Should return 'NotFoundError' if 'repo.updateToPaid' returns 'null'", async () => {
-			// Arrange
-			mockRepo.updateToPaid.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: null, success: true }),
-			);
-
-			// Act
-			const updatedOrder = await service.updateToPaid({
-				orderId,
-			});
-
-			// Assert
-			assert.strictEqual(updatedOrder.success, false);
-			assert.ok(updatedOrder.error instanceof NotFoundError);
+			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
+			assert.strictEqual(mockRepo.updateStatus.mock.callCount(), 0);
 		});
 
 		test("Should return 'ValidationError' if 'orderId' is invalid", async () => {
@@ -402,74 +457,184 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			const invalidOrderId = "invalid-order-id";
 
 			// Act
-			const updatedOrder = await service.updateToPaid({
+			const result = await service.updateStatus({
 				orderId: invalidOrderId,
+				status: "processing",
 			});
 
 			// Assert
-			assert.strictEqual(updatedOrder.success, false);
-			assert.ok(updatedOrder.error instanceof ValidationError);
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 
-			assert.strictEqual(mockRepo.updateToPaid.mock.callCount(), 0);
+			assert.strictEqual(mockRepo.getById.mock.callCount(), 0);
+			assert.strictEqual(mockRepo.updateStatus.mock.callCount(), 0);
 		});
-	});
 
-	describe("updateToDelivered", () => {
-		const mockOrder = generateMockSelectOrder();
-		const orderId = mockOrder._id.toString();
-
-		test("Should return the order object when 'repo.updateToDelivered' is called once with 'orderId", async () => {
-			// Arrange
-			mockRepo.updateToDelivered.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrder, success: true }),
-			);
-
+		test("Should return 'ValidationError' if 'status' value is invalid", async () => {
 			// Act
-			const updatedOrder = await service.updateToDelivered({
+			const result = await service.updateStatus({
 				orderId,
+				// @ts-expect-error - test case
+				status: "invalid-status",
 			});
 
 			// Assert
-			assert.strictEqual(updatedOrder.success, true);
-			assert.deepStrictEqual(updatedOrder.data, mockOrder);
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
 
-			assert.strictEqual(mockRepo.updateToDelivered.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockRepo.updateToDelivered.mock.calls[0].arguments[0].orderId.toString(),
-				orderId,
-			);
+			assert.strictEqual(mockRepo.getById.mock.callCount(), 0);
+			assert.strictEqual(mockRepo.updateStatus.mock.callCount(), 0);
 		});
 
-		test("Should return 'NotFoundError' if 'repo.updateToDelivered' returns 'null'", async () => {
+		test("Should return 'NotFoundError' if order does not exist", async () => {
 			// Arrange
-			mockRepo.updateToDelivered.mock.mockImplementationOnce(() =>
+			mockRepo.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: null, success: true }),
 			);
 
 			// Act
-			const updatedOrder = await service.updateToDelivered({
+			const result = await service.updateStatus({
 				orderId,
+				status: "processing",
 			});
 
 			// Assert
-			assert.strictEqual(updatedOrder.success, false);
-			assert.ok(updatedOrder.error instanceof NotFoundError);
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
+
+			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
+			assert.strictEqual(mockRepo.updateStatus.mock.callCount(), 0);
 		});
 
-		test("Should return 'ValidationError' if 'orderId' is invalid", async () => {
+		test("Should return 'ValidationError' when transition is not allowed (delivered -> processing)", async () => {
 			// Arrange
-			const invalidOrderId = "invalid-order-id";
+			const deliveredOrder = generateMockSelectOrder({ status: "delivered" });
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: deliveredOrder, success: true }),
+			);
 
-			// Act & Assert
-			const updatedOrder = await service.updateToDelivered({
-				orderId: invalidOrderId,
+			// Act
+			const result = await service.updateStatus({
+				orderId: deliveredOrder._id.toString(),
+				status: "processing",
 			});
 
 			// Assert
-			assert.strictEqual(updatedOrder.success, false);
-			assert.ok(updatedOrder.error instanceof ValidationError);
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+			assert.ok(
+				result.error.message.includes(
+					"Cannot transition order from 'delivered' to 'processing'",
+				),
+			);
 
-			assert.strictEqual(mockRepo.updateToDelivered.mock.callCount(), 0);
+			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
+			assert.strictEqual(mockRepo.updateStatus.mock.callCount(), 0);
+		});
+
+		test("Should return 'ValidationError' when transition is not allowed (cancelled -> processing)", async () => {
+			// Arrange
+			const cancelledOrder = generateMockSelectOrder({ status: "cancelled" });
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: cancelledOrder, success: true }),
+			);
+
+			// Act
+			const result = await service.updateStatus({
+				orderId: cancelledOrder._id.toString(),
+				status: "processing",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+			assert.ok(
+				result.error.message.includes(
+					"Cannot transition order from 'cancelled' to 'processing'",
+				),
+			);
+		});
+
+		test("Should return 'ValidationError' when transition is not allowed (processing -> cancelled)", async () => {
+			// Arrange
+			const processingOrder = generateMockSelectOrder({ status: "processing" });
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: processingOrder, success: true }),
+			);
+
+			// Act
+			const result = await service.updateStatus({
+				orderId: processingOrder._id.toString(),
+				status: "cancelled",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+			assert.ok(
+				result.error.message.includes(
+					"Cannot transition order from 'processing' to 'cancelled'",
+				),
+			);
+		});
+
+		test("Should propagate repository error from 'repo.getById'", async () => {
+			// Arrange
+			const dbError = new DatabaseBaseError("Database error");
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ error: dbError, success: false }),
+			);
+
+			// Act
+			const result = await service.updateStatus({
+				orderId,
+				status: "processing",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, dbError);
+		});
+
+		test("Should propagate repository error from 'repo.updateStatus'", async () => {
+			// Arrange
+			const dbError = new DatabaseBaseError("Database error");
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrder, success: true }),
+			);
+			mockRepo.updateStatus.mock.mockImplementationOnce(() =>
+				Promise.resolve({ error: dbError, success: false }),
+			);
+
+			// Act
+			const result = await service.updateStatus({
+				orderId,
+				status: "processing",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, dbError);
+		});
+
+		test("Should return 'NotFoundError' if 'repo.updateStatus' returns null", async () => {
+			// Arrange
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrder, success: true }),
+			);
+			mockRepo.updateStatus.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: null, success: true }),
+			);
+
+			// Act
+			const result = await service.updateStatus({
+				orderId,
+				status: "processing",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
 		});
 	});
 });

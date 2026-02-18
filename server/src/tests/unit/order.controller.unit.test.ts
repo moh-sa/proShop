@@ -783,7 +783,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("updateToPaid", () => {
+	describe("updateStatus", () => {
 		const mockInsertOrder = generateMockInsertOrder();
 		const mockSelectOrder = generateMockSelectOrder({
 			...mockInsertOrder,
@@ -798,21 +798,24 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		const mockOrderInDollars = convertOrderToDollars(mockOrderInCents);
 		const orderId = mockOrderInCents._id.toString();
 
-		test("Should parse 'orderId' from 'req.params'", async (t) => {
+		test("Should parse 'orderId' from 'req.params' and 'status' from 'req.body'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId } },
+				req: {
+					body: { status: "processing" },
+					params: { orderId },
+				},
 				testContext: t,
 			});
 
-			mockManager.updateToPaid.mock.mockImplementationOnce(() =>
+			mockManager.updateStatus.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
 			// Act & Assert
 			await assert.doesNotReject(
 				async () =>
-					await controller.updateToPaid(
+					await controller.updateStatus(
 						req as unknown as Request,
 						res as unknown as Response,
 						next,
@@ -820,46 +823,55 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should call 'service.updateToPaid' once with the correct 'orderId'", async (t) => {
+		test("Should call 'manager.updateStatus' once with the correct 'orderId' and 'status'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId } },
+				req: {
+					body: { status: "processing" },
+					params: { orderId },
+				},
 				testContext: t,
 			});
 
-			mockManager.updateToPaid.mock.mockImplementationOnce(() =>
+			mockManager.updateStatus.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
 			// Act
-			await controller.updateToPaid(
+			await controller.updateStatus(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
 			);
 
 			// Assert
-			assert.strictEqual(mockManager.updateToPaid.mock.callCount(), 1);
+			assert.strictEqual(mockManager.updateStatus.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockManager.updateToPaid.mock.calls[0].arguments[0].orderId.toString(),
-
+				mockManager.updateStatus.mock.calls[0].arguments[0].orderId.toString(),
 				orderId,
+			);
+			assert.strictEqual(
+				mockManager.updateStatus.mock.calls[0].arguments[0].status,
+				"processing",
 			);
 		});
 
 		test("Should convert order prices from cents to dollars in response", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId } },
+				req: {
+					body: { status: "processing" },
+					params: { orderId },
+				},
 				testContext: t,
 			});
 
-			mockManager.updateToPaid.mock.mockImplementationOnce(() =>
+			mockManager.updateStatus.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
 			// Act
-			await controller.updateToPaid(
+			await controller.updateStatus(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
@@ -889,19 +901,22 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should call 'res.status' once with '200' after successfully updating order data", async (t) => {
+		test("Should call 'res.status' once with '200' after successfully updating order status", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId } },
+				req: {
+					body: { status: "processing" },
+					params: { orderId },
+				},
 				testContext: t,
 			});
 
-			mockManager.updateToPaid.mock.mockImplementationOnce(() =>
+			mockManager.updateStatus.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
 			// Act
-			await controller.updateToPaid(
+			await controller.updateStatus(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
@@ -915,16 +930,19 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing order data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId } },
+				req: {
+					body: { status: "processing" },
+					params: { orderId },
+				},
 				testContext: t,
 			});
 
-			mockManager.updateToPaid.mock.mockImplementationOnce(() =>
+			mockManager.updateStatus.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
 
 			// Act
-			await controller.updateToPaid(
+			await controller.updateStatus(
 				req as unknown as Request,
 				res as unknown as Response,
 				next,
@@ -937,159 +955,34 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				createSuccessResponseObject({ data: mockOrderInDollars }),
 			);
 		});
-	});
 
-	describe("updateToDelivered", () => {
-		const mockInsertOrder = generateMockInsertOrder();
-		const mockSelectOrder = generateMockSelectOrder({
-			...mockInsertOrder,
-			user: {
-				_id: mockInsertOrder.user,
-				email: "email@example.com",
-				name: "name",
-			},
-		});
-
-		const mockOrderInCents = convertOrderToCents(mockSelectOrder);
-		const mockOrderInDollars = convertOrderToDollars(mockOrderInCents);
-		const orderId = mockOrderInCents._id.toString();
-
-		test("Should parse 'orderId' from 'req.params'", async (t) => {
+		test("Should throw error when 'manager.updateStatus' returns failure", async (t) => {
 			// Arrange
+			const mockError = new Error("Order status update failed");
 			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId } },
+				req: {
+					body: { status: "processing" },
+					params: { orderId },
+				},
 				testContext: t,
 			});
 
-			mockManager.updateToDelivered.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrderInCents, success: true }),
+			mockManager.updateStatus.mock.mockImplementationOnce(() =>
+				Promise.resolve({ error: mockError, success: false }),
 			);
 
 			// Act & Assert
-			await assert.doesNotReject(
+			await assert.rejects(
 				async () =>
-					await controller.updateToDelivered(
+					await controller.updateStatus(
 						req as unknown as Request,
 						res as unknown as Response,
 						next,
 					),
-			);
-		});
-
-		test("Should call 'service.updateToDelivered' once with the correct 'orderId'", async (t) => {
-			// Arrange
-			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId } },
-				testContext: t,
-			});
-
-			mockManager.updateToDelivered.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrderInCents, success: true }),
-			);
-
-			// Act
-			await controller.updateToDelivered(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
-
-			// Assert
-			assert.strictEqual(mockManager.updateToDelivered.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockManager.updateToDelivered.mock.calls[0].arguments[0].orderId.toString(),
-				orderId,
-			);
-		});
-
-		test("Should convert order prices from cents to dollars in response", async (t) => {
-			// Arrange
-			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId } },
-				testContext: t,
-			});
-
-			mockManager.updateToDelivered.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrderInCents, success: true }),
-			);
-
-			// Act
-			await controller.updateToDelivered(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
-
-			// Assert
-			const response = res.json.mock.calls[0].arguments[0] as SuccessResponse<{
-				data: typeof mockOrderInDollars;
-			}>;
-
-			assert.strictEqual(
-				response.data.itemsPrice,
-				mockOrderInDollars.itemsPrice,
-			);
-			assert.strictEqual(
-				response.data.shippingPrice,
-				mockOrderInDollars.shippingPrice,
-			);
-			assert.strictEqual(response.data.taxPrice, mockOrderInDollars.taxPrice);
-			assert.strictEqual(
-				response.data.totalPrice,
-				mockOrderInDollars.totalPrice,
-			);
-			assert.strictEqual(
-				response.data.orderItems[0].price,
-				mockOrderInDollars.orderItems[0].price,
-			);
-		});
-
-		test("Should call 'res.status' once with '200' after successfully updating order data", async (t) => {
-			// Arrange
-			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId } },
-				testContext: t,
-			});
-
-			mockManager.updateToDelivered.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrderInCents, success: true }),
-			);
-
-			// Act
-			await controller.updateToDelivered(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
-
-			// Assert
-			assert.strictEqual(res.status.mock.callCount(), 1);
-			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
-		});
-
-		test("Should call 'res.json' once with the success response object containing order data", async (t) => {
-			// Arrange
-			const { next, req, res } = mockExpressCall({
-				req: { params: { orderId } },
-				testContext: t,
-			});
-
-			mockManager.updateToDelivered.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockOrderInCents, success: true }),
-			);
-
-			// Act
-			await controller.updateToDelivered(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
-
-			// Assert
-			assert.strictEqual(res.json.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: mockOrderInDollars }),
+				(error: Error) => {
+					assert.strictEqual(error.message, "Order status update failed");
+					return true;
+				},
 			);
 		});
 	});

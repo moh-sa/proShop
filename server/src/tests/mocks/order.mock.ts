@@ -4,6 +4,7 @@ import { Types } from "mongoose";
 import type {
 	InsertOrder,
 	InsertOrderItem,
+	OrderStatus,
 	SelectOrder,
 	SelectUser,
 } from "../../types/index.js";
@@ -19,7 +20,8 @@ const MOCK_DATA_CONSTANTS = {
 		MIN_COUNT: 1,
 		MIN_QTY: 1,
 	},
-	PAYMENT_METHODS: ["PayPal", "Stripe"] as const,
+	ORDER_STATUSES: ["pending", "processing", "delivered", "cancelled"] as const,
+	PAYMENT_METHODS: ["Stripe"] as const,
 	PAYMENT_STATUSES: ["COMPLETED", "PENDING", "FAILED"] as const,
 	PRICES: {
 		MAX_SHIPPING: 50,
@@ -137,13 +139,17 @@ export function generateMockInsertOrder(
 	const totalPrice =
 		options.totalPrice ?? itemsPrice + shippingPrice + taxPrice;
 
-	const isPaid = options.isPaid ?? faker.datatype.boolean();
-	const paidAt = isPaid ? (options.paidAt ?? faker.date.recent()) : undefined;
+	const status: OrderStatus =
+		options.status ??
+		faker.helpers.arrayElement(MOCK_DATA_CONSTANTS.ORDER_STATUSES);
 
-	const isDelivered =
-		options.isDelivered ?? (isPaid ? faker.datatype.boolean() : false);
+	const isPaidStatus = status === "processing" || status === "delivered";
+	const isDeliveredStatus = status === "delivered";
 
-	const deliveredAt = isDelivered
+	const paidAt = isPaidStatus
+		? (options.paidAt ?? faker.date.recent())
+		: undefined;
+	const deliveredAt = isDeliveredStatus
 		? (options.deliveredAt ?? faker.date.recent())
 		: undefined;
 
@@ -151,14 +157,12 @@ export function generateMockInsertOrder(
 		options.paymentMethod ??
 		faker.helpers.arrayElement(MOCK_DATA_CONSTANTS.PAYMENT_METHODS);
 
-	const paymentResult = isPaid
+	const paymentResult = isPaidStatus
 		? (options.paymentResult ?? generateMockPaymentResult())
 		: undefined;
 
 	return {
 		deliveredAt,
-		isDelivered,
-		isPaid,
 		itemsPrice,
 		orderItems,
 		paidAt,
@@ -166,6 +170,7 @@ export function generateMockInsertOrder(
 		paymentResult,
 		shippingAddress: options.shippingAddress ?? generateMockShippingAddress(),
 		shippingPrice,
+		status,
 		taxPrice,
 		totalPrice,
 		user: options.user ?? generateMockObjectId(),

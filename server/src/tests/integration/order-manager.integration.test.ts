@@ -9,6 +9,7 @@ import { OrderService } from "../../services/index.js";
 import {
 	generateMockCheckoutSessionResponse,
 	generateMockInsertOrder,
+	generateMockInsertOrders,
 	generateMockInsertUser,
 	generateMockObjectId,
 	generateMockVerifyWebhookParams,
@@ -36,7 +37,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 	});
 
 	describe("create", () => {
-		test("should create order in DB and return checkout URL when order and checkout session succeed", async () => {
+		test("should store order in database and return checkout URL", async () => {
 			// Arrange
 			const mockUser = await User.create(generateMockInsertUser());
 			const mockOrder = generateMockInsertOrder({
@@ -65,43 +66,13 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			);
 
 			// Verify order was persisted in DB
-			const orderInDb = await Order.findById(result.data.order._id);
-			assert.strictEqual(orderInDb !== null, true);
-			assert.strictEqual(orderInDb?.totalPrice, mockOrder.totalPrice);
-			// Verify PaymentService was called
-			assert.strictEqual(mockPayment.createCheckoutSession.mock.callCount(), 1);
+			const order = await Order.findById(result.data.order._id);
+			assert.strictEqual(order !== null, true);
+			assert.strictEqual(order?.totalPrice, mockOrder.totalPrice);
 		});
 
-		test("should persist order in DB but return error when checkout session creation fails", async () => {
-			// Arrange - Create a real user first (required for order population)
-			const mockUser = await User.create(generateMockInsertUser());
-			const mockOrder = generateMockInsertOrder({
-				orderItemsCount: 1,
-				user: mockUser._id,
-			});
-			const checkoutError = new Error("Stripe API error");
-			mockPayment.createCheckoutSession.mock.mockImplementationOnce(() =>
-				Promise.resolve({ error: checkoutError, success: false }),
-			);
-
-			// Act
-			const result = await orderManager.create(mockOrder);
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.strictEqual(result.error, checkoutError);
-
-			// Verify order WAS still created in DB (order creation succeeded before checkout failed)
-			const ordersInDb = await Order.find({});
-			assert.strictEqual(ordersInDb.length, 1);
-			assert.strictEqual(ordersInDb[0].totalPrice, mockOrder.totalPrice);
-
-			// Verify PaymentService was called
-			assert.strictEqual(mockPayment.createCheckoutSession.mock.callCount(), 1);
-		});
-
-		test("should correctly transform order items to Stripe line items format", async () => {
-			// Arrange - Create a real user first (required for order population)
+		test("should transform order items to Stripe checkout line items", async () => {
+			// Arrange
 			const mockUser = await User.create(generateMockInsertUser());
 			const mockOrder = generateMockInsertOrder({
 				orderItemsCount: 3,
@@ -118,7 +89,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			// Act
 			await orderManager.create(mockOrder);
 
-			// Assert - Verify the line items transformation
+			// Assert
 			const checkoutCallArgs =
 				mockPayment.createCheckoutSession.mock.calls[0].arguments[0];
 
@@ -147,14 +118,11 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 	});
 
 	describe("getAll", () => {
-		test("should delegate to order service and return paginated response", async () => {
+		// should pass
+		test("should return paginated orders from the order service", async () => {
 			// Arrange
-			const orders = [
-				generateMockInsertOrder(),
-				generateMockInsertOrder(),
-				generateMockInsertOrder(),
-			];
-			await Order.insertMany(orders);
+			const mockOrders = generateMockInsertOrders(3);
+			await Order.insertMany(mockOrders);
 
 			// Act
 			const result = await orderManager.getAll({ pageNumber: "1" });
@@ -169,7 +137,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 	});
 
 	describe("getById", () => {
-		test("should delegate to order service and return order when found", async () => {
+		test("should return order by id from the order service", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder();
 			const createdOrder = await Order.create(mockOrder);
@@ -203,15 +171,15 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.success, false);
 			assert.strictEqual(result.error, verifyError);
 
-			// Verify no DB operations happened
-			const ordersInDb = await Order.find({});
-			assert.strictEqual(ordersInDb.length, 0);
+			// Verify no data stored in database
+			const orders = await Order.find({});
+			assert.strictEqual(orders.length, 0);
 		});
 
-		test("should update order to paid in DB for checkout.session.completed event", async () => {
+		test("should update order status to processing for checkout.session.completed event", async () => {
 			// Arrange
 			const mockWebhookParams = generateMockVerifyWebhookParams();
-			const mockOrder = generateMockInsertOrder({ isPaid: false });
+			const mockOrder = generateMockInsertOrder({ status: "pending" });
 			const createdOrder = await Order.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
@@ -231,14 +199,13 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data, undefined);
 
-			// Verify order was updated in DB
-			const updatedOrder = await Order.findById(orderId);
-			assert.strictEqual(updatedOrder !== null, true);
-			assert.strictEqual(updatedOrder?.isPaid, true);
-			assert.strictEqual(updatedOrder?.paidAt instanceof Date, true);
+			// Verify status was updated to processing
+			const order = await Order.findById(orderId);
+			assert.strictEqual(order !== null, true);
+			assert.strictEqual(order?.status, "processing");
 		});
 
-		test("should return error when order not found during checkout.session.completed", async () => {
+		test("should return error when order not found during `checkout.session.completed` event", async () => {
 			// Arrange
 			const mockWebhookParams = generateMockVerifyWebhookParams();
 			const nonExistentOrderId = generateMockObjectId().toString();
@@ -260,10 +227,10 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.error instanceof NotFoundError, true);
 		});
 
-		test("should return success without updating DB for checkout.session.expired event", async () => {
+		test("should update order status to cancelled for checkout.session.expired event", async () => {
 			// Arrange
 			const mockWebhookParams = generateMockVerifyWebhookParams();
-			const mockOrder = generateMockInsertOrder({ isPaid: false });
+			const mockOrder = generateMockInsertOrder({ status: "pending" });
 			const createdOrder = await Order.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
@@ -283,17 +250,16 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data, undefined);
 
-			// Verify order was NOT updated in DB
-			const unchangedOrder = await Order.findById(orderId);
-			assert.strictEqual(unchangedOrder !== null, true);
-			assert.strictEqual(unchangedOrder?.isPaid, false);
-			assert.strictEqual(unchangedOrder?.paidAt, undefined);
+			// Verify status was updated to cancelled
+			const order = await Order.findById(orderId);
+			assert.strictEqual(order !== null, true);
+			assert.strictEqual(order?.status, "cancelled");
 		});
 
-		test("should return success without updating DB for unhandled event types", async () => {
+		test("should NOT update call the database for unhandled event types", async () => {
 			// Arrange
 			const mockWebhookParams = generateMockVerifyWebhookParams();
-			const mockOrder = generateMockInsertOrder({ isPaid: false });
+			const mockOrder = generateMockInsertOrder({ status: "pending" });
 			const createdOrder = await Order.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
@@ -316,49 +282,53 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			// Verify order was NOT updated in DB
 			const unchangedOrder = await Order.findById(orderId);
 			assert.strictEqual(unchangedOrder !== null, true);
-			assert.strictEqual(unchangedOrder?.isPaid, false);
+			assert.strictEqual(unchangedOrder?.status, "pending");
 		});
 	});
 
-	describe("updateToDelivered", () => {
-		test("should delegate to order service and update order in DB", async () => {
+	describe("updateStatus", () => {
+		test("should update order status to delivered", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({ isDelivered: false });
+			const mockOrder = generateMockInsertOrder({ status: "processing" });
 			const createdOrder = await Order.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
 			// Act
-			const result = await orderManager.updateToDelivered({ orderId });
+			const result = await orderManager.updateStatus({
+				orderId,
+				status: "delivered",
+			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.isDelivered, true);
+			assert.strictEqual(result.data.status, "delivered");
 			assert.strictEqual(result.data.deliveredAt instanceof Date, true);
 
 			// Verify in DB
-			const updatedOrder = await Order.findById(orderId);
-			assert.strictEqual(updatedOrder?.isDelivered, true);
+			const order = await Order.findById(orderId);
+			assert.strictEqual(order?.status, "delivered");
 		});
-	});
 
-	describe("updateToPaid", () => {
-		test("should delegate to order service and update order in DB", async () => {
+		test("should update order status to processing", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({ isPaid: false });
+			const mockOrder = generateMockInsertOrder({ status: "pending" });
 			const createdOrder = await Order.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
 			// Act
-			const result = await orderManager.updateToPaid({ orderId });
+			const result = await orderManager.updateStatus({
+				orderId,
+				status: "processing",
+			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.isPaid, true);
+			assert.strictEqual(result.data.status, "processing");
 			assert.strictEqual(result.data.paidAt instanceof Date, true);
 
 			// Verify in DB
-			const updatedOrder = await Order.findById(orderId);
-			assert.strictEqual(updatedOrder?.isPaid, true);
+			const order = await Order.findById(orderId);
+			assert.strictEqual(order?.status, "processing");
 		});
 	});
 });

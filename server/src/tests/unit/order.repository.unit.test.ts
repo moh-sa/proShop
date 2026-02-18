@@ -410,14 +410,12 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		});
 	});
 
-	describe("updateToPaid", () => {
+	describe("updateStatus", () => {
 		const mockOrder = generateMockSelectOrder();
 		const orderId = mockOrder._id;
 
-		test("Should return the order object with 'isPaid' set to 'true' and 'paidAt' set to the current date when 'db.findByIdAndUpdate' is called once with 'orderId'", async (t) => {
+		test("Should set 'status' to 'processing' and 'paidAt' when status is 'processing'", async (t) => {
 			// Arrange
-			// FIXME: this is a 'hack' that sets the date to 1970.
-			// the '$set' in the method below sets a different date value than the one in the test
 			t.mock.timers.enable({ apis: ["Date"] });
 
 			const mockFindByIdAndUpdate = t.mock.method(
@@ -429,7 +427,10 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const updatedOrder = await repo.updateToPaid({ orderId });
+			const updatedOrder = await repo.updateStatus({
+				orderId,
+				status: "processing",
+			});
 
 			// Assert
 			assert.ok(updatedOrder);
@@ -439,118 +440,14 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockFindByIdAndUpdate.mock.callCount(), 1);
 			assert.deepStrictEqual(mockFindByIdAndUpdate.mock.calls[0].arguments[1], {
 				$set: {
-					isPaid: true,
 					paidAt: new Date(),
+					status: "processing",
 				},
 			});
 		});
 
-		test("Should return 'null' when 'db.findByIdAndUpdate' returns 'null'", async (t) => {
+		test("Should set 'status' to 'delivered' and 'deliveredAt' when status is 'delivered'", async (t) => {
 			// Arrange
-			t.mock.method(Order, "findByIdAndUpdate", () => ({
-				lean: async () => null,
-			}));
-
-			// Act
-			const updatedOrder = await repo.updateToPaid({ orderId });
-
-			// Assert
-			assert.ok(updatedOrder);
-			assert.strictEqual(updatedOrder.success, true);
-			assert.strictEqual(updatedOrder.data, null);
-		});
-
-		test("Should return 'DatabaseValidationError' when 'db.findByIdAndUpdate' throws 'ValidationError'", async (t) => {
-			// Arrange
-			const validationError = new mongoose.Error.ValidationError();
-
-			t.mock.method(Order, "findByIdAndUpdate", () => {
-				throw validationError;
-			});
-
-			// Act
-			const updatedOrder = await repo.updateToPaid({ orderId });
-
-			// Assert
-			assert.strictEqual(updatedOrder.success, false);
-			assert.ok(updatedOrder.error instanceof DatabaseValidationError);
-		});
-
-		test("Should return 'DatabaseTimeoutError' when 'db.findByIdAndUpdate' throws 'MongoNetworkTimeoutError'", async (t) => {
-			// Arrange
-			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
-				"Timeout",
-			);
-
-			t.mock.method(Order, "findByIdAndUpdate", () => {
-				throw timeoutError;
-			});
-
-			// Act
-			const updatedOrder = await repo.updateToPaid({ orderId });
-
-			// Assert
-			assert.strictEqual(updatedOrder.success, false);
-			assert.ok(updatedOrder.error instanceof DatabaseTimeoutError);
-		});
-
-		test("Should return 'DatabaseQueryError' when 'db.findByIdAndUpdate' throws 'MongooseError'", async (t) => {
-			// Arrange
-			const queryError = new mongoose.Error("Query failed");
-
-			t.mock.method(Order, "findByIdAndUpdate", () => {
-				throw queryError;
-			});
-
-			// Act
-			const updatedOrder = await repo.updateToPaid({ orderId });
-
-			// Assert
-			assert.strictEqual(updatedOrder.success, false);
-			assert.ok(updatedOrder.error instanceof DatabaseQueryError);
-		});
-
-		test("Should return 'DatabaseNetworkError' when 'db.findByIdAndUpdate' throws 'MongoError'", async (t) => {
-			// Arrange
-			const networkError = new mongoose.mongo.MongoError("Network error");
-
-			t.mock.method(Order, "findByIdAndUpdate", () => {
-				throw networkError;
-			});
-
-			// Act
-			const updatedOrder = await repo.updateToPaid({ orderId });
-
-			// Assert
-			assert.strictEqual(updatedOrder.success, false);
-			assert.ok(updatedOrder.error instanceof DatabaseNetworkError);
-		});
-
-		test("Should return 'GenericDatabaseError' when 'db.findByIdAndUpdate' throws unknown error", async (t) => {
-			// Arrange
-			const unknownError = new Error("Something unexpected happened");
-
-			t.mock.method(Order, "findByIdAndUpdate", () => {
-				throw unknownError;
-			});
-
-			// Act
-			const updatedOrder = await repo.updateToPaid({ orderId });
-
-			// Assert
-			assert.strictEqual(updatedOrder.success, false);
-			assert.ok(updatedOrder.error instanceof GenericDatabaseError);
-		});
-	});
-
-	describe("updateToDelivered", () => {
-		const mockOrder = generateMockSelectOrder();
-		const orderId = mockOrder._id;
-
-		test("Should return the order object with 'isDelivered' set to 'true' and 'deliveredAt' set to the current date when 'db.findByIdAndUpdate' is called once with 'orderId'", async (t) => {
-			// Arrange
-			// FIXME: this is a 'hack' that sets the date to 1970.
-			// the '$set' in the method below sets a different date value than the one in the test
 			t.mock.timers.enable({ apis: ["Date"] });
 
 			const mockFindByIdAndUpdate = t.mock.method(
@@ -562,7 +459,10 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const updatedOrder = await repo.updateToDelivered({ orderId });
+			const updatedOrder = await repo.updateStatus({
+				orderId,
+				status: "delivered",
+			});
 
 			// Assert
 			assert.ok(updatedOrder);
@@ -573,7 +473,35 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(mockFindByIdAndUpdate.mock.calls[0].arguments[1], {
 				$set: {
 					deliveredAt: new Date(),
-					isDelivered: true,
+					status: "delivered",
+				},
+			});
+		});
+
+		test("Should set only 'status' when status is 'cancelled'", async (t) => {
+			// Arrange
+			const mockFindByIdAndUpdate = t.mock.method(
+				Order,
+				"findByIdAndUpdate",
+				() => ({
+					lean: async () => mockOrder,
+				}),
+			);
+
+			// Act
+			const updatedOrder = await repo.updateStatus({
+				orderId,
+				status: "cancelled",
+			});
+
+			// Assert
+			assert.ok(updatedOrder);
+			assert.strictEqual(updatedOrder.success, true);
+
+			assert.strictEqual(mockFindByIdAndUpdate.mock.callCount(), 1);
+			assert.deepStrictEqual(mockFindByIdAndUpdate.mock.calls[0].arguments[1], {
+				$set: {
+					status: "cancelled",
 				},
 			});
 		});
@@ -584,7 +512,11 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 				lean: async () => null,
 			}));
 
-			const updatedOrder = await repo.updateToDelivered({ orderId });
+			// Act
+			const updatedOrder = await repo.updateStatus({
+				orderId,
+				status: "processing",
+			});
 
 			// Assert
 			assert.ok(updatedOrder);
@@ -601,7 +533,10 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const updatedOrder = await repo.updateToDelivered({ orderId });
+			const updatedOrder = await repo.updateStatus({
+				orderId,
+				status: "processing",
+			});
 
 			// Assert
 			assert.strictEqual(updatedOrder.success, false);
@@ -619,7 +554,10 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const updatedOrder = await repo.updateToDelivered({ orderId });
+			const updatedOrder = await repo.updateStatus({
+				orderId,
+				status: "processing",
+			});
 
 			// Assert
 			assert.strictEqual(updatedOrder.success, false);
@@ -635,7 +573,10 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const updatedOrder = await repo.updateToDelivered({ orderId });
+			const updatedOrder = await repo.updateStatus({
+				orderId,
+				status: "processing",
+			});
 
 			// Assert
 			assert.strictEqual(updatedOrder.success, false);
@@ -651,7 +592,10 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const updatedOrder = await repo.updateToDelivered({ orderId });
+			const updatedOrder = await repo.updateStatus({
+				orderId,
+				status: "processing",
+			});
 
 			// Assert
 			assert.strictEqual(updatedOrder.success, false);
@@ -667,7 +611,10 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const updatedOrder = await repo.updateToDelivered({ orderId });
+			const updatedOrder = await repo.updateStatus({
+				orderId,
+				status: "processing",
+			});
 
 			// Assert
 			assert.strictEqual(updatedOrder.success, false);
