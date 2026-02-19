@@ -71,7 +71,7 @@ export class OrderController implements IOrderController {
 
 		const dataToCreate = this._convertOrderToCents({
 			...req.body,
-			user: res.locals.user._id,
+			user: res.locals.user,
 		});
 		logger.debug({ data: dataToCreate }, "Validated order data");
 

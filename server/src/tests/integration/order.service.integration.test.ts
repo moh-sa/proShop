@@ -37,7 +37,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const orderItemsCount = 1;
 			const mockOrder = generateMockInsertOrder({
 				orderItemsCount,
-				user: mockUser._id,
+				user: mockUser,
 			});
 
 			// Act
@@ -49,7 +49,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.totalPrice, mockOrder.totalPrice);
 			assert.strictEqual(
 				result.data.user._id.toString(),
-				mockUser._id.toString(),
+				mockUser._id._id.toString(),
 			);
 		});
 
@@ -60,7 +60,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const orderItemsCount = 3;
 			const mockOrder = generateMockInsertOrder({
 				orderItemsCount,
-				user: mockUser._id,
+				user: mockUser,
 			});
 
 			// Act
@@ -72,7 +72,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.totalPrice, mockOrder.totalPrice);
 			assert.strictEqual(
 				result.data.user._id.toString(),
-				mockUser._id.toString(),
+				mockUser._id._id.toString(),
 			);
 		});
 
@@ -92,7 +92,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
-			const mockOrder = generateMockInsertOrder({ user: mockUser._id });
+			const mockOrder = generateMockInsertOrder({ user: mockUser });
 			const expectedAddress = mockOrder.shippingAddress;
 
 			// Act
@@ -110,7 +110,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const paymentMethod = "Stripe";
 			const mockOrder = generateMockInsertOrder({
 				paymentMethod,
-				user: mockUser._id,
+				user: mockUser,
 			});
 
 			// Act
@@ -128,7 +128,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const taxPrice = 10.99;
 			const mockOrder = generateMockInsertOrder({
 				taxPrice,
-				user: mockUser._id,
+				user: mockUser,
 			});
 
 			// Act
@@ -146,7 +146,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const shippingPrice = 5.99;
 			const mockOrder = generateMockInsertOrder({
 				shippingPrice,
-				user: mockUser._id,
+				user: mockUser,
 			});
 
 			// Act
@@ -170,7 +170,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 				shippingPrice,
 				taxPrice,
 				totalPrice,
-				user: mockUser._id,
+				user: mockUser,
 			});
 
 			// Act
@@ -190,7 +190,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			await User.create(mockUser);
 			const mockOrder = generateMockInsertOrder({
 				status: "pending",
-				user: mockUser._id,
+				user: mockUser,
 			});
 
 			// Act
@@ -208,7 +208,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			await User.create(mockUser);
 			const mockOrder = generateMockInsertOrder({
 				status: "pending",
-				user: mockUser._id,
+				user: mockUser,
 			});
 
 			// Act
@@ -225,7 +225,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
 			const beforeCreate = new Date();
-			const mockOrder = generateMockInsertOrder({ user: mockUser._id });
+			const mockOrder = generateMockInsertOrder({ user: mockUser });
 
 			// Act
 			const result = await orderService.create(mockOrder);
@@ -241,7 +241,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
-			const mockInsertOrder = generateMockInsertOrder({ user: mockUser._id });
+			const mockInsertOrder = generateMockInsertOrder({ user: mockUser });
 			// @ts-expect-error - test case
 			mockInsertOrder.paymentMethod = undefined;
 
@@ -433,7 +433,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should filter orders by user when user parameter is provided", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
-			const userOrders = generateMockInsertOrders(2, { user: userId });
+			const userOrders = generateMockInsertOrders(2, {
+				user: { _id: userId, name: "Test User", email: "test@example.com" },
+			});
 			const otherOrders = generateMockInsertOrders(3);
 			await Order.insertMany([...userOrders, ...otherOrders]);
 
@@ -449,7 +451,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.items.length, 2);
 			assert.ok(
-				result.data.items.every((o) => o.user.toString() === userId.toString()),
+				result.data.items.every(
+					(o) => o.user._id.toString() === userId.toString(),
+				),
 			);
 		});
 
@@ -647,17 +651,22 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should handle multiple filter parameters correctly", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
+			const user = {
+				_id: userId,
+				name: "Test User",
+				email: "test@example.com",
+			};
 			const paidDeliveredOrders = generateMockInsertOrders(2, {
 				status: "delivered",
-				user: userId,
+				user: user,
 			});
 			const paidUndeliveredOrders = generateMockInsertOrders(2, {
 				status: "processing",
-				user: userId,
+				user: user,
 			});
 			const unpaidOrders = generateMockInsertOrders(2, {
 				status: "pending",
-				user: userId,
+				user: user,
 			});
 			await Order.insertMany([
 				...paidDeliveredOrders,
@@ -678,7 +687,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.items.length, 2);
 			assert.ok(
-				result.data.items.every((o) => o.user.toString() === userId.toString()),
+				result.data.items.every(
+					(o) => o.user._id.toString() === userId.toString(),
+				),
 			);
 			assert.ok(result.data.items.every((o) => o.status === "delivered"));
 		});

@@ -4,7 +4,6 @@ import type { SuccessResponse } from "../../types/index.js";
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import { Types } from "mongoose";
 import { OrderController } from "../../controllers/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
 import {
@@ -32,14 +31,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 	describe("create", () => {
 		const mockInsertOrder = generateMockInsertOrder();
 		const mockInsertOrderInCents = convertOrderToCents(mockInsertOrder);
-		const mockSelectOrder = generateMockSelectOrder({
-			...mockInsertOrderInCents,
-			user: {
-				_id: mockInsertOrderInCents.user,
-				name: "example name",
-				email: "email@example.com",
-			},
-		});
+		const mockSelectOrder = generateMockSelectOrder(mockInsertOrderInCents);
 		const mockSelectOrderInDollars = convertOrderToDollars(mockSelectOrder);
 
 		const mockSession = generateMockCheckoutSessionResponse();
@@ -74,10 +66,9 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 		test("Should convert order prices from dollars to cents before calling manager", async (t) => {
 			// Arrange
-			const userIdObject = new Types.ObjectId(userId);
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
-				res: { locals: { user: { _id: userIdObject } } },
+				res: { locals: { user: mockInsertOrder } },
 				testContext: t,
 			});
 
@@ -651,15 +642,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 	});
 
 	describe("getById", () => {
-		const mockInsertOrder = generateMockInsertOrder();
-		const mockSelectOrder = generateMockSelectOrder({
-			...mockInsertOrder,
-			user: {
-				_id: mockInsertOrder.user,
-				email: "email@example.com",
-				name: "name",
-			},
-		});
+		const mockSelectOrder = generateMockSelectOrder();
 
 		const mockOrderInCents = convertOrderToCents(mockSelectOrder);
 		const mockOrderInDollars = convertOrderToDollars(mockOrderInCents);
@@ -784,15 +767,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 	});
 
 	describe("updateStatus", () => {
-		const mockInsertOrder = generateMockInsertOrder();
-		const mockSelectOrder = generateMockSelectOrder({
-			...mockInsertOrder,
-			user: {
-				_id: mockInsertOrder.user,
-				email: "email@example.com",
-				name: "name",
-			},
-		});
+		const mockSelectOrder = generateMockSelectOrder();
 
 		const mockOrderInCents = convertOrderToCents(mockSelectOrder);
 		const mockOrderInDollars = convertOrderToDollars(mockOrderInCents);

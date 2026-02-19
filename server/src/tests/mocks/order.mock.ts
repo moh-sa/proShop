@@ -6,7 +6,6 @@ import type {
 	InsertOrderItem,
 	OrderStatus,
 	SelectOrder,
-	SelectUser,
 } from "../../types/index.js";
 
 import { generateMockObjectId } from "./objectid.mock.js";
@@ -75,12 +74,7 @@ function generateMockPaymentResult(
 	options: GeneratePaymentResultOptions = {},
 ): InsertOrder["paymentResult"] {
 	return {
-		email_address: options.email_address ?? faker.internet.email(),
 		id: options.id ?? faker.string.uuid(),
-		status:
-			options.status ??
-			faker.helpers.arrayElement(MOCK_DATA_CONSTANTS.PAYMENT_STATUSES),
-		update_time: options.update_time ?? faker.date.recent(),
 	};
 }
 
@@ -95,13 +89,11 @@ function generateMockShippingAddress(
 	};
 }
 
-function generateMockPopulatedOrderUser(
-	options: Partial<Pick<SelectUser, "_id" | "name" | "email">> = {},
-): Pick<SelectUser, "_id" | "name" | "email"> {
+function generateMockUser(): InsertOrder["user"] {
 	return {
-		_id: options._id ?? generateMockObjectId(),
-		email: options.email ?? faker.internet.exampleEmail().toLowerCase(),
-		name: options.name ?? faker.person.fullName(),
+		_id: generateMockObjectId(),
+		email: faker.internet.exampleEmail().toLowerCase(),
+		name: faker.person.fullName(),
 	};
 }
 
@@ -173,7 +165,7 @@ export function generateMockInsertOrder(
 		status,
 		taxPrice,
 		totalPrice,
-		user: options.user ?? generateMockObjectId(),
+		user: options.user ?? generateMockUser(),
 	};
 }
 
@@ -190,17 +182,11 @@ export function generateMockInsertOrders(
 export function generateMockSelectOrder(
 	options: Partial<GenerateSelectOrderOptions> = {},
 ): SelectOrder {
-	const mockUser = options.user
-		? {
-				_id: options.user._id,
-				email: options.user.email,
-				name: options.user.name,
-			}
-		: generateMockPopulatedOrderUser();
+	const mockUser = options.user ?? generateMockUser();
 
 	const baseOrder = generateMockInsertOrder({
 		...options,
-		user: mockUser._id,
+		user: mockUser,
 	});
 
 	return {
@@ -208,7 +194,6 @@ export function generateMockSelectOrder(
 		_id: options._id ?? new Types.ObjectId(),
 		createdAt: options.createdAt ?? faker.date.recent(),
 		updatedAt: options.updatedAt ?? faker.date.recent(),
-		user: mockUser,
 	};
 }
 

@@ -40,7 +40,8 @@ const baseOrderSchema = z.object({
 		.number()
 		.min(0, { message: "Total price is required." })
 		.default(0),
-	user: objectIdValidator,
+
+	user: selectUserSchema.pick({ _id: true, email: true, name: true }),
 });
 
 export const insertOrderSchema = baseOrderSchema;
@@ -49,7 +50,6 @@ export const selectOrderSchema = baseOrderSchema.extend({
 	_id: objectIdValidator,
 	createdAt: z.date(),
 	updatedAt: z.date(),
-	user: selectUserSchema.pick({ _id: true, email: true, name: true }),
 });
 
 export const allOrdersResponseSchema = selectOrderSchema.pick({

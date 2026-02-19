@@ -35,10 +35,7 @@ const orderSchema = new Schema<OrderSchema>(
 			type: String,
 		},
 		paymentResult: {
-			email_address: { type: String },
 			id: { type: String },
-			status: { type: String },
-			update_time: { type: String },
 		},
 		shippingAddress: {
 			address: { required: true, type: String },
@@ -68,9 +65,19 @@ const orderSchema = new Schema<OrderSchema>(
 			type: Number,
 		},
 		user: {
-			ref: "User",
-			required: true,
-			type: mongoose.Schema.Types.ObjectId,
+			_id: {
+				ref: "User",
+				required: true,
+				type: mongoose.Schema.Types.ObjectId,
+			},
+			email: {
+				required: true,
+				type: String,
+			},
+			name: {
+				required: true,
+				type: String,
+			},
 		},
 	},
 	{

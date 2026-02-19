@@ -24,20 +24,14 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 	describe("create", () => {
 		const mockInsertOrder = generateMockInsertOrder();
 		const mockSelectOrder = generateMockSelectOrder({
-			user: {
-				_id: mockInsertOrder.user,
-				name: "Test User",
-				email: "test@example.com",
-			},
+			user: mockInsertOrder.user,
 		});
 
 		test("Should return the user object when 'db.create' is called once with user data", async (t) => {
 			// Arrange
 
 			const mockCreate = t.mock.method(Order, "create", () => ({
-				populate: () => ({
-					toObject: () => mockSelectOrder,
-				}),
+				toObject: () => mockSelectOrder,
 			}));
 
 			// Act
@@ -293,9 +287,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return the order object when 'db.findById' is called once with 'orderId'", async (t) => {
 			// Arrange
 			const findByIdMock = t.mock.method(Order, "findById", () => ({
-				populate: () => ({
-					lean: async () => mockOrder,
-				}),
+				lean: async () => mockOrder,
 			}));
 
 			// Act
@@ -313,9 +305,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return 'null' when 'db.findById' returns 'null'", async (t) => {
 			// Arrange
 			t.mock.method(Order, "findById", () => ({
-				populate: () => ({
-					lean: async () => null,
-				}),
+				lean: async () => null,
 			}));
 
 			// Act

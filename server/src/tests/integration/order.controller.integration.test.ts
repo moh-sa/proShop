@@ -49,11 +49,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
-			const mockOrderData = generateMockInsertOrder({ user: mockUser._id });
+			const mockOrderData = generateMockInsertOrder({ user: mockUser });
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockOrderData;
-			res.locals.user = { _id: mockUser._id };
+			res.locals.user = mockUser;
 
 			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSession, success: true }),
@@ -75,11 +75,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
-			const mockOrderData = generateMockInsertOrder({ user: mockUser._id });
+			const mockOrderData = generateMockInsertOrder({ user: mockUser });
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockOrderData;
-			res.locals.user = { _id: mockUser._id };
+			res.locals.user = mockUser;
 
 			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSession, success: true }),
@@ -97,11 +97,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
-			const mockOrderData = generateMockInsertOrder({ user: mockUser._id });
+			const mockOrderData = generateMockInsertOrder({ user: mockUser });
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockOrderData;
-			res.locals.user = { _id: mockUser._id };
+			res.locals.user = mockUser;
 
 			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSession, success: true }),
@@ -132,11 +132,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
-			const mockOrderData = generateMockInsertOrder({ user: mockUser._id });
+			const mockOrderData = generateMockInsertOrder({ user: mockUser });
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockOrderData;
-			res.locals.user = { _id: mockUser._id };
+			res.locals.user = mockUser;
 
 			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSession, success: true }),
@@ -159,11 +159,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
-			const mockOrderData = generateMockInsertOrder({ user: mockUser._id });
+			const mockOrderData = generateMockInsertOrder({ user: mockUser });
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockOrderData;
-			res.locals.user = { _id: mockUser._id };
+			res.locals.user = mockUser;
 
 			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSession, success: true }),
@@ -182,12 +182,12 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
-			const mockOrderData = generateMockInsertOrder({ user: mockUser._id });
+			const mockOrderData = generateMockInsertOrder({ user: mockUser });
 			const expectedData = convertOrderToCents(mockOrderData);
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockOrderData;
-			res.locals.user = { _id: mockUser._id };
+			res.locals.user = mockUser;
 
 			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSession, success: true }),
@@ -219,12 +219,12 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
 			const mockOrderData = normalizeOrderPrices(
-				generateMockInsertOrder({ user: mockUser._id }),
+				generateMockInsertOrder({ user: mockUser }),
 			);
 
 			const { next, req, res } = createMockExpressContext();
 			req.body = mockOrderData;
-			res.locals.user = { _id: mockUser._id };
+			res.locals.user = mockUser;
 
 			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSession, success: true }),
@@ -628,7 +628,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response.meta);
 			assert.strictEqual(response.data.length, 1);
 			assert.strictEqual(
-				response.data[0].user.toString(),
+				response.data[0].user._id.toString(),
 				mockOrder1.user._id.toString(),
 			);
 		});

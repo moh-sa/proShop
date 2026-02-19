@@ -52,9 +52,8 @@ export class OrderRepository implements IOrderRepository {
 	): MethodReturn<IOrderRepository, "create"> {
 		try {
 			const order = await this._db.create(data);
-			const populated = await order.populate("user", "_id name email");
 			return {
-				data: populated.toObject(),
+				data: order.toObject(),
 				success: true,
 			};
 		} catch (error) {
@@ -65,12 +64,14 @@ export class OrderRepository implements IOrderRepository {
 	async getAll(
 		args: MethodParams<IOrderRepository, "getAll">,
 	): MethodReturn<IOrderRepository, "getAll"> {
+		const queries = this._bindQuery(args);
+
 		try {
 			const result = await this._paginator.paginate<AllOrdersResponse>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				pipeline: args.pipeline,
-				query: args.query,
+				query: queries,
 				sort: args.sort,
 			});
 
@@ -90,10 +91,7 @@ export class OrderRepository implements IOrderRepository {
 		"getById"
 	> {
 		try {
-			const result = await this._db
-				.findById(orderId)
-				.populate("user", "name email")
-				.lean();
+			const result = await this._db.findById(orderId).lean();
 
 			return {
 				data: result,
@@ -132,6 +130,20 @@ export class OrderRepository implements IOrderRepository {
 		} catch (error) {
 			return this._errorHandler(error);
 		}
+	}
+
+	private _bindQuery(args: PaginationParamsQuery<SelectOrder>) {
+		const query: Record<string, unknown> = {};
+
+		if (args.query?.user) {
+			query["user._id"] = args.query.user;
+		}
+
+		if (args.query?.status) {
+			query.status = args.query.status;
+		}
+
+		return query;
 	}
 
 	private _errorHandler(error: unknown): FailureResult<DatabaseBaseError> {

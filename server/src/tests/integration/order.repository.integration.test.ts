@@ -33,7 +33,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			await User.create(mockUser);
-			const mockOrder = generateMockInsertOrder({ user: mockUser._id });
+			const mockOrder = generateMockInsertOrder({ user: mockUser });
 
 			// Act
 			const createdOrder = await orderRepository.create(mockOrder);
@@ -45,7 +45,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const resData = createdOrder.data;
 			assert.strictEqual(
 				resData.user._id.toString(),
-				mockOrder.user.toString(),
+				mockOrder.user._id.toString(),
 			);
 			assert.strictEqual(resData.user.name, mockUser.name);
 			assert.strictEqual(resData.user.email, mockUser.email);
@@ -204,7 +204,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 		test("Should return order by ID when 'db.findById' is called with valid ID", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const mockOrder = generateMockInsertOrder({ user: mockUser._id });
+			const mockOrder = generateMockInsertOrder({ user: mockUser });
 			const order = await Order.create(mockOrder);
 			await User.create(mockUser);
 
@@ -219,7 +219,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			assert.ok(foundOrder.data);
 			assert.strictEqual(
 				foundOrder.data.user._id.toString(),
-				mockOrder.user.toString(),
+				mockOrder.user._id.toString(),
 			);
 			assert.strictEqual(foundOrder.data.totalPrice, mockOrder.totalPrice);
 		});
@@ -239,7 +239,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 		test("Should populate user details when 'db.findById' is called", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const mockOrder = generateMockInsertOrder({ user: mockUser._id });
+			const mockOrder = generateMockInsertOrder({ user: mockUser });
 			await User.create(mockUser);
 			const order = await Order.create(mockOrder);
 
@@ -577,7 +577,9 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 		test("Should filter orders by user when query contains user filter", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
-			const userOrders = generateMockInsertOrders(2, { user: userId });
+			const userOrders = generateMockInsertOrders(2, {
+				user: { _id: userId, name: "Test User", email: "test@example.com" },
+			});
 			const otherOrders = generateMockInsertOrders(3);
 			await Order.insertMany([...userOrders, ...otherOrders]);
 
@@ -595,7 +597,9 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.items.length, userOrders.length);
 			assert.strictEqual(result.data.meta.totalItems, userOrders.length);
 			assert.ok(
-				result.data.items.every((o) => o.user.toString() === userId.toString()),
+				result.data.items.every(
+					(o) => o.user._id.toString() === userId.toString(),
+				),
 			);
 		});
 

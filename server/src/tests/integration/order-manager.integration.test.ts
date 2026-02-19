@@ -42,7 +42,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			const mockUser = await User.create(generateMockInsertUser());
 			const mockOrder = generateMockInsertOrder({
 				orderItemsCount: 2,
-				user: mockUser._id,
+				user: mockUser,
 			});
 			const mockCheckoutResponse = generateMockCheckoutSessionResponse();
 			mockPayment.createCheckoutSession.mock.mockImplementationOnce(() =>
@@ -76,7 +76,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			const mockUser = await User.create(generateMockInsertUser());
 			const mockOrder = generateMockInsertOrder({
 				orderItemsCount: 3,
-				user: mockUser._id,
+				user: mockUser,
 			});
 			const mockCheckoutResponse = generateMockCheckoutSessionResponse();
 			mockPayment.createCheckoutSession.mock.mockImplementationOnce(() =>
@@ -118,7 +118,6 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 	});
 
 	describe("getAll", () => {
-		// should pass
 		test("should return paginated orders from the order service", async () => {
 			// Arrange
 			const mockOrders = generateMockInsertOrders(3);
