@@ -33,7 +33,7 @@ const MOCK_DATA_CONSTANTS = {
 
 type GenerateOrderItemOptions = Partial<InsertOrderItem>;
 
-type GeneratePaymentResultOptions = Partial<InsertOrder["paymentResult"]>;
+type GeneratePaymentResultOptions = Partial<InsertOrder["payment"]>;
 
 type GenerateShippingAddressOptions = Partial<InsertOrder["shippingAddress"]>;
 
@@ -70,9 +70,9 @@ function generateMockOrderItems(
 	);
 }
 
-function generateMockPaymentResult(
+function generateMockPayment(
 	options: GeneratePaymentResultOptions = {},
-): InsertOrder["paymentResult"] {
+): InsertOrder["payment"] {
 	return {
 		id: options.id ?? faker.string.uuid(),
 	};
@@ -149,8 +149,8 @@ export function generateMockInsertOrder(
 		options.paymentMethod ??
 		faker.helpers.arrayElement(MOCK_DATA_CONSTANTS.PAYMENT_METHODS);
 
-	const paymentResult = isPaidStatus
-		? (options.paymentResult ?? generateMockPaymentResult())
+	const payment = isPaidStatus
+		? (options.payment ?? generateMockPayment())
 		: undefined;
 
 	return {
@@ -158,8 +158,8 @@ export function generateMockInsertOrder(
 		itemsPrice,
 		orderItems,
 		paidAt,
+		payment,
 		paymentMethod,
-		paymentResult,
 		shippingAddress: options.shippingAddress ?? generateMockShippingAddress(),
 		shippingPrice,
 		status,

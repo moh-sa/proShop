@@ -327,10 +327,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.status, "processing");
-			assert.deepStrictEqual(
-				result.data.paymentResult,
-				createdOrder.paymentResult,
-			);
+			assert.deepStrictEqual(result.data.payment, createdOrder.payment);
 		});
 
 		test("Should return order object with delivery status when 'repo.getById' is called with existing order ID", async () => {

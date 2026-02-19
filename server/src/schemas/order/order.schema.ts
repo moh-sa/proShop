@@ -25,8 +25,8 @@ const baseOrderSchema = z.object({
 	}),
 
 	paidAt: z.date().optional(),
+	payment: paymentResultSchema,
 	paymentMethod: z.enum(["Stripe"]).default("Stripe"),
-	paymentResult: paymentResultSchema,
 	shippingAddress: shippingAddressSchema,
 
 	shippingPrice: z

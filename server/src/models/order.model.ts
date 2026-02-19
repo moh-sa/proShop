@@ -28,14 +28,14 @@ const orderSchema = new Schema<OrderSchema>(
 		paidAt: {
 			type: Date,
 		},
+		payment: {
+			id: { type: String },
+		},
 		paymentMethod: {
 			default: "Stripe",
 			enum: ["Stripe"],
 			required: true,
 			type: String,
-		},
-		paymentResult: {
-			id: { type: String },
 		},
 		shippingAddress: {
 			address: { required: true, type: String },
