@@ -256,6 +256,112 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 		});
 	});
 
+	describe("updatePayment", () => {
+		test("Should update both 'payment.id' and 'payment.provider' in the database", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder();
+			const order = await Order.create(mockOrder);
+			const paymentParams = {
+				id: "pay_123",
+				orderId: order._id,
+				provider: "stripe" as const,
+			};
+
+			// Act
+			const result = await orderRepository.updatePayment(paymentParams);
+
+			// Assert
+			assert.ok(result.success);
+			assert.ok(result.data);
+			assert.strictEqual(result.data.payment?.id, paymentParams.id);
+			assert.strictEqual(result.data.payment?.provider, paymentParams.provider);
+
+			// Verify in DB
+			const dbOrder = await Order.findById(order._id).lean();
+			assert.strictEqual(dbOrder?.payment?.id, paymentParams.id);
+			assert.strictEqual(dbOrder?.payment?.provider, paymentParams.provider);
+		});
+
+		test("Should update only 'payment.id' in the database", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder();
+			const order = await Order.create(mockOrder);
+			const paymentParams = {
+				id: "pay_456",
+				orderId: order._id,
+			};
+
+			// Act
+			const result = await orderRepository.updatePayment(paymentParams);
+
+			// Assert
+			assert.ok(result.success);
+			assert.ok(result.data);
+			assert.strictEqual(result.data.payment?.id, paymentParams.id);
+
+			// Verify in DB
+			const dbOrder = await Order.findById(order._id).lean();
+			assert.strictEqual(dbOrder?.payment?.id, paymentParams.id);
+		});
+
+		test("Should update only 'payment.provider' in the database", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder();
+			const order = await Order.create(mockOrder);
+			const paymentParams = {
+				orderId: order._id,
+				provider: "paypal",
+			};
+
+			// Act
+			// @ts-expect-error - test case
+			const result = await orderRepository.updatePayment(paymentParams);
+
+			// Assert
+			assert.ok(result.success);
+			assert.ok(result.data);
+			assert.strictEqual(result.data.payment?.provider, paymentParams.provider);
+
+			// Verify in DB
+			const dbOrder = await Order.findById(order._id).lean();
+			assert.strictEqual(dbOrder?.payment?.provider, paymentParams.provider);
+		});
+
+		test("Should return null data when attempting to update a non-existent order", async () => {
+			// Arrange
+			const nonExistentId = generateMockObjectId();
+			const paymentParams = {
+				id: "pay_789",
+				orderId: nonExistentId,
+				provider: "stripe" as const,
+			};
+
+			// Act
+			const result = await orderRepository.updatePayment(paymentParams);
+
+			// Assert
+			assert.ok(result.success);
+			assert.strictEqual(result.data, null);
+		});
+
+		test("Should return 'DatabaseValidationError' when providing an invalid 'orderId'", async () => {
+			// Arrange
+			const invalidId = "invalid-id" as any;
+			const paymentParams = {
+				id: "pay_789",
+				orderId: invalidId,
+				provider: "stripe" as const,
+			};
+
+			// Act
+			const result = await orderRepository.updatePayment(paymentParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
+		});
+	});
+
 	describe("updateStatus", () => {
 		test("Should update status to 'delivered' when 'db.updateStatus' is called with status 'delivered'", async () => {
 			// Arrange

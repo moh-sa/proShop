@@ -27,6 +27,9 @@ export interface IOrderRepository {
 	}: {
 		orderId: Types.ObjectId;
 	}): Promise<OrderResult<null | SelectOrder>>;
+	updatePayment(
+		params: Partial<SelectOrder["payment"]> & { orderId: Types.ObjectId },
+	): Promise<OrderResult<null | SelectOrder>>;
 	updateStatus({
 		orderId,
 		status,
@@ -92,6 +95,32 @@ export class OrderRepository implements IOrderRepository {
 	> {
 		try {
 			const result = await this._db.findById(orderId).lean();
+
+			return {
+				data: result,
+				success: true,
+			};
+		} catch (error) {
+			return this._errorHandler(error);
+		}
+	}
+
+	async updatePayment(
+		params: MethodParams<IOrderRepository, "updatePayment">,
+	): MethodReturn<IOrderRepository, "updatePayment"> {
+		const { orderId, ...rest } = params;
+
+		const updateFields: Record<string, unknown> = {};
+		Object.entries(rest).forEach(([key, value]) => {
+			if (value) {
+				updateFields[`payment.${key}`] = value;
+			}
+		});
+
+		try {
+			const result = await this._db
+				.findByIdAndUpdate(orderId, { $set: updateFields }, { new: true })
+				.lean();
 
 			return {
 				data: result,

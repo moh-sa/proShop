@@ -12,13 +12,16 @@ export function mockOrderRepository(): FunctionMocksWithReset<IOrderRepository> 
 			this.create.mock.resetCalls();
 			this.getAll.mock.resetCalls();
 			this.getById.mock.resetCalls();
+			this.updatePayment.mock.resetCalls();
 			this.updateStatus.mock.resetCalls();
 
 			this.create.mock.restore();
 			this.getAll.mock.restore();
 			this.getById.mock.restore();
+			this.updatePayment.mock.restore();
 			this.updateStatus.mock.restore();
 		},
+		updatePayment: mock.fn(),
 		updateStatus: mock.fn(),
 	};
 }

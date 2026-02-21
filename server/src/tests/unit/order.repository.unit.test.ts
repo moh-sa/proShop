@@ -400,6 +400,178 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		});
 	});
 
+	describe("updatePayment", () => {
+		const mockOrder = generateMockSelectOrder();
+		const orderId = mockOrder._id;
+		const mockPaymentParams = {
+			id: "pay_123",
+			orderId,
+			provider: "stripe" as const,
+		};
+
+		test("Should updates both 'payment.id' and 'payment.provider' when both fields are provided", async (t) => {
+			// Arrange
+			const mockFindByIdAndUpdate = t.mock.method(
+				Order,
+				"findByIdAndUpdate",
+				() => ({
+					lean: async () => mockOrder,
+				}),
+			);
+
+			// Act
+			const result = await repo.updatePayment(mockPaymentParams);
+
+			// Assert
+			assert.ok(result.success);
+			assert.deepStrictEqual(result.data, mockOrder);
+			assert.strictEqual(mockFindByIdAndUpdate.mock.callCount(), 1);
+			assert.deepStrictEqual(mockFindByIdAndUpdate.mock.calls[0].arguments[1], {
+				$set: {
+					"payment.id": mockPaymentParams.id,
+					"payment.provider": mockPaymentParams.provider,
+				},
+			});
+		});
+
+		test("Should update only 'payment.id' when only 'id' is provided", async (t) => {
+			// Arrange
+			const params = { id: "pay_123", orderId };
+			const mockFindByIdAndUpdate = t.mock.method(
+				Order,
+				"findByIdAndUpdate",
+				() => ({
+					lean: async () => mockOrder,
+				}),
+			);
+
+			// Act
+			const result = await repo.updatePayment(params);
+
+			// Assert
+			assert.ok(result.success);
+			assert.deepStrictEqual(mockFindByIdAndUpdate.mock.calls[0].arguments[1], {
+				$set: {
+					"payment.id": params.id,
+				},
+			});
+		});
+
+		test("Should update only 'payment.provider' when only 'provider' is provided", async (t) => {
+			// Arrange
+			const params = { orderId, provider: "stripe" as const };
+			const mockFindByIdAndUpdate = t.mock.method(
+				Order,
+				"findByIdAndUpdate",
+				() => ({
+					lean: async () => mockOrder,
+				}),
+			);
+
+			// Act
+			const result = await repo.updatePayment(params);
+
+			// Assert
+			assert.ok(result.success);
+			assert.deepStrictEqual(mockFindByIdAndUpdate.mock.calls[0].arguments[1], {
+				$set: {
+					"payment.provider": params.provider,
+				},
+			});
+		});
+
+		test("Should return 'null' when 'db.findByIdAndUpdate' returns 'null'", async (t) => {
+			// Arrange
+			t.mock.method(Order, "findByIdAndUpdate", () => ({
+				lean: async () => null,
+			}));
+
+			// Act
+			const result = await repo.updatePayment(mockPaymentParams);
+
+			// Assert
+			assert.ok(result.success);
+			assert.strictEqual(result.data, null);
+		});
+
+		test("Should return 'DatabaseValidationError' when 'db.findByIdAndUpdate' throws 'ValidationError'", async (t) => {
+			// Arrange
+			const validationError = new mongoose.Error.ValidationError();
+			t.mock.method(Order, "findByIdAndUpdate", () => {
+				throw validationError;
+			});
+
+			// Act
+			const result = await repo.updatePayment(mockPaymentParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
+		});
+
+		test("Should return 'DatabaseTimeoutError' when 'db.findByIdAndUpdate' throws 'MongoNetworkTimeoutError'", async (t) => {
+			// Arrange
+			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
+				"Timeout",
+			);
+			t.mock.method(Order, "findByIdAndUpdate", () => {
+				throw timeoutError;
+			});
+
+			// Act
+			const result = await repo.updatePayment(mockPaymentParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseTimeoutError);
+		});
+
+		test("Should return 'DatabaseQueryError' when 'db.findByIdAndUpdate' throws 'MongooseError'", async (t) => {
+			// Arrange
+			const queryError = new mongoose.Error("Query failed");
+			t.mock.method(Order, "findByIdAndUpdate", () => {
+				throw queryError;
+			});
+
+			// Act
+			const result = await repo.updatePayment(mockPaymentParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseQueryError);
+		});
+
+		test("Should return 'DatabaseNetworkError' when 'db.findByIdAndUpdate' throws 'MongoError'", async (t) => {
+			// Arrange
+			const networkError = new mongoose.mongo.MongoError("Network error");
+			t.mock.method(Order, "findByIdAndUpdate", () => {
+				throw networkError;
+			});
+
+			// Act
+			const result = await repo.updatePayment(mockPaymentParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseNetworkError);
+		});
+
+		test("Should return 'GenericDatabaseError' when 'db.findByIdAndUpdate' throws unknown error", async (t) => {
+			// Arrange
+			const unknownError = new Error("Something unexpected happened");
+			t.mock.method(Order, "findByIdAndUpdate", () => {
+				throw unknownError;
+			});
+
+			// Act
+			const result = await repo.updatePayment(mockPaymentParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof GenericDatabaseError);
+		});
+	});
+
 	describe("updateStatus", () => {
 		const mockOrder = generateMockSelectOrder();
 		const orderId = mockOrder._id;
