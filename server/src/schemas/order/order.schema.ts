@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 import { objectIdValidator } from "../../validators/index.js";
-import { paymentResultSchema } from "../payment/payment-result.schema.js";
 import { shippingAddressSchema } from "../shipping/shipping-address.schema.js";
 import { selectUserSchema } from "../user/user.schema.js";
 import { insertOrderItemSchema } from "./order-item.schema.js";
@@ -12,6 +11,11 @@ export const orderStatusSchema = z.enum([
 	"delivered",
 	"cancelled",
 ]);
+
+export const paymentSchema = z.object({
+	id: z.string().min(1, { message: "payment ID is required." }),
+	provider: z.enum(["stripe"]),
+});
 
 const baseOrderSchema = z.object({
 	deliveredAt: z.date().optional(),
@@ -25,8 +29,7 @@ const baseOrderSchema = z.object({
 	}),
 
 	paidAt: z.date().optional(),
-	payment: paymentResultSchema,
-	paymentMethod: z.enum(["Stripe"]).default("Stripe"),
+	payment: paymentSchema.optional(),
 	shippingAddress: shippingAddressSchema,
 
 	shippingPrice: z

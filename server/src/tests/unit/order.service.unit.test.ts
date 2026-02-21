@@ -24,8 +24,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 	describe("create", () => {
 		const mockInsertOrder = generateMockInsertOrder();
-		const mockSelectOrder = generateMockSelectOrder();
-		mockSelectOrder.user._id = mockInsertOrder.user;
+		const mockSelectOrder = generateMockSelectOrder(mockInsertOrder);
 
 		test("Should return the order object when 'repo.create' is called once with order data", async () => {
 			// Arrange
@@ -45,27 +44,6 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 				mockRepo.create.mock.calls[0].arguments[0],
 				mockInsertOrder,
 			);
-		});
-
-		test("Should set 'PaymentMethod' to 'Stripe' if not provided when 'service.create' is called", async () => {
-			// Arrange
-			const mockInsertOrder = generateMockInsertOrder({
-				paymentMethod: undefined,
-			});
-			const mockSelectOrder = generateMockSelectOrder({
-				paymentMethod: "Stripe",
-			});
-
-			mockRepo.create.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockSelectOrder, success: true }),
-			);
-
-			// Act
-			const order = await service.create(mockInsertOrder);
-
-			// Assert
-			assert.strictEqual(order.success, true);
-			assert.strictEqual(order.data.paymentMethod, "Stripe");
 		});
 
 		test("Should return 'ValidationError' if 'data.orderItems' length is '0'", async () => {

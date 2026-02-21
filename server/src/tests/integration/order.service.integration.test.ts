@@ -103,24 +103,6 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.deepStrictEqual(result.data.shippingAddress, expectedAddress);
 		});
 
-		test("Should create and return order object when 'repo.create' is called with payment method", async () => {
-			// Arrange
-			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
-			const paymentMethod = "Stripe";
-			const mockOrder = generateMockInsertOrder({
-				paymentMethod,
-				user: mockUser,
-			});
-
-			// Act
-			const result = await orderService.create(mockOrder);
-
-			// Assert
-			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.paymentMethod, paymentMethod);
-		});
-
 		test("Should create and return order object when 'repo.create' is called with tax price", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
@@ -235,22 +217,6 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.ok(result.data.createdAt instanceof Date);
 			assert.ok(result.data.createdAt >= beforeCreate);
 			assert.ok(result.data.createdAt <= new Date());
-		});
-
-		test("Should set 'PaymentMethod' to 'Stripe' if not provided when 'repo.create' is called", async () => {
-			// Arrange
-			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
-			const mockInsertOrder = generateMockInsertOrder({ user: mockUser });
-			// @ts-expect-error - test case
-			mockInsertOrder.paymentMethod = undefined;
-
-			// Act
-			const result = await orderService.create(mockInsertOrder);
-
-			// Assert
-			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.paymentMethod, "Stripe");
 		});
 	});
 

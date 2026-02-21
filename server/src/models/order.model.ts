@@ -30,12 +30,10 @@ const orderSchema = new Schema<OrderSchema>(
 		},
 		payment: {
 			id: { type: String },
-		},
-		paymentMethod: {
-			default: "Stripe",
-			enum: ["Stripe"],
-			required: true,
-			type: String,
+			provider: {
+				enum: ["stripe"],
+				type: String,
+			},
 		},
 		shippingAddress: {
 			address: { required: true, type: String },

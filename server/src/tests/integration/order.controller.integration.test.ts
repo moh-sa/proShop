@@ -122,10 +122,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 				response.data.order.orderItems.length,
 				mockOrderData.orderItems.length,
 			);
-			assert.strictEqual(
-				response.data.order.paymentMethod,
-				mockOrderData.paymentMethod,
-			);
 		});
 
 		test("Should include user ID in created order when 'manager.create' is called with valid data", async () => {
@@ -940,9 +936,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 	});
 
 	describe("handleStripeWebhook", () => {
-		// Note: These tests focus on validation logic that doesn't require Stripe.
-		// Full webhook processing tests would require mocking Stripe signature verification.
-
 		test("Should return 400 when 'stripe-signature' header is missing", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();

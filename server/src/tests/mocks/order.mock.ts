@@ -20,7 +20,7 @@ const MOCK_DATA_CONSTANTS = {
 		MIN_QTY: 1,
 	},
 	ORDER_STATUSES: ["pending", "processing", "delivered", "cancelled"] as const,
-	PAYMENT_METHODS: ["Stripe"] as const,
+	PAYMENT_METHODS: ["stripe"] as const,
 	PAYMENT_STATUSES: ["COMPLETED", "PENDING", "FAILED"] as const,
 	PRICES: {
 		MAX_SHIPPING: 50,
@@ -75,6 +75,9 @@ function generateMockPayment(
 ): InsertOrder["payment"] {
 	return {
 		id: options.id ?? faker.string.uuid(),
+		provider:
+			options.provider ??
+			faker.helpers.arrayElement(MOCK_DATA_CONSTANTS.PAYMENT_METHODS),
 	};
 }
 
@@ -145,10 +148,6 @@ export function generateMockInsertOrder(
 		? (options.deliveredAt ?? faker.date.recent())
 		: undefined;
 
-	const paymentMethod =
-		options.paymentMethod ??
-		faker.helpers.arrayElement(MOCK_DATA_CONSTANTS.PAYMENT_METHODS);
-
 	const payment = isPaidStatus
 		? (options.payment ?? generateMockPayment())
 		: undefined;
@@ -159,7 +158,6 @@ export function generateMockInsertOrder(
 		orderItems,
 		paidAt,
 		payment,
-		paymentMethod,
 		shippingAddress: options.shippingAddress ?? generateMockShippingAddress(),
 		shippingPrice,
 		status,
