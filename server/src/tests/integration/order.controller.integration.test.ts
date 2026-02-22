@@ -935,6 +935,189 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		});
 	});
 
+	describe("updatePayment", () => {
+		test("Should return success response when called with valid order and payment data", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({
+				payment: { id: "cs_123", provider: "stripe" },
+				status: "processing",
+			});
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { orderId };
+			req.body = { id: "cs_456", provider: "stripe" };
+
+			// Act
+			await controller.updatePayment(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.ok(response);
+			assert.ok(response.success);
+			assert.ok(response.data);
+		});
+
+		test("Should return '200' status code when called with valid data", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({
+				payment: { id: "cs_123", provider: "stripe" },
+				status: "processing",
+			});
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { orderId };
+			req.body = { id: "cs_456", provider: "stripe" };
+
+			// Act
+			await controller.updatePayment(req, res, next);
+
+			// Assert
+			const code = res._getStatusCode();
+			assert.strictEqual(code, 200);
+		});
+
+		test("Should update payment and persist to database when called with existing order", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({
+				payment: { id: "cs_123", provider: "stripe" },
+				status: "processing",
+			});
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+			const paymentId = "cs_456";
+			const provider = "stripe";
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { orderId };
+			req.body = { id: paymentId, provider };
+
+			// Act
+			await controller.updatePayment(req, res, next);
+
+			// Assert
+			const order = await Order.findById(orderId);
+			assert.ok(order);
+			assert.strictEqual(order.payment?.id, paymentId);
+			assert.strictEqual(order.payment?.provider, provider);
+		});
+
+		test("Should return updated order with payment in response", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({
+				payment: { id: "cs_123", provider: "stripe" },
+				status: "processing",
+			});
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+			const paymentId = "cs_456";
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { orderId };
+			req.body = { id: paymentId, provider: "stripe" };
+
+			// Act
+			await controller.updatePayment(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.ok(response);
+			assert.ok(response.data);
+			assert.strictEqual(response.data.payment?.id, paymentId);
+			assert.strictEqual(response.data.payment?.provider, "stripe");
+		});
+
+		test("Should throw 'NotFoundError' when called with non-existent order id", async () => {
+			// Arrange
+			const orderId = generateMockObjectId().toString();
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { orderId };
+			req.body = { id: "cs_123", provider: "stripe" };
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.updatePayment(req, res, next),
+				(error: unknown) => {
+					assert.ok(error instanceof NotFoundError);
+					assert.strictEqual(error.message, "Order not found");
+					return true;
+				},
+			);
+		});
+
+		test("Should add payment to order that had no payment", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({
+				payment: undefined,
+				status: "pending",
+			});
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+			const paymentId = "cs_123";
+			const provider = "stripe";
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { orderId };
+			req.body = { id: paymentId, provider };
+
+			// Act
+			await controller.updatePayment(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.ok(response);
+			assert.ok(response.success);
+			assert.strictEqual(response.data.payment?.id, paymentId);
+			assert.strictEqual(response.data.payment?.provider, provider);
+
+			const order = await Order.findById(orderId);
+			assert.ok(order);
+			assert.strictEqual(order.payment?.id, paymentId);
+			assert.strictEqual(order.payment?.provider, provider);
+		});
+
+		test("Should convert all price fields from cents to dollars in response", async () => {
+			// Arrange
+			const mockOrder = convertOrderToCents(
+				generateMockInsertOrder({
+					payment: { id: "cs_123", provider: "stripe" },
+					status: "processing",
+				}),
+			);
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+			const expectedData = convertOrderToDollars(mockOrder);
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { orderId };
+			req.body = { id: "cs_456", provider: "stripe" };
+
+			// Act
+			await controller.updatePayment(req, res, next);
+
+			// Assert
+			const response = res._getJSONData() as SuccessResponse<{
+				data: typeof mockOrder;
+			}>;
+
+			assert.strictEqual(response.data.itemsPrice, expectedData.itemsPrice);
+			assert.strictEqual(
+				response.data.shippingPrice,
+				expectedData.shippingPrice,
+			);
+			assert.strictEqual(response.data.taxPrice, expectedData.taxPrice);
+			assert.strictEqual(response.data.totalPrice, expectedData.totalPrice);
+
+			response.data.orderItems.forEach((order, index) => {
+				assert.strictEqual(order.price, expectedData.orderItems[index].price);
+			});
+		});
+	});
+
 	describe("handleStripeWebhook", () => {
 		test("Should return 400 when 'stripe-signature' header is missing", async () => {
 			// Arrange

@@ -49,6 +49,11 @@ export interface IOrderController {
 	handleStripeWebhook: AsyncHandler<{
 		resBody: { data: { success: boolean } };
 	}>;
+	updatePayment: AsyncHandler<{
+		params: { orderId: string };
+		reqBody: Partial<SelectOrder["payment"]>;
+		resBody: { data: SelectOrder };
+	}>;
 	updateStatus: AsyncHandler<{
 		params: { orderId: string };
 		reqBody: { status: OrderStatus };
@@ -235,6 +240,38 @@ export class OrderController implements IOrderController {
 
 		logger.info("Payment webhook processed successfully");
 		res.status(HTTP_STATUS.OK).json({ data: { success: true }, success: true });
+	});
+
+	updatePayment = asyncHandler<{
+		params: { orderId: string };
+		reqBody: Partial<SelectOrder["payment"]>;
+		resBody: { data: SelectOrder };
+	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "updatePayment" });
+		logger.debug(
+			{ orderId: req.params.orderId, payment: req.body },
+			"Updating payment",
+		);
+
+		const result = await this._manager.updatePayment({
+			orderId: req.params.orderId,
+			...req.body,
+		});
+		if (!result.success) {
+			throw result.error;
+		}
+
+		logger.info(
+			{ orderId: result.data._id, payment: result.data.payment },
+			"Payment updated successfully",
+		);
+
+		const dataToSend = this._convertOrderToDollars(result.data);
+
+		res.status(HTTP_STATUS.OK).json({
+			data: dataToSend,
+			success: true,
+		});
 	});
 
 	updateStatus = asyncHandler<{

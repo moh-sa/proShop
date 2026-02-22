@@ -962,6 +962,209 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		});
 	});
 
+	describe("updatePayment", () => {
+		const mockSelectOrder = generateMockSelectOrder({
+			status: "processing",
+		});
+
+		const mockOrderInCents = convertOrderToCents(mockSelectOrder);
+		const mockOrderInDollars = convertOrderToDollars(mockOrderInCents);
+		const orderId = mockOrderInCents._id.toString();
+		const paymentBody = mockSelectOrder.payment;
+
+		test("Should parse 'orderId' from 'req.params' and payment from 'req.body'", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					body: paymentBody,
+					params: { orderId },
+				},
+				testContext: t,
+			});
+
+			mockManager.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrderInCents, success: true }),
+			);
+
+			// Act & Assert
+			await assert.doesNotReject(
+				async () =>
+					await controller.updatePayment(
+						req as unknown as Request,
+						res as unknown as Response,
+						next,
+					),
+			);
+		});
+
+		test("Should call 'manager.updatePayment' once with the correct 'orderId' and merged payment body", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					body: paymentBody,
+					params: { orderId },
+				},
+				testContext: t,
+			});
+
+			mockManager.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrderInCents, success: true }),
+			);
+
+			// Act
+			await controller.updatePayment(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockManager.updatePayment.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockManager.updatePayment.mock.calls[0].arguments[0].orderId.toString(),
+				orderId,
+			);
+			assert.strictEqual(
+				mockManager.updatePayment.mock.calls[0].arguments[0].id,
+				paymentBody.id,
+			);
+			assert.strictEqual(
+				mockManager.updatePayment.mock.calls[0].arguments[0].provider,
+				paymentBody.provider,
+			);
+		});
+
+		test("Should convert order prices from cents to dollars in response", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					body: paymentBody,
+					params: { orderId },
+				},
+				testContext: t,
+			});
+
+			mockManager.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrderInCents, success: true }),
+			);
+
+			// Act
+			await controller.updatePayment(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			const response = res.json.mock.calls[0].arguments[0] as SuccessResponse<{
+				data: typeof mockOrderInDollars;
+			}>;
+
+			assert.strictEqual(
+				response.data.itemsPrice,
+				mockOrderInDollars.itemsPrice,
+			);
+			assert.strictEqual(
+				response.data.shippingPrice,
+				mockOrderInDollars.shippingPrice,
+			);
+			assert.strictEqual(response.data.taxPrice, mockOrderInDollars.taxPrice);
+			assert.strictEqual(
+				response.data.totalPrice,
+				mockOrderInDollars.totalPrice,
+			);
+			assert.strictEqual(
+				response.data.orderItems[0].price,
+				mockOrderInDollars.orderItems[0].price,
+			);
+		});
+
+		test("Should call 'res.status' once with '200' after successfully updating payment", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					body: paymentBody,
+					params: { orderId },
+				},
+				testContext: t,
+			});
+
+			mockManager.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrderInCents, success: true }),
+			);
+
+			// Act
+			await controller.updatePayment(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(res.status.mock.callCount(), 1);
+			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+		});
+
+		test("Should call 'res.json' once with the success response object containing order data", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					body: paymentBody,
+					params: { orderId },
+				},
+				testContext: t,
+			});
+
+			mockManager.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrderInCents, success: true }),
+			);
+
+			// Act
+			await controller.updatePayment(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(res.json.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				res.json.mock.calls[0].arguments[0],
+				createSuccessResponseObject({ data: mockOrderInDollars }),
+			);
+		});
+
+		test("Should throw error when 'manager.updatePayment' returns failure", async (t) => {
+			// Arrange
+			const mockError = new Error("Payment update failed");
+			const { next, req, res } = mockExpressCall({
+				req: {
+					body: paymentBody,
+					params: { orderId },
+				},
+				testContext: t,
+			});
+
+			mockManager.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ error: mockError, success: false }),
+			);
+
+			// Act & Assert
+			await assert.rejects(
+				async () =>
+					await controller.updatePayment(
+						req as unknown as Request,
+						res as unknown as Response,
+						next,
+					),
+				(error: Error) => {
+					assert.strictEqual(error.message, "Payment update failed");
+					return true;
+				},
+			);
+		});
+	});
+
 	describe("handleStripeWebhook", () => {
 		const mockPayload = Buffer.from("test-payload");
 		const mockSignature = "test-signature";
