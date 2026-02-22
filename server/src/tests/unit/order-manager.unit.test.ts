@@ -39,6 +39,9 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 					success: true,
 				}),
 			);
+			mockOrderSvc.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockSelectOrder, success: true }),
+			);
 
 			// Act
 			const result = await manager.create(mockInsertOrder);
@@ -58,6 +61,34 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 				mockPaymentSvc.createCheckoutSession.mock.callCount(),
 				1,
 			);
+		});
+
+		test("should call updatePayment with checkout session id, orderId, and provider after checkout session is created", async () => {
+			// Arrange
+			const orderId = mockSelectOrder._id.toString();
+			mockOrderSvc.create.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockSelectOrder, success: true }),
+			);
+			mockPaymentSvc.createCheckoutSession.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { id: mockCheckoutSessionId, url: mockCheckoutUrl },
+					success: true,
+				}),
+			);
+			mockOrderSvc.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockSelectOrder, success: true }),
+			);
+
+			// Act
+			await manager.create(mockInsertOrder);
+
+			// Assert
+			assert.strictEqual(mockOrderSvc.updatePayment.mock.callCount(), 1);
+
+			const args = mockOrderSvc.updatePayment.mock.calls[0].arguments[0];
+			assert.strictEqual(args.id, mockCheckoutSessionId);
+			assert.strictEqual(args.orderId, orderId);
+			assert.strictEqual(args.provider, "stripe");
 		});
 
 		test("should return error when order service creation fails", async () => {
@@ -105,6 +136,34 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			);
 		});
 
+		test("should return success even when updatePayment fails", async () => {
+			// Arrange
+			const updatePaymentError = new Error("Failed to store session");
+			mockOrderSvc.create.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockSelectOrder, success: true }),
+			);
+			mockPaymentSvc.createCheckoutSession.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { id: mockCheckoutSessionId, url: mockCheckoutUrl },
+					success: true,
+				}),
+			);
+			mockOrderSvc.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					error: updatePaymentError,
+					success: false,
+				}),
+			);
+
+			// Act
+			const result = await manager.create(mockInsertOrder);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.session.url, mockCheckoutUrl);
+			assert.deepStrictEqual(result.data.order, mockSelectOrder);
+		});
+
 		test("should correctly transform order items to checkout line items", async () => {
 			// Arrange
 			const orderWithItems = generateMockSelectOrder({
@@ -119,6 +178,9 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 					data: { id: mockCheckoutSessionId, url: mockCheckoutUrl },
 					success: true,
 				}),
+			);
+			mockOrderSvc.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: orderWithItems, success: true }),
 			);
 
 			// Act

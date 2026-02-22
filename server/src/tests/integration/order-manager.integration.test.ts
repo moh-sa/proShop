@@ -115,6 +115,30 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(typeof checkoutCallArgs.successUrl, "string");
 			assert.strictEqual(typeof checkoutCallArgs.cancelUrl, "string");
 		});
+
+		test("Should store the checkout session id in the order", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder();
+			const mockCheckoutResponse = generateMockCheckoutSessionResponse();
+
+			mockPayment.createCheckoutSession.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: mockCheckoutResponse,
+					success: true,
+				}),
+			);
+
+			// Act
+			const result = await orderManager.create(mockOrder);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+
+			const order = await Order.findById(result.data.order._id);
+			assert.strictEqual(order !== null, true);
+			assert.strictEqual(order?.payment?.id, mockCheckoutResponse.id);
+			assert.strictEqual(order?.payment?.provider, "stripe");
+		});
 	});
 
 	describe("getAll", () => {
