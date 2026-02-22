@@ -20,6 +20,7 @@ import {
 	insertOrderSchema,
 	orderQuerySchema,
 	orderStatusSchema,
+	paymentSchema,
 } from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 import { objectIdValidator } from "../validators/object-id.validator.js";
@@ -31,6 +32,9 @@ export interface IOrderService {
 		args: OrderPaginationParams,
 	): Promise<OrderResult<PaginatedResponse<AllOrdersResponse>>>;
 	getById(data: { orderId: string }): Promise<OrderResult<SelectOrder>>;
+	updatePayment(
+		params: Partial<SelectOrder["payment"]> & { orderId: string },
+	): Promise<OrderResult<SelectOrder>>;
 	updateStatus(data: {
 		orderId: string;
 		status: OrderStatus;
@@ -209,6 +213,69 @@ export class OrderService implements IOrderService {
 		}
 
 		logger.info({ orderId }, "Order retrieved successfully");
+		return {
+			data: result.data,
+			success: true,
+		};
+	}
+
+	async updatePayment(
+		params: Partial<SelectOrder["payment"]> & { orderId: string },
+	): Promise<OrderResult<SelectOrder>> {
+		const logger = this._getLogger({ method: "updatePayment" });
+		logger.debug({ params }, "Updating payment");
+
+		// validate orderId
+		const idResult = this._validateObjectId("orderId", params.orderId);
+		if (!idResult.success) {
+			logger.warn(
+				{ error: idResult.error, orderId: params.orderId },
+				"Invalid order ID",
+			);
+			return idResult;
+		}
+
+		logger.debug({ validatedOrderId: idResult.data }, "Validated order ID");
+
+		// validate payment data
+		const paymentResult = paymentSchema.partial().safeParse(params);
+		if (!paymentResult.success) {
+			logger.warn(
+				{ error: paymentResult.error, payment: params },
+				"Invalid payment data",
+			);
+			return {
+				error: new ValidationError("Invalid payment data", {
+					cause: paymentResult.error,
+				}),
+				success: false,
+			};
+		}
+
+		logger.debug(
+			{ validatedPayment: paymentResult.data },
+			"Validated payment data",
+		);
+
+		// update payment
+		const result = await this._repository.updatePayment({
+			orderId: idResult.data,
+			...paymentResult.data,
+		});
+		if (!result.success) {
+			logger.error({ error: result.error }, "Failed to update payment");
+			return result;
+		}
+
+		if (!result.data) {
+			logger.warn({ orderId: params.orderId }, "Order not found");
+			return {
+				error: new NotFoundError("Order"),
+				success: false,
+			};
+		}
+
+		logger.info({ orderId: params.orderId }, "Payment updated successfully");
 		return {
 			data: result.data,
 			success: true,

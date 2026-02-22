@@ -790,4 +790,114 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.ok(updatedOrder.error instanceof NotFoundError);
 		});
 	});
+
+	describe("updatePayment", async () => {
+		test("Should update payment on existing order and persist to database", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({
+				status: "processing",
+				payment: undefined,
+			});
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+			const newPaymentId = "pay_stripe_456";
+			const provider = "stripe";
+
+			// Act
+			const result = await orderService.updatePayment({
+				orderId,
+				id: newPaymentId,
+				provider,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.payment?.id, newPaymentId);
+			assert.strictEqual(result.data.payment?.provider, provider);
+		});
+
+		test("Should return 'NotFoundError' when order does not exist", async () => {
+			// Arrange
+			const nonExistentId = generateMockObjectId().toString();
+
+			// Act
+			const result = await orderService.updatePayment({
+				orderId: nonExistentId,
+				id: "pay_123",
+				provider: "stripe",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
+		});
+
+		test("Should keep existing provider when updating only payment id", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({
+				status: "processing",
+				payment: { id: "cs_123", provider: "stripe" },
+			});
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+			const paymentId = "cs_456";
+
+			// Act
+			const result = await orderService.updatePayment({
+				orderId,
+				id: paymentId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.payment?.id, paymentId);
+			assert.strictEqual(result.data.payment?.provider, "stripe");
+		});
+
+		test("Should keep existing payment id when updating only payment provider", async () => {
+			// Arrange
+			const paymentId = "cs_123";
+			const mockOrder = generateMockInsertOrder({
+				status: "processing",
+				payment: { id: paymentId, provider: "stripe" },
+			});
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+
+			// Act
+			const result = await orderService.updatePayment({
+				orderId,
+				provider: "stripe",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.payment?.id, paymentId);
+			assert.strictEqual(result.data.payment?.provider, "stripe");
+		});
+
+		test("Should add payment to order that had no payment", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({
+				status: "pending",
+				payment: undefined,
+			});
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+			const paymentId = "pay_added_789";
+			const provider = "stripe";
+
+			// Act
+			const result = await orderService.updatePayment({
+				orderId,
+				id: paymentId,
+				provider,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.payment?.id, paymentId);
+			assert.strictEqual(result.data.payment?.provider, provider);
+		});
+	});
 });

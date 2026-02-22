@@ -615,4 +615,163 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof NotFoundError);
 		});
 	});
+
+	describe("updatePayment", () => {
+		const mockOrder = generateMockSelectOrder({
+			status: "processing",
+			payment: undefined,
+		});
+		const orderId = mockOrder._id.toString();
+		const paymentId = "cs_123";
+		const provider = "stripe" as const;
+
+		test("Should return updated payment fields when 'repo.updatePayment' is called with valid params", async () => {
+			// Arrange
+			const updatedOrder = {
+				...mockOrder,
+				payment: { id: paymentId, provider },
+			};
+			mockRepo.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: updatedOrder, success: true }),
+			);
+
+			// Act
+			const result = await service.updatePayment({
+				orderId,
+				id: paymentId,
+				provider,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, updatedOrder);
+		});
+
+		test("Should call 'repo.updatePayment' once when only 'id' is provided", async () => {
+			// Arrange
+			const updatedOrder = {
+				...mockOrder,
+				payment: { id: paymentId, provider },
+			};
+			mockRepo.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: updatedOrder, success: true }),
+			);
+
+			// Act
+			await service.updatePayment({ orderId, id: paymentId });
+
+			// Assert
+			assert.strictEqual(mockRepo.updatePayment.mock.callCount(), 1);
+
+			const args = mockRepo.updatePayment.mock.calls[0].arguments[0];
+			assert.strictEqual(args.orderId.toString(), orderId);
+			assert.strictEqual(args.id, paymentId);
+			assert.strictEqual(args.provider, undefined);
+		});
+
+		test("Should call 'repo.updatePayment' once when only 'provider' is provided", async () => {
+			// Arrange
+			const updatedOrder = {
+				...mockOrder,
+				payment: { id: paymentId, provider },
+			};
+			mockRepo.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: updatedOrder, success: true }),
+			);
+
+			// Act
+			await service.updatePayment({ orderId, provider });
+
+			// Assert
+			assert.strictEqual(mockRepo.updatePayment.mock.callCount(), 1);
+
+			const args = mockRepo.updatePayment.mock.calls[0].arguments[0];
+			assert.strictEqual(args.orderId.toString(), orderId);
+			assert.strictEqual(args.provider, provider);
+			assert.strictEqual(args.id, undefined);
+		});
+
+		test("Should return 'ValidationError' when orderId is invalid", async () => {
+			// Arrange
+			const invalidOrderId = "invalid-order-id";
+
+			// Act
+			const result = await service.updatePayment({
+				orderId: invalidOrderId,
+				id: paymentId,
+				provider,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+			assert.strictEqual(mockRepo.updatePayment.mock.callCount(), 0);
+		});
+
+		test("Should return 'ValidationError' when provider is invalid", async () => {
+			// Act
+			const result = await service.updatePayment({
+				orderId,
+				id: paymentId,
+				// @ts-expect-error - test case
+				provider: "PayPal",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+			assert.strictEqual(mockRepo.updatePayment.mock.callCount(), 0);
+		});
+
+		test("Should return 'ValidationError' when id is empty string", async () => {
+			// Act
+			const result = await service.updatePayment({
+				orderId,
+				id: "",
+				provider,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+			assert.strictEqual(mockRepo.updatePayment.mock.callCount(), 0);
+		});
+
+		test("Should return 'NotFoundError' when repository returns null", async () => {
+			// Arrange
+			mockRepo.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: null, success: true }),
+			);
+
+			// Act
+			const result = await service.updatePayment({
+				orderId,
+				id: paymentId,
+				provider,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
+		});
+
+		test("Should propagate repository error when repository call fails", async () => {
+			// Arrange
+			const error = new DatabaseBaseError("Database error");
+			mockRepo.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ error: error, success: false }),
+			);
+
+			// Act
+			const result = await service.updatePayment({
+				orderId,
+				id: paymentId,
+				provider,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, error);
+		});
+	});
 });
