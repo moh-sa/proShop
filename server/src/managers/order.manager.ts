@@ -52,6 +52,13 @@ export interface IOrderManager {
 	): Promise<OrderManagerResult<void>>;
 
 	/**
+	 * Updates the payment of an order
+	 */
+	updatePayment(
+		params: Partial<SelectOrder["payment"]> & { orderId: string },
+	): Promise<OrderManagerResult<SelectOrder>>;
+
+	/**
 	 * Updates the status of an order
 	 */
 	updateStatus(params: {
@@ -240,6 +247,12 @@ export class OrderManager implements IOrderManager {
 				return { data: undefined, success: true };
 			}
 		}
+	}
+
+	async updatePayment(
+		params: MethodParams<IOrderManager, "updatePayment">,
+	): MethodReturn<IOrderManager, "updatePayment"> {
+		return this._orderService.updatePayment(params);
 	}
 
 	async updateStatus(

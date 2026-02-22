@@ -517,4 +517,77 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.error, updateError);
 		});
 	});
+
+	describe("updatePayment", () => {
+		const mockOrder = generateMockSelectOrder({
+			status: "processing",
+			payment: undefined,
+		});
+		const orderId = mockOrder._id.toString();
+
+		test("should return updated order when order service succeeds", async () => {
+			// Arrange
+			const params = {
+				orderId,
+				id: "cs_123",
+				provider: "stripe" as const,
+			};
+
+			mockOrderSvc.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrder, success: true }),
+			);
+
+			// Act
+			const result = await manager.updatePayment(params);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, mockOrder);
+
+			assert.strictEqual(mockOrderSvc.updatePayment.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockOrderSvc.updatePayment.mock.calls[0].arguments[0],
+				params,
+			);
+		});
+
+		test("should pass through error from order service", async () => {
+			// Arrange
+			const error = new Error("Order not found");
+
+			mockOrderSvc.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ error: error, success: false }),
+			);
+
+			// Act
+			const result = await manager.updatePayment({
+				orderId,
+				id: "cs_123",
+				provider: "stripe",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, error);
+		});
+
+		test("should pass partial payment params to order service", async () => {
+			// Arrange
+			const params = { orderId, id: "new_id" };
+
+			mockOrderSvc.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrder, success: true }),
+			);
+
+			// Act
+			await manager.updatePayment(params);
+
+			// Assert
+			assert.strictEqual(mockOrderSvc.updatePayment.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockOrderSvc.updatePayment.mock.calls[0].arguments[0],
+				params,
+			);
+		});
+	});
 });

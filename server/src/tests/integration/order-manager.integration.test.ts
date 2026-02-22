@@ -354,4 +354,34 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(order?.status, "processing");
 		});
 	});
+
+	describe("updatePayment", () => {
+		test("Should update payment through manager", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({ status: "processing" });
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+
+			const paymentId = "cs_123";
+			const paymentProvider = "stripe";
+
+			// Act
+			const result = await orderManager.updatePayment({
+				orderId,
+				id: paymentId,
+				provider: paymentProvider,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.payment?.id, paymentId);
+			assert.strictEqual(result.data.payment?.provider, paymentProvider);
+
+			// Verify in DB
+			const order = await Order.findById(orderId);
+			assert.strictEqual(order !== null, true);
+			assert.strictEqual(order?.payment?.id, paymentId);
+			assert.strictEqual(order?.payment?.provider, paymentProvider);
+		});
+	});
 });
