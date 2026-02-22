@@ -52,6 +52,16 @@ adminRouter
 		controller.updateStatus,
 	);
 
+adminRouter
+	.route("/:orderId/payment")
+	.patch(
+		strictLimiter,
+		authenticate,
+		checkUserExists,
+		authorizeAdmin,
+		controller.updatePayment,
+	);
+
 protectedRoutes.use("/", userRouter);
 protectedRoutes.use("/admin", adminRouter);
 
