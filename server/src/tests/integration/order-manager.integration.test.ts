@@ -103,7 +103,6 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 				const orderItem = mockOrder.orderItems[i];
 				const lineItem = checkoutCallArgs.items[i];
 
-				assert.strictEqual(lineItem.imageUrl, orderItem.image);
 				assert.strictEqual(lineItem.name, orderItem.name);
 				assert.strictEqual(lineItem.quantity, orderItem.qty);
 				assert.strictEqual(lineItem.unitAmount, orderItem.price);

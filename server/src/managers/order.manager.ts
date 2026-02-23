@@ -272,7 +272,6 @@ export class OrderManager implements IOrderManager {
 		orderItems: Array<SelectOrderItem>,
 	): Array<LineItem> {
 		return orderItems.map((item) => ({
-			imageUrl: item.image,
 			name: item.name,
 			quantity: item.qty,
 			unitAmount: item.price,

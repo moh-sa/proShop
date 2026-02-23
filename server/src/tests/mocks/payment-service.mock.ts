@@ -26,7 +26,6 @@ export function generateMockCheckoutSessionItem(
 	override: Partial<LineItem> = {},
 ): LineItem {
 	return {
-		imageUrl: faker.image.urlLoremFlickr(),
 		name: faker.commerce.productName(),
 		quantity: faker.number.int({ min: 1, max: 99 }),
 		unitAmount: faker.number.int({ min: 100, max: 100000 }), // $1 - $1000

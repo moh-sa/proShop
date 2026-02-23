@@ -89,7 +89,6 @@ suite("Payment Service 〖 Unit Tests 〗", () => {
 					price_data: {
 						currency: data.currency,
 						product_data: {
-							images: [mockItem.imageUrl],
 							name: mockItem.name,
 						},
 						unit_amount: mockItem.unitAmount,

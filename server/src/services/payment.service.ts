@@ -97,7 +97,6 @@ export class PaymentService implements IPaymentService {
 			price_data: {
 				currency: validationResult.data.currency,
 				product_data: {
-					images: [item.imageUrl],
 					name: item.name,
 				},
 				unit_amount: item.unitAmount,
