@@ -116,7 +116,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(typeof checkoutCallArgs.cancelUrl, "string");
 		});
 
-		test("Should store the checkout session id in the order", async () => {
+		test("Should store the checkout session id and sessionURL in the order", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder();
 			const mockCheckoutResponse = generateMockCheckoutSessionResponse();
@@ -138,6 +138,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(order !== null, true);
 			assert.strictEqual(order?.payment?.id, mockCheckoutResponse.id);
 			assert.strictEqual(order?.payment?.provider, "stripe");
+			assert.strictEqual(order?.payment?.sessionURL, mockCheckoutResponse.url);
 		});
 	});
 

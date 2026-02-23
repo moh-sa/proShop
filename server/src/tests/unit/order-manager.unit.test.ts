@@ -63,7 +63,7 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("should call updatePayment with checkout session id, orderId, and provider after checkout session is created", async () => {
+		test("should call updatePayment with checkout session id, orderId, provider, and sessionURL after checkout session is created", async () => {
 			// Arrange
 			const orderId = mockSelectOrder._id.toString();
 			mockOrderSvc.create.mock.mockImplementationOnce(() =>
@@ -89,6 +89,7 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(args.id, mockCheckoutSessionId);
 			assert.strictEqual(args.orderId, orderId);
 			assert.strictEqual(args.provider, "stripe");
+			assert.strictEqual(args.sessionURL, mockCheckoutUrl);
 		});
 
 		test("should return error when order service creation fails", async () => {

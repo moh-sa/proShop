@@ -137,17 +137,17 @@ export class OrderManager implements IOrderManager {
 
 		logger.debug(checkoutResult.data, "Checkout session created successfully");
 
-		// store the checkout session id
-		// TODO: store the session URL
+		// store the checkout session ID and URL
 		const storeSessionResult = await this._orderService.updatePayment({
 			id: checkoutResult.data.id,
 			orderId,
 			provider: "stripe",
+			sessionURL: checkoutResult.data.url,
 		});
 		if (!storeSessionResult.success) {
 			logger.error(
 				{ error: storeSessionResult.error, orderId },
-				"Failed to store checkout session id",
+				"Failed to store checkout session details",
 			);
 		} else {
 			logger.debug(
