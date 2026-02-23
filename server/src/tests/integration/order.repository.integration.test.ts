@@ -265,6 +265,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 				id: "pay_123",
 				orderId: order._id,
 				provider: "stripe" as const,
+				sessionURL: "https://checkout.stripe.com/c/pay/cs_test_123",
 			};
 
 			// Act
@@ -275,11 +276,13 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			assert.ok(result.data);
 			assert.strictEqual(result.data.payment?.id, paymentParams.id);
 			assert.strictEqual(result.data.payment?.provider, paymentParams.provider);
+			assert.strictEqual(result.data.payment?.sessionURL, paymentParams.sessionURL);
 
 			// Verify in DB
 			const dbOrder = await Order.findById(order._id).lean();
 			assert.strictEqual(dbOrder?.payment?.id, paymentParams.id);
 			assert.strictEqual(dbOrder?.payment?.provider, paymentParams.provider);
+			assert.strictEqual(dbOrder?.payment?.sessionURL, paymentParams.sessionURL);
 		});
 
 		test("Should update only 'payment.id' in the database", async () => {
@@ -310,11 +313,10 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const order = await Order.create(mockOrder);
 			const paymentParams = {
 				orderId: order._id,
-				provider: "paypal",
+				provider: "stripe" as const,
 			};
 
 			// Act
-			// @ts-expect-error - test case
 			const result = await orderRepository.updatePayment(paymentParams);
 
 			// Assert
@@ -325,6 +327,28 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			// Verify in DB
 			const dbOrder = await Order.findById(order._id).lean();
 			assert.strictEqual(dbOrder?.payment?.provider, paymentParams.provider);
+		});
+
+		test("Should update only 'payment.sessionURL' in the database", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder();
+			const order = await Order.create(mockOrder);
+			const paymentParams = {
+				orderId: order._id,
+				sessionURL: "https://checkout.stripe.com/c/pay/cs_new",
+			};
+
+			// Act
+			const result = await orderRepository.updatePayment(paymentParams);
+
+			// Assert
+			assert.ok(result.success);
+			assert.ok(result.data);
+			assert.strictEqual(result.data.payment?.sessionURL, paymentParams.sessionURL);
+
+			// Verify in DB
+			const dbOrder = await Order.findById(order._id).lean();
+			assert.strictEqual(dbOrder?.payment?.sessionURL, paymentParams.sessionURL);
 		});
 
 		test("Should return null data when attempting to update a non-existent order", async () => {

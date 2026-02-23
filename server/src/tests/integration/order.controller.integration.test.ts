@@ -939,7 +939,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when called with valid order and payment data", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({
-				payment: { id: "cs_123", provider: "stripe" },
 				status: "processing",
 			});
 			const createdOrder = await Order.create(mockOrder);
@@ -947,7 +946,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId };
-			req.body = { id: "cs_456", provider: "stripe" };
+			req.body = {
+				id: "cs_456",
+				provider: "stripe",
+				sessionURL: "https://checkout.stripe.com/c/pay/cs_456",
+			};
 
 			// Act
 			await controller.updatePayment(req, res, next);
@@ -962,7 +965,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should return '200' status code when called with valid data", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({
-				payment: { id: "cs_123", provider: "stripe" },
 				status: "processing",
 			});
 			const createdOrder = await Order.create(mockOrder);
@@ -970,7 +972,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId };
-			req.body = { id: "cs_456", provider: "stripe" };
+			req.body = {
+				id: "cs_456",
+				provider: "stripe",
+				sessionURL: "https://checkout.stripe.com/c/pay/cs_456",
+			};
 
 			// Act
 			await controller.updatePayment(req, res, next);
@@ -983,41 +989,45 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should update payment and persist to database when called with existing order", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({
-				payment: { id: "cs_123", provider: "stripe" },
 				status: "processing",
 			});
 			const createdOrder = await Order.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 			const paymentId = "cs_456";
 			const provider = "stripe";
+			const sessionURL = "https://checkout.stripe.com/c/pay/cs_456";
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId };
-			req.body = { id: paymentId, provider };
+			req.body = { id: paymentId, provider, sessionURL };
 
 			// Act
 			await controller.updatePayment(req, res, next);
 
 			// Assert
+			const response = res._getJSONData();
+			assert.strictEqual(response.data.payment?.sessionURL, sessionURL);
+
 			const order = await Order.findById(orderId);
 			assert.ok(order);
 			assert.strictEqual(order.payment?.id, paymentId);
 			assert.strictEqual(order.payment?.provider, provider);
+			assert.strictEqual(order.payment?.sessionURL, sessionURL);
 		});
 
 		test("Should return updated order with payment in response", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({
-				payment: { id: "cs_123", provider: "stripe" },
 				status: "processing",
 			});
 			const createdOrder = await Order.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 			const paymentId = "cs_456";
+			const sessionURL = "https://checkout.stripe.com/c/pay/cs_456";
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId };
-			req.body = { id: paymentId, provider: "stripe" };
+			req.body = { id: paymentId, provider: "stripe", sessionURL };
 
 			// Act
 			await controller.updatePayment(req, res, next);
@@ -1028,6 +1038,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response.data);
 			assert.strictEqual(response.data.payment?.id, paymentId);
 			assert.strictEqual(response.data.payment?.provider, "stripe");
+			assert.strictEqual(response.data.payment?.sessionURL, sessionURL);
 		});
 
 		test("Should throw 'NotFoundError' when called with non-existent order id", async () => {
@@ -1036,7 +1047,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId };
-			req.body = { id: "cs_123", provider: "stripe" };
+			req.body = {
+				id: "cs_123",
+				provider: "stripe",
+				sessionURL: "https://checkout.stripe.com/c/pay/cs_123",
+			};
 
 			// Act & Assert
 			await assert.rejects(
@@ -1059,10 +1074,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const orderId = createdOrder._id.toString();
 			const paymentId = "cs_123";
 			const provider = "stripe";
+			const sessionURL = "https://checkout.stripe.com/c/pay/cs_123";
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId };
-			req.body = { id: paymentId, provider };
+			req.body = { id: paymentId, provider, sessionURL };
 
 			// Act
 			await controller.updatePayment(req, res, next);
@@ -1073,18 +1089,24 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response.success);
 			assert.strictEqual(response.data.payment?.id, paymentId);
 			assert.strictEqual(response.data.payment?.provider, provider);
+			assert.strictEqual(response.data.payment?.sessionURL, sessionURL);
 
 			const order = await Order.findById(orderId);
 			assert.ok(order);
 			assert.strictEqual(order.payment?.id, paymentId);
 			assert.strictEqual(order.payment?.provider, provider);
+			assert.strictEqual(order.payment?.sessionURL, sessionURL);
 		});
 
 		test("Should convert all price fields from cents to dollars in response", async () => {
 			// Arrange
 			const mockOrder = convertOrderToCents(
 				generateMockInsertOrder({
-					payment: { id: "cs_123", provider: "stripe" },
+					payment: {
+						id: "cs_123",
+						provider: "stripe",
+						sessionURL: "https://checkout.stripe.com/c/pay/cs_123",
+					},
 					status: "processing",
 				}),
 			);
@@ -1094,7 +1116,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId };
-			req.body = { id: "cs_456", provider: "stripe" };
+			req.body = {
+				id: "cs_456",
+				provider: "stripe",
+				sessionURL: "https://checkout.stripe.com/c/pay/cs_456",
+			};
 
 			// Act
 			await controller.updatePayment(req, res, next);

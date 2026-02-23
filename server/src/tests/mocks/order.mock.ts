@@ -78,6 +78,7 @@ function generateMockPayment(
 		provider:
 			options.provider ??
 			faker.helpers.arrayElement(MOCK_DATA_CONSTANTS.PAYMENT_METHODS),
+		sessionURL: options.sessionURL ?? faker.internet.url(),
 	};
 }
 

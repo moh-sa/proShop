@@ -1020,18 +1020,49 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(mockManager.updatePayment.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockManager.updatePayment.mock.calls[0].arguments[0].orderId.toString(),
-				orderId,
+
+			assert.ok(paymentBody);
+
+			const args = mockManager.updatePayment.mock.calls[0].arguments[0];
+			assert.strictEqual(args.orderId.toString(), orderId);
+			assert.strictEqual(args.id, paymentBody.id);
+			assert.strictEqual(args.provider, paymentBody.provider);
+			assert.strictEqual(args.sessionURL, paymentBody.sessionURL);
+		});
+
+		test("Should pass sessionURL from req.body to manager when provided", async (t) => {
+			// Arrange
+			const sessionURL = "https://checkout.stripe.com/c/pay/cs_test_123";
+			const paymentBodyWithSessionURL = {
+				id: "cs_123",
+				provider: "stripe" as const,
+				sessionURL,
+			};
+
+			const { next, req, res } = mockExpressCall({
+				req: {
+					body: paymentBodyWithSessionURL,
+					params: { orderId },
+				},
+				testContext: t,
+			});
+
+			mockManager.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrderInCents, success: true }),
 			);
-			assert.strictEqual(
-				mockManager.updatePayment.mock.calls[0].arguments[0].id,
-				paymentBody.id,
+
+			// Act
+			await controller.updatePayment(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
 			);
-			assert.strictEqual(
-				mockManager.updatePayment.mock.calls[0].arguments[0].provider,
-				paymentBody.provider,
-			);
+
+			// Assert
+			assert.strictEqual(mockManager.updatePayment.mock.callCount(), 1);
+
+			const args = mockManager.updatePayment.mock.calls[0].arguments[0];
+			assert.strictEqual(args.sessionURL, sessionURL);
 		});
 
 		test("Should convert order prices from cents to dollars in response", async (t) => {

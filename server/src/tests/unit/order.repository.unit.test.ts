@@ -407,9 +407,10 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			id: "pay_123",
 			orderId,
 			provider: "stripe" as const,
+			sessionURL: "https://checkout.stripe.com/c/pay/cs_test_123",
 		};
 
-		test("Should updates both 'payment.id' and 'payment.provider' when both fields are provided", async (t) => {
+		test("Should update id, provider, and sessionURL when all three are provided", async (t) => {
 			// Arrange
 			const mockFindByIdAndUpdate = t.mock.method(
 				Order,
@@ -430,6 +431,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 				$set: {
 					"payment.id": mockPaymentParams.id,
 					"payment.provider": mockPaymentParams.provider,
+					"payment.sessionURL": mockPaymentParams.sessionURL,
 				},
 			});
 		});
@@ -476,6 +478,32 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(mockFindByIdAndUpdate.mock.calls[0].arguments[1], {
 				$set: {
 					"payment.provider": params.provider,
+				},
+			});
+		});
+
+		test("Should update 'payment.sessionURL' when sessionURL is provided", async (t) => {
+			// Arrange
+			const params = {
+				orderId,
+				sessionURL: "https://checkout.stripe.com/c/pay/cs_test_abc",
+			};
+			const mockFindByIdAndUpdate = t.mock.method(
+				Order,
+				"findByIdAndUpdate",
+				() => ({
+					lean: async () => mockOrder,
+				}),
+			);
+
+			// Act
+			const result = await repo.updatePayment(params);
+
+			// Assert
+			assert.ok(result.success);
+			assert.deepStrictEqual(mockFindByIdAndUpdate.mock.calls[0].arguments[1], {
+				$set: {
+					"payment.sessionURL": params.sessionURL,
 				},
 			});
 		});

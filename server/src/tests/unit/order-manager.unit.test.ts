@@ -531,6 +531,7 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 				orderId,
 				id: "cs_123",
 				provider: "stripe" as const,
+				sessionURL: "https://checkout.stripe.com/c/pay/cs_456",
 			};
 
 			mockOrderSvc.updatePayment.mock.mockImplementationOnce(() =>
@@ -549,6 +550,32 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 				mockOrderSvc.updatePayment.mock.calls[0].arguments[0],
 				params,
 			);
+		});
+
+		test("should pass sessionURL to order service when sessionURL is provided", async () => {
+			// Arrange
+			const sessionURL = "https://checkout.stripe.com/c/pay/cs_456";
+			const params = {
+				orderId,
+				id: "cs_456",
+				provider: "stripe" as const,
+				sessionURL,
+			};
+
+			mockOrderSvc.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrder, success: true }),
+			);
+
+			// Act
+			await manager.updatePayment(params);
+
+			// Assert
+			assert.strictEqual(mockOrderSvc.updatePayment.mock.callCount(), 1);
+			const args = mockOrderSvc.updatePayment.mock.calls[0].arguments[0];
+			assert.strictEqual(args.orderId, orderId);
+			assert.strictEqual(args.id, params.id);
+			assert.strictEqual(args.provider, params.provider);
+			assert.strictEqual(args.sessionURL, sessionURL);
 		});
 
 		test("should pass through error from order service", async () => {

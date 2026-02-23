@@ -802,18 +802,25 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const orderId = createdOrder._id.toString();
 			const newPaymentId = "pay_stripe_456";
 			const provider = "stripe";
+			const sessionURL = "https://checkout.stripe.com/c/pay/cs_test_456";
 
 			// Act
 			const result = await orderService.updatePayment({
 				orderId,
 				id: newPaymentId,
 				provider,
+				sessionURL,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.payment?.id, newPaymentId);
 			assert.strictEqual(result.data.payment?.provider, provider);
+			assert.strictEqual(result.data.payment?.sessionURL, sessionURL);
+
+			// Verify in DB
+			const dbOrder = await Order.findById(orderId).lean();
+			assert.strictEqual(dbOrder?.payment?.sessionURL, sessionURL);
 		});
 
 		test("Should return 'NotFoundError' when order does not exist", async () => {
@@ -836,7 +843,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({
 				status: "processing",
-				payment: { id: "cs_123", provider: "stripe" },
+				payment: {
+					id: "cs_123",
+					provider: "stripe",
+					sessionURL: "https://checkout.stripe.com/c/pay/cs_123",
+				},
 			});
 			const createdOrder = await Order.create(mockOrder);
 			const orderId = createdOrder._id.toString();
@@ -859,7 +870,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const paymentId = "cs_123";
 			const mockOrder = generateMockInsertOrder({
 				status: "processing",
-				payment: { id: paymentId, provider: "stripe" },
+				payment: {
+					id: paymentId,
+					provider: "stripe",
+					sessionURL: "https://checkout.stripe.com/c/pay/cs_123",
+				},
 			});
 			const createdOrder = await Order.create(mockOrder);
 			const orderId = createdOrder._id.toString();
@@ -876,6 +891,35 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.payment?.provider, "stripe");
 		});
 
+		test("Should update the sessionURL when provided", async () => {
+			// Arrange
+			const paymentId = "cs_123";
+			const oldSessionURL = "https://checkout.stripe.com/c/pay/cs_old";
+			const mockOrder = generateMockInsertOrder({
+				status: "processing",
+				payment: {
+					id: paymentId,
+					provider: "stripe",
+					sessionURL: oldSessionURL,
+				},
+			});
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+			const newSessionURL = "https://checkout.stripe.com/c/pay/cs_new";
+
+			// Act
+			const result = await orderService.updatePayment({
+				orderId,
+				sessionURL: newSessionURL,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.payment?.sessionURL, newSessionURL);
+			assert.strictEqual(result.data.payment?.id, paymentId);
+			assert.strictEqual(result.data.payment?.provider, "stripe");
+		});
+
 		test("Should add payment to order that had no payment", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({
@@ -886,18 +930,21 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const orderId = createdOrder._id.toString();
 			const paymentId = "pay_added_789";
 			const provider = "stripe";
+			const sessionURL = "https://checkout.stripe.com/c/pay/cs_added";
 
 			// Act
 			const result = await orderService.updatePayment({
 				orderId,
 				id: paymentId,
 				provider,
+				sessionURL,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.payment?.id, paymentId);
 			assert.strictEqual(result.data.payment?.provider, provider);
+			assert.strictEqual(result.data.payment?.sessionURL, sessionURL);
 		});
 	});
 });

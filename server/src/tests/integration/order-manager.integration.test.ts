@@ -364,24 +364,28 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 
 			const paymentId = "cs_123";
 			const paymentProvider = "stripe";
+			const sessionURL = "https://checkout.stripe.com/c/pay/cs_123";
 
 			// Act
 			const result = await orderManager.updatePayment({
 				orderId,
 				id: paymentId,
 				provider: paymentProvider,
+				sessionURL,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.payment?.id, paymentId);
 			assert.strictEqual(result.data.payment?.provider, paymentProvider);
+			assert.strictEqual(result.data.payment?.sessionURL, sessionURL);
 
 			// Verify in DB
 			const order = await Order.findById(orderId);
 			assert.strictEqual(order !== null, true);
 			assert.strictEqual(order?.payment?.id, paymentId);
 			assert.strictEqual(order?.payment?.provider, paymentProvider);
+			assert.strictEqual(order?.payment?.sessionURL, sessionURL);
 		});
 	});
 });

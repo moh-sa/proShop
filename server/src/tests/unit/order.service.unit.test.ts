@@ -624,12 +624,13 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 		const orderId = mockOrder._id.toString();
 		const paymentId = "cs_123";
 		const provider = "stripe" as const;
+		const sessionURL = "https://checkout.stripe.com/c/pay/cs_test_123";
 
 		test("Should return updated payment fields when 'repo.updatePayment' is called with valid params", async () => {
 			// Arrange
 			const updatedOrder = {
 				...mockOrder,
-				payment: { id: paymentId, provider },
+				payment: { id: paymentId, provider, sessionURL },
 			};
 			mockRepo.updatePayment.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: updatedOrder, success: true }),
@@ -640,18 +641,20 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 				orderId,
 				id: paymentId,
 				provider,
+				sessionURL,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.deepStrictEqual(result.data, updatedOrder);
+			assert.strictEqual(result.data.payment?.sessionURL, sessionURL);
 		});
 
 		test("Should call 'repo.updatePayment' once when only 'id' is provided", async () => {
 			// Arrange
 			const updatedOrder = {
 				...mockOrder,
-				payment: { id: paymentId, provider },
+				payment: { id: paymentId, provider, sessionURL },
 			};
 			mockRepo.updatePayment.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: updatedOrder, success: true }),
@@ -673,7 +676,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			// Arrange
 			const updatedOrder = {
 				...mockOrder,
-				payment: { id: paymentId, provider },
+				payment: { id: paymentId, provider, sessionURL },
 			};
 			mockRepo.updatePayment.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: updatedOrder, success: true }),
@@ -689,6 +692,34 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			assert.strictEqual(args.orderId.toString(), orderId);
 			assert.strictEqual(args.provider, provider);
 			assert.strictEqual(args.id, undefined);
+		});
+
+		test("Should call 'repo.updatePayment' with sessionURL when sessionURL is provided", async () => {
+			// Arrange
+			const updatedOrder = {
+				...mockOrder,
+				payment: { id: paymentId, provider, sessionURL },
+			};
+			mockRepo.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: updatedOrder, success: true }),
+			);
+
+			// Act
+			await service.updatePayment({
+				orderId,
+				id: paymentId,
+				provider,
+				sessionURL,
+			});
+
+			// Assert
+			assert.strictEqual(mockRepo.updatePayment.mock.callCount(), 1);
+
+			const args = mockRepo.updatePayment.mock.calls[0].arguments[0];
+			assert.strictEqual(args.orderId.toString(), orderId);
+			assert.strictEqual(args.id, paymentId);
+			assert.strictEqual(args.provider, provider);
+			assert.strictEqual(args.sessionURL, sessionURL);
 		});
 
 		test("Should return 'ValidationError' when orderId is invalid", async () => {
@@ -734,6 +765,38 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof ValidationError);
+			assert.strictEqual(mockRepo.updatePayment.mock.callCount(), 0);
+		});
+
+		test("Should return 'ValidationError' when sessionURL is invalid", async () => {
+			// Act
+			const result = await service.updatePayment({
+				orderId,
+				id: paymentId,
+				provider,
+				sessionURL: "invalid_url",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+
+			assert.strictEqual(mockRepo.updatePayment.mock.callCount(), 0);
+		});
+
+		test("Should return 'ValidationError' when sessionURL is empty string", async () => {
+			// Act
+			const result = await service.updatePayment({
+				orderId,
+				id: paymentId,
+				provider,
+				sessionURL: "",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+
 			assert.strictEqual(mockRepo.updatePayment.mock.callCount(), 0);
 		});
 

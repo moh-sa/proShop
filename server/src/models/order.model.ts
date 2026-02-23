@@ -34,6 +34,7 @@ const orderSchema = new Schema<OrderSchema>(
 				enum: ["stripe"],
 				type: String,
 			},
+			sessionURL: { type: String },
 		},
 		shippingAddress: {
 			address: { required: true, type: String },

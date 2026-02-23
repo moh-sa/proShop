@@ -15,6 +15,10 @@ export const orderStatusSchema = z.enum([
 export const paymentSchema = z.object({
 	id: z.string().min(1, { message: "payment ID is required." }),
 	provider: z.enum(["stripe"]),
+	sessionURL: z
+		.string()
+		.min(1, { message: "Checkout session URL is required." })
+		.url({ message: "Invalid checkout session URL." }),
 });
 
 const baseOrderSchema = z.object({
