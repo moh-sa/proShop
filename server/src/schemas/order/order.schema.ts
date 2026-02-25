@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { objectIdValidator } from "../../validators/index.js";
+import { paymentProviderSchema } from "../payment/payment.schema.js";
 import { shippingAddressSchema } from "../shipping/shipping-address.schema.js";
 import { selectUserSchema } from "../user/user.schema.js";
 import { insertOrderItemSchema } from "./order-item.schema.js";
@@ -14,7 +15,7 @@ export const orderStatusSchema = z.enum([
 
 export const paymentSchema = z.object({
 	id: z.string().min(1, { message: "payment ID is required." }),
-	provider: z.enum(["stripe"]),
+	provider: paymentProviderSchema,
 	sessionURL: z
 		.string()
 		.min(1, { message: "Checkout session URL is required." })
