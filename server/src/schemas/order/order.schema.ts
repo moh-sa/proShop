@@ -15,6 +15,7 @@ export const orderStatusSchema = z.enum([
 
 export const paymentSchema = z.object({
 	id: z.string().min(1, { message: "payment ID is required." }),
+	paidAt: z.date(),
 	provider: paymentProviderSchema,
 	sessionURL: z
 		.string()
@@ -33,7 +34,6 @@ const baseOrderSchema = z.object({
 		message: "Order items are required.",
 	}),
 
-	paidAt: z.date().optional(),
 	payment: paymentSchema.optional(),
 	shippingAddress: shippingAddressSchema,
 
@@ -64,7 +64,7 @@ export const allOrdersResponseSchema = selectOrderSchema.pick({
 	_id: true,
 	createdAt: true,
 	deliveredAt: true,
-	paidAt: true,
+	payment: true,
 	status: true,
 	totalPrice: true,
 	user: true,

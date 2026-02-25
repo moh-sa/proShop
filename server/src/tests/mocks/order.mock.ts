@@ -75,6 +75,7 @@ function generateMockPayment(
 ): InsertOrder["payment"] {
 	return {
 		id: options.id ?? faker.string.uuid(),
+		paidAt: options.paidAt ?? faker.date.recent(),
 		provider:
 			options.provider ??
 			faker.helpers.arrayElement(MOCK_DATA_CONSTANTS.PAYMENT_METHODS),
@@ -141,10 +142,6 @@ export function generateMockInsertOrder(
 
 	const isPaidStatus = status === "processing" || status === "delivered";
 	const isDeliveredStatus = status === "delivered";
-
-	const paidAt = isPaidStatus
-		? (options.paidAt ?? faker.date.recent())
-		: undefined;
 	const deliveredAt = isDeliveredStatus
 		? (options.deliveredAt ?? faker.date.recent())
 		: undefined;
@@ -157,7 +154,6 @@ export function generateMockInsertOrder(
 		deliveredAt,
 		itemsPrice,
 		orderItems,
-		paidAt,
 		payment,
 		shippingAddress: options.shippingAddress ?? generateMockShippingAddress(),
 		shippingPrice,

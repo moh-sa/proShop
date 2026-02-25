@@ -658,7 +658,11 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.success, true);
 			assert.ok(result.data);
 			assert.strictEqual(result.data.status, "processing");
-			assert.strictEqual(result.data.paidAt?.getTime(), paidAt.getTime());
+			assert.ok(result.data.payment);
+			assert.strictEqual(
+				result.data.payment.paidAt.getTime(),
+				paidAt.getTime(),
+			);
 		});
 
 		test("Should return null when order does not exist", async () => {

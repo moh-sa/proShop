@@ -148,7 +148,7 @@ export class OrderService implements IOrderService {
 						_id: 1,
 						createdAt: 1,
 						deliveredAt: 1,
-						paidAt: 1,
+						paidAt: "$payment.paidAt",
 						status: 1,
 						totalPrice: 1,
 						user: 1,

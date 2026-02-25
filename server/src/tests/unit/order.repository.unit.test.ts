@@ -432,7 +432,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			);
 			assert.deepStrictEqual(findByIdAndUpdateMock.mock.calls[0].arguments[1], {
 				$set: {
-					paidAt,
+					"payment.paidAt": paidAt,
 					status: "processing",
 				},
 			});

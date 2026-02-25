@@ -25,11 +25,9 @@ const orderSchema = new Schema<OrderSchema>(
 				qty: { required: true, type: Number },
 			},
 		],
-		paidAt: {
-			type: Date,
-		},
 		payment: {
 			id: { type: String },
+			paidAt: { type: Date },
 			provider: {
 				enum: ["stripe"],
 				type: String,

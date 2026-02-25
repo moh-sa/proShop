@@ -226,10 +226,11 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 
 			// Verify status and paidAt were updated in DB
 			const order = await Order.findById(orderId);
-			assert.strictEqual(order !== null, true);
-			assert.strictEqual(order?.status, "processing");
-			assert.strictEqual(order?.paidAt !== undefined, true);
-			assert.strictEqual(order?.paidAt?.getTime(), mockPaidAt.getTime());
+			assert.ok(order);
+			assert.strictEqual(order.status, "processing");
+
+			assert.ok(order.payment);
+			assert.strictEqual(order.payment.paidAt?.getTime(), mockPaidAt.getTime());
 		});
 
 		test("should return error when order not found during `checkout.session.completed` event", async () => {

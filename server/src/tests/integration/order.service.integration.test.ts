@@ -181,7 +181,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.status, "pending");
-			assert.strictEqual(result.data.paidAt, undefined);
+			assert.strictEqual(result.data.payment?.paidAt, undefined);
 		});
 
 		test("Should NOT set 'deliveredAt' when 'repo.create' is called", async () => {
@@ -327,7 +327,8 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.status, "processing");
-			assert.ok(result.data.paidAt instanceof Date);
+			assert.ok(result.data.payment);
+			assert.ok(result.data.payment.paidAt instanceof Date);
 		});
 
 		test("Should return order object with timestamps when 'repo.getById' is called with existing order ID", async () => {
@@ -679,7 +680,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.success, true);
 			assert.ok(result.data);
 			assert.strictEqual(result.data.status, "processing");
-			assert.strictEqual(result.data.paidAt?.getTime(), paidAt.getTime());
+			assert.ok(result.data.payment);
+			assert.strictEqual(
+				result.data.payment.paidAt.getTime(),
+				paidAt.getTime(),
+			);
 		});
 
 		test("Should return NotFoundError when order does not exist", async () => {
@@ -787,6 +792,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 				status: "processing",
 				payment: {
 					id: "cs_123",
+					paidAt: new Date(),
 					provider: "stripe",
 					sessionURL: "https://checkout.stripe.com/c/pay/cs_123",
 				},
@@ -814,6 +820,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 				status: "processing",
 				payment: {
 					id: paymentId,
+					paidAt: new Date(),
 					provider: "stripe",
 					sessionURL: "https://checkout.stripe.com/c/pay/cs_123",
 				},
@@ -841,6 +848,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 				status: "processing",
 				payment: {
 					id: paymentId,
+					paidAt: new Date(),
 					provider: "stripe",
 					sessionURL: oldSessionURL,
 				},

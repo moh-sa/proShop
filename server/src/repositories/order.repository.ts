@@ -139,7 +139,7 @@ export class OrderRepository implements IOrderRepository {
 					params.orderId,
 					{
 						$set: {
-							paidAt: params.paidAt,
+							"payment.paidAt": params.paidAt,
 							status: "processing",
 						},
 					},
