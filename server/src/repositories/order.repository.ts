@@ -7,7 +7,6 @@ import type {
 	InsertOrder,
 	MethodParams,
 	MethodReturn,
-	OrderStatus,
 	PaginatedResponse,
 	PaginationParamsQuery,
 	Result,
@@ -30,13 +29,6 @@ export interface IOrderRepository {
 	updatePayment(
 		params: Partial<SelectOrder["payment"]> & { orderId: Types.ObjectId },
 	): Promise<OrderResult<null | SelectOrder>>;
-	updateStatus({
-		orderId,
-		status,
-	}: {
-		orderId: Types.ObjectId;
-		status: OrderStatus;
-	}): Promise<OrderResult<null | SelectOrder>>;
 }
 
 type OrderResult<T> = Result<T, DatabaseBaseError>;
@@ -116,36 +108,6 @@ export class OrderRepository implements IOrderRepository {
 				updateFields[`payment.${key}`] = value;
 			}
 		});
-
-		try {
-			const result = await this._db
-				.findByIdAndUpdate(orderId, { $set: updateFields }, { new: true })
-				.lean();
-
-			return {
-				data: result,
-				success: true,
-			};
-		} catch (error) {
-			return this._errorHandler(error);
-		}
-	}
-
-	async updateStatus({
-		orderId,
-		status,
-	}: MethodParams<IOrderRepository, "updateStatus">): MethodReturn<
-		IOrderRepository,
-		"updateStatus"
-	> {
-		const updateFields: Record<string, unknown> = { status };
-		const now = new Date();
-
-		if (status === "processing") {
-			updateFields.paidAt = now;
-		} else if (status === "delivered") {
-			updateFields.deliveredAt = now;
-		}
 
 		try {
 			const result = await this._db

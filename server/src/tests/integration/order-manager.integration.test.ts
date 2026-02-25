@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 
-import { NotFoundError } from "../../errors/index.js";
 import { OrderManager } from "../../managers/order.manager.js";
 import Order from "../../models/order.model.js";
 import User from "../../models/user.model.js";
@@ -11,7 +10,6 @@ import {
 	generateMockInsertOrder,
 	generateMockInsertOrders,
 	generateMockInsertUser,
-	generateMockObjectId,
 	generateMockVerifyWebhookParams,
 	mockPaymentService,
 } from "../mocks/index.js";
@@ -199,86 +197,6 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(orders.length, 0);
 		});
 
-		test("should update order status to processing for checkout.session.completed event", async () => {
-			// Arrange
-			const mockWebhookParams = generateMockVerifyWebhookParams();
-			const mockOrder = generateMockInsertOrder({ status: "pending" });
-			const createdOrder = await Order.create(mockOrder);
-			const orderId = createdOrder._id.toString();
-
-			mockPayment.verifyWebhook.mock.mockImplementationOnce(() => ({
-				data: {
-					metadata: { orderId },
-					type: "checkout.session.completed",
-				},
-				success: true,
-			}));
-
-			// Act
-			const result =
-				await orderManager.processPaymentWebhook(mockWebhookParams);
-
-			// Assert
-			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data, undefined);
-
-			// Verify status was updated to processing
-			const order = await Order.findById(orderId);
-			assert.strictEqual(order !== null, true);
-			assert.strictEqual(order?.status, "processing");
-		});
-
-		test("should return error when order not found during `checkout.session.completed` event", async () => {
-			// Arrange
-			const mockWebhookParams = generateMockVerifyWebhookParams();
-			const nonExistentOrderId = generateMockObjectId().toString();
-
-			mockPayment.verifyWebhook.mock.mockImplementationOnce(() => ({
-				data: {
-					metadata: { orderId: nonExistentOrderId },
-					type: "checkout.session.completed",
-				},
-				success: true,
-			}));
-
-			// Act
-			const result =
-				await orderManager.processPaymentWebhook(mockWebhookParams);
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.strictEqual(result.error instanceof NotFoundError, true);
-		});
-
-		test("should update order status to cancelled for checkout.session.expired event", async () => {
-			// Arrange
-			const mockWebhookParams = generateMockVerifyWebhookParams();
-			const mockOrder = generateMockInsertOrder({ status: "pending" });
-			const createdOrder = await Order.create(mockOrder);
-			const orderId = createdOrder._id.toString();
-
-			mockPayment.verifyWebhook.mock.mockImplementationOnce(() => ({
-				data: {
-					metadata: { orderId },
-					type: "checkout.session.expired",
-				},
-				success: true,
-			}));
-
-			// Act
-			const result =
-				await orderManager.processPaymentWebhook(mockWebhookParams);
-
-			// Assert
-			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data, undefined);
-
-			// Verify status was updated to cancelled
-			const order = await Order.findById(orderId);
-			assert.strictEqual(order !== null, true);
-			assert.strictEqual(order?.status, "cancelled");
-		});
-
 		test("should NOT update call the database for unhandled event types", async () => {
 			// Arrange
 			const mockWebhookParams = generateMockVerifyWebhookParams();
@@ -306,52 +224,6 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			const unchangedOrder = await Order.findById(orderId);
 			assert.strictEqual(unchangedOrder !== null, true);
 			assert.strictEqual(unchangedOrder?.status, "pending");
-		});
-	});
-
-	describe("updateStatus", () => {
-		test("should update order status to delivered", async () => {
-			// Arrange
-			const mockOrder = generateMockInsertOrder({ status: "processing" });
-			const createdOrder = await Order.create(mockOrder);
-			const orderId = createdOrder._id.toString();
-
-			// Act
-			const result = await orderManager.updateStatus({
-				orderId,
-				status: "delivered",
-			});
-
-			// Assert
-			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.status, "delivered");
-			assert.strictEqual(result.data.deliveredAt instanceof Date, true);
-
-			// Verify in DB
-			const order = await Order.findById(orderId);
-			assert.strictEqual(order?.status, "delivered");
-		});
-
-		test("should update order status to processing", async () => {
-			// Arrange
-			const mockOrder = generateMockInsertOrder({ status: "pending" });
-			const createdOrder = await Order.create(mockOrder);
-			const orderId = createdOrder._id.toString();
-
-			// Act
-			const result = await orderManager.updateStatus({
-				orderId,
-				status: "processing",
-			});
-
-			// Assert
-			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.status, "processing");
-			assert.strictEqual(result.data.paidAt instanceof Date, true);
-
-			// Verify in DB
-			const order = await Order.findById(orderId);
-			assert.strictEqual(order?.status, "processing");
 		});
 	});
 

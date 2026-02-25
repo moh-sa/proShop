@@ -43,16 +43,6 @@ adminRouter
 	);
 
 adminRouter
-	.route("/:orderId/status")
-	.patch(
-		strictLimiter,
-		authenticate,
-		checkUserExists,
-		authorizeAdmin,
-		controller.updateStatus,
-	);
-
-adminRouter
 	.route("/:orderId/payment")
 	.patch(
 		strictLimiter,

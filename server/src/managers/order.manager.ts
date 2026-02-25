@@ -7,7 +7,6 @@ import type {
 	MethodParams,
 	MethodReturn,
 	OrderPaginationParams,
-	OrderStatus,
 	PaginatedResponse,
 	Result,
 	SelectOrder,
@@ -57,14 +56,6 @@ export interface IOrderManager {
 	updatePayment(
 		params: Partial<SelectOrder["payment"]> & { orderId: string },
 	): Promise<OrderManagerResult<SelectOrder>>;
-
-	/**
-	 * Updates the status of an order
-	 */
-	updateStatus(params: {
-		orderId: string;
-		status: OrderStatus;
-	}): Promise<OrderManagerResult<SelectOrder>>;
 }
 
 type OrderManagerResult<T> = Result<T>;
@@ -203,42 +194,14 @@ export class OrderManager implements IOrderManager {
 
 		switch (eventType) {
 			case "checkout.session.completed": {
-				const updateResult = await this._orderService.updateStatus({
-					orderId,
-					status: "processing",
-				});
-				if (!updateResult.success) {
-					logger.error(
-						{ error: updateResult.error, orderId },
-						"Failed to update order status to processing",
-					);
-					return updateResult;
-				}
+				// TODO: update the order status to processing
 
-				logger.info(
-					{ orderId, paidAt: updateResult.data.paidAt },
-					"Order marked as processing via payment provider webhook",
-				);
 				return { data: undefined, success: true };
 			}
 
 			case "checkout.session.expired": {
-				const cancelResult = await this._orderService.updateStatus({
-					orderId,
-					status: "cancelled",
-				});
-				if (!cancelResult.success) {
-					logger.error(
-						{ error: cancelResult.error, orderId },
-						"Failed to update order status to cancelled",
-					);
-					return cancelResult;
-				}
+				// TODO: update the order status to cancelled
 
-				logger.info(
-					{ orderId },
-					"Order cancelled due to expired checkout session",
-				);
 				return { data: undefined, success: true };
 			}
 
@@ -253,12 +216,6 @@ export class OrderManager implements IOrderManager {
 		params: MethodParams<IOrderManager, "updatePayment">,
 	): MethodReturn<IOrderManager, "updatePayment"> {
 		return this._orderService.updatePayment(params);
-	}
-
-	async updateStatus(
-		params: MethodParams<IOrderManager, "updateStatus">,
-	): MethodReturn<IOrderManager, "updateStatus"> {
-		return this._orderService.updateStatus(params);
 	}
 
 	private _getLogger(params: { [key: string]: unknown; method: string }) {

@@ -1,5 +1,4 @@
 import type { Types } from "mongoose";
-import type { Logger } from "pino";
 
 import type { IOrderRepository } from "../repositories/index.js";
 import type {
@@ -19,7 +18,6 @@ import { OrderRepository } from "../repositories/index.js";
 import {
 	insertOrderSchema,
 	orderQuerySchema,
-	orderStatusSchema,
 	paymentSchema,
 } from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
@@ -35,10 +33,6 @@ export interface IOrderService {
 	updatePayment(
 		params: Partial<SelectOrder["payment"]> & { orderId: string },
 	): Promise<OrderResult<SelectOrder>>;
-	updateStatus(data: {
-		orderId: string;
-		status: OrderStatus;
-	}): Promise<OrderResult<SelectOrder>>;
 }
 
 type OrderResult<T> = Result<T>;
@@ -282,102 +276,6 @@ export class OrderService implements IOrderService {
 		};
 	}
 
-	async updateStatus({
-		orderId,
-		status,
-	}: MethodParams<IOrderService, "updateStatus">): MethodReturn<
-		IOrderService,
-		"updateStatus"
-	> {
-		const logger = this._getLogger({ method: "updateStatus" });
-		logger.debug({ orderId, status }, "Updating order status");
-
-		// Validate orderId
-		const idResult = this._validateObjectId("orderId", orderId);
-		if (!idResult.success) {
-			logger.warn({ error: idResult.error, orderId }, "Invalid order ID");
-			return idResult;
-		}
-
-		// Validate status
-		const statusResult = orderStatusSchema.safeParse(status);
-		if (!statusResult.success) {
-			logger.warn(
-				{ error: statusResult.error, status },
-				"Invalid status value",
-			);
-			return {
-				error: new ValidationError("Invalid status value", {
-					cause: statusResult.error,
-				}),
-				success: false,
-			};
-		}
-
-		const newStatus = statusResult.data;
-
-		// Get the current order
-		const currentOrderResult = await this._repository.getById({
-			orderId: idResult.data,
-		});
-		if (!currentOrderResult.success) {
-			logger.error(
-				{ error: currentOrderResult.error },
-				"Failed to retrieve order for status update",
-			);
-			return currentOrderResult;
-		}
-
-		if (!currentOrderResult.data) {
-			logger.warn({ orderId }, "Order not found");
-			return {
-				error: new NotFoundError("Order"),
-				success: false,
-			};
-		}
-
-		// Validate the status transition
-		const currentStatus = currentOrderResult.data.status;
-
-		const statusTransitionResult = this._validateStatusTransition({
-			currentStatus,
-			logger,
-			newStatus,
-			orderId: idResult.data.toString(),
-		});
-		if (!statusTransitionResult.success) {
-			return statusTransitionResult;
-		}
-
-		// update the status
-		const result = await this._repository.updateStatus({
-			orderId: idResult.data,
-			status: newStatus,
-		});
-		if (!result.success) {
-			logger.error({ error: result.error }, "Failed to update order status");
-			return result;
-		}
-
-		if (!result.data) {
-			logger.warn({ orderId }, "Order not found after update");
-			return {
-				error: new NotFoundError("Order"),
-				success: false,
-			};
-		}
-
-		logger.info(
-			{ orderId, previousStatus: currentStatus, status: newStatus },
-			"Order status updated successfully",
-		);
-
-		return {
-			data: result.data,
-			success: true,
-		};
-	}
-
 	private _getLogger(args: { [key: string]: unknown; method: string }) {
 		return getLoggerFromContext().child({ layer: "order service", ...args });
 	}
@@ -413,37 +311,6 @@ export class OrderService implements IOrderService {
 
 		return {
 			data: result.data,
-			success: true,
-		};
-	}
-
-	private _validateStatusTransition(params: {
-		currentStatus: OrderStatus;
-		logger: Logger;
-		newStatus: OrderStatus;
-		orderId: string;
-	}): OrderResult<void> {
-		const allowedStatus = this._allowedTransitions[params.currentStatus];
-
-		if (!allowedStatus.includes(params.newStatus)) {
-			params.logger.warn(
-				{
-					currentStatus: params.currentStatus,
-					orderId: params.orderId,
-					requestedStatus: params.newStatus,
-				},
-				"Invalid status transition",
-			);
-			return {
-				error: new ValidationError(
-					`Cannot transition order from '${params.currentStatus}' to '${params.newStatus}'`,
-				),
-				success: false,
-			};
-		}
-
-		return {
-			data: undefined,
 			success: true,
 		};
 	}

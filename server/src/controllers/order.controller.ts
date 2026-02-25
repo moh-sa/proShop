@@ -5,7 +5,6 @@ import type {
 	CreateOrderResponse,
 	InsertOrder,
 	OrderPaginationParams,
-	OrderStatus,
 	PaginatedResponse,
 	SafeSelectUser,
 	SelectOrder,
@@ -52,11 +51,6 @@ export interface IOrderController {
 	updatePayment: AsyncHandler<{
 		params: { orderId: string };
 		reqBody: Partial<SelectOrder["payment"]>;
-		resBody: { data: SelectOrder };
-	}>;
-	updateStatus: AsyncHandler<{
-		params: { orderId: string };
-		reqBody: { status: OrderStatus };
 		resBody: { data: SelectOrder };
 	}>;
 }
@@ -264,38 +258,6 @@ export class OrderController implements IOrderController {
 		logger.info(
 			{ orderId: result.data._id, payment: result.data.payment },
 			"Payment updated successfully",
-		);
-
-		const dataToSend = this._convertOrderToDollars(result.data);
-
-		res.status(HTTP_STATUS.OK).json({
-			data: dataToSend,
-			success: true,
-		});
-	});
-
-	updateStatus = asyncHandler<{
-		params: { orderId: string };
-		reqBody: { status: OrderStatus };
-		resBody: { data: SelectOrder };
-	}>(async (req, res) => {
-		const logger = this._getLogger({ method: "updateStatus" });
-		logger.debug(
-			{ orderId: req.params.orderId, status: req.body.status },
-			"Updating order status",
-		);
-
-		const result = await this._manager.updateStatus({
-			orderId: req.params.orderId,
-			status: req.body.status,
-		});
-		if (!result.success) {
-			throw result.error;
-		}
-
-		logger.info(
-			{ orderId: result.data._id, status: result.data.status },
-			"Order status updated successfully",
 		);
 
 		const dataToSend = this._convertOrderToDollars(result.data);
