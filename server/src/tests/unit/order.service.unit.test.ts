@@ -315,7 +315,6 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 		const validParams = {
 			orderId: generateMockObjectId().toString(),
 			paidAt: new Date(),
-			provider: "stripe" as const,
 		};
 
 		test("Should return order object when repo.markAsProcessing returns success with data", async () => {
@@ -334,7 +333,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockRepo.markAsProcessing.mock.callCount(), 1);
 		});
 
-		test("Should call repository with validated params (orderId, paidAt, provider) when validation passes", async () => {
+		test("Should call repository with validated params when validation passes", async () => {
 			// Arrange
 			const mockOrder = generateMockSelectOrder({ status: "processing" });
 			mockRepo.markAsProcessing.mock.mockImplementationOnce(() =>
@@ -348,7 +347,6 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			const args = mockRepo.markAsProcessing.mock.calls[0].arguments[0];
 			assert.strictEqual(args.orderId, validParams.orderId);
 			assert.strictEqual(args.paidAt.getTime(), validParams.paidAt.getTime());
-			assert.strictEqual(args.provider, validParams.provider);
 		});
 
 		test("Should return ValidationError when orderId is invalid", async () => {
@@ -371,7 +369,6 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			// Arrange
 			const invalidParams = {
 				paidAt: validParams.paidAt,
-				provider: validParams.provider,
 			};
 
 			// Act
@@ -388,7 +385,6 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			// Arrange
 			const invalidParams = {
 				orderId: validParams.orderId,
-				provider: validParams.provider,
 			};
 
 			// Act
@@ -406,40 +402,6 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			const invalidParams = {
 				...validParams,
 				paidAt: "2024-01-01",
-			};
-
-			// Act
-			// @ts-expect-error - test case
-			const result = await service.markAsProcessing(invalidParams);
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof ValidationError);
-			assert.strictEqual(mockRepo.markAsProcessing.mock.callCount(), 0);
-		});
-
-		test("Should return ValidationError when provider is missing", async () => {
-			// Arrange
-			const invalidParams = {
-				orderId: validParams.orderId,
-				paidAt: validParams.paidAt,
-			};
-
-			// Act
-			// @ts-expect-error - test case
-			const result = await service.markAsProcessing(invalidParams);
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof ValidationError);
-			assert.strictEqual(mockRepo.markAsProcessing.mock.callCount(), 0);
-		});
-
-		test("Should return ValidationError when provider is invalid", async () => {
-			// Arrange
-			const invalidParams = {
-				...validParams,
-				provider: "invalid",
 			};
 
 			// Act

@@ -343,7 +343,7 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockPaymentSvc.verifyWebhook.mock.callCount(), 1);
 		});
 
-		test("should call markAsProcessing with orderId, paidAt, and provider when event is checkout.session.completed", async () => {
+		test("should call markAsProcessing with orderId and paidAt when event is checkout.session.completed", async () => {
 			// Arrange
 			mockPaymentSvc.verifyWebhook.mock.mockImplementationOnce(() => ({
 				data: expectedSuccessResponse,
@@ -367,7 +367,6 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			const args = mockOrderSvc.markAsProcessing.mock.calls[0].arguments[0];
 			assert.strictEqual(args.orderId, mockOrderId);
 			assert.strictEqual(args.paidAt, mockPaidAt);
-			assert.strictEqual(args.provider, "stripe");
 		});
 
 		test("should return error when markAsProcessing fails for checkout.session.completed", async () => {

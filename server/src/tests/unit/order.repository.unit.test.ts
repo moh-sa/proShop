@@ -404,7 +404,6 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		const mockOrder = generateMockSelectOrder();
 		const orderId = mockOrder._id.toString();
 		const paidAt = new Date();
-		const provider = "stripe" as const;
 
 		test("Should return the updated order when 'db.findByIdAndUpdate' is called once with correct params", async (t) => {
 			// Arrange
@@ -420,7 +419,6 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.markAsProcessing({
 				orderId,
 				paidAt,
-				provider,
 			});
 
 			// Assert
@@ -435,7 +433,6 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(findByIdAndUpdateMock.mock.calls[0].arguments[1], {
 				$set: {
 					paidAt,
-					"payment.provider": provider,
 					status: "processing",
 				},
 			});
@@ -454,7 +451,6 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.markAsProcessing({
 				orderId,
 				paidAt,
-				provider,
 			});
 
 			// Assert
@@ -473,7 +469,6 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.markAsProcessing({
 				orderId,
 				paidAt,
-				provider,
 			});
 
 			// Assert
@@ -494,7 +489,6 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.markAsProcessing({
 				orderId,
 				paidAt,
-				provider,
 			});
 
 			// Assert
@@ -513,7 +507,6 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.markAsProcessing({
 				orderId,
 				paidAt,
-				provider,
 			});
 
 			// Assert
@@ -532,7 +525,6 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.markAsProcessing({
 				orderId,
 				paidAt,
-				provider,
 			});
 
 			// Assert
@@ -551,7 +543,6 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.markAsProcessing({
 				orderId,
 				paidAt,
-				provider,
 			});
 
 			// Assert

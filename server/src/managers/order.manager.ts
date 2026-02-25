@@ -197,7 +197,6 @@ export class OrderManager implements IOrderManager {
 				const result = await this._orderService.markAsProcessing({
 					orderId,
 					paidAt: verifyResult.data.paidAt,
-					provider: "stripe",
 				});
 
 				if (!result.success) {

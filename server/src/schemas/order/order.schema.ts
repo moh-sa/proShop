@@ -76,7 +76,6 @@ export const markAsBaseParamsSchema = z.object({
 
 export const markAsProcessingParamsSchema = markAsBaseParamsSchema.extend({
 	paidAt: z.date(),
-	provider: paymentProviderSchema,
 });
 
 export const markAsCancelledParamsSchema = markAsBaseParamsSchema;

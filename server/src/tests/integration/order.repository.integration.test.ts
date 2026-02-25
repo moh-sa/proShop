@@ -641,19 +641,17 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 	});
 
 	describe("markAsProcessing", () => {
-		test("Should update 'paidAt', 'payment.provider', and 'status'", async () => {
+		test("Should update 'paidAt', and 'status'", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({ status: "pending" });
 			const order = await Order.create(mockOrder);
 
 			const paidAt = new Date();
-			const provider = "stripe";
 
 			// Act
 			const result = await orderRepository.markAsProcessing({
 				orderId: order._id.toString(),
 				paidAt,
-				provider,
 			});
 
 			// Assert
@@ -661,7 +659,6 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			assert.ok(result.data);
 			assert.strictEqual(result.data.status, "processing");
 			assert.strictEqual(result.data.paidAt?.getTime(), paidAt.getTime());
-			assert.strictEqual(result.data.payment?.provider, provider);
 		});
 
 		test("Should return null when order does not exist", async () => {
@@ -672,7 +669,6 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const result = await orderRepository.markAsProcessing({
 				orderId: nonExistentId,
 				paidAt: new Date(),
-				provider: "stripe",
 			});
 
 			// Assert
@@ -688,7 +684,6 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const result = await orderRepository.markAsProcessing({
 				orderId: invalidId,
 				paidAt: new Date(),
-				provider: "stripe",
 			});
 
 			// Assert
