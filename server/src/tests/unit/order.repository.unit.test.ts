@@ -560,6 +560,134 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		});
 	});
 
+	describe("markAsCancelled", () => {
+		const mockOrder = generateMockSelectOrder();
+		const orderId = mockOrder._id.toString();
+
+		test("Should return the updated order when 'db.findByIdAndUpdate' is called once with correct params", async (t) => {
+			// Arrange
+			const findByIdAndUpdateMock = t.mock.method(
+				Order,
+				"findByIdAndUpdate",
+				() => ({
+					lean: async () => mockOrder,
+				}),
+			);
+
+			// Act
+			const result = await repo.markAsCancelled({ orderId });
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, mockOrder);
+
+			assert.strictEqual(findByIdAndUpdateMock.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				findByIdAndUpdateMock.mock.calls[0].arguments[0],
+				orderId,
+			);
+			assert.deepStrictEqual(findByIdAndUpdateMock.mock.calls[0].arguments[1], {
+				$set: {
+					status: "cancelled",
+				},
+			});
+			assert.deepStrictEqual(findByIdAndUpdateMock.mock.calls[0].arguments[2], {
+				new: true,
+			});
+		});
+
+		test("Should return 'null' when 'db.findByIdAndUpdate' returns 'null'", async (t) => {
+			// Arrange
+			t.mock.method(Order, "findByIdAndUpdate", () => ({
+				lean: async () => null,
+			}));
+
+			// Act
+			const result = await repo.markAsCancelled({ orderId });
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, null);
+		});
+
+		test("Should return 'DatabaseValidationError' when 'db.findByIdAndUpdate' throws 'ValidationError'", async (t) => {
+			// Arrange
+			const validationError = new mongoose.Error.ValidationError();
+			t.mock.method(Order, "findByIdAndUpdate", () => {
+				throw validationError;
+			});
+
+			// Act
+			const result = await repo.markAsCancelled({ orderId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
+		});
+
+		test("Should return 'DatabaseTimeoutError' when 'db.findByIdAndUpdate' throws 'MongoNetworkTimeoutError'", async (t) => {
+			// Arrange
+			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
+				"Timeout",
+			);
+			t.mock.method(Order, "findByIdAndUpdate", () => {
+				throw timeoutError;
+			});
+
+			// Act
+			const result = await repo.markAsCancelled({ orderId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseTimeoutError);
+		});
+
+		test("Should return 'DatabaseQueryError' when 'db.findByIdAndUpdate' throws 'MongooseError'", async (t) => {
+			// Arrange
+			const queryError = new mongoose.Error("Query failed");
+			t.mock.method(Order, "findByIdAndUpdate", () => {
+				throw queryError;
+			});
+
+			// Act
+			const result = await repo.markAsCancelled({ orderId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseQueryError);
+		});
+
+		test("Should return 'DatabaseNetworkError' when 'db.findByIdAndUpdate' throws 'MongoError'", async (t) => {
+			// Arrange
+			const networkError = new mongoose.mongo.MongoError("Network error");
+			t.mock.method(Order, "findByIdAndUpdate", () => {
+				throw networkError;
+			});
+
+			// Act
+			const result = await repo.markAsCancelled({ orderId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseNetworkError);
+		});
+
+		test("Should return 'GenericDatabaseError' when 'db.findByIdAndUpdate' throws unknown error", async (t) => {
+			// Arrange
+			const unknownError = new Error("Something unexpected happened");
+			t.mock.method(Order, "findByIdAndUpdate", () => {
+				throw unknownError;
+			});
+
+			// Act
+			const result = await repo.markAsCancelled({ orderId });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof GenericDatabaseError);
+		});
+	});
+
 	describe("updatePayment", () => {
 		const mockOrder = generateMockSelectOrder();
 		const orderId = mockOrder._id;

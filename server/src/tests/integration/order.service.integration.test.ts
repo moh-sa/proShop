@@ -702,6 +702,41 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		});
 	});
 
+	describe("markAsCancelled", async () => {
+		test("Should update order status to cancelled and persist to database when order exists", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({ status: "pending" });
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+
+			// Act
+			const result = await orderService.markAsCancelled({ orderId });
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.ok(result.data);
+			assert.strictEqual(result.data.status, "cancelled");
+
+			// Verify in DB
+			const dbOrder = await Order.findById(orderId).lean();
+			assert.strictEqual(dbOrder?.status, "cancelled");
+		});
+
+		test("Should return NotFoundError when order does not exist", async () => {
+			// Arrange
+			const nonExistentId = generateMockObjectId().toString();
+
+			// Act
+			const result = await orderService.markAsCancelled({
+				orderId: nonExistentId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
+		});
+	});
+
 	describe("updatePayment", async () => {
 		test("Should update payment on existing order and persist to database", async () => {
 			// Arrange

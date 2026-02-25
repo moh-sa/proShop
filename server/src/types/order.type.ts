@@ -4,6 +4,7 @@ import type {
 	allOrdersResponseSchema,
 	insertOrderSchema,
 	markAsBaseParamsSchema,
+	markAsCancelledParamsSchema,
 	markAsProcessingParamsSchema,
 	orderStatusSchema,
 	selectOrderSchema,
@@ -38,6 +39,8 @@ export type CreateOrderResponse = {
 };
 
 export type MarkAsBaseParams = z.infer<typeof markAsBaseParamsSchema>;
+
+export type MarkAsCancelledParams = z.infer<typeof markAsCancelledParamsSchema>;
 
 export type MarkAsProcessingParams = z.infer<
 	typeof markAsProcessingParamsSchema

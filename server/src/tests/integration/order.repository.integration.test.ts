@@ -696,4 +696,54 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 	});
+
+	describe("markAsCancelled", () => {
+		test("Should update 'status' to 'cancelled' in the database", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({ status: "pending" });
+			const order = await Order.create(mockOrder);
+
+			// Act
+			const result = await orderRepository.markAsCancelled({
+				orderId: order._id.toString(),
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.ok(result.data);
+			assert.strictEqual(result.data.status, "cancelled");
+
+			// Verify in DB
+			const dbOrder = await Order.findById(order._id).lean();
+			assert.strictEqual(dbOrder?.status, "cancelled");
+		});
+
+		test("Should return null when order does not exist", async () => {
+			// Arrange
+			const nonExistentId = generateMockObjectId().toString();
+
+			// Act
+			const result = await orderRepository.markAsCancelled({
+				orderId: nonExistentId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, null);
+		});
+
+		test("Should return 'DatabaseValidationError' when orderId is invalid", async () => {
+			// Arrange
+			const invalidId = "invalid-id";
+
+			// Act
+			const result = await orderRepository.markAsCancelled({
+				orderId: invalidId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
+		});
+	});
 });

@@ -482,6 +482,99 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 		});
 	});
 
+	describe("markAsCancelled", () => {
+		const validParams = {
+			orderId: generateMockObjectId().toString(),
+		};
+		const invalidParams = {
+			orderId: "invalid-id",
+		};
+
+		test("Should return order object when repo.markAsCancelled returns success with data", async () => {
+			// Arrange
+			const mockOrder = generateMockSelectOrder({ status: "cancelled" });
+			mockRepo.markAsCancelled.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrder, success: true }),
+			);
+
+			// Act
+			const result = await service.markAsCancelled(validParams);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, mockOrder);
+			assert.strictEqual(mockRepo.markAsCancelled.mock.callCount(), 1);
+		});
+
+		test("Should call repository with validated params when validation passes", async () => {
+			// Arrange
+			const mockOrder = generateMockSelectOrder({ status: "cancelled" });
+			mockRepo.markAsCancelled.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrder, success: true }),
+			);
+
+			// Act
+			await service.markAsCancelled(validParams);
+
+			// Assert
+			const args = mockRepo.markAsCancelled.mock.calls[0].arguments[0];
+			assert.strictEqual(args.orderId, validParams.orderId);
+		});
+
+		test("Should return ValidationError when orderId is invalid", async () => {
+			// Act
+			const result = await service.markAsCancelled(invalidParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+			assert.strictEqual(mockRepo.markAsCancelled.mock.callCount(), 0);
+		});
+
+		test("Should return ValidationError when orderId is missing", async () => {
+			// Arrange
+			const invalidParams = {};
+
+			// Act
+			// @ts-expect-error - test case
+			const result = await service.markAsCancelled(invalidParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+			assert.strictEqual(mockRepo.markAsCancelled.mock.callCount(), 0);
+		});
+
+		test("Should return NotFoundError when repo returns null", async () => {
+			// Arrange
+			mockRepo.markAsCancelled.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: null, success: true }),
+			);
+
+			// Act
+			const result = await service.markAsCancelled(validParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
+		});
+
+		test("Should return repository error when repo returns failure", async () => {
+			// Arrange
+			const repositoryError = new DatabaseBaseError("Database error");
+			mockRepo.markAsCancelled.mock.mockImplementationOnce(() =>
+				Promise.resolve({ error: repositoryError, success: false }),
+			);
+
+			// Act
+			const result = await service.markAsCancelled(validParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, repositoryError);
+		});
+	});
+
 	describe("updatePayment", () => {
 		const mockOrder = generateMockSelectOrder({
 			status: "processing",

@@ -4,6 +4,7 @@ import type { IOrderRepository } from "../repositories/index.js";
 import type {
 	AllOrdersResponse,
 	InsertOrder,
+	MarkAsCancelledParams,
 	MarkAsProcessingParams,
 	MethodParams,
 	MethodReturn,
@@ -18,6 +19,7 @@ import { NotFoundError, ValidationError } from "../errors/index.js";
 import { OrderRepository } from "../repositories/index.js";
 import {
 	insertOrderSchema,
+	markAsCancelledParamsSchema,
 	markAsProcessingParamsSchema,
 	orderQuerySchema,
 	paymentSchema,
@@ -32,6 +34,9 @@ export interface IOrderService {
 		args: OrderPaginationParams,
 	): Promise<OrderResult<PaginatedResponse<AllOrdersResponse>>>;
 	getById(data: { orderId: string }): Promise<OrderResult<SelectOrder>>;
+	markAsCancelled(
+		params: MarkAsCancelledParams,
+	): Promise<OrderResult<SelectOrder>>;
 	markAsProcessing(
 		params: MarkAsProcessingParams,
 	): Promise<OrderResult<SelectOrder>>;
@@ -212,6 +217,66 @@ export class OrderService implements IOrderService {
 		}
 
 		logger.info({ orderId }, "Order retrieved successfully");
+		return {
+			data: result.data,
+			success: true,
+		};
+	}
+
+	async markAsCancelled(
+		params: MethodParams<IOrderService, "markAsCancelled">,
+	): MethodReturn<IOrderService, "markAsCancelled"> {
+		const logger = this._getLogger({ method: "markAsCancelled" });
+		logger.debug({ params }, "Marking order as cancelled");
+
+		// validate params
+		const validationResult = markAsCancelledParamsSchema.safeParse(params);
+		if (!validationResult.success) {
+			logger.warn(
+				{ error: validationResult.error, params },
+				"Invalid parameters",
+			);
+			return {
+				error: new ValidationError("Invalid parameters", {
+					cause: validationResult.error,
+				}),
+				success: false,
+			};
+		}
+
+		logger.debug(
+			{ validatedParams: validationResult.data },
+			"Validated parameters",
+		);
+
+		// call repository
+		const result = await this._repository.markAsCancelled(
+			validationResult.data,
+		);
+		if (!result.success) {
+			logger.error(
+				{ error: result.error },
+				"Failed to mark order as cancelled",
+			);
+			return result;
+		}
+
+		if (!result.data) {
+			logger.warn(
+				{ orderId: validationResult.data.orderId },
+				"Order not found",
+			);
+			return {
+				error: new NotFoundError("Order"),
+				success: false,
+			};
+		}
+
+		logger.info(
+			{ orderId: validationResult.data.orderId },
+			"Order marked as cancelled successfully",
+		);
+
 		return {
 			data: result.data,
 			success: true,

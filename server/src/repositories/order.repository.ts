@@ -5,6 +5,7 @@ import type {
 	AllOrdersResponse,
 	FailureResult,
 	InsertOrder,
+	MarkAsCancelledParams,
 	MarkAsProcessingParams,
 	MethodParams,
 	MethodReturn,
@@ -27,6 +28,9 @@ export interface IOrderRepository {
 	}: {
 		orderId: Types.ObjectId;
 	}): Promise<OrderResult<null | SelectOrder>>;
+	markAsCancelled(
+		params: MarkAsCancelledParams,
+	): Promise<OrderResult<null | SelectOrder>>;
 	markAsProcessing(
 		params: MarkAsProcessingParams,
 	): Promise<OrderResult<null | SelectOrder>>;
@@ -91,6 +95,31 @@ export class OrderRepository implements IOrderRepository {
 	> {
 		try {
 			const result = await this._db.findById(orderId).lean();
+
+			return {
+				data: result,
+				success: true,
+			};
+		} catch (error) {
+			return this._errorHandler(error);
+		}
+	}
+
+	async markAsCancelled(
+		params: MethodParams<IOrderRepository, "markAsCancelled">,
+	): MethodReturn<IOrderRepository, "markAsCancelled"> {
+		try {
+			const result = await this._db
+				.findByIdAndUpdate(
+					params.orderId,
+					{
+						$set: {
+							status: "cancelled",
+						},
+					},
+					{ new: true },
+				)
+				.lean();
 
 			return {
 				data: result,
