@@ -32,5 +32,6 @@ export interface VerifyWebhookResponse {
 	metadata: {
 		orderId: string;
 	};
+	paidAt: Date;
 	type: Stripe.Event.Type;
 }

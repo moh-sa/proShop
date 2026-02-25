@@ -181,6 +181,7 @@ export class PaymentService implements IPaymentService {
 			return {
 				data: {
 					metadata,
+					paidAt: new Date(event.created * 1000),
 					type: event.type,
 				},
 				success: true,

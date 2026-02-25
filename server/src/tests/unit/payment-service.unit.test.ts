@@ -210,7 +210,7 @@ suite("Payment Service 〖 Unit Tests 〗", () => {
 			const mockEvent = generateMockStripeEvent();
 
 			mockProvider.webhooks.constructEvent.mock.mockImplementationOnce(
-				() => mockEvent,
+				() => mockEvent as unknown as Stripe.Event,
 			);
 
 			// Act
@@ -230,18 +230,16 @@ suite("Payment Service 〖 Unit Tests 〗", () => {
 			assert.strictEqual(typeof callArgs[2], "string");
 		});
 
-		it("Should return success with metadata and event type when event has metadata", () => {
+		it("Should return success with metadata, event type, and paidAt when event has metadata", () => {
 			// Arrange
 			const params = generateMockVerifyWebhookParams();
-			const expectedMetadata = { orderId: "order_123456" };
-			const expectedType = "checkout.session.completed" as const;
-			const mockEvent = generateMockStripeEvent({
-				metadata: expectedMetadata,
-				type: expectedType,
-			});
+			const mockEvent = generateMockStripeEvent();
+			const expectedMetadata = mockEvent.data.object.metadata;
+			const expectedType = mockEvent.type;
+			const createdUnix = mockEvent.created;
 
 			mockProvider.webhooks.constructEvent.mock.mockImplementationOnce(
-				() => mockEvent,
+				() => mockEvent as unknown as Stripe.Event,
 			);
 
 			// Act
@@ -251,6 +249,32 @@ suite("Payment Service 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.success, true);
 			assert.deepStrictEqual(result.data.metadata, expectedMetadata);
 			assert.strictEqual(result.data.type, expectedType);
+			assert.strictEqual(result.data.paidAt.getTime(), createdUnix * 1000);
+		});
+
+		it("Should return paidAt as Date derived from event.created (Unix timestamp)", () => {
+			// Arrange
+			const params = generateMockVerifyWebhookParams();
+			const createdUnix = 1767214800; // 2026/01/01
+			const expectedPaidAt = new Date(createdUnix * 1000);
+			const mockEvent = generateMockStripeEvent({
+				created: createdUnix,
+			});
+
+			mockProvider.webhooks.constructEvent.mock.mockImplementationOnce(
+				() => mockEvent as unknown as Stripe.Event,
+			);
+
+			// Act
+			const result = service.verifyWebhook(params);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.ok(result.data.paidAt instanceof Date);
+			assert.strictEqual(
+				result.data.paidAt.getTime(),
+				expectedPaidAt.getTime(),
+			);
 		});
 
 		it("Should return 'ValidationError' when event object has no metadata property", () => {
@@ -261,7 +285,7 @@ suite("Payment Service 〖 Unit Tests 〗", () => {
 			});
 
 			mockProvider.webhooks.constructEvent.mock.mockImplementationOnce(
-				() => mockEventWithoutMetadata,
+				() => mockEventWithoutMetadata as unknown as Stripe.Event,
 			);
 
 			// Act

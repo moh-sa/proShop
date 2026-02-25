@@ -59,20 +59,21 @@ export function generateMockVerifyWebhookParams(
 }
 
 type StripeMetadata = { metadata: { orderId: string } | null };
-type StripeEvents = Pick<Stripe.Event, "id" | "type"> & StripeMetadata;
-export function generateMockStripeEvent(
-	override: Partial<StripeEvents> = {},
-): Stripe.Event {
+type StripeEvents = Pick<Stripe.Event, "id" | "type" | "created"> &
+	StripeMetadata;
+export function generateMockStripeEvent(override: Partial<StripeEvents> = {}) {
 	const orderId = faker.database.mongodbObjectId();
 	const metadata =
 		override.metadata === null ? undefined : (override.metadata ?? { orderId });
 	return {
 		id: override.id ?? `evt_${faker.string.alphanumeric(24)}`,
 		type: override.type ?? "checkout.session.completed",
+		created:
+			override.created ?? Math.floor(faker.date.recent().getTime() / 1000),
 		data: {
 			object: {
 				metadata,
 			},
 		},
-	} as unknown as Stripe.Event;
+	};
 }
