@@ -394,12 +394,40 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockOrderSvc.markAsProcessing.mock.callCount(), 1);
 		});
 
-		test("should return success without calling markAsProcessing for checkout.session.expired event", async () => {
+		test("should call markAsCancelled with orderId when event is checkout.session.expired", async () => {
 			// Arrange
 			mockPaymentSvc.verifyWebhook.mock.mockImplementationOnce(() => ({
 				data: expectedFailureResponse,
 				success: true,
 			}));
+			mockOrderSvc.markAsCancelled.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: generateMockSelectOrder({ status: "cancelled" }),
+					success: true,
+				}),
+			);
+
+			// Act
+			await manager.processPaymentWebhook(mockWebhookParams);
+
+			// Assert
+			assert.strictEqual(mockOrderSvc.markAsCancelled.mock.callCount(), 1);
+			const args = mockOrderSvc.markAsCancelled.mock.calls[0].arguments[0];
+			assert.strictEqual(args.orderId, mockOrderId);
+		});
+
+		test("should return success when markAsCancelled succeeds for checkout.session.expired", async () => {
+			// Arrange
+			mockPaymentSvc.verifyWebhook.mock.mockImplementationOnce(() => ({
+				data: expectedFailureResponse,
+				success: true,
+			}));
+			mockOrderSvc.markAsCancelled.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: generateMockSelectOrder({ status: "cancelled" }),
+					success: true,
+				}),
+			);
 
 			// Act
 			const result = await manager.processPaymentWebhook(mockWebhookParams);
@@ -407,11 +435,33 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data, undefined);
-
-			assert.strictEqual(mockOrderSvc.markAsProcessing.mock.callCount(), 0);
 		});
 
-		test("should return success without calling markAsProcessing for unhandled event types", async () => {
+		test("should return error when markAsCancelled fails for checkout.session.expired", async () => {
+			// Arrange
+			const markAsCancelledError = new Error("Failed to cancel order");
+			mockPaymentSvc.verifyWebhook.mock.mockImplementationOnce(() => ({
+				data: expectedFailureResponse,
+				success: true,
+			}));
+			mockOrderSvc.markAsCancelled.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					error: markAsCancelledError,
+					success: false,
+				}),
+			);
+
+			// Act
+			const result = await manager.processPaymentWebhook(mockWebhookParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, markAsCancelledError);
+
+			assert.strictEqual(mockOrderSvc.markAsCancelled.mock.callCount(), 1);
+		});
+
+		test("should return success without calling markAsProcessing or markAsCancelled for unhandled event types", async () => {
 			// Arrange
 			mockPaymentSvc.verifyWebhook.mock.mockImplementationOnce(() => ({
 				data: {
@@ -431,6 +481,7 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockPaymentSvc.verifyWebhook.mock.callCount(), 1);
 			assert.strictEqual(mockOrderSvc.markAsProcessing.mock.callCount(), 0);
+			assert.strictEqual(mockOrderSvc.markAsCancelled.mock.callCount(), 0);
 		});
 	});
 

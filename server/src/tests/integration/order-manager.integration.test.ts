@@ -255,7 +255,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.error instanceof NotFoundError, true);
 		});
 
-		test("should return success without updating order for checkout.session.expired event", async () => {
+		test("should update order status to cancelled for checkout.session.expired event", async () => {
 			// Arrange
 			const mockWebhookParams = generateMockVerifyWebhookParams();
 			const mockOrder = generateMockInsertOrder({ status: "pending" });
@@ -279,10 +279,33 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data, undefined);
 
-			// Verify order was NOT updated in DB
+			// Verify order was updated to cancelled in DB
 			const order = await Order.findById(orderId);
 			assert.strictEqual(order !== null, true);
-			assert.strictEqual(order?.status, "pending");
+			assert.strictEqual(order?.status, "cancelled");
+		});
+
+		test("should return error when order not found during checkout.session.expired event", async () => {
+			// Arrange
+			const mockWebhookParams = generateMockVerifyWebhookParams();
+			const nonExistentOrderId = generateMockObjectId().toString();
+
+			mockPayment.verifyWebhook.mock.mockImplementationOnce(() => ({
+				data: {
+					metadata: { orderId: nonExistentOrderId },
+					paidAt: new Date(),
+					type: "checkout.session.expired",
+				},
+				success: true,
+			}));
+
+			// Act
+			const result =
+				await orderManager.processPaymentWebhook(mockWebhookParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error instanceof NotFoundError, true);
 		});
 
 		test("should NOT update the database for unhandled event types", async () => {

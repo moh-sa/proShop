@@ -214,7 +214,18 @@ export class OrderManager implements IOrderManager {
 			}
 
 			case "checkout.session.expired": {
-				// TODO: update the order status to cancelled
+				const result = await this._orderService.markAsCancelled({
+					orderId,
+				});
+				if (!result.success) {
+					logger.error(
+						{ error: result.error },
+						"Failed to mark order as cancelled",
+					);
+					return result;
+				}
+
+				logger.info({ orderId }, "Order marked as cancelled successfully");
 
 				return { data: undefined, success: true };
 			}
