@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 
+import { NotFoundError } from "../../errors/index.js";
 import { OrderManager } from "../../managers/order.manager.js";
 import Order from "../../models/order.model.js";
 import User from "../../models/user.model.js";
@@ -10,6 +11,7 @@ import {
 	generateMockInsertOrder,
 	generateMockInsertOrders,
 	generateMockInsertUser,
+	generateMockObjectId,
 	generateMockVerifyWebhookParams,
 	mockPaymentService,
 } from "../mocks/index.js";
@@ -197,7 +199,63 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(orders.length, 0);
 		});
 
-		test("should NOT update call the database for unhandled event types", async () => {
+		test("should update order status and paidAt for checkout.session.completed event", async () => {
+			// Arrange
+			const mockWebhookParams = generateMockVerifyWebhookParams();
+			const mockPaidAt = new Date();
+			const mockOrder = generateMockInsertOrder({ status: "pending" });
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+
+			mockPayment.verifyWebhook.mock.mockImplementationOnce(() => ({
+				data: {
+					metadata: { orderId },
+					paidAt: mockPaidAt,
+					type: "checkout.session.completed",
+				},
+				success: true,
+			}));
+
+			// Act
+			const result =
+				await orderManager.processPaymentWebhook(mockWebhookParams);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, undefined);
+
+			// Verify status and paidAt were updated in DB
+			const order = await Order.findById(orderId);
+			assert.strictEqual(order !== null, true);
+			assert.strictEqual(order?.status, "processing");
+			assert.strictEqual(order?.paidAt !== undefined, true);
+			assert.strictEqual(order?.paidAt?.getTime(), mockPaidAt.getTime());
+		});
+
+		test("should return error when order not found during `checkout.session.completed` event", async () => {
+			// Arrange
+			const mockWebhookParams = generateMockVerifyWebhookParams();
+			const nonExistentOrderId = generateMockObjectId().toString();
+
+			mockPayment.verifyWebhook.mock.mockImplementationOnce(() => ({
+				data: {
+					metadata: { orderId: nonExistentOrderId },
+					paidAt: new Date(),
+					type: "checkout.session.completed",
+				},
+				success: true,
+			}));
+
+			// Act
+			const result =
+				await orderManager.processPaymentWebhook(mockWebhookParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error instanceof NotFoundError, true);
+		});
+
+		test("should return success without updating order for checkout.session.expired event", async () => {
 			// Arrange
 			const mockWebhookParams = generateMockVerifyWebhookParams();
 			const mockOrder = generateMockInsertOrder({ status: "pending" });
@@ -207,6 +265,37 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			mockPayment.verifyWebhook.mock.mockImplementationOnce(() => ({
 				data: {
 					metadata: { orderId },
+					paidAt: new Date(),
+					type: "checkout.session.expired",
+				},
+				success: true,
+			}));
+
+			// Act
+			const result =
+				await orderManager.processPaymentWebhook(mockWebhookParams);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, undefined);
+
+			// Verify order was NOT updated in DB
+			const order = await Order.findById(orderId);
+			assert.strictEqual(order !== null, true);
+			assert.strictEqual(order?.status, "pending");
+		});
+
+		test("should NOT update the database for unhandled event types", async () => {
+			// Arrange
+			const mockWebhookParams = generateMockVerifyWebhookParams();
+			const mockOrder = generateMockInsertOrder({ status: "pending" });
+			const createdOrder = await Order.create(mockOrder);
+			const orderId = createdOrder._id.toString();
+
+			mockPayment.verifyWebhook.mock.mockImplementationOnce(() => ({
+				data: {
+					metadata: { orderId },
+					paidAt: new Date(),
 					type: "payment_intent.succeeded",
 				},
 				success: true,

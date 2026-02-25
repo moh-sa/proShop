@@ -194,7 +194,21 @@ export class OrderManager implements IOrderManager {
 
 		switch (eventType) {
 			case "checkout.session.completed": {
-				// TODO: update the order status to processing
+				const result = await this._orderService.markAsProcessing({
+					orderId,
+					paidAt: verifyResult.data.paidAt,
+					provider: "stripe",
+				});
+
+				if (!result.success) {
+					logger.error(
+						{ error: result.error },
+						"Failed to mark order as processing",
+					);
+					return result;
+				}
+
+				logger.info({ orderId }, "Order marked as processing successfully");
 
 				return { data: undefined, success: true };
 			}

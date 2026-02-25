@@ -8,6 +8,7 @@ import {
 	generateMockInsertOrder,
 	generateMockSelectOrder,
 	generateMockSelectOrders,
+	generateMockStripeEvent,
 	mockOrderService,
 	mockPaymentService,
 } from "../mocks/index.js";
@@ -309,11 +310,20 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			),
 			signature: `t=${Date.now()},v1=${faker.string.hexadecimal({ length: 64 })}`,
 		};
-		const mockOrderId = faker.database.mongodbObjectId();
-		const mockUpdatedOrder = generateMockSelectOrder({
-			status: "processing",
-			paidAt: new Date(),
-		});
+		const mockStripeEvent = generateMockStripeEvent();
+		const mockOrderId = mockStripeEvent.data.object.metadata!.orderId;
+		const mockPaidAt = new Date(mockStripeEvent.created * 1000);
+
+		const expectedSuccessResponse = {
+			metadata: { orderId: mockOrderId },
+			paidAt: mockPaidAt,
+			type: "checkout.session.completed" as const,
+		};
+		const expectedFailureResponse = {
+			metadata: { orderId: mockOrderId },
+			paidAt: mockPaidAt,
+			type: "checkout.session.expired" as const,
+		};
 
 		test("should return error when webhook verification fails", async () => {
 			// Arrange
@@ -333,11 +343,80 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockPaymentSvc.verifyWebhook.mock.callCount(), 1);
 		});
 
-		test("should return success for unhandled event types", async () => {
+		test("should call markAsProcessing with orderId, paidAt, and provider when event is checkout.session.completed", async () => {
+			// Arrange
+			mockPaymentSvc.verifyWebhook.mock.mockImplementationOnce(() => ({
+				data: expectedSuccessResponse,
+				success: true,
+			}));
+			mockOrderSvc.markAsProcessing.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: generateMockSelectOrder({ status: "processing" }),
+					success: true,
+				}),
+			);
+
+			// Act
+			const result = await manager.processPaymentWebhook(mockWebhookParams);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, undefined);
+
+			assert.strictEqual(mockOrderSvc.markAsProcessing.mock.callCount(), 1);
+			const args = mockOrderSvc.markAsProcessing.mock.calls[0].arguments[0];
+			assert.strictEqual(args.orderId, mockOrderId);
+			assert.strictEqual(args.paidAt, mockPaidAt);
+			assert.strictEqual(args.provider, "stripe");
+		});
+
+		test("should return error when markAsProcessing fails for checkout.session.completed", async () => {
+			// Arrange
+			const markAsProcessingError = new Error("Failed to update order");
+			mockPaymentSvc.verifyWebhook.mock.mockImplementationOnce(() => ({
+				data: expectedSuccessResponse,
+				success: true,
+			}));
+			mockOrderSvc.markAsProcessing.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					error: markAsProcessingError,
+					success: false,
+				}),
+			);
+
+			// Act
+			const result = await manager.processPaymentWebhook(mockWebhookParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, markAsProcessingError);
+
+			assert.strictEqual(mockOrderSvc.markAsProcessing.mock.callCount(), 1);
+		});
+
+		test("should return success without calling markAsProcessing for checkout.session.expired event", async () => {
+			// Arrange
+			mockPaymentSvc.verifyWebhook.mock.mockImplementationOnce(() => ({
+				data: expectedFailureResponse,
+				success: true,
+			}));
+
+			// Act
+			const result = await manager.processPaymentWebhook(mockWebhookParams);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, undefined);
+
+			assert.strictEqual(mockOrderSvc.markAsProcessing.mock.callCount(), 0);
+		});
+
+		test("should return success without calling markAsProcessing for unhandled event types", async () => {
 			// Arrange
 			mockPaymentSvc.verifyWebhook.mock.mockImplementationOnce(() => ({
 				data: {
 					metadata: { orderId: mockOrderId },
+					paidAt: mockPaidAt,
 					type: "payment_intent.succeeded",
 				},
 				success: true,
@@ -351,6 +430,7 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.data, undefined);
 
 			assert.strictEqual(mockPaymentSvc.verifyWebhook.mock.callCount(), 1);
+			assert.strictEqual(mockOrderSvc.markAsProcessing.mock.callCount(), 0);
 		});
 	});
 
