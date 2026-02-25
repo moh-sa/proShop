@@ -69,3 +69,12 @@ export const allOrdersResponseSchema = selectOrderSchema.pick({
 	totalPrice: true,
 	user: true,
 });
+
+export const markAsBaseParamsSchema = z.object({
+	orderId: objectIdValidator.transform((id) => id.toString()),
+});
+
+export const markAsProcessingParamsSchema = markAsBaseParamsSchema.extend({
+	paidAt: z.date(),
+	provider: paymentProviderSchema,
+});

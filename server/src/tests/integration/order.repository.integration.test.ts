@@ -639,4 +639,61 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			);
 		});
 	});
+
+	describe("markAsProcessing", () => {
+		test("Should update 'paidAt', 'payment.provider', and 'status'", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({ status: "pending" });
+			const order = await Order.create(mockOrder);
+
+			const paidAt = new Date();
+			const provider = "stripe";
+
+			// Act
+			const result = await orderRepository.markAsProcessing({
+				orderId: order._id.toString(),
+				paidAt,
+				provider,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.ok(result.data);
+			assert.strictEqual(result.data.status, "processing");
+			assert.strictEqual(result.data.paidAt?.getTime(), paidAt.getTime());
+			assert.strictEqual(result.data.payment?.provider, provider);
+		});
+
+		test("Should return null when order does not exist", async () => {
+			// Arrange
+			const nonExistentId = generateMockObjectId().toString();
+
+			// Act
+			const result = await orderRepository.markAsProcessing({
+				orderId: nonExistentId,
+				paidAt: new Date(),
+				provider: "stripe",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, null);
+		});
+
+		test("Should return 'DatabaseValidationError' when orderId is invalid", async () => {
+			// Arrange
+			const invalidId = "invalid-id";
+
+			// Act
+			const result = await orderRepository.markAsProcessing({
+				orderId: invalidId,
+				paidAt: new Date(),
+				provider: "stripe",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
+		});
+	});
 });

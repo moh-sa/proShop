@@ -3,6 +3,8 @@ import type { z } from "zod";
 import type {
 	allOrdersResponseSchema,
 	insertOrderSchema,
+	markAsBaseParamsSchema,
+	markAsProcessingParamsSchema,
 	orderStatusSchema,
 	selectOrderSchema,
 } from "../schemas/index.js";
@@ -34,3 +36,9 @@ export type CreateOrderResponse = {
 		url: string;
 	};
 };
+
+export type MarkAsBaseParams = z.infer<typeof markAsBaseParamsSchema>;
+
+export type MarkAsProcessingParams = z.infer<
+	typeof markAsProcessingParamsSchema
+>;

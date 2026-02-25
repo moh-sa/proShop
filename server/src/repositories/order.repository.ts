@@ -5,6 +5,7 @@ import type {
 	AllOrdersResponse,
 	FailureResult,
 	InsertOrder,
+	MarkAsProcessingParams,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
@@ -26,6 +27,9 @@ export interface IOrderRepository {
 	}: {
 		orderId: Types.ObjectId;
 	}): Promise<OrderResult<null | SelectOrder>>;
+	markAsProcessing(
+		params: MarkAsProcessingParams,
+	): Promise<OrderResult<null | SelectOrder>>;
 	updatePayment(
 		params: Partial<SelectOrder["payment"]> & { orderId: Types.ObjectId },
 	): Promise<OrderResult<null | SelectOrder>>;
@@ -87,6 +91,33 @@ export class OrderRepository implements IOrderRepository {
 	> {
 		try {
 			const result = await this._db.findById(orderId).lean();
+
+			return {
+				data: result,
+				success: true,
+			};
+		} catch (error) {
+			return this._errorHandler(error);
+		}
+	}
+
+	async markAsProcessing(
+		params: MethodParams<IOrderRepository, "markAsProcessing">,
+	): MethodReturn<IOrderRepository, "markAsProcessing"> {
+		try {
+			const result = await this._db
+				.findByIdAndUpdate(
+					params.orderId,
+					{
+						$set: {
+							paidAt: params.paidAt,
+							"payment.provider": params.provider,
+							status: "processing",
+						},
+					},
+					{ new: true },
+				)
+				.lean();
 
 			return {
 				data: result,

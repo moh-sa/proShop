@@ -658,6 +658,50 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		});
 	});
 
+	describe("markAsProcessing", async () => {
+		test("Should update order to processing and set paidAt and payment.provider when order exists", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({
+				status: "pending",
+			});
+			const createdOrder = await Order.create(mockOrder);
+
+			const orderId = createdOrder._id.toString();
+			const paidAt = new Date();
+			const provider = "stripe";
+
+			// Act
+			const result = await orderService.markAsProcessing({
+				orderId,
+				paidAt,
+				provider,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.ok(result.data);
+			assert.strictEqual(result.data.status, "processing");
+			assert.strictEqual(result.data.paidAt?.getTime(), paidAt.getTime());
+			assert.strictEqual(result.data.payment?.provider, provider);
+		});
+
+		test("Should return NotFoundError when order does not exist", async () => {
+			// Arrange
+			const nonExistentId = generateMockObjectId().toString();
+
+			// Act
+			const result = await orderService.markAsProcessing({
+				orderId: nonExistentId,
+				paidAt: new Date(),
+				provider: "stripe",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
+		});
+	});
+
 	describe("updatePayment", async () => {
 		test("Should update payment on existing order and persist to database", async () => {
 			// Arrange
