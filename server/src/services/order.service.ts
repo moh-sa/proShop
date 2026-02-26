@@ -9,7 +9,6 @@ import type {
 	MethodParams,
 	MethodReturn,
 	OrderPaginationParams,
-	OrderStatus,
 	PaginatedResponse,
 	Result,
 	SelectOrder,
@@ -47,15 +46,6 @@ export interface IOrderService {
 
 type OrderResult<T> = Result<T>;
 export class OrderService implements IOrderService {
-	private readonly _allowedTransitions: Record<
-		OrderStatus,
-		ReadonlyArray<OrderStatus>
-	> = {
-		cancelled: [],
-		delivered: [],
-		pending: ["processing", "cancelled"],
-		processing: ["delivered"],
-	};
 	private readonly _repository: IOrderRepository;
 
 	constructor(repository: IOrderRepository = new OrderRepository()) {
