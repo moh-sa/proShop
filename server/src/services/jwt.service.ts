@@ -46,12 +46,9 @@ export class JwtService implements IJwtService {
 	private readonly _config: JwtConfig;
 	private readonly _provider: typeof jwt;
 
-	constructor(
-		config: JwtConfig = DEFAULT_JWT_CONFIG,
-		provider: typeof jwt = jwt,
-	) {
-		this._config = config;
-		this._provider = provider;
+	constructor(config?: JwtConfig, provider?: typeof jwt) {
+		this._config = config ?? DEFAULT_JWT_CONFIG;
+		this._provider = provider ?? jwt;
 	}
 
 	public generateAccessToken(

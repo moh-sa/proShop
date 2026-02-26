@@ -140,8 +140,8 @@ export class UserController implements IUserController {
 		});
 	});
 
-	constructor(service: IUserService = new UserService()) {
-		this._service = service;
+	constructor(service?: IUserService) {
+		this._service = service ?? new UserService();
 	}
 
 	private _getLogger(args: { [key: string]: unknown; method: string }) {

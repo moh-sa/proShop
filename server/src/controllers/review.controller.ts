@@ -426,8 +426,8 @@ export class ReviewController implements IReviewController {
 		});
 	});
 
-	constructor(service: IReviewService = new ReviewService()) {
-		this._service = service;
+	constructor(service?: IReviewService) {
+		this._service = service ?? new ReviewService();
 	}
 
 	private _getLogger(args: { [key: string]: unknown; method: string }) {

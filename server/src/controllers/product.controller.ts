@@ -239,8 +239,8 @@ export class ProductController implements IProductController {
 		});
 	});
 
-	constructor(manager: IProductManager = new ProductManager()) {
-		this._manager = manager;
+	constructor(manager?: IProductManager) {
+		this._manager = manager ?? new ProductManager();
 	}
 
 	private _getLogger(args: { [key: string]: unknown; method: string }) {

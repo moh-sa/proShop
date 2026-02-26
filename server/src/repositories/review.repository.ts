@@ -62,8 +62,8 @@ export class ReviewRepository implements IReviewRepository {
 	private readonly _db: typeof Review;
 	private _paginator: Paginator<SelectReview>;
 
-	constructor(db: typeof Review = Review) {
-		this._db = db;
+	constructor(db?: typeof Review) {
+		this._db = db ?? Review;
 		this._paginator = new Paginator(this._db);
 	}
 

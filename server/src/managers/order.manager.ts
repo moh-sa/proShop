@@ -64,12 +64,9 @@ export class OrderManager implements IOrderManager {
 	private readonly _orderService: IOrderService;
 	private readonly _paymentService: IPaymentService;
 
-	constructor(
-		orderService: IOrderService = new OrderService(),
-		paymentService: IPaymentService = new PaymentService(),
-	) {
-		this._orderService = orderService;
-		this._paymentService = paymentService;
+	constructor(orderService?: IOrderService, paymentService?: IPaymentService) {
+		this._orderService = orderService ?? new OrderService();
+		this._paymentService = paymentService ?? new PaymentService();
 	}
 
 	async create(

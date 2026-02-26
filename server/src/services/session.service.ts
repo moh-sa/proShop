@@ -70,8 +70,8 @@ type SessionResult<T> = Result<T, SessionBaseError>;
 export class SessionService implements ISessionService {
 	private readonly _repository: ISessionRepository;
 
-	constructor(repository: ISessionRepository = new SessionRepository()) {
-		this._repository = repository;
+	constructor(repository?: ISessionRepository) {
+		this._repository = repository ?? new SessionRepository();
 	}
 
 	public async create(

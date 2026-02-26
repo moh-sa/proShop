@@ -42,8 +42,8 @@ export class UserRepository implements IUserRepository {
 	private readonly _db: typeof User;
 	private _paginator: Paginator<SelectUser>;
 
-	constructor(db: typeof User = User) {
-		this._db = db;
+	constructor(db?: typeof User) {
+		this._db = db ?? User;
 		this._paginator = new Paginator(this._db);
 	}
 

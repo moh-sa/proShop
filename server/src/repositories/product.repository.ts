@@ -51,12 +51,9 @@ export class ProductRepository implements IProductRepository {
 	// Cache keys
 	private readonly _getTopRatedCacheKey = "top-rated";
 
-	constructor(
-		db: typeof Product = Product,
-		cache: CacheService = new CacheService("product"),
-	) {
-		this._db = db;
-		this._cache = cache;
+	constructor(db?: typeof Product, cache?: CacheService) {
+		this._db = db ?? Product;
+		this._cache = cache ?? new CacheService("product");
 		this._paginator = new Paginator(this._db);
 	}
 

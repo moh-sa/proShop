@@ -48,8 +48,8 @@ type OrderResult<T> = Result<T>;
 export class OrderService implements IOrderService {
 	private readonly _repository: IOrderRepository;
 
-	constructor(repository: IOrderRepository = new OrderRepository()) {
-		this._repository = repository;
+	constructor(repository?: IOrderRepository) {
+		this._repository = repository ?? new OrderRepository();
 	}
 
 	async create(

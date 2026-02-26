@@ -84,15 +84,15 @@ export class AuthManager implements IAuthManager {
 	private readonly _user: IUserService;
 
 	constructor(
-		jwt: IJwtService = new JwtService(),
-		password: IPasswordService = new PasswordService(),
-		session: ISessionService = new SessionService(),
-		user: IUserService = new UserService(),
+		jwt?: IJwtService,
+		password?: IPasswordService,
+		session?: ISessionService,
+		user?: IUserService,
 	) {
-		this._jwt = jwt;
-		this._password = password;
-		this._session = session;
-		this._user = user;
+		this._jwt = jwt ?? new JwtService();
+		this._password = password ?? new PasswordService();
+		this._session = session ?? new SessionService();
+		this._user = user ?? new UserService();
 	}
 
 	public async getUserSessions(

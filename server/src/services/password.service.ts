@@ -30,8 +30,8 @@ type PswResult<T> = Result<T, PasswordBaseError>;
 export class PasswordService implements IPasswordService {
 	private readonly _provider: typeof argon;
 
-	constructor(provider: typeof argon = argon) {
-		this._provider = provider;
+	constructor(provider?: typeof argon) {
+		this._provider = provider ?? argon;
 	}
 
 	public async hash(

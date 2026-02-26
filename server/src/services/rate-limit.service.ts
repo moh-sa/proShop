@@ -15,8 +15,8 @@ interface RateLimitData {
 export class RateLimiterService {
 	private _cache: CacheService;
 
-	constructor(cache: CacheService = new CacheService("rate-limit")) {
-		this._cache = cache;
+	constructor(cache?: CacheService) {
+		this._cache = cache ?? new CacheService("rate-limit");
 	}
 
 	public clearCache(keys?: Array<string> | string): void {

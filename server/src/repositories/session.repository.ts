@@ -70,8 +70,8 @@ export class SessionRepository implements ISessionRepository {
 	private readonly _db: typeof Session;
 	private _paginator: Paginator<SelectSession>;
 
-	constructor(db: typeof Session = Session) {
-		this._db = db;
+	constructor(db?: typeof Session) {
+		this._db = db ?? Session;
 		this._paginator = new Paginator(this._db);
 	}
 

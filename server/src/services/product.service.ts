@@ -44,8 +44,8 @@ type ProductResult<T> = Result<T>;
 export class ProductService implements IProductService {
 	private readonly _repository: IProductRepository;
 
-	constructor(repository: IProductRepository = new ProductRepository()) {
-		this._repository = repository;
+	constructor(repository?: IProductRepository) {
+		this._repository = repository ?? new ProductRepository();
 	}
 
 	async create(

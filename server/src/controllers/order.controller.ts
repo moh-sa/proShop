@@ -268,8 +268,8 @@ export class OrderController implements IOrderController {
 		});
 	});
 
-	constructor(manager: IOrderManager = new OrderManager()) {
-		this._manager = manager;
+	constructor(manager?: IOrderManager) {
+		this._manager = manager ?? new OrderManager();
 	}
 
 	private _convertOrderToCents(order: InsertOrder): InsertOrder {

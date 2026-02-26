@@ -96,12 +96,10 @@ export class Auth2Controller implements IAuth2Controller {
 	private readonly _authManager: IAuthManager;
 
 	private readonly _cookieService: ICookieService;
-	constructor(
-		authManager: IAuthManager = new AuthManager(),
-		cookieService: ICookieService = new CookieService(),
-	) {
-		this._authManager = authManager;
-		this._cookieService = cookieService;
+
+	constructor(authManager?: IAuthManager, cookieService?: ICookieService) {
+		this._authManager = authManager ?? new AuthManager();
+		this._cookieService = cookieService ?? new CookieService();
 	}
 
 	/**

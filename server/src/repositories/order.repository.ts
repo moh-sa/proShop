@@ -45,8 +45,8 @@ export class OrderRepository implements IOrderRepository {
 	private readonly _db: typeof Order;
 	private _paginator: Paginator<SelectOrder>;
 
-	constructor(db: typeof Order = Order) {
-		this._db = db;
+	constructor(db?: typeof Order) {
+		this._db = db ?? Order;
 		this._paginator = new Paginator(this._db);
 	}
 

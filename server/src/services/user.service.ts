@@ -66,8 +66,8 @@ type UserResult<T> = Result<T>;
 export class UserService implements IUserService {
 	private readonly _repository: IUserRepository;
 
-	constructor(repository: IUserRepository = new UserRepository()) {
-		this._repository = repository;
+	constructor(repository?: IUserRepository) {
+		this._repository = repository ?? new UserRepository();
 	}
 
 	async create(

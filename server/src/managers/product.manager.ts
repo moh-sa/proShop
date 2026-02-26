@@ -41,11 +41,11 @@ export class ProductManager implements IProductManager {
 	private readonly _productService: IProductService;
 
 	constructor(
-		productService: IProductService = new ProductService(),
-		imageStorage: IImageStorageService = new ImageStorageService(),
+		productService?: IProductService,
+		imageStorage?: IImageStorageService,
 	) {
-		this._productService = productService;
-		this._imageStorage = imageStorage;
+		this._productService = productService ?? new ProductService();
+		this._imageStorage = imageStorage ?? new ImageStorageService();
 	}
 
 	async create(

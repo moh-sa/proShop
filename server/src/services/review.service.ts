@@ -58,8 +58,8 @@ type ReviewResult<T> = Result<T>;
 export class ReviewService implements IReviewService {
 	private readonly _repository: IReviewRepository;
 
-	constructor(repository: IReviewRepository = new ReviewRepository()) {
-		this._repository = repository;
+	constructor(repository?: IReviewRepository) {
+		this._repository = repository ?? new ReviewRepository();
 	}
 
 	async count(): MethodReturn<IReviewService, "count"> {
