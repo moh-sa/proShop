@@ -1,6 +1,6 @@
 import express from "express";
 
-import { UserController } from "../../controllers/index.js";
+import { userController } from "../../controllers/index.js";
 import {
 	authenticate,
 	authorizeAdmin,
@@ -12,8 +12,6 @@ import {
 	strictLimiter,
 } from "../../services/index.js";
 
-const controller = new UserController();
-
 const baseRouter = express.Router();
 
 const protectedRoutes = express.Router();
@@ -22,8 +20,8 @@ const adminRouter = express.Router();
 
 profileRouter
 	.route("/")
-	.get(defaultLimiter, authenticate, checkUserExists, controller.getById)
-	.patch(strictLimiter, authenticate, checkUserExists, controller.update);
+	.get(defaultLimiter, authenticate, checkUserExists, userController.getById)
+	.patch(strictLimiter, authenticate, checkUserExists, userController.update);
 
 adminRouter
 	.route("/")
@@ -32,7 +30,7 @@ adminRouter
 		authenticate,
 		checkUserExists,
 		authorizeAdmin,
-		controller.getAll,
+		userController.getAll,
 	);
 
 adminRouter
@@ -42,21 +40,21 @@ adminRouter
 		authenticate,
 		checkUserExists,
 		authorizeAdmin,
-		controller.getById,
+		userController.getById,
 	)
 	.patch(
 		adminLimiter,
 		authenticate,
 		checkUserExists,
 		authorizeAdmin,
-		controller.update,
+		userController.update,
 	)
 	.delete(
 		adminLimiter,
 		authenticate,
 		checkUserExists,
 		authorizeAdmin,
-		controller.delete,
+		userController.delete,
 	);
 
 protectedRoutes.use("/admin", adminRouter);

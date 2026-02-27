@@ -16,7 +16,7 @@ import {
 	MAX_TOP_RATED_PRODUCTS,
 } from "../constants/index.js";
 import { NotFoundError, ValidationError } from "../errors/index.js";
-import { ProductRepository } from "../repositories/index.js";
+import { productRepository } from "../repositories/index.js";
 import { insertProductSchema, selectImageSchema } from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 import {
@@ -45,7 +45,7 @@ export class ProductService implements IProductService {
 	private readonly _repository: IProductRepository;
 
 	constructor(repository?: IProductRepository) {
-		this._repository = repository ?? new ProductRepository();
+		this._repository = repository ?? productRepository;
 	}
 
 	async create(

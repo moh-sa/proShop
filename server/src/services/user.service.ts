@@ -18,7 +18,7 @@ import {
 	NotFoundError,
 	ValidationError,
 } from "../errors/index.js";
-import { UserRepository } from "../repositories/index.js";
+import { userRepository } from "../repositories/index.js";
 import {
 	insertUserSchema,
 	selectUserSchema,
@@ -67,7 +67,7 @@ export class UserService implements IUserService {
 	private readonly _repository: IUserRepository;
 
 	constructor(repository?: IUserRepository) {
-		this._repository = repository ?? new UserRepository();
+		this._repository = repository ?? userRepository;
 	}
 
 	async create(

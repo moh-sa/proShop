@@ -1,8 +1,6 @@
 import { InternalError } from "../errors/index.js";
-import { UserService } from "../services/user.service.js";
+import { userService } from "../services/user.service.js";
 import { asyncHandler } from "../utils/async-handler.util.js";
-
-const userService = new UserService();
 
 /**
  * Check User Exists Middleware

@@ -8,7 +8,7 @@ import type {
 } from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
-import { UserService } from "../services/index.js";
+import { userService } from "../services/index.js";
 import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
 
 export interface IUserController {
@@ -141,7 +141,7 @@ export class UserController implements IUserController {
 	});
 
 	constructor(service?: IUserService) {
-		this._service = service ?? new UserService();
+		this._service = service ?? userService;
 	}
 
 	private _getLogger(args: { [key: string]: unknown; method: string }) {

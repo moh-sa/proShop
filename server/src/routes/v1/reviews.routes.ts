@@ -1,6 +1,6 @@
 import express from "express";
 
-import { ReviewController } from "../../controllers/index.js";
+import { reviewController } from "../../controllers/index.js";
 import {
 	authenticate,
 	authorizeAdmin,
@@ -12,7 +12,6 @@ import {
 	defaultLimiter,
 	strictLimiter,
 } from "../../services/index.js";
-const controller = new ReviewController();
 
 const baseRouter = express.Router();
 const publicRouter = express.Router();
@@ -22,19 +21,24 @@ const adminRouter = express.Router();
 
 publicRouter
 	.route("/product/:productId")
-	.get(defaultLimiter, controller.getAllByProductId);
+	.get(defaultLimiter, reviewController.getAllByProductId);
 
 publicRouter
 	.route("/count/product/:productId")
-	.get(defaultLimiter, controller.countByProductId);
+	.get(defaultLimiter, reviewController.countByProductId);
 
 userRouter
 	.route("/")
-	.post(strictLimiter, authenticate, checkUserExists, controller.create);
+	.post(strictLimiter, authenticate, checkUserExists, reviewController.create);
 
 userRouter
 	.route("/count/user/:userId")
-	.get(defaultLimiter, authenticate, checkUserExists, controller.countByUserId);
+	.get(
+		defaultLimiter,
+		authenticate,
+		checkUserExists,
+		reviewController.countByUserId,
+	);
 
 userRouter
 	.route("/exists/user/:userId/product/:productId")
@@ -42,25 +46,30 @@ userRouter
 		defaultLimiter,
 		authenticate,
 		checkUserExists,
-		controller.existsByUserIdAndProductId,
+		reviewController.existsByUserIdAndProductId,
 	);
 
 userRouter
 	.route("/:userId")
-	.get(defaultLimiter, authenticate, checkUserExists, controller.getAllByUserId)
+	.get(
+		defaultLimiter,
+		authenticate,
+		checkUserExists,
+		reviewController.getAllByUserId,
+	)
 	.patch(
 		strictLimiter,
 		authenticate,
 		checkUserExists,
 		verifyReviewOwnership,
-		controller.update,
+		reviewController.update,
 	)
 	.delete(
 		defaultLimiter,
 		authenticate,
 		checkUserExists,
 		verifyReviewOwnership,
-		controller.delete,
+		reviewController.delete,
 	);
 
 adminRouter
@@ -70,7 +79,7 @@ adminRouter
 		authenticate,
 		checkUserExists,
 		authorizeAdmin,
-		controller.getAll,
+		reviewController.getAll,
 	);
 
 adminRouter
@@ -80,7 +89,7 @@ adminRouter
 		authenticate,
 		checkUserExists,
 		authorizeAdmin,
-		controller.count,
+		reviewController.count,
 	);
 
 adminRouter
@@ -90,7 +99,7 @@ adminRouter
 		authenticate,
 		checkUserExists,
 		authorizeAdmin,
-		controller.existsById,
+		reviewController.existsById,
 	);
 
 adminRouter
@@ -100,7 +109,7 @@ adminRouter
 		authenticate,
 		checkUserExists,
 		authorizeAdmin,
-		controller.getById,
+		reviewController.getById,
 	);
 
 protectedRoutes.use("/", userRouter);

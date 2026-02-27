@@ -15,7 +15,7 @@ import type {
 } from "../types/index.js";
 
 import { ValidationError } from "../errors/index.js";
-import { ImageStorageService, ProductService } from "../services/index.js";
+import { imageStorageService, productService } from "../services/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 
 export interface IProductManager {
@@ -40,12 +40,9 @@ export class ProductManager implements IProductManager {
 	private readonly _imageStorage: IImageStorageService;
 	private readonly _productService: IProductService;
 
-	constructor(
-		productService?: IProductService,
-		imageStorage?: IImageStorageService,
-	) {
-		this._productService = productService ?? new ProductService();
-		this._imageStorage = imageStorage ?? new ImageStorageService();
+	constructor(product?: IProductService, imageStorage?: IImageStorageService) {
+		this._productService = product ?? productService;
+		this._imageStorage = imageStorage ?? imageStorageService;
 	}
 
 	async create(

@@ -11,7 +11,7 @@ import type {
 } from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
-import { ReviewService } from "../services/index.js";
+import { reviewService } from "../services/index.js";
 import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
 
 export interface IReviewController {
@@ -427,7 +427,7 @@ export class ReviewController implements IReviewController {
 	});
 
 	constructor(service?: IReviewService) {
-		this._service = service ?? new ReviewService();
+		this._service = service ?? reviewService;
 	}
 
 	private _getLogger(args: { [key: string]: unknown; method: string }) {

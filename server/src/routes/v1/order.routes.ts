@@ -1,14 +1,12 @@
 import express from "express";
 
-import { OrderController } from "../../controllers/index.js";
+import { orderController } from "../../controllers/index.js";
 import {
 	authenticate,
 	authorizeAdmin,
 	checkUserExists,
 } from "../../middlewares/index.js";
 import { defaultLimiter, strictLimiter } from "../../services/index.js";
-
-const controller = new OrderController();
 
 const baseRouter = express.Router();
 const protectedRoutes = express.Router();
@@ -17,7 +15,7 @@ const adminRouter = express.Router();
 
 userRouter
 	.route("/")
-	.post(strictLimiter, authenticate, checkUserExists, controller.create);
+	.post(strictLimiter, authenticate, checkUserExists, orderController.create);
 
 userRouter
 	.route("/user/:userId")
@@ -25,12 +23,12 @@ userRouter
 		defaultLimiter,
 		authenticate,
 		checkUserExists,
-		controller.getAllByUserId,
+		orderController.getAllByUserId,
 	);
 
 userRouter
 	.route("/:orderId")
-	.get(defaultLimiter, authenticate, checkUserExists, controller.getById);
+	.get(defaultLimiter, authenticate, checkUserExists, orderController.getById);
 
 adminRouter
 	.route("/")
@@ -39,7 +37,7 @@ adminRouter
 		authenticate,
 		checkUserExists,
 		authorizeAdmin,
-		controller.getAll,
+		orderController.getAll,
 	);
 
 adminRouter
@@ -49,7 +47,7 @@ adminRouter
 		authenticate,
 		checkUserExists,
 		authorizeAdmin,
-		controller.updatePayment,
+		orderController.updatePayment,
 	);
 
 protectedRoutes.use("/", userRouter);

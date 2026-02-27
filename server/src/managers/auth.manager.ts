@@ -23,10 +23,10 @@ import {
 	ValidationError,
 } from "../errors/index.js";
 import {
-	JwtService,
-	PasswordService,
-	SessionService,
-	UserService,
+	jwtService,
+	passwordService,
+	sessionService,
+	userService,
 } from "../services/index.js";
 import { TokenType } from "../types/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
@@ -89,10 +89,10 @@ export class AuthManager implements IAuthManager {
 		session?: ISessionService,
 		user?: IUserService,
 	) {
-		this._jwt = jwt ?? new JwtService();
-		this._password = password ?? new PasswordService();
-		this._session = session ?? new SessionService();
-		this._user = user ?? new UserService();
+		this._jwt = jwt ?? jwtService;
+		this._password = password ?? passwordService;
+		this._session = session ?? sessionService;
+		this._user = user ?? userService;
 	}
 
 	public async getUserSessions(

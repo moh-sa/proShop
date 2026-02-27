@@ -20,7 +20,7 @@ import {
 	SessionNotFoundError,
 	SessionValidationError,
 } from "../errors/index.js";
-import { SessionRepository } from "../repositories/index.js";
+import { sessionRepository } from "../repositories/index.js";
 import { insertSessionSchema } from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 import {
@@ -71,7 +71,7 @@ export class SessionService implements ISessionService {
 	private readonly _repository: ISessionRepository;
 
 	constructor(repository?: ISessionRepository) {
-		this._repository = repository ?? new SessionRepository();
+		this._repository = repository ?? sessionRepository;
 	}
 
 	public async create(

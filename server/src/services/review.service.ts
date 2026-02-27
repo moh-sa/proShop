@@ -14,7 +14,7 @@ import type {
 } from "../types/index.js";
 
 import { NotFoundError, ValidationError } from "../errors/index.js";
-import { ReviewRepository } from "../repositories/index.js";
+import { reviewRepository } from "../repositories/index.js";
 import { insertReviewSchema } from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 import {
@@ -59,7 +59,7 @@ export class ReviewService implements IReviewService {
 	private readonly _repository: IReviewRepository;
 
 	constructor(repository?: IReviewRepository) {
-		this._repository = repository ?? new ReviewRepository();
+		this._repository = repository ?? reviewRepository;
 	}
 
 	async count(): MethodReturn<IReviewService, "count"> {

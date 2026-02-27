@@ -11,7 +11,7 @@ import type {
 } from "../types/index.js";
 
 import { ErrorType, HTTP_STATUS } from "../constants/index.js";
-import { OrderManager } from "../managers/index.js";
+import { orderManager } from "../managers/index.js";
 import {
 	asyncHandler,
 	fromCurrencySmallestUnit,
@@ -269,7 +269,7 @@ export class OrderController implements IOrderController {
 	});
 
 	constructor(manager?: IOrderManager) {
-		this._manager = manager ?? new OrderManager();
+		this._manager = manager ?? orderManager;
 	}
 
 	private _convertOrderToCents(order: InsertOrder): InsertOrder {

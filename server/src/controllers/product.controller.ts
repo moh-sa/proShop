@@ -11,7 +11,7 @@ import type {
 } from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
-import { ProductManager } from "../managers/index.js";
+import { productManager } from "../managers/index.js";
 import {
 	asyncHandler,
 	fromCurrencySmallestUnit,
@@ -240,7 +240,7 @@ export class ProductController implements IProductController {
 	});
 
 	constructor(manager?: IProductManager) {
-		this._manager = manager ?? new ProductManager();
+		this._manager = manager ?? productManager;
 	}
 
 	private _getLogger(args: { [key: string]: unknown; method: string }) {

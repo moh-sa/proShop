@@ -1,15 +1,10 @@
 import { CookieName } from "../constants/cookie.constants.js";
 import { AuthenticationError, ValidationError } from "../errors/index.js";
-import { CookieService } from "../services/cookie.service.js";
-import { JwtService } from "../services/jwt.service.js";
-import { SessionService } from "../services/session.service.js";
+import { cookieService } from "../services/cookie.service.js";
+import { jwtService } from "../services/jwt.service.js";
+import { sessionService } from "../services/session.service.js";
 import { TokenType } from "../types/jwt.type.js";
 import { asyncHandler } from "../utils/async-handler.util.js";
-
-// Services
-const cookieService = new CookieService();
-const jwtService = new JwtService();
-const sessionService = new SessionService();
 
 /**
  * Authenticate Middleware

@@ -3,11 +3,9 @@ import {
 	InternalError,
 	ValidationError,
 } from "../errors/index.js";
-import { ReviewService } from "../services/review.service.js";
+import { reviewService } from "../services/review.service.js";
 import { asyncHandler } from "../utils/async-handler.util.js";
 import { objectIdValidator } from "../validators/object-id.validator.js";
-
-const reviewService = new ReviewService();
 
 /**
  * Verify Review Ownership Middleware

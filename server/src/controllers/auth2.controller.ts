@@ -13,8 +13,8 @@ import type {
 } from "../types/index.js";
 
 import { CookieName, HTTP_STATUS } from "../constants/index.js";
-import { AuthManager } from "../managers/index.js";
-import { CookieService } from "../services/index.js";
+import { authManager } from "../managers/index.js";
+import { cookieService } from "../services/index.js";
 import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
 import { jwtTokenValidator } from "../validators/index.js";
 
@@ -97,9 +97,9 @@ export class Auth2Controller implements IAuth2Controller {
 
 	private readonly _cookieService: ICookieService;
 
-	constructor(authManager?: IAuthManager, cookieService?: ICookieService) {
-		this._authManager = authManager ?? new AuthManager();
-		this._cookieService = cookieService ?? new CookieService();
+	constructor(auth?: IAuthManager, cookie?: ICookieService) {
+		this._authManager = auth ?? authManager;
+		this._cookieService = cookie ?? cookieService;
 	}
 
 	/**

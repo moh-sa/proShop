@@ -15,7 +15,7 @@ import type {
 } from "../types/index.js";
 
 import { NotFoundError, ValidationError } from "../errors/index.js";
-import { OrderRepository } from "../repositories/index.js";
+import { orderRepository } from "../repositories/index.js";
 import {
 	insertOrderSchema,
 	markAsCancelledParamsSchema,
@@ -49,7 +49,7 @@ export class OrderService implements IOrderService {
 	private readonly _repository: IOrderRepository;
 
 	constructor(repository?: IOrderRepository) {
-		this._repository = repository ?? new OrderRepository();
+		this._repository = repository ?? orderRepository;
 	}
 
 	async create(

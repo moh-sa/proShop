@@ -1,15 +1,13 @@
 import express from "express";
 
 import { uploadSingle as uploadSingleMiddleware } from "../../config/multer.config.js";
-import { ProductController } from "../../controllers/index.js";
+import { productController } from "../../controllers/index.js";
 import {
 	authenticate,
 	authorizeAdmin,
 	checkUserExists,
 } from "../../middlewares/index.js";
 import { adminLimiter, defaultLimiter } from "../../services/index.js";
-
-const controller = new ProductController();
 
 const baseRouter = express.Router();
 
@@ -18,9 +16,11 @@ const publicRouter = express.Router();
 const protectedRoutes = express.Router();
 const adminRouter = express.Router();
 
-publicRouter.route("/").get(defaultLimiter, controller.getAll);
+publicRouter.route("/").get(defaultLimiter, productController.getAll);
 
-publicRouter.route("/top-rated").get(defaultLimiter, controller.getTopRated);
+publicRouter
+	.route("/top-rated")
+	.get(defaultLimiter, productController.getTopRated);
 
 adminRouter
 	.route("/")
@@ -30,18 +30,18 @@ adminRouter
 		checkUserExists,
 		authorizeAdmin,
 		uploadSingleMiddleware,
-		controller.create,
+		productController.create,
 	);
 
 adminRouter
 	.route("/:productId")
-	.get(defaultLimiter, controller.getById)
+	.get(defaultLimiter, productController.getById)
 	.delete(
 		adminLimiter,
 		authenticate,
 		checkUserExists,
 		authorizeAdmin,
-		controller.delete,
+		productController.delete,
 	)
 	.patch(
 		adminLimiter,
@@ -49,7 +49,7 @@ adminRouter
 		checkUserExists,
 		authorizeAdmin,
 		uploadSingleMiddleware,
-		controller.update,
+		productController.update,
 	);
 
 protectedRoutes.use("/admin", adminRouter);

@@ -15,7 +15,7 @@ import type {
 } from "../types/index.js";
 
 import Product from "../models/product.model.js";
-import { CacheService } from "../services/index.js";
+import { CacheService } from "../services/cache.service.js";
 import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IProductRepository {

@@ -14,7 +14,7 @@ import type {
 	VerifyWebhookParams,
 } from "../types/index.js";
 
-import { OrderService, PaymentService } from "../services/index.js";
+import { orderService, paymentService } from "../services/index.js";
 import { frontendUrlBuilder, getLoggerFromContext } from "../utils/index.js";
 
 export interface IOrderManager {
@@ -64,9 +64,9 @@ export class OrderManager implements IOrderManager {
 	private readonly _orderService: IOrderService;
 	private readonly _paymentService: IPaymentService;
 
-	constructor(orderService?: IOrderService, paymentService?: IPaymentService) {
-		this._orderService = orderService ?? new OrderService();
-		this._paymentService = paymentService ?? new PaymentService();
+	constructor(order?: IOrderService, payment?: IPaymentService) {
+		this._orderService = order ?? orderService;
+		this._paymentService = payment ?? paymentService;
 	}
 
 	async create(
