@@ -1,6 +1,6 @@
 import { after, before, beforeEach, describe, suite } from "node:test";
 
-import { Auth2Controller } from "../../controllers/auth2.controller.js";
+import { AuthController } from "../../controllers/auth.controller.js";
 import { Session } from "../../models/session.model.js";
 import User from "../../models/user.model.js";
 import {
@@ -9,10 +9,10 @@ import {
 } from "../utils/database-connection.utils.js";
 
 suite(
-	"Auth Controller (v2)〖 Integration Tests 〗",
+	"Auth Controller〖 Integration Tests 〗",
 	{ skip: true, todo: "IMPLEMENT" },
 	() => {
-		const controller = new Auth2Controller(); // eslint-disable-line @typescript-eslint/no-unused-vars
+		const controller = new AuthController(); // eslint-disable-line @typescript-eslint/no-unused-vars
 
 		before(async () => await connectTestDatabase());
 		after(async () => await disconnectTestDatabase());

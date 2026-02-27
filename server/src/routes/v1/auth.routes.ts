@@ -1,6 +1,6 @@
 import express from "express";
 
-import { auth2Controller } from "../../controllers/auth2.controller.js";
+import { authController } from "../../controllers/auth.controller.js";
 import {
 	authLimiter,
 	defaultLimiter,
@@ -10,9 +10,9 @@ import {
 const router = express.Router();
 
 //============= 🔓 PUBLIC ROUTES =============
-router.route("/signup").post(authLimiter, auth2Controller.signUp);
+router.route("/signup").post(authLimiter, authController.signUp);
 
-router.route("/signin").post(authLimiter, auth2Controller.signIn);
+router.route("/signin").post(authLimiter, authController.signIn);
 
 //============= 🔒 PROTECTED ROUTES =============
 const protectedRouter = express.Router();
@@ -20,29 +20,29 @@ const protectedRouter = express.Router();
 // Sign out routes
 protectedRouter
 	.route("/signout/current")
-	.delete(defaultLimiter, auth2Controller.signOut);
+	.delete(defaultLimiter, authController.signOut);
 
 protectedRouter
 	.route("/signout")
-	.delete(strictLimiter, auth2Controller.signOutAll);
+	.delete(strictLimiter, authController.signOutAll);
 
 // Token routes
 protectedRouter
 	.route("/token/refresh")
-	.post(strictLimiter, auth2Controller.refreshAccessToken);
+	.post(strictLimiter, authController.refreshAccessToken);
 
 // Session routes
 protectedRouter
 	.route("/sessions")
-	.get(defaultLimiter, auth2Controller.getUserSessions);
+	.get(defaultLimiter, authController.getUserSessions);
 
 protectedRouter
 	.route("/sessions/current")
-	.delete(strictLimiter, auth2Controller.revokeSession);
+	.delete(strictLimiter, authController.revokeSession);
 
 protectedRouter
 	.route("/sessions")
-	.delete(strictLimiter, auth2Controller.revokeAllSessions);
+	.delete(strictLimiter, authController.revokeAllSessions);
 
 // Mount protected routes
 router.use("/", protectedRouter);

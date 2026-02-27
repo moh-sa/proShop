@@ -2,7 +2,7 @@ import assert from "node:assert";
 import { beforeEach, describe, it, suite } from "node:test";
 
 import { CookieName, HTTP_STATUS } from "../../constants/index.js";
-import { Auth2Controller } from "../../controllers/auth2.controller.js";
+import { AuthController } from "../../controllers/auth.controller.js";
 import { TokenType } from "../../types/index.js";
 import {
 	generateMockInsertUser,
@@ -16,10 +16,10 @@ import {
 } from "../mocks/index.js";
 import { createMockExpressContext } from "../utils/index.js";
 
-suite("Auth Controller (v2)〖 Unit Tests 〗", () => {
+suite("Auth Controller〖 Unit Tests 〗", () => {
 	const mockManager = mockAuthManager();
 	const mockCookie = mockCookieService();
-	const controller = new Auth2Controller(mockManager, mockCookie as any);
+	const controller = new AuthController(mockManager, mockCookie as any);
 
 	beforeEach(() => {
 		mockManager.reset();
