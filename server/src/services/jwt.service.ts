@@ -438,3 +438,5 @@ export class JwtService implements IJwtService {
 		}
 	}
 }
+
+export const jwtService = new JwtService();

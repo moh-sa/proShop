@@ -172,3 +172,5 @@ export class PasswordService implements IPasswordService {
 		};
 	}
 }
+
+export const passwordService = new PasswordService();

@@ -264,3 +264,5 @@ export class ProductController implements IProductController {
 		});
 	}
 }
+
+export const productController = new ProductController();

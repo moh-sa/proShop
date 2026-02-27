@@ -437,3 +437,5 @@ export class ReviewController implements IReviewController {
 		});
 	}
 }
+
+export const reviewController = new ReviewController();

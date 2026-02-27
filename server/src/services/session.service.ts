@@ -598,3 +598,5 @@ export class SessionService implements ISessionService {
 		return { data: userIdValidationResult.data, success: true };
 	}
 }
+
+export const sessionService = new SessionService();

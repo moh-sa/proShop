@@ -391,3 +391,5 @@ export class CookieService implements ICookieService {
 		};
 	}
 }
+
+export const cookieService = new CookieService();

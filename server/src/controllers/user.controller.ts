@@ -148,3 +148,5 @@ export class UserController implements IUserController {
 		return getLoggerFromContext().child({ layer: "user controller", ...args });
 	}
 }
+
+export const userController = new UserController();

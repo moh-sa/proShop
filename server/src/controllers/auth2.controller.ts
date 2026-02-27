@@ -503,3 +503,5 @@ export class Auth2Controller implements IAuth2Controller {
 		}
 	}
 }
+
+export const auth2Controller = new Auth2Controller();

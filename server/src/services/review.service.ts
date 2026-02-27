@@ -697,3 +697,5 @@ export class ReviewService implements IReviewService {
 		return { data: result.data, success: true };
 	}
 }
+
+export const reviewService = new ReviewService();

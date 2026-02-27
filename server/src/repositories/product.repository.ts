@@ -260,3 +260,5 @@ export class ProductRepository implements IProductRepository {
 		});
 	}
 }
+
+export const productRepository = new ProductRepository();

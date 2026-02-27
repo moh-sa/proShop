@@ -289,3 +289,5 @@ export class PaymentService implements IPaymentService {
 		};
 	}
 }
+
+export const paymentService = new PaymentService();

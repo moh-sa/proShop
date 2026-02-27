@@ -256,3 +256,5 @@ export class OrderManager implements IOrderManager {
 		}));
 	}
 }
+
+export const orderManager = new OrderManager();

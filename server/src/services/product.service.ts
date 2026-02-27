@@ -349,3 +349,5 @@ export class ProductService implements IProductService {
 		return getLoggerFromContext().child({ layer: "product service", ...args });
 	}
 }
+
+export const productService = new ProductService();

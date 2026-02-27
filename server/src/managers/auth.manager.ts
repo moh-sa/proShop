@@ -486,3 +486,5 @@ export class AuthManager implements IAuthManager {
 		return getLoggerFromContext().child(args);
 	}
 }
+
+export const authManager = new AuthManager();

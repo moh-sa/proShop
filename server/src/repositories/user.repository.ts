@@ -179,3 +179,5 @@ export class UserRepository implements IUserRepository {
 		return handleDatabaseErrorResult(error);
 	}
 }
+
+export const userRepository = new UserRepository();

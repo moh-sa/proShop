@@ -284,3 +284,5 @@ export class ImageStorageService implements IImageStorageService {
 		};
 	}
 }
+
+export const imageStorageService = new ImageStorageService();

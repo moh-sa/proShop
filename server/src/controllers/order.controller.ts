@@ -318,3 +318,5 @@ export class OrderController implements IOrderController {
 		});
 	}
 }
+
+export const orderController = new OrderController();

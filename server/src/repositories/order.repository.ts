@@ -200,3 +200,5 @@ export class OrderRepository implements IOrderRepository {
 		return handleDatabaseErrorResult(error);
 	}
 }
+
+export const orderRepository = new OrderRepository();

@@ -300,3 +300,5 @@ export class ReviewRepository implements IReviewRepository {
 		return handleDatabaseErrorResult(error);
 	}
 }
+
+export const reviewRepository = new ReviewRepository();

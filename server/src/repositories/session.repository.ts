@@ -348,3 +348,5 @@ export class SessionRepository implements ISessionRepository {
 		return handleDatabaseErrorResult(error);
 	}
 }
+
+export const sessionRepository = new SessionRepository();

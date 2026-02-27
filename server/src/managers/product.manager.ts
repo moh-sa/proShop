@@ -199,3 +199,5 @@ export class ProductManager implements IProductManager {
 		return getLoggerFromContext().child({ layer: "product manager", ...args });
 	}
 }
+
+export const productManager = new ProductManager();
