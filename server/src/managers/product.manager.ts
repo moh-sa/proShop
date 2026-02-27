@@ -45,7 +45,7 @@ export class ProductManager implements IProductManager {
 		this._imageStorage = imageStorage ?? imageStorageService;
 	}
 
-	async create(
+	public async create(
 		data: MethodParams<IProductManager, "create">,
 	): MethodReturn<IProductManager, "create"> {
 		const logger = this._getLogger({ method: "create" });
@@ -84,7 +84,7 @@ export class ProductManager implements IProductManager {
 		return result;
 	}
 
-	async delete(
+	public async delete(
 		data: MethodParams<IProductManager, "delete">,
 	): MethodReturn<IProductManager, "delete"> {
 		const logger = this._getLogger({ method: "delete" });
@@ -120,23 +120,23 @@ export class ProductManager implements IProductManager {
 		return deleteResult;
 	}
 
-	async getAll(
+	public async getAll(
 		args: MethodParams<IProductManager, "getAll">,
 	): MethodReturn<IProductManager, "getAll"> {
 		return this._productService.getAll(args);
 	}
 
-	async getById(
+	public async getById(
 		data: MethodParams<IProductManager, "getById">,
 	): MethodReturn<IProductManager, "getById"> {
 		return this._productService.getById(data);
 	}
 
-	async getTopRated(): MethodReturn<IProductManager, "getTopRated"> {
+	public async getTopRated(): MethodReturn<IProductManager, "getTopRated"> {
 		return this._productService.getTopRated();
 	}
 
-	async update(
+	public async update(
 		args: MethodParams<IProductManager, "update">,
 	): MethodReturn<IProductManager, "update"> {
 		const logger = this._getLogger({ method: "update" });

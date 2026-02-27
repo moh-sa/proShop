@@ -52,7 +52,7 @@ export class OrderService implements IOrderService {
 		this._repository = repository ?? orderRepository;
 	}
 
-	async create(
+	public async create(
 		data: MethodParams<IOrderService, "create">,
 	): MethodReturn<IOrderService, "create"> {
 		const logger = this._getLogger({ method: "create" });
@@ -89,7 +89,7 @@ export class OrderService implements IOrderService {
 		};
 	}
 
-	async getAll(
+	public async getAll(
 		args: MethodParams<IOrderService, "getAll">,
 	): MethodReturn<IOrderService, "getAll"> {
 		const logger = this._getLogger({ method: "getAll" });
@@ -167,7 +167,7 @@ export class OrderService implements IOrderService {
 		};
 	}
 
-	async getById({
+	public async getById({
 		orderId,
 	}: MethodParams<IOrderService, "getById">): MethodReturn<
 		IOrderService,
@@ -213,7 +213,7 @@ export class OrderService implements IOrderService {
 		};
 	}
 
-	async markAsCancelled(
+	public async markAsCancelled(
 		params: MethodParams<IOrderService, "markAsCancelled">,
 	): MethodReturn<IOrderService, "markAsCancelled"> {
 		const logger = this._getLogger({ method: "markAsCancelled" });
@@ -273,7 +273,7 @@ export class OrderService implements IOrderService {
 		};
 	}
 
-	async markAsProcessing(
+	public async markAsProcessing(
 		params: MethodParams<IOrderService, "markAsProcessing">,
 	): MethodReturn<IOrderService, "markAsProcessing"> {
 		const logger = this._getLogger({ method: "markAsProcessing" });
@@ -332,7 +332,7 @@ export class OrderService implements IOrderService {
 		};
 	}
 
-	async updatePayment(
+	public async updatePayment(
 		params: Partial<SelectOrder["payment"]> & { orderId: string },
 	): Promise<OrderResult<SelectOrder>> {
 		const logger = this._getLogger({ method: "updatePayment" });

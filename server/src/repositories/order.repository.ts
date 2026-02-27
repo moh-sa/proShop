@@ -50,7 +50,7 @@ export class OrderRepository implements IOrderRepository {
 		this._paginator = new Paginator(this._db);
 	}
 
-	async create(
+	public async create(
 		data: MethodParams<IOrderRepository, "create">,
 	): MethodReturn<IOrderRepository, "create"> {
 		try {
@@ -64,7 +64,7 @@ export class OrderRepository implements IOrderRepository {
 		}
 	}
 
-	async getAll(
+	public async getAll(
 		args: MethodParams<IOrderRepository, "getAll">,
 	): MethodReturn<IOrderRepository, "getAll"> {
 		const queries = this._bindQuery(args);
@@ -87,7 +87,7 @@ export class OrderRepository implements IOrderRepository {
 		}
 	}
 
-	async getById({
+	public async getById({
 		orderId,
 	}: MethodParams<IOrderRepository, "getById">): MethodReturn<
 		IOrderRepository,
@@ -105,7 +105,7 @@ export class OrderRepository implements IOrderRepository {
 		}
 	}
 
-	async markAsCancelled(
+	public async markAsCancelled(
 		params: MethodParams<IOrderRepository, "markAsCancelled">,
 	): MethodReturn<IOrderRepository, "markAsCancelled"> {
 		try {
@@ -130,7 +130,7 @@ export class OrderRepository implements IOrderRepository {
 		}
 	}
 
-	async markAsProcessing(
+	public async markAsProcessing(
 		params: MethodParams<IOrderRepository, "markAsProcessing">,
 	): MethodReturn<IOrderRepository, "markAsProcessing"> {
 		try {
@@ -156,7 +156,7 @@ export class OrderRepository implements IOrderRepository {
 		}
 	}
 
-	async updatePayment(
+	public async updatePayment(
 		params: MethodParams<IOrderRepository, "updatePayment">,
 	): MethodReturn<IOrderRepository, "updatePayment"> {
 		const { orderId, ...rest } = params;

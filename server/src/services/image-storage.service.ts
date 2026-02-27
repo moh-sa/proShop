@@ -31,7 +31,7 @@ type StorageResult<T> = Result<T>;
 export class ImageStorageService implements IImageStorageService {
 	private readonly _provider = cloudinary;
 
-	async delete({
+	public async delete({
 		url,
 	}: MethodParams<IImageStorageService, "delete">): MethodReturn<
 		IImageStorageService,
@@ -126,7 +126,7 @@ export class ImageStorageService implements IImageStorageService {
 		}
 	}
 
-	async replace({
+	public async replace({
 		file,
 		url,
 	}: MethodParams<IImageStorageService, "replace">): MethodReturn<
@@ -157,7 +157,7 @@ export class ImageStorageService implements IImageStorageService {
 		};
 	}
 
-	async upload({
+	public async upload({
 		file,
 	}: MethodParams<IImageStorageService, "upload">): MethodReturn<
 		IImageStorageService,

@@ -70,7 +70,7 @@ export class UserService implements IUserService {
 		this._repository = repository ?? userRepository;
 	}
 
-	async create(
+	public async create(
 		data: MethodParams<IUserService, "create">,
 	): MethodReturn<IUserService, "create"> {
 		const logger = this._getLogger({ method: "create" });
@@ -115,7 +115,7 @@ export class UserService implements IUserService {
 		};
 	}
 
-	async delete({
+	public async delete({
 		userId,
 	}: MethodParams<IUserService, "delete">): MethodReturn<
 		IUserService,
@@ -171,7 +171,7 @@ export class UserService implements IUserService {
 		};
 	}
 
-	public async existsByEmail({
+	async existsByEmail({
 		email,
 	}: MethodParams<IUserService, "existsByEmail">): MethodReturn<
 		IUserService,
@@ -218,7 +218,7 @@ export class UserService implements IUserService {
 		};
 	}
 
-	async getAll(
+	public async getAll(
 		args: MethodParams<IUserService, "getAll">,
 	): MethodReturn<IUserService, "getAll"> {
 		const logger = this._getLogger({ method: "getAll" });
@@ -319,7 +319,7 @@ export class UserService implements IUserService {
 		};
 	}
 
-	async getByEmail({
+	public async getByEmail({
 		email,
 	}: MethodParams<IUserService, "getByEmail">): MethodReturn<
 		IUserService,
@@ -376,7 +376,7 @@ export class UserService implements IUserService {
 		};
 	}
 
-	async getById({
+	public async getById({
 		userId,
 	}: MethodParams<IUserService, "getById">): MethodReturn<
 		IUserService,
@@ -429,7 +429,7 @@ export class UserService implements IUserService {
 		};
 	}
 
-	async updateById({
+	public async updateById({
 		data,
 		userId,
 	}: MethodParams<IUserService, "updateById">): MethodReturn<

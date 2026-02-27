@@ -47,7 +47,7 @@ export class UserRepository implements IUserRepository {
 		this._paginator = new Paginator(this._db);
 	}
 
-	async create(
+	public async create(
 		data: MethodParams<IUserRepository, "create">,
 	): MethodReturn<IUserRepository, "create"> {
 		try {
@@ -62,7 +62,7 @@ export class UserRepository implements IUserRepository {
 		}
 	}
 
-	async delete({
+	public async delete({
 		userId,
 	}: MethodParams<IUserRepository, "delete">): MethodReturn<
 		IUserRepository,
@@ -80,7 +80,7 @@ export class UserRepository implements IUserRepository {
 		}
 	}
 
-	async existsByEmail({
+	public async existsByEmail({
 		email,
 	}: MethodParams<IUserRepository, "existsByEmail">): MethodReturn<
 		IUserRepository,
@@ -98,7 +98,7 @@ export class UserRepository implements IUserRepository {
 		}
 	}
 
-	async getAll(
+	public async getAll(
 		args: MethodParams<IUserRepository, "getAll">,
 	): MethodReturn<IUserRepository, "getAll"> {
 		try {
@@ -118,7 +118,7 @@ export class UserRepository implements IUserRepository {
 		}
 	}
 
-	async getByEmail({
+	public async getByEmail({
 		email,
 	}: MethodParams<IUserRepository, "getByEmail">): MethodReturn<
 		IUserRepository,
@@ -136,7 +136,7 @@ export class UserRepository implements IUserRepository {
 		}
 	}
 
-	async getById({
+	public async getById({
 		userId,
 	}: MethodParams<IUserRepository, "getById">): MethodReturn<
 		IUserRepository,
@@ -154,7 +154,7 @@ export class UserRepository implements IUserRepository {
 		}
 	}
 
-	async update({
+	public async update({
 		data,
 		userId,
 	}: MethodParams<IUserRepository, "update">): MethodReturn<

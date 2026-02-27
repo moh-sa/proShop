@@ -56,7 +56,7 @@ export class CacheService implements ICacheService {
 		});
 	}
 
-	delete(
+	public delete(
 		args: MethodParams<ICacheService, "delete">,
 	): MethodReturn<ICacheService, "delete"> {
 		const logger = this._getLogger({ method: "delete" });
@@ -98,7 +98,7 @@ export class CacheService implements ICacheService {
 		}
 	}
 
-	deleteMany(
+	public deleteMany(
 		args: MethodParams<ICacheService, "deleteMany">,
 	): MethodReturn<ICacheService, "deleteMany"> {
 		const logger = this._getLogger({ method: "deleteMany" });
@@ -130,7 +130,7 @@ export class CacheService implements ICacheService {
 		});
 	}
 
-	flush(): MethodReturn<ICacheService, "flush"> {
+	public flush(): MethodReturn<ICacheService, "flush"> {
 		const logger = this._getLogger({ method: "flush" });
 
 		try {
@@ -143,14 +143,16 @@ export class CacheService implements ICacheService {
 		}
 	}
 
-	flushStats(): MethodReturn<ICacheService, "flushStats"> {
+	public flushStats(): MethodReturn<ICacheService, "flushStats"> {
 		const logger = this._getLogger({ method: "flushStats" });
 
 		this._cache.flushStats();
 		logger.info("Cache stats flushed successfully");
 	}
 
-	get<T>(args: MethodParams<ICacheService, "get">): CacheResult<T | undefined> {
+	public get<T>(
+		args: MethodParams<ICacheService, "get">,
+	): CacheResult<T | undefined> {
 		const logger = this._getLogger({ method: "get" });
 
 		logger.debug({ key: args.key }, "Getting cache item");
@@ -185,7 +187,7 @@ export class CacheService implements ICacheService {
 		}
 	}
 
-	getKeys(): MethodReturn<ICacheService, "getKeys"> {
+	public getKeys(): MethodReturn<ICacheService, "getKeys"> {
 		const logger = this._getLogger({ method: "getKeys" });
 
 		const keys = this._cache.keys();
@@ -194,7 +196,7 @@ export class CacheService implements ICacheService {
 		return keys;
 	}
 
-	getMany<T>(
+	public getMany<T>(
 		args: MethodParams<ICacheService, "getMany">,
 	): Array<CacheResult<T>> {
 		const logger = this._getLogger({ method: "getMany" });
@@ -226,7 +228,7 @@ export class CacheService implements ICacheService {
 		});
 	}
 
-	getStats(): MethodReturn<ICacheService, "getStats"> {
+	public getStats(): MethodReturn<ICacheService, "getStats"> {
 		const logger = this._getLogger({ method: "getStats" });
 
 		const stats = this._cache.getStats();
@@ -243,7 +245,7 @@ export class CacheService implements ICacheService {
 		};
 	}
 
-	isKeyCached(
+	public isKeyCached(
 		args: MethodParams<ICacheService, "isKeyCached">,
 	): MethodReturn<ICacheService, "isKeyCached"> {
 		const logger = this._getLogger({ method: "isKeyCached" });
@@ -280,7 +282,7 @@ export class CacheService implements ICacheService {
 		}
 	}
 
-	set(
+	public set(
 		args: MethodParams<ICacheService, "set">,
 	): MethodReturn<ICacheService, "set"> {
 		const logger = this._getLogger({ method: "set" });
@@ -326,7 +328,7 @@ export class CacheService implements ICacheService {
 		}
 	}
 
-	setMany(
+	public setMany(
 		args: MethodParams<ICacheService, "setMany">,
 	): MethodReturn<ICacheService, "setMany"> {
 		const logger = this._getLogger({ method: "setMany" });
@@ -376,7 +378,7 @@ export class CacheService implements ICacheService {
 		});
 	}
 
-	take<T>(args: MethodParams<ICacheService, "take">): CacheResult<T> {
+	public take<T>(args: MethodParams<ICacheService, "take">): CacheResult<T> {
 		const logger = this._getLogger({ method: "take" });
 
 		logger.debug({ key: args.key }, "Taking cache item");

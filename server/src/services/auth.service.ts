@@ -36,7 +36,7 @@ export class AuthService implements IAuthService {
 		this._jwtService = jwtService;
 	}
 
-	async signin(
+	public async signin(
 		data: MethodParams<IAuthService, "signin">,
 	): MethodReturn<IAuthService, "signin"> {
 		const isUserExists = await this._repository.getByEmail({
@@ -66,7 +66,7 @@ export class AuthService implements IAuthService {
 		return userWithoutPassword;
 	}
 
-	async signup(
+	public async signup(
 		data: MethodParams<IAuthService, "signup">,
 	): MethodReturn<IAuthService, "signup"> {
 		const isUserExists = await this._repository.existsByEmail({

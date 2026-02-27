@@ -67,7 +67,7 @@ export class ReviewRepository implements IReviewRepository {
 		this._paginator = new Paginator(this._db);
 	}
 
-	async count(): MethodReturn<IReviewRepository, "count"> {
+	public async count(): MethodReturn<IReviewRepository, "count"> {
 		try {
 			const result = await this._db.countDocuments().lean();
 
@@ -80,7 +80,7 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async countByProductId({
+	public async countByProductId({
 		productId,
 	}: MethodParams<IReviewRepository, "countByProductId">): MethodReturn<
 		IReviewRepository,
@@ -100,7 +100,7 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async countByUserId({
+	public async countByUserId({
 		userId,
 	}: MethodParams<IReviewRepository, "countByUserId">): MethodReturn<
 		IReviewRepository,
@@ -118,7 +118,7 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async create(
+	public async create(
 		data: MethodParams<IReviewRepository, "create">,
 	): MethodReturn<IReviewRepository, "create"> {
 		try {
@@ -133,7 +133,7 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async delete({
+	public async delete({
 		reviewId,
 	}: MethodParams<IReviewRepository, "delete">): MethodReturn<
 		IReviewRepository,
@@ -151,7 +151,7 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async existsById({
+	public async existsById({
 		reviewId,
 	}: MethodParams<IReviewRepository, "existsById">): MethodReturn<
 		IReviewRepository,
@@ -173,7 +173,7 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async existsByUserIdAndProductId({
+	public async existsByUserIdAndProductId({
 		productId,
 		userId,
 	}: MethodParams<
@@ -197,7 +197,7 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async getAll(
+	public async getAll(
 		args: MethodParams<IReviewRepository, "getAll">,
 	): MethodReturn<IReviewRepository, "getAll"> {
 		try {
@@ -217,7 +217,7 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async getAllByProductId(
+	public async getAllByProductId(
 		args: MethodParams<IReviewRepository, "getAllByProductId">,
 	): MethodReturn<IReviewRepository, "getAllByProductId"> {
 		try {
@@ -237,7 +237,7 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async getAllByUserId(
+	public async getAllByUserId(
 		args: MethodParams<IReviewRepository, "getAllByUserId">,
 	): MethodReturn<IReviewRepository, "getAllByUserId"> {
 		try {
@@ -257,7 +257,7 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async getById({
+	public async getById({
 		reviewId,
 	}: MethodParams<IReviewRepository, "getById">): MethodReturn<
 		IReviewRepository,
@@ -275,7 +275,7 @@ export class ReviewRepository implements IReviewRepository {
 		}
 	}
 
-	async update({
+	public async update({
 		data,
 		reviewId,
 	}: MethodParams<IReviewRepository, "update">): MethodReturn<

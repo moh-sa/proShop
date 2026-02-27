@@ -48,7 +48,7 @@ export class ProductService implements IProductService {
 		this._repository = repository ?? productRepository;
 	}
 
-	async create(
+	public async create(
 		data: MethodParams<IProductService, "create">,
 	): MethodReturn<IProductService, "create"> {
 		const logger = this._getLogger({ method: "create" });
@@ -81,7 +81,7 @@ export class ProductService implements IProductService {
 		};
 	}
 
-	async delete({
+	public async delete({
 		productId,
 	}: MethodParams<IProductService, "delete">): MethodReturn<
 		IProductService,
@@ -125,7 +125,7 @@ export class ProductService implements IProductService {
 		};
 	}
 
-	async getAll(
+	public async getAll(
 		args: MethodParams<IProductService, "getAll">,
 	): MethodReturn<IProductService, "getAll"> {
 		const logger = this._getLogger({ method: "getAll" });
@@ -202,7 +202,7 @@ export class ProductService implements IProductService {
 		};
 	}
 
-	async getById({
+	public async getById({
 		productId,
 	}: MethodParams<IProductService, "getById">): MethodReturn<
 		IProductService,
@@ -247,7 +247,7 @@ export class ProductService implements IProductService {
 		};
 	}
 
-	async getTopRated(): MethodReturn<IProductService, "getTopRated"> {
+	public async getTopRated(): MethodReturn<IProductService, "getTopRated"> {
 		const logger = this._getLogger({ method: "getTopRated" });
 		logger.debug("Getting top rated products");
 
@@ -274,7 +274,7 @@ export class ProductService implements IProductService {
 		};
 	}
 
-	async update(
+	public async update(
 		args: MethodParams<IProductService, "update">,
 	): MethodReturn<IProductService, "update"> {
 		const logger = this._getLogger({ method: "update" });

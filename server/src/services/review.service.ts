@@ -62,7 +62,7 @@ export class ReviewService implements IReviewService {
 		this._repository = repository ?? reviewRepository;
 	}
 
-	async count(): MethodReturn<IReviewService, "count"> {
+	public async count(): MethodReturn<IReviewService, "count"> {
 		const logger = this._getLogger({ method: "count" });
 		logger.debug("Counting reviews");
 
@@ -79,7 +79,7 @@ export class ReviewService implements IReviewService {
 		};
 	}
 
-	async countByProductId({
+	public async countByProductId({
 		productId,
 	}: MethodParams<IReviewService, "countByProductId">): MethodReturn<
 		IReviewService,
@@ -124,7 +124,7 @@ export class ReviewService implements IReviewService {
 		};
 	}
 
-	async countByUserId({
+	public async countByUserId({
 		userId,
 	}: MethodParams<IReviewService, "countByUserId">): MethodReturn<
 		IReviewService,
@@ -169,7 +169,7 @@ export class ReviewService implements IReviewService {
 		};
 	}
 
-	async create(
+	public async create(
 		data: MethodParams<IReviewService, "create">,
 	): MethodReturn<IReviewService, "create"> {
 		const logger = this._getLogger({ method: "create" });
@@ -209,7 +209,7 @@ export class ReviewService implements IReviewService {
 		};
 	}
 
-	async delete({
+	public async delete({
 		reviewId,
 	}: MethodParams<IReviewService, "delete">): MethodReturn<
 		IReviewService,
@@ -255,7 +255,7 @@ export class ReviewService implements IReviewService {
 		};
 	}
 
-	async existsById({
+	public async existsById({
 		reviewId,
 	}: MethodParams<IReviewService, "existsById">): MethodReturn<
 		IReviewService,
@@ -305,7 +305,7 @@ export class ReviewService implements IReviewService {
 		};
 	}
 
-	async existsByUserIdAndProductId({
+	public async existsByUserIdAndProductId({
 		productId,
 		userId,
 	}: MethodParams<IReviewService, "existsByUserIdAndProductId">): MethodReturn<
@@ -370,7 +370,7 @@ export class ReviewService implements IReviewService {
 		};
 	}
 
-	async getAll(
+	public async getAll(
 		args: MethodParams<IReviewService, "getAll">,
 	): MethodReturn<IReviewService, "getAll"> {
 		const logger = this._getLogger({ method: "getAll" });
@@ -420,7 +420,7 @@ export class ReviewService implements IReviewService {
 		};
 	}
 
-	async getAllByProductId(
+	public async getAllByProductId(
 		args: MethodParams<IReviewService, "getAllByProductId">,
 	): MethodReturn<IReviewService, "getAllByProductId"> {
 		const logger = this._getLogger({ method: "getAllByProductId" });
@@ -486,7 +486,7 @@ export class ReviewService implements IReviewService {
 		};
 	}
 
-	async getAllByUserId(
+	public async getAllByUserId(
 		args: MethodParams<IReviewService, "getAllByUserId">,
 	): MethodReturn<IReviewService, "getAllByUserId"> {
 		const logger = this._getLogger({ method: "getAllByUserId" });
@@ -551,7 +551,7 @@ export class ReviewService implements IReviewService {
 		};
 	}
 
-	async getById({
+	public async getById({
 		reviewId,
 	}: MethodParams<IReviewService, "getById">): MethodReturn<
 		IReviewService,
@@ -596,7 +596,7 @@ export class ReviewService implements IReviewService {
 		};
 	}
 
-	async update({
+	public async update({
 		data,
 		reviewId,
 	}: MethodParams<IReviewService, "update">): MethodReturn<

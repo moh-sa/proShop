@@ -69,7 +69,7 @@ export class OrderManager implements IOrderManager {
 		this._paymentService = payment ?? paymentService;
 	}
 
-	async create(
+	public async create(
 		params: MethodParams<IOrderManager, "create">,
 	): MethodReturn<IOrderManager, "create"> {
 		const logger = this._getLogger({ method: "create" });
@@ -160,19 +160,19 @@ export class OrderManager implements IOrderManager {
 		};
 	}
 
-	async getAll(
+	public async getAll(
 		params: MethodParams<IOrderManager, "getAll">,
 	): MethodReturn<IOrderManager, "getAll"> {
 		return this._orderService.getAll(params);
 	}
 
-	async getById(
+	public async getById(
 		params: MethodParams<IOrderManager, "getById">,
 	): MethodReturn<IOrderManager, "getById"> {
 		return this._orderService.getById(params);
 	}
 
-	async processPaymentWebhook(
+	public async processPaymentWebhook(
 		params: MethodParams<IOrderManager, "processPaymentWebhook">,
 	): MethodReturn<IOrderManager, "processPaymentWebhook"> {
 		const logger = this._getLogger({ method: "processPaymentWebhook" });
@@ -233,7 +233,7 @@ export class OrderManager implements IOrderManager {
 		}
 	}
 
-	async updatePayment(
+	public async updatePayment(
 		params: MethodParams<IOrderManager, "updatePayment">,
 	): MethodReturn<IOrderManager, "updatePayment"> {
 		return this._orderService.updatePayment(params);

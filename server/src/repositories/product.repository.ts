@@ -57,7 +57,7 @@ export class ProductRepository implements IProductRepository {
 		this._paginator = new Paginator(this._db);
 	}
 
-	async count(
+	public async count(
 		query: MethodParams<IProductRepository, "count">,
 	): MethodReturn<IProductRepository, "count"> {
 		try {
@@ -71,7 +71,7 @@ export class ProductRepository implements IProductRepository {
 		}
 	}
 
-	async create(
+	public async create(
 		data: MethodParams<IProductRepository, "create">,
 	): MethodReturn<IProductRepository, "create"> {
 		try {
@@ -90,7 +90,7 @@ export class ProductRepository implements IProductRepository {
 		}
 	}
 
-	async delete({
+	public async delete({
 		productId,
 	}: MethodParams<IProductRepository, "delete">): MethodReturn<
 		IProductRepository,
@@ -111,7 +111,7 @@ export class ProductRepository implements IProductRepository {
 		}
 	}
 
-	async getAll(
+	public async getAll(
 		args: MethodParams<IProductRepository, "getAll">,
 	): MethodReturn<IProductRepository, "getAll"> {
 		try {
@@ -131,7 +131,7 @@ export class ProductRepository implements IProductRepository {
 		}
 	}
 
-	async getById({
+	public async getById({
 		productId,
 	}: MethodParams<IProductRepository, "getById">): MethodReturn<
 		IProductRepository,
@@ -169,7 +169,7 @@ export class ProductRepository implements IProductRepository {
 		}
 	}
 
-	async getTopRated({
+	public async getTopRated({
 		limit,
 	}: MethodParams<IProductRepository, "getTopRated">): MethodReturn<
 		IProductRepository,
@@ -212,7 +212,7 @@ export class ProductRepository implements IProductRepository {
 		}
 	}
 
-	async update({
+	public async update({
 		data,
 		productId,
 	}: MethodParams<IProductRepository, "update">): MethodReturn<
