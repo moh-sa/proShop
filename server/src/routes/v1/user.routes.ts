@@ -20,7 +20,10 @@ const adminRouter = express.Router();
 
 profileRouter
 	.route("/")
-	.get(defaultLimiter, authenticate, checkUserExists, userController.getById)
+	.get(defaultLimiter, authenticate, checkUserExists, userController.getById);
+
+profileRouter
+	.route("/")
 	.patch(strictLimiter, authenticate, checkUserExists, userController.update);
 
 adminRouter
@@ -41,14 +44,20 @@ adminRouter
 		checkUserExists,
 		authorizeAdmin,
 		userController.getById,
-	)
+	);
+
+adminRouter
+	.route("/:userId")
 	.patch(
 		adminLimiter,
 		authenticate,
 		checkUserExists,
 		authorizeAdmin,
 		userController.update,
-	)
+	);
+
+adminRouter
+	.route("/:userId")
 	.delete(
 		adminLimiter,
 		authenticate,

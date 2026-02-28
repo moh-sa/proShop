@@ -56,14 +56,20 @@ userRouter
 		authenticate,
 		checkUserExists,
 		reviewController.getAllByUserId,
-	)
+	);
+
+userRouter
+	.route("/:userId")
 	.patch(
 		strictLimiter,
 		authenticate,
 		checkUserExists,
 		verifyReviewOwnership,
 		reviewController.update,
-	)
+	);
+
+userRouter
+	.route("/:userId")
 	.delete(
 		defaultLimiter,
 		authenticate,

@@ -33,16 +33,20 @@ adminRouter
 		productController.create,
 	);
 
+adminRouter.route("/:productId").get(defaultLimiter, productController.getById);
+
 adminRouter
 	.route("/:productId")
-	.get(defaultLimiter, productController.getById)
 	.delete(
 		adminLimiter,
 		authenticate,
 		checkUserExists,
 		authorizeAdmin,
 		productController.delete,
-	)
+	);
+
+adminRouter
+	.route("/:productId")
 	.patch(
 		adminLimiter,
 		authenticate,
