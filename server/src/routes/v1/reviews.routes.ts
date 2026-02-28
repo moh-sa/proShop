@@ -59,7 +59,7 @@ userRouter
 	);
 
 userRouter
-	.route("/:userId")
+	.route("/:reviewId")
 	.patch(
 		strictLimiter,
 		authenticate,
@@ -69,7 +69,7 @@ userRouter
 	);
 
 userRouter
-	.route("/:userId")
+	.route("/:reviewId")
 	.delete(
 		defaultLimiter,
 		authenticate,
