@@ -5,10 +5,12 @@ import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
 import { OrderController } from "../../controllers/index.js";
+import { ForbiddenError } from "../../errors/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockCheckoutSessionResponse,
 	generateMockInsertOrder,
+	generateMockObjectId,
 	generateMockSelectOrder,
 	generateMockSelectOrders,
 	mockExpressCall,
@@ -451,6 +453,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 					params: { userId },
 					query: { pageNumber: "1" },
 				},
+				res: { locals: { user: { _id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -486,6 +489,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 					params: { userId },
 					query: queryParams,
 				},
+				res: { locals: { user: { _id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -524,6 +528,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 					params: { userId },
 					query: { pageNumber: "1" },
 				},
+				res: { locals: { user: { _id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -558,6 +563,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 					params: { userId },
 					query: { pageNumber: "1" },
 				},
+				res: { locals: { user: { _id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -584,6 +590,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 					params: { userId },
 					query: { pageNumber: "1" },
 				},
+				res: { locals: { user: { _id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -618,6 +625,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 					params: { userId },
 					query: {},
 				},
+				res: { locals: { user: { _id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -639,6 +647,116 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				userId,
 			);
 		});
+
+		test("Should throw ForbiddenError when localUser is undefined", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					params: { userId },
+					query: { pageNumber: "1" },
+				},
+				res: { locals: {} },
+				testContext: t,
+			});
+
+			mockManager.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
+			);
+
+			// Act & Assert
+			await assert.rejects(
+				async () =>
+					await controller.getAllByUserId(
+						req as unknown as Request,
+						res as unknown as Response,
+						next,
+					),
+				ForbiddenError,
+			);
+		});
+
+		test("Should throw ForbiddenError when localUser does not match userId and is not admin", async (t) => {
+			// Arrange
+			const differentUserId = generateMockObjectId().toString();
+			const { next, req, res } = mockExpressCall({
+				req: {
+					params: { userId },
+					query: { pageNumber: "1" },
+				},
+				res: { locals: { user: { _id: differentUserId, isAdmin: false } } },
+				testContext: t,
+			});
+
+			mockManager.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
+			);
+
+			// Act & Assert
+			await assert.rejects(
+				async () =>
+					await controller.getAllByUserId(
+						req as unknown as Request,
+						res as unknown as Response,
+						next,
+					),
+				ForbiddenError,
+			);
+		});
+
+		test("Should allow access when localUser is admin even if userId doesn't match", async (t) => {
+			// Arrange
+			const adminUserId = generateMockObjectId().toString();
+			const { next, req, res } = mockExpressCall({
+				req: {
+					params: { userId },
+					query: { pageNumber: "1" },
+				},
+				res: { locals: { user: { _id: adminUserId, isAdmin: true } } },
+				testContext: t,
+			});
+
+			mockManager.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
+			);
+
+			// Act
+			await controller.getAllByUserId(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
+			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+		});
+
+		test("Should allow access when localUser matches userId", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					params: { userId },
+					query: { pageNumber: "1" },
+				},
+				res: { locals: { user: { _id: userId, isAdmin: false } } },
+				testContext: t,
+			});
+
+			mockManager.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
+			);
+
+			// Act
+			await controller.getAllByUserId(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
+			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+		});
 	});
 
 	describe("getById", () => {
@@ -647,11 +765,13 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		const mockOrderInCents = convertOrderToCents(mockSelectOrder);
 		const mockOrderInDollars = convertOrderToDollars(mockOrderInCents);
 		const orderId = mockOrderInCents._id.toString();
+		const orderOwnerId = mockOrderInCents.user._id.toString();
 
 		test("Should call 'service.getById' once with the correct 'orderId'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId } },
+				res: { locals: { user: { _id: orderOwnerId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -678,6 +798,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId } },
+				res: { locals: { user: { _id: orderOwnerId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -701,6 +822,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId } },
+				res: { locals: { user: { _id: orderOwnerId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -743,6 +865,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId } },
+				res: { locals: { user: { _id: orderOwnerId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -763,6 +886,106 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 				res.json.mock.calls[0].arguments[0],
 				createSuccessResponseObject({ data: mockOrderInDollars }),
 			);
+		});
+
+		test("Should throw ForbiddenError when localUser is undefined", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { params: { orderId } },
+				res: { locals: {} },
+				testContext: t,
+			});
+
+			mockManager.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrderInCents, success: true }),
+			);
+
+			// Act & Assert
+			await assert.rejects(
+				async () =>
+					await controller.getById(
+						req as unknown as Request,
+						res as unknown as Response,
+						next,
+					),
+				ForbiddenError,
+			);
+		});
+
+		test("Should throw ForbiddenError when localUser does not match order owner and is not admin", async (t) => {
+			// Arrange
+			const differentUserId = generateMockObjectId().toString();
+			const { next, req, res } = mockExpressCall({
+				req: { params: { orderId } },
+				res: { locals: { user: { _id: differentUserId, isAdmin: false } } },
+				testContext: t,
+			});
+
+			mockManager.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrderInCents, success: true }),
+			);
+
+			// Act & Assert
+			await assert.rejects(
+				async () =>
+					await controller.getById(
+						req as unknown as Request,
+						res as unknown as Response,
+						next,
+					),
+				ForbiddenError,
+			);
+		});
+
+		test("Should allow access when localUser is admin even if order belongs to different user", async (t) => {
+			// Arrange
+			const adminUserId = generateMockObjectId().toString();
+			const { next, req, res } = mockExpressCall({
+				req: { params: { orderId } },
+				res: { locals: { user: { _id: adminUserId, isAdmin: true } } },
+				testContext: t,
+			});
+
+			mockManager.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrderInCents, success: true }),
+			);
+
+			// Act
+			await controller.getById(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockManager.getById.mock.callCount(), 1);
+			assert.strictEqual(res.json.mock.callCount(), 1);
+			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+		});
+
+		test("Should allow access when localUser matches order owner", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { params: { orderId } },
+				res: { locals: { user: { _id: orderOwnerId, isAdmin: false } } },
+				testContext: t,
+			});
+
+			mockManager.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrderInCents, success: true }),
+			);
+
+			// Act
+			await controller.getById(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockManager.getById.mock.callCount(), 1);
+			assert.strictEqual(res.json.mock.callCount(), 1);
+			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 	});
 

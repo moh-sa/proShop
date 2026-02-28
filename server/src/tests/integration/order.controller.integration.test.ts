@@ -2,7 +2,7 @@ import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 
 import { OrderController } from "../../controllers/index.js";
-import { NotFoundError } from "../../errors/index.js";
+import { ForbiddenError, NotFoundError } from "../../errors/index.js";
 import { OrderManager } from "../../managers/index.js";
 import Order from "../../models/order.model.js";
 import Product from "../../models/product.model.js";
@@ -262,6 +262,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrder._id.toString() };
+			res.locals.user = generateMockSelectUser({
+				_id: mockOrder.user._id,
+				isAdmin: false,
+			});
 
 			// Act
 			await controller.getById(req, res, next);
@@ -280,6 +284,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrder._id.toString() };
+			res.locals.user = generateMockSelectUser({
+				_id: mockOrder.user._id,
+				isAdmin: false,
+			});
 
 			// Act
 			await controller.getById(req, res, next);
@@ -294,8 +302,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const mockOrder = generateMockSelectOrder();
 			await Order.insertMany([mockOrder]);
 			const { next, req, res } = createMockExpressContext();
-
 			req.params = { orderId: mockOrder._id.toString() };
+			res.locals.user = generateMockSelectUser({
+				_id: mockOrder.user._id,
+				isAdmin: false,
+			});
 
 			// Act
 			await controller.getById(req, res, next);
@@ -319,6 +330,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrder._id.toString() };
+			res.locals.user = mockUser;
 
 			// Act
 			await controller.getById(req, res, next);
@@ -356,6 +368,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrderData._id.toString() };
+			res.locals.user = generateMockSelectUser({
+				_id: mockOrderData.user._id,
+				isAdmin: false,
+			});
 
 			// Act
 			await controller.getById(req, res, next);
@@ -376,6 +392,62 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			response.data.orderItems.forEach((order, index) => {
 				assert.strictEqual(order.price, expectedData.orderItems[index].price);
 			});
+		});
+
+		test("Should return 403 when different user requests another user's order", async () => {
+			// Arrange
+			const orderOwner = generateMockSelectUser();
+			const mockOrder = convertOrderToCents(
+				generateMockSelectOrder({ user: orderOwner }),
+			);
+			await Order.insertMany([mockOrder]);
+
+			const differentUser = generateMockSelectUser({ isAdmin: false });
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { orderId: mockOrder._id.toString() };
+			res.locals.user = differentUser;
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.getById(req, res, next),
+				(error: unknown) => {
+					assert.ok(error instanceof ForbiddenError);
+					assert.strictEqual(
+						error.message,
+						"You are not authorized to access this resource.",
+					);
+					return true;
+				},
+			);
+		});
+
+		test("Should return 200 when admin requests another user's order", async () => {
+			// Arrange
+			const orderOwner = generateMockSelectUser();
+			const mockOrder = convertOrderToCents(
+				generateMockSelectOrder({ user: orderOwner }),
+			);
+			await Order.insertMany([mockOrder]);
+
+			const adminUser = generateMockSelectUser({ isAdmin: true });
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { orderId: mockOrder._id.toString() };
+			res.locals.user = adminUser;
+
+			// Act
+			await controller.getById(req, res, next);
+
+			// Assert
+			const code = res._getStatusCode();
+			assert.strictEqual(code, 200);
+
+			const response = res._getJSONData();
+			assert.ok(response);
+			assert.ok(response.success);
+			assert.ok(response.data);
+			assert.strictEqual(response.data._id, mockOrder._id.toString());
 		});
 	});
 
@@ -528,6 +600,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockOrder.user._id.toString() };
 			req.query = { pageNumber: "1", pageSize: "10" };
+			res.locals.user = generateMockSelectUser({
+				_id: mockOrder.user._id,
+				isAdmin: false,
+			});
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -544,9 +620,12 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockOrder = generateMockSelectOrder();
 			const { next, req, res } = createMockExpressContext();
-
 			req.params = { userId: mockOrder.user._id.toString() };
 			req.query = { pageNumber: "1" };
+			res.locals.user = generateMockSelectUser({
+				_id: mockOrder.user._id,
+				isAdmin: false,
+			});
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -566,6 +645,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockUser._id.toString() };
 			req.query = { pageNumber: "1", pageSize: "10" };
+			res.locals.user = mockUser;
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -588,6 +668,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockUser._id.toString() };
 			req.query = { pageNumber: "1" };
+			res.locals.user = mockUser;
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -613,6 +694,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockOrder1.user._id.toString() };
 			req.query = { pageNumber: "1" };
+			res.locals.user = mockUser;
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -649,6 +731,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 				pageNumber: "1",
 				pageSize: "10",
 			};
+			res.locals.user = mockUser;
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -672,6 +755,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockOrder.user._id.toString() };
 			req.query = {};
+			res.locals.user = generateMockSelectUser({
+				_id: mockOrder.user._id,
+				isAdmin: false,
+			});
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -697,6 +784,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockUser._id.toString() };
 			req.query = { pageNumber: "1", pageSize: "10" };
+			res.locals.user = mockUser;
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -713,6 +801,62 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 				assert.strictEqual(order.totalPrice, originalOrder?.totalPrice);
 			});
+		});
+
+		test("Should return 403 when different user requests another user's orders", async () => {
+			// Arrange
+			const orderOwner = generateMockSelectUser();
+			const mockOrders = generateMockSelectOrders(2, { user: orderOwner });
+			await Order.insertMany(mockOrders);
+
+			const differentUser = generateMockSelectUser({ isAdmin: false });
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { userId: orderOwner._id.toString() };
+			req.query = { pageNumber: "1", pageSize: "10" };
+			res.locals.user = differentUser;
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.getAllByUserId(req, res, next),
+				(error: unknown) => {
+					assert.ok(error instanceof ForbiddenError);
+					assert.strictEqual(
+						error.message,
+						"You are not authorized to access this resource.",
+					);
+					return true;
+				},
+			);
+		});
+
+		test("Should return 200 when admin requests another user's orders", async () => {
+			// Arrange
+			const orderOwner = generateMockSelectUser();
+			const mockOrders = generateMockSelectOrders(2, { user: orderOwner });
+			await Order.insertMany(mockOrders);
+
+			const adminUser = generateMockSelectUser({ isAdmin: true });
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { userId: orderOwner._id.toString() };
+			req.query = { pageNumber: "1", pageSize: "10" };
+			res.locals.user = adminUser;
+
+			// Act
+			await controller.getAllByUserId(req, res, next);
+
+			// Assert
+			const code = res._getStatusCode();
+			assert.strictEqual(code, 200);
+
+			const response = res._getJSONData();
+			assert.ok(response);
+			assert.ok(response.success);
+			assert.ok(response.data);
+			assert.ok(response.meta);
+			assert.strictEqual(response.data.length, 2);
+			assert.strictEqual(response.meta.totalItems, 2);
 		});
 	});
 

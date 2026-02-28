@@ -11,6 +11,7 @@ import type {
 } from "../types/index.js";
 
 import { ErrorType, HTTP_STATUS } from "../constants/index.js";
+import { ForbiddenError } from "../errors/index.js";
 import { orderManager } from "../managers/index.js";
 import {
 	asyncHandler,
@@ -143,6 +144,13 @@ export class OrderController implements IOrderController {
 			"Getting all orders by user ID",
 		);
 
+		// check if user is authorized to access this resource
+		this._authorizeResourceAccess({
+			localUser: res.locals.user,
+			logger,
+			userId: req.params.userId,
+		});
+
 		const result = await this._manager.getAll({
 			...req.query,
 			user: req.params.userId,
@@ -179,6 +187,13 @@ export class OrderController implements IOrderController {
 		if (!result.success) {
 			throw result.error;
 		}
+
+		// check if user is authorized to access this resource
+		this._authorizeResourceAccess({
+			localUser: res.locals.user,
+			logger,
+			userId: result.data.user._id.toString(),
+		});
 
 		logger.info(
 			{ orderId: result.data._id },
@@ -270,6 +285,33 @@ export class OrderController implements IOrderController {
 
 	constructor(manager?: IOrderManager) {
 		this._manager = manager ?? orderManager;
+	}
+
+	private _authorizeResourceAccess(params: {
+		localUser: SafeSelectUser | undefined;
+		logger: ReturnType<typeof getLoggerFromContext>;
+		userId: string;
+	}) {
+		params.logger.debug(params, "Authorizing access to resource");
+
+		const isSameUser = params.userId === params.localUser?._id.toString();
+		const isAdmin = params.localUser?.isAdmin;
+		if (!isSameUser && !isAdmin) {
+			params.logger.warn(
+				{
+					localUserId: params.localUser?._id.toString(),
+					userId: params.userId,
+				},
+				"User is not authorized to access this resource",
+			);
+			throw new ForbiddenError(
+				"You are not authorized to access this resource.",
+				{
+					localUserId: params.localUser?._id.toString(),
+					userId: params.userId,
+				},
+			);
+		}
 	}
 
 	private _convertOrderToCents(order: InsertOrder): InsertOrder {
