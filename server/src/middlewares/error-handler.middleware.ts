@@ -15,17 +15,19 @@ export function errorHandler(
 	res: Response,
 	_next: NextFunction,
 ) {
-	// Sent error to Sentry
-	Sentry.captureException(error, {
-		extra: {
-			requestId: req.id,
-		},
-		level: "error",
-		user: {
-			id: res.locals.userId,
-			ip_address: req.ip,
-		},
-	});
+	if (error instanceof BaseError && error.statusCode >= 500) {
+		// Sent error to Sentry
+		Sentry.captureException(error, {
+			extra: {
+				requestId: req.id,
+			},
+			level: "error",
+			user: {
+				id: res.locals.userId,
+				ip_address: req.ip,
+			},
+		});
+	}
 
 	// Handle Zod validation errors
 	if (error instanceof ZodError) {
