@@ -27,21 +27,6 @@ export function errorHandler(
 		},
 	});
 
-	// Handle different types of errors
-	if (error instanceof BaseError) {
-		return sendErrorResponse({
-			code: error.type,
-			errors: [
-				{
-					message: error.message,
-					path: req.path,
-				},
-			],
-			responseContext: res,
-			statusCode: error.statusCode,
-		});
-	}
-
 	// Handle Zod validation errors
 	if (error instanceof ZodError) {
 		error.format();
@@ -82,6 +67,21 @@ export function errorHandler(
 			],
 			responseContext: res,
 			statusCode: 400,
+		});
+	}
+
+	// fallback handler for custom errors instances
+	if (error instanceof BaseError) {
+		return sendErrorResponse({
+			code: error.type,
+			errors: [
+				{
+					message: error.message,
+					path: req.path,
+				},
+			],
+			responseContext: res,
+			statusCode: error.statusCode,
 		});
 	}
 
