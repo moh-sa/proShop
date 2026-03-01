@@ -22,6 +22,10 @@ publicRouter
 	.route("/top-rated")
 	.get(defaultLimiter, productController.getTopRated);
 
+publicRouter
+	.route("/:productId")
+	.get(defaultLimiter, productController.getById);
+
 adminRouter
 	.route("/")
 	.post(
@@ -32,8 +36,6 @@ adminRouter
 		uploadSingleMiddleware,
 		productController.create,
 	);
-
-adminRouter.route("/:productId").get(defaultLimiter, productController.getById);
 
 adminRouter
 	.route("/:productId")
