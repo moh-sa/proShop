@@ -15,7 +15,7 @@ export function errorHandler(
 	res: Response,
 	_next: NextFunction,
 ) {
-	if (error instanceof BaseError && error.statusCode >= 500) {
+	if (shouldReportToSentry(error)) {
 		// Sent error to Sentry
 		Sentry.captureException(error, {
 			extra: {
@@ -99,4 +99,17 @@ export function errorHandler(
 		responseContext: res,
 		statusCode: 500,
 	});
+}
+
+function shouldReportToSentry(error: Error): boolean {
+	if (error instanceof ZodError) {
+		return false;
+	}
+	if (error instanceof MulterError) {
+		return false;
+	}
+	if (error instanceof BaseError) {
+		return error.statusCode >= 500;
+	}
+	return true;
 }
