@@ -1,11 +1,7 @@
 import express from "express";
 
 import { userController } from "../../controllers/index.js";
-import {
-	authenticate,
-	authorizeAdmin,
-	checkUserExists,
-} from "../../middlewares/index.js";
+import { adminGuard, userGuard } from "../../middlewares/index.js";
 import {
 	adminLimiter,
 	defaultLimiter,
@@ -20,51 +16,27 @@ const adminRouter = express.Router();
 
 profileRouter
 	.route("/")
-	.get(defaultLimiter, authenticate, checkUserExists, userController.getById);
+	.get(...userGuard(defaultLimiter), userController.getById);
 
 profileRouter
 	.route("/")
-	.patch(strictLimiter, authenticate, checkUserExists, userController.update);
+	.patch(...userGuard(strictLimiter), userController.update);
 
 adminRouter
 	.route("/")
-	.get(
-		adminLimiter,
-		authenticate,
-		checkUserExists,
-		authorizeAdmin,
-		userController.getAll,
-	);
+	.get(...adminGuard(adminLimiter), userController.getAll);
 
 adminRouter
 	.route("/:userId")
-	.get(
-		adminLimiter,
-		authenticate,
-		checkUserExists,
-		authorizeAdmin,
-		userController.getById,
-	);
+	.get(...adminGuard(adminLimiter), userController.getById);
 
 adminRouter
 	.route("/:userId")
-	.patch(
-		adminLimiter,
-		authenticate,
-		checkUserExists,
-		authorizeAdmin,
-		userController.update,
-	);
+	.patch(...adminGuard(adminLimiter), userController.update);
 
 adminRouter
 	.route("/:userId")
-	.delete(
-		adminLimiter,
-		authenticate,
-		checkUserExists,
-		authorizeAdmin,
-		userController.delete,
-	);
+	.delete(...adminGuard(adminLimiter), userController.delete);
 
 protectedRoutes.use("/admin", adminRouter);
 protectedRoutes.use("/profile", profileRouter);

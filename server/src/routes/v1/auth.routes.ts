@@ -1,6 +1,7 @@
 import express from "express";
 
 import { authController } from "../../controllers/auth.controller.js";
+import { userGuard } from "../../middlewares/index.js";
 import {
 	authLimiter,
 	defaultLimiter,
@@ -20,29 +21,29 @@ const protectedRouter = express.Router();
 // Sign out routes
 protectedRouter
 	.route("/signout/current")
-	.delete(defaultLimiter, authController.signOut);
+	.delete(...userGuard(defaultLimiter), authController.signOut);
 
 protectedRouter
 	.route("/signout")
-	.delete(strictLimiter, authController.signOutAll);
+	.delete(...userGuard(strictLimiter), authController.signOutAll);
 
 // Token routes
 protectedRouter
 	.route("/token/refresh")
-	.post(strictLimiter, authController.refreshAccessToken);
+	.post(...userGuard(strictLimiter), authController.refreshAccessToken);
 
 // Session routes
 protectedRouter
 	.route("/sessions")
-	.get(defaultLimiter, authController.getUserSessions);
+	.get(...userGuard(defaultLimiter), authController.getUserSessions);
 
 protectedRouter
 	.route("/sessions/current")
-	.delete(strictLimiter, authController.revokeSession);
+	.delete(...userGuard(strictLimiter), authController.revokeSession);
 
 protectedRouter
 	.route("/sessions")
-	.delete(strictLimiter, authController.revokeAllSessions);
+	.delete(...userGuard(strictLimiter), authController.revokeAllSessions);
 
 // Mount protected routes
 router.use("/", protectedRouter);

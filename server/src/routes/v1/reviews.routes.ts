@@ -2,9 +2,8 @@ import express from "express";
 
 import { reviewController } from "../../controllers/index.js";
 import {
-	authenticate,
-	authorizeAdmin,
-	checkUserExists,
+	adminGuard,
+	userGuard,
 	verifyReviewOwnership,
 } from "../../middlewares/index.js";
 import {
@@ -29,41 +28,24 @@ publicRouter
 
 userRouter
 	.route("/")
-	.post(strictLimiter, authenticate, checkUserExists, reviewController.create);
+	.post(...userGuard(strictLimiter), reviewController.create);
 
 userRouter
 	.route("/count/user/:userId")
-	.get(
-		defaultLimiter,
-		authenticate,
-		checkUserExists,
-		reviewController.countByUserId,
-	);
+	.get(...userGuard(defaultLimiter), reviewController.countByUserId);
 
 userRouter
 	.route("/exists/user/:userId/product/:productId")
-	.get(
-		defaultLimiter,
-		authenticate,
-		checkUserExists,
-		reviewController.existsByUserIdAndProductId,
-	);
+	.get(...userGuard(defaultLimiter), reviewController.existsByUserIdAndProductId);
 
 userRouter
 	.route("/:userId")
-	.get(
-		defaultLimiter,
-		authenticate,
-		checkUserExists,
-		reviewController.getAllByUserId,
-	);
+	.get(...userGuard(defaultLimiter), reviewController.getAllByUserId);
 
 userRouter
 	.route("/:reviewId")
 	.patch(
-		strictLimiter,
-		authenticate,
-		checkUserExists,
+		...userGuard(strictLimiter),
 		verifyReviewOwnership,
 		reviewController.update,
 	);
@@ -71,52 +53,26 @@ userRouter
 userRouter
 	.route("/:reviewId")
 	.delete(
-		defaultLimiter,
-		authenticate,
-		checkUserExists,
+		...userGuard(defaultLimiter),
 		verifyReviewOwnership,
 		reviewController.delete,
 	);
 
 adminRouter
 	.route("/")
-	.get(
-		adminLimiter,
-		authenticate,
-		checkUserExists,
-		authorizeAdmin,
-		reviewController.getAll,
-	);
+	.get(...adminGuard(adminLimiter), reviewController.getAll);
 
 adminRouter
 	.route("/count")
-	.get(
-		adminLimiter,
-		authenticate,
-		checkUserExists,
-		authorizeAdmin,
-		reviewController.count,
-	);
+	.get(...adminGuard(adminLimiter), reviewController.count);
 
 adminRouter
 	.route("/exists/:reviewId")
-	.get(
-		adminLimiter,
-		authenticate,
-		checkUserExists,
-		authorizeAdmin,
-		reviewController.existsById,
-	);
+	.get(...adminGuard(adminLimiter), reviewController.existsById);
 
 adminRouter
 	.route("/:reviewId")
-	.get(
-		adminLimiter,
-		authenticate,
-		checkUserExists,
-		authorizeAdmin,
-		reviewController.getById,
-	);
+	.get(...adminGuard(adminLimiter), reviewController.getById);
 
 protectedRoutes.use("/", userRouter);
 protectedRoutes.use("/admin", adminRouter);

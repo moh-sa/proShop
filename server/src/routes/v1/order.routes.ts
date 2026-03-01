@@ -1,11 +1,7 @@
 import express from "express";
 
 import { orderController } from "../../controllers/index.js";
-import {
-	authenticate,
-	authorizeAdmin,
-	checkUserExists,
-} from "../../middlewares/index.js";
+import { adminGuard, userGuard } from "../../middlewares/index.js";
 import { defaultLimiter, strictLimiter } from "../../services/index.js";
 
 const baseRouter = express.Router();
@@ -15,40 +11,23 @@ const adminRouter = express.Router();
 
 userRouter
 	.route("/")
-	.post(strictLimiter, authenticate, checkUserExists, orderController.create);
+	.post(...userGuard(strictLimiter), orderController.create);
 
 userRouter
 	.route("/user/:userId")
-	.get(
-		defaultLimiter,
-		authenticate,
-		checkUserExists,
-		orderController.getAllByUserId,
-	);
+	.get(...userGuard(defaultLimiter), orderController.getAllByUserId);
 
 userRouter
 	.route("/:orderId")
-	.get(defaultLimiter, authenticate, checkUserExists, orderController.getById);
+	.get(...userGuard(defaultLimiter), orderController.getById);
 
 adminRouter
 	.route("/")
-	.get(
-		defaultLimiter,
-		authenticate,
-		checkUserExists,
-		authorizeAdmin,
-		orderController.getAll,
-	);
+	.get(...adminGuard(defaultLimiter), orderController.getAll);
 
 adminRouter
 	.route("/:orderId/payment")
-	.patch(
-		strictLimiter,
-		authenticate,
-		checkUserExists,
-		authorizeAdmin,
-		orderController.updatePayment,
-	);
+	.patch(...adminGuard(strictLimiter), orderController.updatePayment);
 
 protectedRoutes.use("/", userRouter);
 protectedRoutes.use("/admin", adminRouter);
