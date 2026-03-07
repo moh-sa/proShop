@@ -4,6 +4,7 @@ import { CacheBaseError } from "./cache-base.error.js";
 export class CacheCapacityError extends CacheBaseError {
 	constructor(
 		message: string,
+		statusCode: number,
 		details?: {
 			batchSize?: number;
 			currentSize?: number;
@@ -13,7 +14,7 @@ export class CacheCapacityError extends CacheBaseError {
 		super(
 			`Cache capacity exceeded: ${message}`,
 			ErrorType.CACHE_CAPACITY_ERROR,
-			500,
+			statusCode,
 			details,
 		);
 	}
@@ -21,6 +22,7 @@ export class CacheCapacityError extends CacheBaseError {
 	static batchTooLarge(batchSize: number, maxSize: number) {
 		return new CacheCapacityError(
 			`Batch size (${batchSize}) exceeds maximum cache size (${maxSize})`,
+			413,
 			{ batchSize, maxSize },
 		);
 	}
@@ -28,6 +30,7 @@ export class CacheCapacityError extends CacheBaseError {
 	static memoryExhausted(currentSize: number, maxSize: number) {
 		return new CacheCapacityError(
 			`Cache memory exhausted: ${currentSize}/${maxSize} keys used`,
+			503,
 			{ currentSize, maxSize },
 		);
 	}
