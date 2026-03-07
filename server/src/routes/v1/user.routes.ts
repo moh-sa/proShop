@@ -8,39 +8,30 @@ import {
 	strictLimiter,
 } from "../../services/index.js";
 
-const baseRouter = express.Router();
+const router = express.Router();
 
-const protectedRoutes = express.Router();
-const profileRouter = express.Router();
-const adminRouter = express.Router();
-
-profileRouter
-	.route("/")
+// User routes
+router
+	.route("/profile")
 	.get(...userGuard(defaultLimiter), userController.getById);
 
-profileRouter
-	.route("/")
+router
+	.route("/profile")
 	.patch(...userGuard(strictLimiter), userController.update);
 
-adminRouter
-	.route("/")
-	.get(...adminGuard(adminLimiter), userController.getAll);
+// Admin routes
+router.route("/").get(...adminGuard(adminLimiter), userController.getAll);
 
-adminRouter
+router
 	.route("/:userId")
 	.get(...adminGuard(adminLimiter), userController.getById);
 
-adminRouter
+router
 	.route("/:userId")
 	.patch(...adminGuard(adminLimiter), userController.update);
 
-adminRouter
+router
 	.route("/:userId")
 	.delete(...adminGuard(adminLimiter), userController.delete);
 
-protectedRoutes.use("/admin", adminRouter);
-protectedRoutes.use("/profile", profileRouter);
-
-baseRouter.use("/", protectedRoutes);
-
-export default baseRouter;
+export default router;

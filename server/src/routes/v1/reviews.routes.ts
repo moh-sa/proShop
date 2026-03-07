@@ -12,37 +12,36 @@ import {
 	strictLimiter,
 } from "../../services/index.js";
 
-const baseRouter = express.Router();
-const publicRouter = express.Router();
-const protectedRoutes = express.Router();
-const userRouter = express.Router();
-const adminRouter = express.Router();
+const router = express.Router();
 
-publicRouter
+// Public routes
+router
 	.route("/product/:productId")
 	.get(defaultLimiter, reviewController.getAllByProductId);
 
-publicRouter
+router
 	.route("/count/product/:productId")
 	.get(defaultLimiter, reviewController.countByProductId);
 
-userRouter
-	.route("/")
-	.post(...userGuard(strictLimiter), reviewController.create);
+// User routes
+router.route("/").post(...userGuard(strictLimiter), reviewController.create);
 
-userRouter
+router
 	.route("/count/user/:userId")
 	.get(...userGuard(defaultLimiter), reviewController.countByUserId);
 
-userRouter
+router
 	.route("/exists/user/:userId/product/:productId")
-	.get(...userGuard(defaultLimiter), reviewController.existsByUserIdAndProductId);
+	.get(
+		...userGuard(defaultLimiter),
+		reviewController.existsByUserIdAndProductId,
+	);
 
-userRouter
-	.route("/:userId")
+router
+	.route("/user/:userId")
 	.get(...userGuard(defaultLimiter), reviewController.getAllByUserId);
 
-userRouter
+router
 	.route("/:reviewId")
 	.patch(
 		...userGuard(strictLimiter),
@@ -50,7 +49,7 @@ userRouter
 		reviewController.update,
 	);
 
-userRouter
+router
 	.route("/:reviewId")
 	.delete(
 		...userGuard(defaultLimiter),
@@ -58,26 +57,17 @@ userRouter
 		reviewController.delete,
 	);
 
-adminRouter
-	.route("/")
-	.get(...adminGuard(adminLimiter), reviewController.getAll);
+// Admin routes
+router.route("/").get(...adminGuard(adminLimiter), reviewController.getAll);
 
-adminRouter
-	.route("/count")
-	.get(...adminGuard(adminLimiter), reviewController.count);
+router.route("/count").get(...adminGuard(adminLimiter), reviewController.count);
 
-adminRouter
+router
 	.route("/exists/:reviewId")
 	.get(...adminGuard(adminLimiter), reviewController.existsById);
 
-adminRouter
+router
 	.route("/:reviewId")
 	.get(...adminGuard(adminLimiter), reviewController.getById);
 
-protectedRoutes.use("/", userRouter);
-protectedRoutes.use("/admin", adminRouter);
-
-baseRouter.use("/", publicRouter);
-baseRouter.use("/", protectedRoutes);
-
-export default baseRouter;
+export default router;

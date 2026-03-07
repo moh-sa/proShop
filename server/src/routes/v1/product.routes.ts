@@ -5,24 +5,17 @@ import { productController } from "../../controllers/index.js";
 import { adminGuard } from "../../middlewares/index.js";
 import { adminLimiter, defaultLimiter } from "../../services/index.js";
 
-const baseRouter = express.Router();
+const router = express.Router();
 
-const publicRouter = express.Router();
+// Public routes
+router.route("/").get(defaultLimiter, productController.getAll);
 
-const protectedRoutes = express.Router();
-const adminRouter = express.Router();
+router.route("/top-rated").get(defaultLimiter, productController.getTopRated);
 
-publicRouter.route("/").get(defaultLimiter, productController.getAll);
+router.route("/:productId").get(defaultLimiter, productController.getById);
 
-publicRouter
-	.route("/top-rated")
-	.get(defaultLimiter, productController.getTopRated);
-
-publicRouter
-	.route("/:productId")
-	.get(defaultLimiter, productController.getById);
-
-adminRouter
+// Admin routes
+router
 	.route("/")
 	.post(
 		...adminGuard(adminLimiter),
@@ -30,11 +23,11 @@ adminRouter
 		productController.create,
 	);
 
-adminRouter
+router
 	.route("/:productId")
 	.delete(...adminGuard(adminLimiter), productController.delete);
 
-adminRouter
+router
 	.route("/:productId")
 	.patch(
 		...adminGuard(adminLimiter),
@@ -42,9 +35,4 @@ adminRouter
 		productController.update,
 	);
 
-protectedRoutes.use("/admin", adminRouter);
-
-baseRouter.use("/", publicRouter);
-baseRouter.use("/", protectedRoutes);
-
-export default baseRouter;
+export default router;
