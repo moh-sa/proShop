@@ -7,7 +7,7 @@ import { asyncHandler } from "../utils/async-handler.util.js";
  *
  * Checks that the user exists in the database and sets it in `res.locals.user`.
  *
- * This middleware must be used *after* `authenticate` middleware and *before* other middlewares that needs `res.locals.user`.
+ * This middleware must be used *after* `authenticateRefreshSession` and *before* other middlewares that needs `res.locals.user`.
  */
 export const checkUserExists = asyncHandler(async (_req, res, next) => {
 	// Get userId from res.locals

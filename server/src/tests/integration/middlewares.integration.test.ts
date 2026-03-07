@@ -11,7 +11,8 @@ import {
 	ValidationError,
 } from "../../errors/index.js";
 import {
-	authenticate,
+	authenticateAccessToken,
+	authenticateRefreshSession,
 	authorizeAdmin,
 	checkProductReviewedByUser,
 	checkUserExists,
@@ -302,7 +303,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		});
 	});
 
-	describe("authenticate", () => {
+	describe("authenticateRefreshSession", () => {
 		test("Should throw AuthenticationError when refresh token cookie is missing", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
@@ -311,7 +312,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => authenticate(req, res, next),
+				async () => authenticateRefreshSession(req, res, next),
 				AuthenticationError,
 			);
 		});
@@ -326,7 +327,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => authenticate(req, res, next),
+				async () => authenticateRefreshSession(req, res, next),
 				AuthenticationError,
 			);
 		});
@@ -346,58 +347,61 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => authenticate(req, res, next),
+				async () => authenticateRefreshSession(req, res, next),
 				AuthenticationError,
+			);
+		});
+
+		test("Should set res.locals.userId when refresh token and session are valid", async () => {
+			// Arrange
+			const jwtService = new JwtService();
+			const userId = generateMockObjectId().toString();
+			const refresh = jwtService.generateRefreshToken({ userId });
+			assert.ok(refresh.success);
+			await Session.create({
+				expiresAt: new Date(Date.now() + 60_000),
+				tokenId: refresh.data.tokenId,
+				userId,
+			});
+
+			const { next, req, res } = createMockExpressContext();
+			req.cookies = {};
+			req.signedCookies = {
+				[CookieName.REFRESH_TOKEN]: JSON.stringify(refresh.data.token),
+			};
+
+			// Act
+			await authenticateRefreshSession(req, res, next);
+
+			// Assert
+			assert.strictEqual(res.locals.userId, userId);
+		});
+	});
+
+	describe("authenticateAccessToken", () => {
+		test("Should throw InternalError when res.locals.userId is missing", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			req.cookies = {};
+			req.signedCookies = {};
+
+			// Act & Assert
+			await assert.rejects(
+				async () => authenticateAccessToken(req, res, next),
+				InternalError,
 			);
 		});
 
 		test("Should throw AuthenticationError when access token cookie is missing", async () => {
 			// Arrange
-			const jwtService = new JwtService();
-			const userId = generateMockObjectId().toString();
-			const refresh = jwtService.generateRefreshToken({ userId });
-			assert.ok(refresh.success);
-			await Session.create({
-				expiresAt: new Date(Date.now() + 60_000),
-				tokenId: refresh.data.tokenId,
-				userId,
-			});
-
 			const { next, req, res } = createMockExpressContext();
+			res.locals.userId = generateMockObjectId().toString();
 			req.cookies = {};
-			req.signedCookies = {
-				[CookieName.REFRESH_TOKEN]: JSON.stringify(refresh.data.token),
-			};
+			req.signedCookies = {};
 
 			// Act & Assert
 			await assert.rejects(
-				async () => authenticate(req, res, next),
-				AuthenticationError,
-			);
-		});
-
-		test("Should throw AuthenticationError when access token is invalid", async () => {
-			// Arrange
-			const jwtService = new JwtService();
-			const userId = generateMockObjectId().toString();
-			const refresh = jwtService.generateRefreshToken({ userId });
-			assert.ok(refresh.success);
-			await Session.create({
-				expiresAt: new Date(Date.now() + 60_000),
-				tokenId: refresh.data.tokenId,
-				userId,
-			});
-
-			const { next, req, res } = createMockExpressContext();
-			req.cookies = {};
-			req.signedCookies = {
-				[CookieName.ACCESS_TOKEN]: JSON.stringify("invalid"),
-				[CookieName.REFRESH_TOKEN]: JSON.stringify(refresh.data.token),
-			};
-
-			// Act & Assert
-			await assert.rejects(
-				async () => authenticate(req, res, next),
+				async () => authenticateAccessToken(req, res, next),
 				AuthenticationError,
 			);
 		});
@@ -406,57 +410,41 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			// Arrange
 			const jwtService = new JwtService();
 			const userId = generateMockObjectId().toString();
-			const otherUserId = generateMockObjectId().toString();
-			const refresh = jwtService.generateRefreshToken({ userId });
-			assert.ok(refresh.success);
-			await Session.create({
-				expiresAt: new Date(Date.now() + 60_000),
-				tokenId: refresh.data.tokenId,
-				userId,
-			});
-			const access = jwtService.generateAccessToken({ userId: otherUserId });
+			const access = jwtService.generateAccessToken({ userId });
 			assert.ok(access.success);
 
 			const { next, req, res } = createMockExpressContext();
+			res.locals.userId = generateMockObjectId().toString();
 			req.cookies = {};
 			req.signedCookies = {
 				[CookieName.ACCESS_TOKEN]: JSON.stringify(access.data.token),
-				[CookieName.REFRESH_TOKEN]: JSON.stringify(refresh.data.token),
 			};
 
 			// Act & Assert
 			await assert.rejects(
-				async () => authenticate(req, res, next),
+				async () => authenticateAccessToken(req, res, next),
 				ValidationError,
 			);
 		});
 
-		test("Should set res.locals.userId when tokens and session are valid", async () => {
+		test("Should not throw when access token matches res.locals.userId", async () => {
 			// Arrange
 			const jwtService = new JwtService();
 			const userId = generateMockObjectId().toString();
-			const tokenPair = jwtService.generateTokenPair({ userId });
-			assert.ok(tokenPair.success);
-			await Session.create({
-				expiresAt: new Date(Date.now() + 60_000),
-				tokenId: tokenPair.data.refresh.tokenId,
-				userId,
-			});
+			const access = jwtService.generateAccessToken({ userId });
+			assert.ok(access.success);
 
 			const { next, req, res } = createMockExpressContext();
+			res.locals.userId = userId;
 			req.cookies = {};
 			req.signedCookies = {
-				[CookieName.ACCESS_TOKEN]: JSON.stringify(tokenPair.data.access.token),
-				[CookieName.REFRESH_TOKEN]: JSON.stringify(
-					tokenPair.data.refresh.token,
-				),
+				[CookieName.ACCESS_TOKEN]: JSON.stringify(access.data.token),
 			};
 
-			// Act
-			await authenticate(req, res, next);
-
-			// Assert
-			assert.strictEqual(res.locals.userId, userId);
+			// Act & Assert
+			await assert.doesNotReject(async () =>
+				authenticateAccessToken(req, res, next),
+			);
 		});
 	});
 });

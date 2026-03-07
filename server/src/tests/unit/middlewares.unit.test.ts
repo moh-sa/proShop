@@ -15,7 +15,8 @@ import {
 	ValidationError,
 } from "../../errors/index.js";
 import {
-	authenticate,
+	authenticateAccessToken,
+	authenticateRefreshSession,
 	authorizeAdmin,
 	checkProductReviewedByUser,
 	checkUserExists,
@@ -31,40 +32,38 @@ import {
 import { mockExpressCall } from "../mocks/index.js";
 
 suite("Middlewares 〖 Unit Tests 〗", () => {
-	describe("authenticate", () => {
-		function setupMockGetCookie(
-			t: TestContext,
-			refreshToken?: string,
-			accessToken?: string,
-		) {
+	describe("authenticateRefreshSession", () => {
+		function setupMockGetCookie(t: TestContext, refreshToken?: string) {
 			return t.mock.method(
 				CookieService.prototype,
 				"get",
 				({ name }: { name: CookieName }) => {
-					return name === CookieName.REFRESH_TOKEN
-						? {
-								data: refreshToken ? refreshToken : "refreshTokenString",
-								success: true,
-							}
-						: {
-								data: accessToken ? accessToken : "accessTokenString",
-								success: true,
-							};
+					return (
+						name === CookieName.REFRESH_TOKEN && {
+							data: refreshToken ? refreshToken : "refreshTokenString",
+							success: true,
+						}
+					);
 				},
 			);
 		}
 
-		function setupMockVerifyJwt(t: TestContext, tokenId?: string) {
+		function setupMockVerifyJwt(
+			t: TestContext,
+			options?: { tokenId?: string; userId?: string },
+		) {
 			return t.mock.method(
 				JwtService.prototype,
 				"verify",
-				(args: { expectedType: TokenType; token: string }) => ({
+				(jwtArgs: { expectedType: TokenType; token: string }) => ({
 					data: {
 						exp: 2,
 						iat: 1,
-						tokenId: tokenId ? tokenId : "tokenId",
-						type: args.expectedType,
-						userId: "507f1f77bcf86cd799439011",
+						tokenId: options?.tokenId ? options.tokenId : "tokenId",
+						type: jwtArgs.expectedType,
+						userId: options?.userId
+							? options.userId
+							: "507f1f77bcf86cd799439011",
 					},
 					success: true,
 				}),
@@ -104,7 +103,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			setupMockValidateSession(t);
 
 			// Act
-			await authenticate(req as any, res as any, next);
+			await authenticateRefreshSession(req as any, res as any, next);
 
 			// Assert
 			assert.strictEqual(
@@ -126,7 +125,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			setupMockValidateSession(t);
 
 			// Act
-			await authenticate(req as any, res as any, next);
+			await authenticateRefreshSession(req as any, res as any, next);
 
 			// Assert
 			assert.strictEqual(
@@ -145,11 +144,11 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			});
 
 			setupMockGetCookie(t);
-			setupMockVerifyJwt(t, tokenId);
+			setupMockVerifyJwt(t, { tokenId, userId });
 			const mockValidateSession = setupMockValidateSession(t, userId, tokenId);
 
 			// Act
-			await authenticate(req as any, res as any, next);
+			await authenticateRefreshSession(req as any, res as any, next);
 
 			// Assert
 			assert.strictEqual(
@@ -162,47 +161,6 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should call CookieService.get with ACCESS_TOKEN", async (t) => {
-			// Arrange
-			const { next, req, res } = mockExpressCall({
-				req: { cookies: {}, signedCookies: {} },
-				testContext: t,
-			});
-			const mockGetCookie = setupMockGetCookie(t);
-			setupMockVerifyJwt(t);
-			setupMockValidateSession(t);
-
-			// Act
-			await authenticate(req as any, res as any, next);
-
-			// Assert
-			assert.strictEqual(
-				mockGetCookie.mock.calls[1].arguments[0].name,
-				CookieName.ACCESS_TOKEN,
-			);
-		});
-
-		test("Should pass access token from CookieService to JwtService.verify(ACCESS)", async (t) => {
-			// Arrange
-			const accessToken = "accessTokenString";
-			const { next, req, res } = mockExpressCall({
-				req: { cookies: {}, signedCookies: {} },
-				testContext: t,
-			});
-			setupMockGetCookie(t);
-			const mockVerifyJwt = setupMockVerifyJwt(t);
-			setupMockValidateSession(t);
-
-			// Act
-			await authenticate(req as any, res as any, next);
-
-			// Assert
-			assert.strictEqual(
-				mockVerifyJwt.mock.calls[1].arguments[0].token,
-				accessToken,
-			);
-		});
-
 		test("Should set res.locals.userId on success", async (t) => {
 			// Arrange
 			const userId = "507f1f77bcf86cd799439011";
@@ -211,11 +169,11 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 				testContext: t,
 			});
 			setupMockGetCookie(t);
-			setupMockVerifyJwt(t);
+			setupMockVerifyJwt(t, { userId });
 			setupMockValidateSession(t, userId);
 
 			// Act
-			await authenticate(req as any, res as any, next);
+			await authenticateRefreshSession(req as any, res as any, next);
 
 			// Assert
 			assert.strictEqual(res.locals.userId, userId);
@@ -228,13 +186,12 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 				req: { cookies: {}, signedCookies: {} },
 				testContext: t,
 			});
-
 			setupMockGetCookie(t);
-			setupMockVerifyJwt(t);
+			setupMockVerifyJwt(t, { userId });
 			setupMockValidateSession(t, userId);
 
 			// Act
-			await authenticate(req as any, res as any, next);
+			await authenticateRefreshSession(req as any, res as any, next);
 
 			// Assert
 			assert.strictEqual(next.mock.callCount(), 1);
@@ -246,13 +203,187 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 				req: { cookies: {}, signedCookies: {} },
 				testContext: t,
 			});
-
-			setupMockGetCookie(t);
+			t.mock.method(CookieService.prototype, "get", () => ({
+				error: new ValidationError("missing refresh"),
+				success: false,
+			}));
 
 			// Act & Assert
 			await assert.rejects(
-				async () => authenticate(req as any, res as any, next),
+				async () => authenticateRefreshSession(req as any, res as any, next),
 				AuthenticationError,
+			);
+		});
+	});
+
+	describe("authenticateAccessToken", () => {
+		function setupMockGetCookie(
+			t: TestContext,
+			// refreshToken?: string,
+			accessToken?: string,
+		) {
+			return t.mock.method(
+				CookieService.prototype,
+				"get",
+				({ name }: { name: CookieName }) => {
+					return (
+						name === CookieName.ACCESS_TOKEN && {
+							data: accessToken ? accessToken : "accessTokenString",
+							success: true,
+						}
+					);
+				},
+			);
+		}
+
+		function setupMockVerifyJwt(
+			t: TestContext,
+			options?: { tokenId?: string; userId?: string },
+		) {
+			return t.mock.method(
+				JwtService.prototype,
+				"verify",
+				(argsInput: { expectedType: TokenType; token: string }) => ({
+					data: {
+						exp: 2,
+						iat: 1,
+						tokenId: options?.tokenId ? options.tokenId : "tokenId",
+						type: argsInput.expectedType,
+						userId: options?.userId
+							? options.userId
+							: "507f1f77bcf86cd799439011",
+					},
+					success: true,
+				}),
+			);
+		}
+
+		test("Should call CookieService.get with ACCESS_TOKEN", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { cookies: {}, signedCookies: {} },
+				testContext: t,
+			});
+			res.locals.userId = "507f1f77bcf86cd799439011";
+			const mockGetCookie = setupMockGetCookie(t);
+			setupMockVerifyJwt(t);
+
+			// Act
+			await authenticateAccessToken(req as any, res as any, next);
+
+			// Assert
+			assert.strictEqual(
+				mockGetCookie.mock.calls[0].arguments[0].name,
+				CookieName.ACCESS_TOKEN,
+			);
+		});
+
+		test("Should pass access token from CookieService to JwtService.verify(ACCESS)", async (t) => {
+			// Arrange
+			const accessToken = "accessTokenString";
+			const { next, req, res } = mockExpressCall({
+				req: { cookies: {}, signedCookies: {} },
+				testContext: t,
+			});
+			res.locals.userId = "507f1f77bcf86cd799439011";
+			setupMockGetCookie(t, accessToken);
+			const mockVerifyJwt = setupMockVerifyJwt(t);
+
+			// Act
+			await authenticateAccessToken(req as any, res as any, next);
+
+			// Assert
+			assert.strictEqual(
+				mockVerifyJwt.mock.calls[0].arguments[0].token,
+				accessToken,
+			);
+		});
+
+		test("Should call next once without error on success", async (t) => {
+			// Arrange
+			const userId = "507f1f77bcf86cd799439011";
+			const { next, req, res } = mockExpressCall({
+				req: { cookies: {}, signedCookies: {} },
+				testContext: t,
+			});
+			res.locals.userId = userId;
+			setupMockGetCookie(t);
+			setupMockVerifyJwt(t, { userId });
+
+			// Act
+			await authenticateAccessToken(req as any, res as any, next);
+
+			// Assert
+			assert.strictEqual(next.mock.callCount(), 1);
+		});
+
+		test("Should call next with InternalError when res.locals.userId is missing", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { cookies: {}, signedCookies: {} },
+				testContext: t,
+			});
+
+			// Act & Assert
+			await assert.rejects(
+				async () => authenticateAccessToken(req as any, res as any, next),
+				InternalError,
+			);
+		});
+
+		test("Should call next with AuthenticationError when access cookie missing", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { cookies: {}, signedCookies: {} },
+				testContext: t,
+			});
+			res.locals.userId = "507f1f77bcf86cd799439011";
+			t.mock.method(CookieService.prototype, "get", () => ({
+				error: new ValidationError("missing access"),
+				success: false,
+			}));
+
+			// Act & Assert
+			await assert.rejects(
+				async () => authenticateAccessToken(req as any, res as any, next),
+				AuthenticationError,
+			);
+		});
+
+		test("Should call next with AuthenticationError when access token is invalid", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { cookies: {}, signedCookies: {} },
+				testContext: t,
+			});
+			res.locals.userId = "507f1f77bcf86cd799439011";
+			setupMockGetCookie(t);
+			t.mock.method(JwtService.prototype, "verify", () => ({
+				error: new ValidationError("invalid access"),
+				success: false,
+			}));
+
+			// Act & Assert
+			await assert.rejects(
+				async () => authenticateAccessToken(req as any, res as any, next),
+				AuthenticationError,
+			);
+		});
+
+		test("Should call next with ValidationError when token pair userIds mismatch", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: { cookies: {}, signedCookies: {} },
+				testContext: t,
+			});
+			res.locals.userId = "507f1f77bcf86cd799439011";
+			setupMockGetCookie(t);
+			setupMockVerifyJwt(t, { userId: "another-user-id" });
+
+			// Act & Assert
+			await assert.rejects(
+				async () => authenticateAccessToken(req as any, res as any, next),
+				ValidationError,
 			);
 		});
 	});
