@@ -1,0 +1,41 @@
+meta {
+  name: Sign Up
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/v1/auth/signup
+  body: json
+}
+
+body:json {
+  {
+    "name": "Test User",
+    "email": "test@example.com",
+    "password": "SecurePass123!",
+    "isAdmin": false
+  }
+}
+
+headers {
+  Content-Type: application/json
+}
+
+script:post-response {
+  // Store accessToken and refreshToken cookies from Set-Cookie headers for subsequent requests
+  const jar = bru.cookies.jar();
+  const cookieUrl = (bru.getEnvVar('baseUrl') || 'http://localhost:5000/api').replace(/\/api\/?$/, '') || 'http://localhost:5000';
+  const setCookie = res.headers['set-cookie'] || res.headers['Set-Cookie'];
+  if (setCookie) {
+    const cookies = Array.isArray(setCookie) ? setCookie : [setCookie];
+    cookies.forEach(function(cookieStr) {
+      const parts = cookieStr.split(';')[0].split('=');
+      const name = parts[0].trim();
+      const value = parts.slice(1).join('=').trim();
+      if (name === 'accessToken' || name === 'refreshToken') {
+        jar.setCookie(cookieUrl, name, value);
+      }
+    });
+  }
+}

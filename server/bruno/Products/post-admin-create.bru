@@ -1,0 +1,26 @@
+meta {
+  name: Create Product (Admin)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/v1/products/admin
+  body: json
+}
+
+body:json {
+  {
+    "name": "Test Product",
+    "brand": "Test Brand",
+    "category": "Electronics",
+    "description": "A test product description",
+    "price": 99.99,
+    "countInStock": 10,
+    "user": "{{userId}}"
+  }
+}
+
+headers {
+  Content-Type: application/json
+}

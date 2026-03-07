@@ -1,0 +1,9 @@
+meta {
+  name: Check Review Exists By User And Product
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/v1/reviews/exists/user/{{userId}}/product/{{productId}}
+}

@@ -1,0 +1,24 @@
+meta {
+  name: Update Review
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{baseUrl}}/v1/reviews/{{reviewId}}
+  body: json
+}
+
+body:json {
+  {
+    "comment": "Updated review comment",
+    "name": "Test User",
+    "product": "{{productId}}",
+    "rating": 4,
+    "user": "{{userId}}"
+  }
+}
+
+headers {
+  Content-Type: application/json
+}

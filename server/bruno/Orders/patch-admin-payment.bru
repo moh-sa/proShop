@@ -1,0 +1,23 @@
+meta {
+  name: Update Order Payment (Admin)
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/v1/orders/admin/{{orderId}}/payment
+  body: json
+}
+
+body:json {
+  {
+    "paidAt": "2024-01-01T00:00:00.000Z",
+    "provider": "stripe",
+    "sessionURL": "https://checkout.stripe.com/session/123",
+    "id": "pay_123"
+  }
+}
+
+headers {
+  Content-Type: application/json
+}

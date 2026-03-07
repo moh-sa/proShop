@@ -1,0 +1,608 @@
+# Bruno API Client - Cursor AI Rules
+
+## What is Bruno?
+
+Bruno is an innovative API client that stores API collections directly in your
+filesystem using a plain text markup language called "Bru". It's designed as a
+Git-first, offline-only alternative to Postman, perfect for teams who want to
+version control their API tests alongside their code.
+
+## Core Philosophy
+
+- **Offline-First**: No cloud sync, everything stored locally
+- **Git-Collaborative**: Collections designed for version control
+- **Plain Text**: Human-readable .bru files for easy collaboration
+- **File-Based**: No databases, everything in the filesystem
+- **Developer-Friendly**: Works with your existing workflow
+
+## Bru File Format (.bru)
+
+Bruno uses a custom plain-text markup language for API requests:
+
+```bru
+meta {
+  name: API Request Name
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/endpoint
+  body: none
+  auth: none
+}
+
+headers {
+  content-type: application/json
+  authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "key": "value"
+  }
+}
+
+script:pre-request {
+  // JavaScript code executed before request
+  bru.setVar("timestamp", Date.now());
+}
+
+script:post-response {
+  // JavaScript code executed after response
+  bru.setVar("userId", res.body.id);
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+}
+
+vars:pre-request {
+  apiKey: secret123
+}
+
+vars:post-response {
+  userId: {{res.body.id}}
+}
+```
+
+## GraphQL API Requests
+
+Bruno supports GraphQL queries and mutations. Here's the structure for GraphQL
+requests:
+
+```bru
+meta {
+  name: GetPokemon
+  type: graphql
+  seq: 2
+}
+
+post {
+  url: https://graphql-api.example.com/graphql
+  body: graphql
+  auth: inherit
+}
+
+body:graphql {
+  query GetPokemon($name: String!) {
+    pokemon(name: $name) {
+      id
+      name
+      height
+      weight
+      types {
+        type {
+          name
+        }
+      }
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+    "name": "pikachu"
+  }
+}
+
+settings {
+  encodeUrl: true
+}
+```
+
+### GraphQL Request Components
+
+- `meta.type`: Set to `"graphql"` for GraphQL requests
+- `post.body`: Set to `"graphql"` to indicate GraphQL body type
+- `body:graphql`: Contains the GraphQL query or mutation
+  - Supports queries: `query QueryName($variable: Type!) { ... }`
+  - Supports mutations: `mutation MutationName($variable: Type!) { ... }`
+  - Supports fragments and complex nested queries
+- `body:graphql:vars`: JSON object containing GraphQL variables
+  - Variables are referenced in the query using `$variableName` syntax
+  - Variable types must match the GraphQL schema (String!, Int, Boolean, etc.)
+- `settings.encodeUrl`: Boolean to enable URL encoding (typically `true` for
+  GraphQL endpoints)
+- `auth`: Can be `"inherit"` (from collection), `"none"`, or custom auth
+  configuration
+
+### GraphQL Variable Examples
+
+```bru
+body:graphql:vars {
+  {
+    "name": "pikachu",
+    "limit": 10,
+    "offset": 0,
+    "includeDetails": true
+  }
+}
+```
+
+### GraphQL with Environment Variables
+
+```bru
+body:graphql {
+  query GetUser($id: ID!) {
+    user(id: $id) {
+      id
+      name
+      email
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+    "id": "{{userId}}"
+  }
+}
+```
+
+## File Structure
+
+- `collection.bru` - Collection-level configuration
+- `bruno.json` - Collection metadata and settings
+- `environments/` - Environment files (.bru format)
+- Individual `.bru` files for each API request
+- Folders can contain `folder.bru` for folder-level settings
+
+## Bruno.json Schema
+
+The `bruno.json` file contains collection metadata and configuration. Here's the
+schema structure:
+
+```json
+{
+  "version": "1",
+  "name": "my-api-collection",
+  "type": "collection",
+  "ignore": ["node_modules", ".git", "*.log"],
+  "scripts": {
+    "moduleWhitelist": ["fs", "path", "crypto"],
+    "filesystemAccess": {
+      "allow": true
+    }
+  },
+  "size": 0.004620552062988281,
+  "filesCount": 23,
+  "proxy": {
+    "bypassProxy": "localhost,127.0.0.1",
+    "enabled": "global",
+    "auth": {
+      "enabled": false,
+      "username": "",
+      "password": ""
+    },
+    "port": 8080,
+    "hostname": "proxy.example.com",
+    "protocol": "http"
+  },
+  "clientCertificates": {
+    "enabled": true,
+    "certs": []
+  },
+  "protobuf": {
+    "protoFiles": []
+  }
+}
+```
+
+### Schema Fields
+
+- `version`: Bruno collection format version (typically "1")
+- `name`: Collection name identifier
+- `type`: Always "collection" for API collections
+- `ignore`: Array of file patterns to ignore (similar to .gitignore)
+- `scripts.moduleWhitelist`: Node.js modules allowed in scripts (e.g., "fs",
+  "path", "crypto")
+- `scripts.filesystemAccess.allow`: Boolean to enable filesystem access in
+  scripts
+- `size`: Collection size in MB (calculated automatically)
+- `filesCount`: Total number of files in collection (calculated automatically)
+- `proxy`: Proxy configuration for requests
+  - `bypassProxy`: Comma-separated hosts to bypass proxy
+  - `enabled`: "global", "collection", or false
+  - `auth`: Proxy authentication settings
+  - `port`: Proxy port number
+  - `hostname`: Proxy server hostname
+  - `protocol`: "http" or "https"
+- `clientCertificates`: Client certificate configuration
+  - `enabled`: Boolean to enable client certificates
+  - `certs`: Array of certificate configurations
+- `protobuf`: Protocol Buffer configuration
+  - `protoFiles`: Array of .proto file paths
+
+## Environment Files
+
+```bru
+vars {
+  baseUrl: https://api.example.com
+  apiVersion: v1
+  timeout: 5000
+}
+
+vars:secret [
+  apiKey,
+  clientSecret,
+  authToken
+]
+```
+
+## JavaScript API Reference
+
+### Request Object (req)
+
+Available in pre-request and test scripts:
+
+- `req.getUrl()` - Get the current request URL
+- `req.setUrl(url)` - Set the request URL
+- `req.getMethod()` - Get HTTP method (GET, POST, etc.)
+- `req.setMethod(method)` - Set HTTP method
+- `req.getHeader(name)` - Get a specific header
+- `req.getHeaders()` - Get all headers
+- `req.setHeader(name, value)` - Set a header
+- `req.setHeaders(headers)` - Set multiple headers
+- `req.getBody()` - Get request body
+- `req.setBody(body)` - Set request body
+- `req.setTimeout(ms)` - Set request timeout
+- `req.setMaxRedirects(count)` - Set max redirects
+
+### Response Object (res)
+
+Available in post-response scripts and tests:
+
+- `res.status` - HTTP status code
+- `res.statusText` - HTTP status text
+- `res.headers` - Response headers object
+- `res.body` - Parsed response body
+- `res.responseTime` - Response time in milliseconds
+- `res.getHeader(name)` - Get specific response header
+- `res.getStatus()` - Get status code
+- `res.getBody()` - Get response body
+
+### Bruno Runtime (bru)
+
+Core scripting API:
+
+- `bru.setVar(key, value)` - Set runtime variable
+- `bru.getVar(key)` - Get runtime variable
+- `bru.setEnvVar(key, value)` - Set environment variable
+- `bru.getEnvVar(key)` - Get environment variable
+- `bru.getProcessEnv(key)` - Get process environment variable
+- `bru.setNextRequest(requestName)` - Chain to next request
+- `bru.sleep(ms)` - Pause execution
+- `bru.cwd()` - Get current working directory
+
+### Dynamic Variables
+
+Use in request URLs, headers, or body:
+
+- `{{$guid}}` - Random GUID
+- `{{$timestamp}}` - Current timestamp
+- `{{$randomInt}}` - Random integer
+- `{{$randomEmail}}` - Random email
+- `{{$randomFirstName}}` - Random first name
+- `{{$randomLastName}}` - Random last name
+- `{{$randomFullName}}` - Random full name
+- `{{$randomPhoneNumber}}` - Random phone number
+- `{{$randomCity}}` - Random city name
+- `{{$randomCountry}}` - Random country name
+
+### Test Assertions (Chai.js)
+
+```javascript
+test("Status is 200", function () {
+  expect(res.status).to.equal(200);
+});
+
+test("Response has data", function () {
+  expect(res.body).to.have.property("data");
+  expect(res.body.data).to.be.an("array");
+});
+
+test("Response time is acceptable", function () {
+  expect(res.responseTime).to.be.below(2000);
+});
+```
+
+### Cookie Management
+
+```javascript
+const jar = bru.cookies.jar();
+jar.setCookie(url, "sessionId", "abc123");
+jar.getCookie(url, "sessionId");
+jar.deleteCookie(url, "sessionId");
+```
+
+## Best Practices
+
+1. **Use .bru format** - Always use .bru files, never JSON for API definitions
+2. **Environment variables** - Use `{{variableName}}` for values that change
+   across environments
+3. **Secret management** - Store sensitive data in `vars:secret` blocks
+4. **Comprehensive tests** - Write tests for status codes, response structure,
+   and data validation
+5. **Request chaining** - Use `bru.setNextRequest()` for complex workflows
+6. **Error handling** - Add validation in pre-request scripts
+7. **Git-friendly** - Organize collections logically for version control
+8. **Documentation** - Use meaningful names and add comments in scripts
+
+## Common Use Cases
+
+- API development and testing
+- Integration testing for microservices
+- Automated testing in CI/CD pipelines (using Bruno CLI)
+- API documentation with examples
+- Team collaboration on API collections
+- Converting from Postman/Insomnia collections
+
+## GitHub Actions CI/CD Integration
+
+Bruno CLI integrates seamlessly with GitHub Actions to automate API testing
+workflows. GitHub Actions is a powerful continuous integration and continuous
+delivery (CI/CD) platform that enables you to automate your software development
+workflows directly from your GitHub repository.
+
+### Prerequisites
+
+- Git installed
+- GitHub repository with Bruno collection
+- Bruno collection properly organized in your repository
+
+### Repository Structure
+
+Ensure your Bruno collections are properly organized in your repository:
+
+```plaintext
+your-api-project/
+├── .github/
+│   └── workflows/
+│       └── api-tests.yml
+├── bruno-api-collection/
+│   ├── bruno.json
+│   ├── collection.bru
+│   ├── environments/
+│   │   ├── development.bru
+│   │   ├── ci.bru
+│   │   └── production.bru
+│   └── api/
+│       └── data/
+│           ├── Get All Data.bru
+│           ├── Create Data.bru
+│           └── Update Data by ID.bru
+└── server.js
+```
+
+### Setting Up GitHub Actions Workflow
+
+1. **Create the workflow directory structure:**
+
+```bash
+mkdir -p .github/workflows
+```
+
+1. **Create a GitHub Actions workflow file** `.github/workflows/api-tests.yml`:
+
+```yaml
+name: API Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Bruno CLI
+        run: npm install -g @usebruno/cli
+
+      - name: Run API Tests
+        run: bru run --env ci --reporter-html results.html
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: results.html
+```
+
+### Workflow Configuration Explained
+
+- **`name`**: The name of the workflow that appears in the GitHub Actions tab
+- **`on`**: Defines when the workflow should run
+  - `push`: Triggers on pushes to specified branches
+  - `pull_request`: Triggers on pull requests to specified branches
+- **`jobs.test`**: Defines a job named "test"
+  - `runs-on`: The GitHub-hosted runner to use (e.g., `ubuntu-latest`)
+- **`steps`**: The sequence of steps to execute
+  - **Checkout code**: Checks out the repository code
+  - **Setup Node.js**: Sets up Node.js environment (required for Bruno CLI)
+  - **Install Bruno CLI**: Installs Bruno CLI globally using npm
+  - **Run API Tests**: Executes Bruno tests with specified environment and HTML
+    reporter
+  - **Upload Test Results**: Uploads test results as artifacts for download
+
+### Bruno CLI Command Options
+
+The `bru run` command supports various options:
+
+- `--env <environment>`: Specify the environment to use (e.g., `ci`,
+  `development`, `production`)
+- `--reporter-html <file>`: Generate HTML test report
+- `--reporter-json <file>`: Generate JSON test report
+- `--reporter-junit <file>`: Generate JUnit XML report (useful for CI/CD)
+- `--collection <path>`: Specify collection path (if not in current directory)
+
+### Advanced Workflow Examples
+
+#### Running Tests with Multiple Environments
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [development, staging, production]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Bruno CLI
+        run: npm install -g @usebruno/cli
+
+      - name: Run API Tests - ${{ matrix.environment }}
+        run:
+          bru run --env ${{ matrix.environment }} --reporter-junit results-${{
+          matrix.environment }}.xml
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.environment }}
+          path: results-${{ matrix.environment }}.xml
+```
+
+#### Running Tests with Server Startup
+
+If your API server needs to be running during tests:
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Start API server
+        run: npm start &
+        env:
+          PORT: 3000
+          NODE_ENV: test
+
+      - name: Wait for server
+        run: |
+          timeout 30 bash -c 'until curl -f http://localhost:3000; do sleep 1; done'
+
+      - name: Install Bruno CLI
+        run: npm install -g @usebruno/cli
+
+      - name: Run API Tests
+        run: bru run --env ci --reporter-html results.html
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: results.html
+```
+
+#### Using Secrets in CI Environment
+
+Store sensitive values as GitHub Secrets and reference them in your workflow:
+
+```yaml
+- name: Run API Tests
+  run: bru run --env ci --reporter-html results.html
+  env:
+    API_KEY: ${{ secrets.API_KEY }}
+    API_SECRET: ${{ secrets.API_SECRET }}
+```
+
+Then access them in your Bruno scripts using `bru.getProcessEnv()`:
+
+```javascript
+script:pre-request {
+  const apiKey = bru.getProcessEnv("API_KEY");
+  req.setHeader("Authorization", `Bearer ${apiKey}`);
+}
+```
+
+### Monitoring and Viewing Results
+
+1. **Monitor the workflow:**
+   - Go to your GitHub repository
+   - Click on the "Actions" tab
+   - You should see your workflow running
+
+2. **View results:**
+   - Once completed, download the test results from the artifacts section
+   - Open `results.html` in your browser for detailed reports
+   - Check the workflow logs for any failures
+
+### Best Practices for GitHub Actions Integration
+
+1. **Environment-specific configurations**: Create separate environment files
+   for CI/CD (e.g., `ci.bru`, `staging.bru`, `production.bru`)
+2. **Test isolation**: Ensure tests are independent and can run in any order
+3. **Error handling**: Use proper error handling in test scripts to avoid false
+   positives
+4. **Secret management**: Use GitHub Secrets for sensitive data instead of
+   hardcoding
+5. **Parallel execution**: Use matrix strategies to run tests across multiple
+   environments
+6. **Artifact retention**: Configure artifact retention policies to manage
+   storage
+7. **Notifications**: Set up notifications for test failures (email, Slack,
+   etc.)
+
+### Additional Resources
+
+- [Bruno CLI Documentation](https://docs.usebruno.com/bru-cli)
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+- [Bruno GitHub Actions Examples](https://docs.usebruno.com/bru-cli/gitHubCLI)
+
+For more advanced GitHub Actions features and configurations, visit the
+[GitHub Actions documentation](https://docs.github.com/en/actions).

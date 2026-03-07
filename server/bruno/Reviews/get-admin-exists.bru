@@ -1,0 +1,9 @@
+meta {
+  name: Check Review Exists By ID (Admin)
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/v1/reviews/admin/exists/{{reviewId}}
+}

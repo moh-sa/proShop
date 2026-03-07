@@ -1,0 +1,22 @@
+meta {
+  name: Update User By ID (Admin)
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/v1/users/admin/{{userId}}
+  body: json
+}
+
+body:json {
+  {
+    "name": "Admin Updated Name",
+    "email": "admin-updated@example.com",
+    "isAdmin": true
+  }
+}
+
+headers {
+  Content-Type: application/json
+}

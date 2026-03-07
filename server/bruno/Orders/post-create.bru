@@ -1,0 +1,38 @@
+meta {
+  name: Create Order
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/v1/orders
+  body: json
+}
+
+body:json {
+  {
+    "orderItems": [
+      {
+        "name": "Product Name",
+        "qty": 2,
+        "image": "/images/sample.jpg",
+        "price": 99.99,
+        "product": "{{productId}}"
+      }
+    ],
+    "shippingAddress": {
+      "address": "123 Main St",
+      "city": "New York",
+      "postalCode": "10001",
+      "country": "USA"
+    },
+    "itemsPrice": 199.98,
+    "shippingPrice": 10,
+    "taxPrice": 20,
+    "totalPrice": 229.98
+  }
+}
+
+headers {
+  Content-Type: application/json
+}

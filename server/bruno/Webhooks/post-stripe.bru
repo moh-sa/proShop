@@ -1,0 +1,26 @@
+meta {
+  name: Stripe Webhook
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/v1/webhooks/stripe
+  body: json
+}
+
+body:json {
+  {
+    "type": "checkout.session.completed",
+    "data": {
+      "object": {
+        "id": "cs_test_123",
+        "payment_status": "paid"
+      }
+    }
+  }
+}
+
+headers {
+  Content-Type: application/json
+}

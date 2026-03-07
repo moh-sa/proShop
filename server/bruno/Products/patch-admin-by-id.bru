@@ -1,0 +1,26 @@
+meta {
+  name: Update Product (Admin)
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{baseUrl}}/v1/products/admin/{{productId}}
+  body: json
+}
+
+body:json {
+  {
+    "name": "Updated Product",
+    "brand": "Updated Brand",
+    "category": "Electronics",
+    "description": "Updated description",
+    "price": 129.99,
+    "countInStock": 15,
+    "user": "{{userId}}"
+  }
+}
+
+headers {
+  Content-Type: application/json
+}
