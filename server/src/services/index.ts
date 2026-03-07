@@ -1,4 +1,3 @@
-export * from "./auth.service.js";
 export * from "./cache.service.js";
 export * from "./cookie.service.js";
 export * from "./image-storage.service.js";

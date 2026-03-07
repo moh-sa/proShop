@@ -1,6 +1,5 @@
 export * from "./argon2.mock.js";
 export * from "./auth-manager.mock.js";
-export * from "./auth-service.mock.js";
 export * from "./cache-hit.mock.js";
 export * from "./cache-invalidation.mock.js";
 export * from "./cache-miss.mock.js";
