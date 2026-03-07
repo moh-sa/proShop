@@ -50,7 +50,7 @@ export class PasswordService implements IPasswordService {
 		}
 
 		try {
-			const hashResult = await this._provider.hash(args.password);
+			const hashResult = await this._provider.hash(validationResult.data);
 
 			logger.info("Password hashed successfully");
 
@@ -93,8 +93,8 @@ export class PasswordService implements IPasswordService {
 
 		try {
 			const verificationResult = await this._provider.verify(
-				args.hashedPassword,
-				args.password,
+				validationResult.data.hashedPassword,
+				validationResult.data.password,
 			);
 			if (!verificationResult) {
 				logger.warn("Invalid password");
@@ -137,14 +137,14 @@ export class PasswordService implements IPasswordService {
 		};
 	}
 
-	private _validateForHash(password: string): PswResult<undefined> {
+	private _validateForHash(password: string): PswResult<string> {
 		const result = passwordValidator.safeParse(password);
 		if (!result.success) {
 			return this._handleValidationError(result.error);
 		}
 
 		return {
-			data: undefined,
+			data: result.data,
 			success: true,
 		};
 	}
@@ -152,7 +152,7 @@ export class PasswordService implements IPasswordService {
 	private _validateForVerify(
 		hashedPassword: string,
 		password: string,
-	): PswResult<undefined> {
+	): PswResult<{ hashedPassword: string; password: string }> {
 		const result = z
 			.object({
 				hashedPassword: z
@@ -167,7 +167,7 @@ export class PasswordService implements IPasswordService {
 		}
 
 		return {
-			data: undefined,
+			data: result.data,
 			success: true,
 		};
 	}
