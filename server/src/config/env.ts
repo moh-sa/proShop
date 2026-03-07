@@ -1,6 +1,8 @@
 import { config } from "dotenv";
 import { z } from "zod";
 
+import { InternalError } from "../errors/index.js";
+
 const EnvSchema = z.object({
 	CLIENT_URL: z.string().url(),
 	CLOUDINARY_API_KEY: z.string().min(1),
@@ -33,7 +35,7 @@ if (!envParsed.success) {
 		"\nPlease check your .env file and ensure all required variables are set correctly.",
 	].join("\n");
 
-	throw new Error(errorMessage);
+	throw new InternalError(errorMessage, { cause: envParsed.error });
 }
 
 export const env = envParsed.data;
