@@ -1,7 +1,7 @@
 import express from "express";
 
 import { authController } from "../../controllers/auth.controller.js";
-import { userGuard } from "../../middlewares/index.js";
+import { refreshGuard, userGuard } from "../../middlewares/index.js";
 import {
 	authLimiter,
 	defaultLimiter,
@@ -30,7 +30,7 @@ protectedRouter
 // Token routes
 protectedRouter
 	.route("/token/refresh")
-	.post(...userGuard(strictLimiter), authController.refreshAccessToken);
+	.post(...refreshGuard(strictLimiter), authController.refreshAccessToken);
 
 // Session routes
 protectedRouter

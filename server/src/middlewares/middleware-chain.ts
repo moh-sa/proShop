@@ -8,6 +8,10 @@ export function adminGuard(limiter: RequestHandler): Array<RequestHandler> {
 	return [limiter, authenticate, checkUserExists, authorizeAdmin];
 }
 
+export function refreshGuard(limiter: RequestHandler): Array<RequestHandler> {
+	return [limiter, authenticate, checkUserExists];
+}
+
 export function userGuard(limiter: RequestHandler): Array<RequestHandler> {
 	return [limiter, authenticate, checkUserExists];
 }
