@@ -7,6 +7,7 @@ import {
 } from "../../constants/index.js";
 import {
 	PasswordHashError,
+	PasswordMismatchError,
 	PasswordValidationError,
 	PasswordVerifyError,
 } from "../../errors/index.js";
@@ -173,8 +174,7 @@ suite("Password Service 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(result.success, false);
-			assert(result.error instanceof PasswordVerifyError);
-			assert(result.error.message.includes("Failed to verify password"));
+			assert(result.error instanceof PasswordMismatchError);
 			assert.strictEqual(mockProvider.verify.mock.callCount(), 1);
 		});
 

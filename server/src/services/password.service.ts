@@ -11,6 +11,7 @@ import type {
 
 import {
 	PasswordHashError,
+	PasswordMismatchError,
 	PasswordValidationError,
 	PasswordVerifyError,
 } from "../errors/index.js";
@@ -99,9 +100,7 @@ export class PasswordService implements IPasswordService {
 			if (!verificationResult) {
 				logger.warn("Invalid password");
 				return {
-					error: new PasswordVerifyError({
-						cause: new Error("Invalid password"),
-					}),
+					error: new PasswordMismatchError(),
 					success: false,
 				};
 			}
