@@ -5,7 +5,7 @@ import {
 	MIN_PASSWORD_LENGTH,
 } from "../constants/password.constants.js";
 
-export const passwordValidator = z
+export const passwordValidator = z.coerce
 	.string()
 	.trim()
 	.min(MIN_PASSWORD_LENGTH, {
