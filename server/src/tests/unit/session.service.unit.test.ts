@@ -152,9 +152,9 @@ suite("Session Service〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.data, expected);
 
 			assert.strictEqual(mockRepo.deleteAllByUserId.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockRepo.deleteAllByUserId.mock.calls[0].arguments[0],
-				{ userId },
+			assert.strictEqual(
+				mockRepo.deleteAllByUserId.mock.calls[0].arguments[0].userId.toString(),
+				userId,
 			);
 		});
 
@@ -255,7 +255,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockRepo.getAllActiveByUserId.mock.callCount(), 1);
 
 			assert.strictEqual(
-				mockRepo.getAllActiveByUserId.mock.calls[0].arguments[0].userId,
+				mockRepo.getAllActiveByUserId.mock.calls[0].arguments[0].userId.toString(),
 				userId,
 			);
 			assert.strictEqual(
@@ -411,12 +411,12 @@ suite("Session Service〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(result.data, expected);
 
 			assert.strictEqual(mockRepo.getByTokenIdAndUserId.mock.callCount(), 1);
-			assert.deepStrictEqual(
+			assert.strictEqual(
 				mockRepo.getByTokenIdAndUserId.mock.calls[0].arguments[0].tokenId,
 				tokenId,
 			);
-			assert.deepStrictEqual(
-				mockRepo.getByTokenIdAndUserId.mock.calls[0].arguments[0].userId,
+			assert.strictEqual(
+				mockRepo.getByTokenIdAndUserId.mock.calls[0].arguments[0].userId.toString(),
 				userId,
 			);
 		});
@@ -518,9 +518,9 @@ suite("Session Service〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.data, expected);
 
 			assert.strictEqual(mockRepo.revokeAllByUserId.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockRepo.revokeAllByUserId.mock.calls[0].arguments[0],
-				{ userId },
+			assert.strictEqual(
+				mockRepo.revokeAllByUserId.mock.calls[0].arguments[0].userId.toString(),
+				userId,
 			);
 		});
 
@@ -604,9 +604,13 @@ suite("Session Service〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(result.data, expected);
 
 			assert.strictEqual(mockRepo.revokeByTokenIdAndUserId.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockRepo.revokeByTokenIdAndUserId.mock.calls[0].arguments[0],
-				{ tokenId, userId },
+			assert.strictEqual(
+				mockRepo.revokeByTokenIdAndUserId.mock.calls[0].arguments[0].tokenId,
+				tokenId,
+			);
+			assert.strictEqual(
+				mockRepo.revokeByTokenIdAndUserId.mock.calls[0].arguments[0].userId.toString(),
+				userId,
 			);
 		});
 
@@ -724,9 +728,13 @@ suite("Session Service〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(result.data, expected);
 
 			assert.strictEqual(mockRepo.getByTokenIdAndUserId.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockRepo.getByTokenIdAndUserId.mock.calls[0].arguments[0],
-				{ tokenId, userId },
+			assert.strictEqual(
+				mockRepo.getByTokenIdAndUserId.mock.calls[0].arguments[0].tokenId,
+				tokenId,
+			);
+			assert.strictEqual(
+				mockRepo.getByTokenIdAndUserId.mock.calls[0].arguments[0].userId.toString(),
+				userId,
 			);
 		});
 

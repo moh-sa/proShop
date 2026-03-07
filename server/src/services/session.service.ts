@@ -1,3 +1,5 @@
+import type { Types } from "mongoose";
+
 import { z } from "zod";
 
 import type { SessionBaseError } from "../errors/index.js";
@@ -24,7 +26,6 @@ import { sessionRepository } from "../repositories/index.js";
 import { insertSessionSchema } from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 import {
-	objectIdStringValidator,
 	objectIdValidator,
 	paginationParamsValidator,
 	uuidValidator,
@@ -189,7 +190,9 @@ export class SessionService implements ISessionService {
 			"Validated token ID and user ID",
 		);
 
-		const session = await this._repository.deleteByTokenIdAndUserId(args);
+		const session = await this._repository.deleteByTokenIdAndUserId(
+			argsValidationResult.data,
+		);
 		if (!session.success) {
 			logger.warn(
 				{ error: session.error, tokenId: args.tokenId, userId: args.userId },
@@ -318,10 +321,9 @@ export class SessionService implements ISessionService {
 			"Validated token ID and user ID",
 		);
 
-		const session = await this._repository.getByTokenIdAndUserId({
-			tokenId: args.tokenId,
-			userId: args.userId,
-		});
+		const session = await this._repository.getByTokenIdAndUserId(
+			argsValidationResult.data,
+		);
 		if (!session.success) {
 			logger.warn(
 				{ error: session.error, tokenId: args.tokenId, userId: args.userId },
@@ -418,8 +420,9 @@ export class SessionService implements ISessionService {
 			"Validated token ID and user ID",
 		);
 
-		const revokedSession =
-			await this._repository.revokeByTokenIdAndUserId(args);
+		const revokedSession = await this._repository.revokeByTokenIdAndUserId(
+			argsValidationResult.data,
+		);
 
 		if (!revokedSession.success) {
 			logger.warn(
@@ -485,7 +488,9 @@ export class SessionService implements ISessionService {
 			"Validated token ID and user ID",
 		);
 
-		const session = await this._repository.getByTokenIdAndUserId(args);
+		const session = await this._repository.getByTokenIdAndUserId(
+			argsValidationResult.data,
+		);
 		if (!session.success) {
 			logger.warn(
 				{ error: session.error, tokenId: args.tokenId, userId: args.userId },
@@ -565,7 +570,7 @@ export class SessionService implements ISessionService {
 	private _validateTokenIdAndUserId(
 		tokenId: string,
 		userId: string,
-	): SessionResult<undefined> {
+	): SessionResult<{ tokenId: string; userId: Types.ObjectId }> {
 		const argsValidationResult = z
 			.object({
 				tokenId: uuidValidator("tokenId"),
@@ -581,12 +586,11 @@ export class SessionService implements ISessionService {
 			};
 		}
 
-		return { data: undefined, success: true };
+		return { data: argsValidationResult.data, success: true };
 	}
 
-	private _validateUserId(userId: string): SessionResult<string> {
-		const userIdValidationResult =
-			objectIdStringValidator("User ID").safeParse(userId);
+	private _validateUserId(userId: string): SessionResult<Types.ObjectId> {
+		const userIdValidationResult = objectIdValidator.safeParse(userId);
 		if (!userIdValidationResult.success) {
 			return {
 				error: new SessionValidationError({

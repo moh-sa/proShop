@@ -16,28 +16,32 @@ import { Session } from "../models/session.model.js";
 import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface ISessionRepository {
-	countActiveByUserId(args: { userId: string }): Promise<SessionResult<number>>;
+	countActiveByUserId(args: {
+		userId: Types.ObjectId;
+	}): Promise<SessionResult<number>>;
 	create(args: InsertSession): Promise<SessionResult<SelectSession>>;
-	deleteAllByUserId(args: { userId: string }): Promise<SessionResult<number>>;
+	deleteAllByUserId(args: {
+		userId: Types.ObjectId;
+	}): Promise<SessionResult<number>>;
 	deleteByTokenIdAndUserId(args: {
 		tokenId: string;
-		userId: string;
+		userId: Types.ObjectId;
 	}): Promise<SessionResult<null | SelectSession>>;
 	existsByTokenIdAndUserId(args: {
 		tokenId: string;
-		userId: string;
+		userId: Types.ObjectId;
 	}): Promise<SessionResult<null | { _id: Types.ObjectId }>>;
 	getAll(
 		args: PaginationParamsQuery<SelectSession>,
 	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
 	getAllActiveByUserId(
 		args: PaginationParamsQuery<SelectSession> & {
-			userId: string;
+			userId: Types.ObjectId;
 		},
 	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
 	getAllByUserId(
 		args: PaginationParamsQuery<SelectSession> & {
-			userId: string;
+			userId: Types.ObjectId;
 		},
 	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
 	getAllRevoked(
@@ -45,22 +49,24 @@ export interface ISessionRepository {
 	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
 	getAllRevokedByUserId(
 		args: PaginationParamsQuery<SelectSession> & {
-			userId: string;
+			userId: Types.ObjectId;
 		},
 	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
 	getByTokenIdAndUserId(args: {
 		tokenId: string;
-		userId: string;
+		userId: Types.ObjectId;
 	}): Promise<SessionResult<null | SelectSession>>;
-	revokeAllByUserId(args: { userId: string }): Promise<SessionResult<number>>;
+	revokeAllByUserId(args: {
+		userId: Types.ObjectId;
+	}): Promise<SessionResult<number>>;
 	revokeByTokenIdAndUserId(args: {
 		tokenId: string;
-		userId: string;
+		userId: Types.ObjectId;
 	}): Promise<SessionResult<null | SelectSession>>;
 	updateByTokenIdAndUserId(args: {
 		data: Partial<InsertSession>;
 		tokenId: string;
-		userId: string;
+		userId: Types.ObjectId;
 	}): Promise<SessionResult<null | SelectSession>>;
 }
 

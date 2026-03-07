@@ -323,11 +323,10 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 	});
 
 	describe("getAllActiveByUserId", () => {
-		const userIdObj = generateMockObjectId();
-		const userId = userIdObj.toString();
+		const userId = generateMockObjectId();
 		const mockSessions = generateMockSelectSessions({
 			count: 2,
-			options: { userId: userIdObj },
+			options: { userId: userId },
 		});
 		const mockPaginationMeta = {
 			currentPage: 1,
@@ -525,11 +524,10 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 	});
 
 	describe("getAllByUserId", () => {
-		const userIdObj = generateMockObjectId();
-		const userId = userIdObj.toString();
+		const userId = generateMockObjectId();
 		const mockSessions = generateMockSelectSessions({
 			count: 3,
-			options: { userId: userIdObj },
+			options: { userId: userId },
 		});
 		const mockPaginationMeta = {
 			currentPage: 1,
@@ -900,11 +898,10 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 	});
 
 	describe("getAllRevokedByUserId", () => {
-		const userIdObj = generateMockObjectId();
-		const userId = userIdObj.toString();
+		const userId = generateMockObjectId();
 		const mockSessions = generateMockSelectSessions({
 			count: 2,
-			options: { revokedAt: new Date(), userId: userIdObj },
+			options: { revokedAt: new Date(), userId: userId },
 		});
 		const mockPaginationMeta = {
 			currentPage: 1,
@@ -1087,12 +1084,11 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 	});
 
 	describe("getByTokenIdAndUserId", () => {
-		const userIdObj = generateMockObjectId();
-		const userId = userIdObj.toString();
+		const userId = generateMockObjectId();
 		const tokenId = "jwt-token-id";
 		const mockSession = generateMockSelectSession({
 			tokenId,
-			userId: userIdObj,
+			userId,
 		});
 
 		test("Should return 'session object' when 'db.findOne' is called once with 'tokenId+userId'", async (t) => {
@@ -1214,13 +1210,12 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 	});
 
 	describe("updateByTokenIdAndUserId", () => {
-		const userIdObj = generateMockObjectId();
-		const userId = userIdObj.toString();
+		const userId = generateMockObjectId();
 		const tokenId = "jwt-token-id";
 		const updateData = { expiresAt: new Date(Date.now() + 1000 * 60 * 60) };
 		const expected = generateMockSelectSession({
 			tokenId,
-			userId: userIdObj,
+			userId,
 			...updateData,
 		});
 
@@ -1341,9 +1336,9 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof DatabaseTimeoutError);
 		});
 
-	test("Should return 'DatabaseQueryError' when 'db.findOneAndUpdate' throws 'MongooseError'", async (t) => {
-		// Arrange
-		const queryError = new mongoose.Error("Query failed");
+		test("Should return 'DatabaseQueryError' when 'db.findOneAndUpdate' throws 'MongooseError'", async (t) => {
+			// Arrange
+			const queryError = new mongoose.Error("Query failed");
 
 			t.mock.method(Session, "findOneAndUpdate", () => {
 				throw queryError;
@@ -1361,9 +1356,9 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof DatabaseQueryError);
 		});
 
-	test("Should return 'DatabaseNetworkError' when 'db.findOneAndUpdate' throws 'MongoError'", async (t) => {
-		// Arrange
-		const networkError = new mongoose.mongo.MongoError("Network error");
+		test("Should return 'DatabaseNetworkError' when 'db.findOneAndUpdate' throws 'MongoError'", async (t) => {
+			// Arrange
+			const networkError = new mongoose.mongo.MongoError("Network error");
 
 			t.mock.method(Session, "findOneAndUpdate", () => {
 				throw networkError;
@@ -1381,9 +1376,9 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof DatabaseNetworkError);
 		});
 
-	test("Should return 'GenericDatabaseError' when 'db.findOneAndUpdate' throws unknown error", async (t) => {
-		// Arrange
-		const unknownError = new Error("Something unexpected happened");
+		test("Should return 'GenericDatabaseError' when 'db.findOneAndUpdate' throws unknown error", async (t) => {
+			// Arrange
+			const unknownError = new Error("Something unexpected happened");
 
 			t.mock.method(Session, "findOneAndUpdate", () => {
 				throw unknownError;
@@ -1403,8 +1398,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 	});
 
 	describe("revokeAllByUserId", () => {
-		const userIdObj = generateMockObjectId();
-		const userId = userIdObj.toString();
+		const userId = generateMockObjectId();
 
 		test("Should return 'modified count' when 'db.updateMany' is called once with 'userId' and 'revokedAt'", async (t) => {
 			// Arrange
@@ -1514,13 +1508,12 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 	});
 
 	describe("revokeByTokenIdAndUserId", () => {
-		const userIdObj = generateMockObjectId();
-		const userId = userIdObj.toString();
+		const userId = generateMockObjectId();
 		const tokenId = "jwt-token-id";
 		const expected = generateMockSelectSession({
 			revokedAt: new Date(),
 			tokenId,
-			userId: userIdObj,
+			userId: userId,
 		});
 
 		test("Should return 'session object' when 'db.findOneAndUpdate' is called once with 'tokenId+userId' and sets 'revokedAt'", async (t) => {
@@ -1649,8 +1642,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 	});
 
 	describe("deleteAllByUserId", () => {
-		const userIdObj = generateMockObjectId();
-		const userId = userIdObj.toString();
+		const userId = generateMockObjectId();
 
 		test("Should return 'deleted count' when 'db.deleteMany' is called once with 'userId'", async (t) => {
 			// Arrange
@@ -1756,12 +1748,11 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 	});
 
 	describe("deleteByTokenIdAndUserId", () => {
-		const userIdObj = generateMockObjectId();
-		const userId = userIdObj.toString();
+		const userId = generateMockObjectId();
 		const tokenId = "jwt-token-id";
 		const mockSession = generateMockSelectSession({
 			tokenId,
-			userId: userIdObj,
+			userId: userId,
 		});
 
 		test("Should return 'session object' when 'db.findOneAndDelete' is called once with 'tokenId+userId'", async (t) => {
@@ -1887,8 +1878,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 	});
 
 	describe("countActiveByUserId", () => {
-		const userIdObj = generateMockObjectId();
-		const userId = userIdObj.toString();
+		const userId = generateMockObjectId();
 
 		test("Should return 'count' when 'db.countDocuments' is called once with 'active filter'", async (t) => {
 			// Arrange
@@ -2003,8 +1993,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 	});
 
 	describe("existsByTokenIdAndUserId", () => {
-		const userIdObj = generateMockObjectId();
-		const userId = userIdObj.toString();
+		const userId = generateMockObjectId();
 		const tokenId = "jwt-token-id";
 		const expectedResult = { _id: generateMockObjectId() };
 
