@@ -449,6 +449,10 @@ export class CacheService implements ICacheService {
 			return;
 		}
 		if (batchSize > MAX_CACHE_SIZE) {
+			logger.error(
+				{ batchSize, maxCacheSize: MAX_CACHE_SIZE },
+				"Batch size exceeds maximum cache size",
+			);
 			throw CacheCapacityError.batchTooLarge(batchSize, MAX_CACHE_SIZE);
 		}
 
