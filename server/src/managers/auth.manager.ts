@@ -20,6 +20,7 @@ import type {
 import {
 	ConflictError,
 	InvalidCredentialsError,
+	NotFoundError,
 	ValidationError,
 } from "../errors/index.js";
 import {
@@ -392,11 +393,13 @@ export class AuthManager implements IAuthManager {
 		const userExistsResult = await this._user.existsByEmail({
 			email: args.email,
 		});
-		if (!userExistsResult.success) {
-			// Error already logged in user service
+		if (
+			!userExistsResult.success &&
+			!(userExistsResult.error instanceof NotFoundError)
+		) {
 			return userExistsResult;
 		}
-		if (userExistsResult.data) {
+		if (userExistsResult.success && userExistsResult.data) {
 			logger.warn(
 				{ email: args.email },
 				"Sign up failed - email already exists",

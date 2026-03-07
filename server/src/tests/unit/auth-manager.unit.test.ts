@@ -6,6 +6,7 @@ import type { TokenResult } from "../../types/index.js";
 import {
 	ConflictError,
 	InvalidCredentialsError,
+	NotFoundError,
 	ValidationError,
 } from "../../errors/index.js";
 import { AuthManager } from "../../managers/auth.manager.js";
@@ -975,6 +976,84 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof ConflictError);
+
+			assert.strictEqual(mockPassword.hash.mock.callCount(), 0);
+		});
+
+		it("should continue sign-up when existsByEmail returns NotFoundError", async () => {
+			// Arrange
+			const mockInsertUser = generateMockInsertUser();
+			const mockSelectUser = generateMockSelectUser(mockInsertUser);
+			const mockTokenPair = generateMockTokenPairWithData();
+
+			const session = generateMockSelectSession({
+				expiresAt: mockTokenPair.refresh.expiresAt,
+				tokenId: mockTokenPair.refresh.tokenId,
+				userId: mockSelectUser._id,
+			});
+
+			mockUser.existsByEmail.mock.mockImplementation(() =>
+				Promise.resolve({
+					error: new NotFoundError("User"),
+					success: false,
+				}),
+			);
+			mockUser.create.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: mockSelectUser,
+					success: true,
+				}),
+			);
+
+			mockPassword.hash.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: mockInsertUser.password,
+					success: true,
+				}),
+			);
+
+			mockJwt.generateTokenPair.mock.mockImplementation(() => ({
+				data: mockTokenPair,
+				success: true,
+			}));
+
+			mockSession.create.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: session,
+					success: true,
+				}),
+			);
+
+			// Act
+			const result = await manager.signUp(mockInsertUser);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.sessionId, session.id.toString());
+			assert.deepStrictEqual(result.data.tokens, mockTokenPair);
+			assert.deepStrictEqual(result.data.user, mockSelectUser);
+
+			assert.strictEqual(mockPassword.hash.mock.callCount(), 1);
+		});
+
+		it("should bubble existsByEmail error when it is not NotFoundError", async () => {
+			// Arrange
+			const mockInsertUser = generateMockInsertUser();
+			const error = new ValidationError("database error");
+
+			mockUser.existsByEmail.mock.mockImplementation(() =>
+				Promise.resolve({
+					error,
+					success: false,
+				}),
+			);
+
+			// Act
+			const result = await manager.signUp(mockInsertUser);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, error);
 
 			assert.strictEqual(mockPassword.hash.mock.callCount(), 0);
 		});
