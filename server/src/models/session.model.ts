@@ -56,14 +56,16 @@ const SessionSchema = new Schema<SessionSchema>(
 
 		toJSON: {
 			transform(_, ret) {
-				delete ret._id;
+				const { _id, ...rest } = ret;
+				return rest;
 			},
 			virtuals: true,
 		},
 
 		toObject: {
 			transform(_, ret) {
-				delete ret._id;
+				const { _id, ...rest } = ret;
+				return rest;
 			},
 			virtuals: true,
 		},
