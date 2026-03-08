@@ -4,7 +4,7 @@ import { objectIdValidator, uuidValidator } from "../../validators/index.js";
 
 const baseSessionSchema = z.object({
 	expiresAt: z.date(),
-	revokedAt: z.date().nullable().default(null),
+	revokedAt: z.date().nullable(),
 	tokenId: uuidValidator("Token ID"),
 	userId: objectIdValidator,
 });

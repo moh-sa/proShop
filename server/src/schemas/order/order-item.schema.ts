@@ -7,7 +7,7 @@ const baseOrderItemSchema = selectProductSchema
 	.pick({ image: true, name: true, price: true })
 	.extend({
 		product: objectIdValidator,
-		qty: z.number().int().min(1).default(1),
+		qty: z.number().int().min(1),
 	});
 
 export const insertOrderItemSchema = baseOrderItemSchema;

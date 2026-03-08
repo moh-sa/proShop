@@ -12,14 +12,13 @@ const baseProductSchema = z.object({
 	countInStock: z.coerce
 		.number()
 		.int()
-		.min(0, { error: "Count in stock is required." })
-		.default(0),
+		.min(0, { error: "Count in stock is required." }),
 
 	description: z.string().min(1, { error: "Description is required." }),
 
 	name: z.string().min(1, { error: "Name is required." }),
 
-	price: z.coerce.number().min(0, { error: "Price is required." }).default(0),
+	price: z.coerce.number().min(0, { error: "Price is required." }),
 
 	user: objectIdValidator,
 });

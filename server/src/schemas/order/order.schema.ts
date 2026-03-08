@@ -23,10 +23,7 @@ export const paymentSchema = z.object({
 const baseOrderSchema = z.object({
 	deliveredAt: z.date().optional(),
 
-	itemsPrice: z
-		.number()
-		.min(0, { error: "Items price is required." })
-		.default(0),
+	itemsPrice: z.number().min(0, { error: "Items price is required." }),
 	orderItems: z.array(insertOrderItemSchema).min(1, {
 		error: "Order items are required.",
 	}),
@@ -34,18 +31,11 @@ const baseOrderSchema = z.object({
 	payment: paymentSchema.optional(),
 	shippingAddress: shippingAddressSchema,
 
-	shippingPrice: z
-		.number()
-		.min(0, { error: "Shipping price is required." })
-		.default(0),
+	shippingPrice: z.number().min(0, { error: "Shipping price is required." }),
 	status: orderStatusSchema.default("pending"),
-	taxPrice: z.number().min(0, { error: "Tax price is required." }).default(0),
+	taxPrice: z.number().min(0, { error: "Tax price is required." }),
 
-	totalPrice: z
-		.number()
-		.min(0, { error: "Total price is required." })
-		.default(0),
-
+	totalPrice: z.number().min(0, { error: "Total price is required." }),
 	user: selectUserSchema.pick({ _id: true, email: true, name: true }),
 });
 
