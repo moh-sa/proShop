@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-import { objectIdValidator, urlValidator } from "../../validators/index.js";
+import {
+	nonEmptyStringValidator,
+	objectIdValidator,
+	urlValidator,
+} from "../../validators/index.js";
 import { paymentProviderSchema } from "../payment/payment.schema.js";
 import { shippingAddressSchema } from "../shipping/shipping-address.schema.js";
 import { selectUserSchema } from "../user/user.schema.js";
@@ -14,7 +18,7 @@ export const orderStatusSchema = z.enum([
 ]);
 
 export const paymentSchema = z.object({
-	id: z.string().min(1, { error: "payment ID is required." }),
+	id: nonEmptyStringValidator("payment ID"),
 	paidAt: z.coerce.date(),
 	provider: paymentProviderSchema,
 	sessionURL: urlValidator,

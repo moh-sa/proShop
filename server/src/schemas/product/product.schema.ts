@@ -1,22 +1,25 @@
 import { z } from "zod";
 
 import { IMAGE_FIELD_NAME } from "../../constants/index.js";
-import { objectIdValidator } from "../../validators/index.js";
+import {
+	nonEmptyStringValidator,
+	objectIdValidator,
+} from "../../validators/index.js";
 import { insertImageSchema, selectImageSchema } from "./image.schema.js";
 
 const baseProductSchema = z.object({
-	brand: z.string().min(1, { error: "Brand is required." }),
+	brand: nonEmptyStringValidator("brand"),
 
-	category: z.string().min(1, { error: "Category is required." }),
+	category: nonEmptyStringValidator("category"),
 
 	countInStock: z.coerce
 		.number()
 		.int()
 		.min(0, { error: "Count in stock is required." }),
 
-	description: z.string().min(1, { error: "Description is required." }),
+	description: nonEmptyStringValidator("description"),
 
-	name: z.string().min(1, { error: "Name is required." }),
+	name: nonEmptyStringValidator("name"),
 
 	price: z.coerce.number().min(0, { error: "Price is required." }),
 

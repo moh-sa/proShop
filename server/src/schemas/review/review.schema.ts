@@ -1,10 +1,13 @@
 import { z } from "zod";
 
-import { objectIdValidator } from "../../validators/index.js";
+import {
+	nonEmptyStringValidator,
+	objectIdValidator,
+} from "../../validators/index.js";
 
 const baseReviewSchema = z.object({
-	comment: z.string().min(1, { error: "Comment is required." }),
-	name: z.string().min(1, { error: "Name is required." }),
+	comment: nonEmptyStringValidator("comment"),
+	name: nonEmptyStringValidator("name"),
 
 	product: objectIdValidator,
 

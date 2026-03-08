@@ -50,7 +50,7 @@ export function generateMockCreateSessionParams(
 		cancelUrl: faker.internet.url(),
 		currency: faker.finance.currencyCode().toLowerCase(),
 		orderId: faker.database.mongodbObjectId(),
-		userEmail: faker.internet.email(),
+		userEmail: faker.internet.email().toLowerCase(),
 		successUrl: faker.internet.url(),
 		items: generateMockCheckoutSessionItems({
 			count: faker.number.int({ min: 1, max: 5 }),
