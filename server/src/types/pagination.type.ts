@@ -1,4 +1,4 @@
-import type { FilterQuery, PipelineStage } from "mongoose";
+import type { PipelineStage, QueryFilter } from "mongoose";
 
 export interface PaginatedResponse<T> {
 	items: Array<T>;
@@ -33,5 +33,5 @@ export type PaginationParamsString = {
 
 export type PaginationQuery<TDocument> = {
 	pipeline?: Array<PipelineStage>;
-	query?: FilterQuery<TDocument>;
+	query?: PipelineStage.Match["$match"] & QueryFilter<TDocument>;
 };

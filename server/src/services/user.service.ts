@@ -1,11 +1,11 @@
-import type { FilterQuery, Types } from "mongoose";
-
+import type { Types } from "mongoose";
 import type { IUserRepository } from "../repositories/index.js";
 import type {
 	InsertUser,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
+	PaginationQuery,
 	Result,
 	SafeSelectUser,
 	SelectUser,
@@ -264,8 +264,8 @@ export class UserService implements IUserService {
 			"Validated query data",
 		);
 
-		function searchQuery(): FilterQuery<UserDocument> {
-			const result: FilterQuery<UserDocument> = {};
+		function searchQuery(): PaginationQuery<UserDocument>["query"] {
+			const result: PaginationQuery<UserDocument>["query"] = {};
 
 			if (queryResult.data?.email) {
 				result.email = queryResult.data.email;

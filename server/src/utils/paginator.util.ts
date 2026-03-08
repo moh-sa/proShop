@@ -1,10 +1,11 @@
-import type { FilterQuery, Model, PipelineStage } from "mongoose";
+import type { Model } from "mongoose";
 
 import type {
 	PaginatedResponse,
 	PaginationMeta,
 	PaginationParams,
 	PaginationParamsQuery,
+	PaginationQuery,
 } from "../types/index.js";
 
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "../constants/index.js";
@@ -201,9 +202,9 @@ export class Paginator<TDocument> {
 
 	/** Build and run aggregation for items and total count. */
 	private async _query<TResult>(args: {
-		additionalAggregate?: Array<PipelineStage>;
+		additionalAggregate?: PaginationQuery<TDocument>["pipeline"];
 		limit: number;
-		query: FilterQuery<TDocument>;
+		query: Required<PaginationQuery<TDocument>>["query"];
 		skip: number;
 		sort: Partial<Record<keyof TDocument, -1 | 1>>;
 	}): Promise<{
