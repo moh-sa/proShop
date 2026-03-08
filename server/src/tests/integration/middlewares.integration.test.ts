@@ -1,7 +1,6 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 
-import { CookieName } from "../../constants/cookie.constants.js";
 import {
 	AuthenticationError,
 	ConflictError,
@@ -322,7 +321,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			req.cookies = {};
 			req.signedCookies = {
-				[CookieName.REFRESH_TOKEN]: JSON.stringify("invalid"),
+				refreshToken: JSON.stringify("invalid"),
 			};
 
 			// Act & Assert
@@ -342,7 +341,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			req.cookies = {};
 			req.signedCookies = {
-				[CookieName.REFRESH_TOKEN]: JSON.stringify(refresh.data.token),
+				refreshToken: JSON.stringify(refresh.data.token),
 			};
 
 			// Act & Assert
@@ -367,7 +366,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			req.cookies = {};
 			req.signedCookies = {
-				[CookieName.REFRESH_TOKEN]: JSON.stringify(refresh.data.token),
+				refreshToken: JSON.stringify(refresh.data.token),
 			};
 
 			// Act
@@ -417,7 +416,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			res.locals.userId = generateMockObjectId().toString();
 			req.cookies = {};
 			req.signedCookies = {
-				[CookieName.ACCESS_TOKEN]: JSON.stringify(access.data.token),
+				accessToken: JSON.stringify(access.data.token),
 			};
 
 			// Act & Assert
@@ -438,7 +437,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			res.locals.userId = userId;
 			req.cookies = {};
 			req.signedCookies = {
-				[CookieName.ACCESS_TOKEN]: JSON.stringify(access.data.token),
+				accessToken: JSON.stringify(access.data.token),
 			};
 
 			// Act & Assert

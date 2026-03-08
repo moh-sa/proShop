@@ -1,4 +1,3 @@
-import { CookieName } from "../constants/cookie.constants.js";
 import { AuthenticationError } from "../errors/index.js";
 import { cookieService } from "../services/cookie.service.js";
 import { jwtService } from "../services/jwt.service.js";
@@ -17,7 +16,7 @@ export const authenticateRefreshSession = asyncHandler(
 	async (req, res, next) => {
 		// Get and verify refresh token
 		const getRefreshCookieResult = cookieService.get<string>({
-			name: CookieName.REFRESH_TOKEN,
+			name: "refreshToken",
 			request: req,
 		});
 		if (!getRefreshCookieResult.success) {

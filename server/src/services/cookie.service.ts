@@ -7,19 +7,20 @@ import type {
 	CookieConfig,
 	CookieItem,
 	CookieItemOptions,
+	CookieName,
 	MethodParams,
 	MethodReturn,
 	Result,
 } from "../types/index.js";
 
 import { DEFAULT_COOKIE_CONFIG } from "../config/index.js";
-import { CookieName } from "../constants/cookie.constants.js";
 import {
 	CookieNotFoundError,
 	CookieOperationError,
 	CookieSerializationError,
 	CookieValidationError,
 } from "../errors/index.js";
+import { cookieNameSchema } from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 
 export interface ICookieService {
@@ -349,7 +350,7 @@ export class CookieService implements ICookieService {
 	}
 
 	private _validateName(name: CookieName): CookieResult<undefined> {
-		const result = z.enum(CookieName).safeParse(name);
+		const result = cookieNameSchema.safeParse(name);
 		if (!result.success) {
 			return {
 				error: CookieValidationError.invalidName(name),

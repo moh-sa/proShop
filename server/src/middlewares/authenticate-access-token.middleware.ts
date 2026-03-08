@@ -1,4 +1,3 @@
-import { CookieName } from "../constants/cookie.constants.js";
 import {
 	AuthenticationError,
 	InternalError,
@@ -25,7 +24,7 @@ export const authenticateAccessToken = asyncHandler(async (req, res, next) => {
 
 	// Get and verify access token
 	const getAccessCookieResult = cookieService.get<string>({
-		name: CookieName.ACCESS_TOKEN,
+		name: "accessToken",
 		request: req,
 	});
 	if (!getAccessCookieResult.success) {

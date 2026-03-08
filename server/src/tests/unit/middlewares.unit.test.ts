@@ -3,9 +3,8 @@ import type { TestContext } from "node:test";
 import assert from "node:assert";
 import test, { describe, suite } from "node:test";
 
-import type { TokenType } from "../../types/index.js";
+import type { CookieName, TokenType } from "../../types/index.js";
 
-import { CookieName } from "../../constants/cookie.constants.js";
 import {
 	AuthenticationError,
 	ConflictError,
@@ -39,7 +38,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 				"get",
 				({ name }: { name: CookieName }) => {
 					return (
-						name === CookieName.REFRESH_TOKEN && {
+						name === "refreshToken" && {
 							data: refreshToken ? refreshToken : "refreshTokenString",
 							success: true,
 						}
@@ -108,7 +107,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(
 				mockGetCookie.mock.calls[0].arguments[0].name,
-				CookieName.REFRESH_TOKEN,
+				"refreshToken",
 			);
 		});
 
@@ -227,7 +226,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 				"get",
 				({ name }: { name: CookieName }) => {
 					return (
-						name === CookieName.ACCESS_TOKEN && {
+						name === "accessToken" && {
 							data: accessToken ? accessToken : "accessTokenString",
 							success: true,
 						}
@@ -274,7 +273,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(
 				mockGetCookie.mock.calls[0].arguments[0].name,
-				CookieName.ACCESS_TOKEN,
+				"accessToken",
 			);
 		});
 

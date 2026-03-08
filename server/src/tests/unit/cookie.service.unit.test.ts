@@ -5,7 +5,6 @@ import { z } from "zod";
 import type { CookieItemOptions } from "../../types/index.js";
 
 import { DEFAULT_COOKIE_CONFIG } from "../../config/index.js";
-import { CookieName } from "../../constants/index.js";
 import {
 	CookieNotFoundError,
 	CookieOperationError,
@@ -22,7 +21,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 	describe("set", () => {
 		it("should set cookie with default options", () => {
 			// Arrange
-			const name = CookieName.ACCESS_TOKEN;
+			const name = "accessToken";
 			const value = { isAdmin: false, userId: "123" };
 			const { res } = createMockExpressContext();
 
@@ -40,7 +39,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 		it("should set cookie with merged options", () => {
 			// Arrange
-			const name = CookieName.ACCESS_TOKEN;
+			const name = "accessToken";
 			const value = { isAdmin: false, userId: "123" };
 			const overrideOptions: CookieItemOptions = {
 				httpOnly: false,
@@ -102,7 +101,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.set({
-				item: { name: CookieName.ACCESS_TOKEN, value: "x" },
+				item: { name: "accessToken", value: "x" },
 				response: invalidRes,
 			});
 
@@ -118,7 +117,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 			// Act
 			const result = service.set({
 				item: {
-					name: CookieName.ACCESS_TOKEN,
+					name: "accessToken",
 					value: BigInt(1) as any,
 				},
 				response: res,
@@ -138,7 +137,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.set({
-				item: { name: CookieName.ACCESS_TOKEN, value: { a: 1 } },
+				item: { name: "accessToken", value: { a: 1 } },
 				response: res,
 			});
 
@@ -151,7 +150,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 	describe("get", () => {
 		it("should get cookie without schema", () => {
 			// Arrange
-			const name = CookieName.REFRESH_TOKEN;
+			const name = "refreshToken";
 			const data = { theme: "dark" };
 			const { req } = createMockExpressContext();
 			req.signedCookies = { [name]: JSON.stringify(data) };
@@ -166,7 +165,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 		it("should get cookie and validate with schema", () => {
 			// Arrange
-			const name = CookieName.ACCESS_TOKEN;
+			const name = "accessToken";
 			const data = { age: 30, id: "u1" };
 			const { req } = createMockExpressContext();
 			req.signedCookies = { [name]: JSON.stringify(data) };
@@ -203,7 +202,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.get({
-				name: CookieName.ACCESS_TOKEN,
+				name: "accessToken",
 				request: invalidReq,
 			});
 
@@ -219,7 +218,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.get({
-				name: CookieName.ACCESS_TOKEN,
+				name: "accessToken",
 				request: req,
 			});
 
@@ -230,7 +229,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 		it("should fail when parsing JSON throws", () => {
 			// Arrange
-			const name = CookieName.ACCESS_TOKEN;
+			const name = "accessToken";
 			const { req } = createMockExpressContext();
 			req.signedCookies = { [name]: "{" };
 
@@ -244,7 +243,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 		it("should fail when schema validation fails", () => {
 			// Arrange
-			const name = CookieName.REFRESH_TOKEN;
+			const name = "refreshToken";
 			const data = { age: "30", id: "u1" };
 			const { req } = createMockExpressContext();
 			req.signedCookies = { [name]: JSON.stringify(data) };
@@ -268,7 +267,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 	describe("delete", () => {
 		it("should clear cookie with merged options and without expires/maxAge", () => {
 			// Arrange
-			const name = CookieName.ACCESS_TOKEN;
+			const name = "accessToken";
 			const { res } = createMockExpressContext();
 
 			// Act
@@ -299,7 +298,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.delete({
-				name: CookieName.ACCESS_TOKEN,
+				name: "accessToken",
 				response: invalidRes,
 			});
 
@@ -317,7 +316,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.delete({
-				name: CookieName.ACCESS_TOKEN,
+				name: "accessToken",
 				response: res,
 			});
 

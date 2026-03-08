@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { beforeEach, describe, it, suite } from "node:test";
 
-import { CookieName, HTTP_STATUS } from "../../constants/index.js";
+import { HTTP_STATUS } from "../../constants/index.js";
 import { AuthController } from "../../controllers/auth.controller.js";
 import { TokenType } from "../../types/index.js";
 import {
@@ -93,11 +93,11 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			);
 
 			const accessTokenCall = mockCookie.set.mock.calls[0].arguments[0];
-			assert.strictEqual(accessTokenCall.item.name, CookieName.ACCESS_TOKEN);
+			assert.strictEqual(accessTokenCall.item.name, "accessToken");
 			assert.strictEqual(accessTokenCall.item.value, mockTokens.access.token);
 
 			const refreshTokenCall = mockCookie.set.mock.calls[1].arguments[0];
-			assert.strictEqual(refreshTokenCall.item.name, CookieName.REFRESH_TOKEN);
+			assert.strictEqual(refreshTokenCall.item.name, "refreshToken");
 			assert.strictEqual(refreshTokenCall.item.value, mockTokens.refresh.token);
 		});
 
@@ -232,11 +232,11 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			);
 
 			const accessTokenCall = mockCookie.set.mock.calls[0].arguments[0];
-			assert.strictEqual(accessTokenCall.item.name, CookieName.ACCESS_TOKEN);
+			assert.strictEqual(accessTokenCall.item.name, "accessToken");
 			assert.strictEqual(accessTokenCall.item.value, mockTokens.access.token);
 
 			const refreshTokenCall = mockCookie.set.mock.calls[1].arguments[0];
-			assert.strictEqual(refreshTokenCall.item.name, CookieName.REFRESH_TOKEN);
+			assert.strictEqual(refreshTokenCall.item.name, "refreshToken");
 			assert.strictEqual(refreshTokenCall.item.value, mockTokens.refresh.token);
 		});
 
@@ -636,7 +636,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			);
 
 			const accessTokenCall = mockCookie.set.mock.calls[0].arguments[0];
-			assert.strictEqual(accessTokenCall.item.name, CookieName.ACCESS_TOKEN);
+			assert.strictEqual(accessTokenCall.item.name, "accessToken");
 			assert.strictEqual(accessTokenCall.item.value, mockNewAccessToken.token);
 		});
 

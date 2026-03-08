@@ -12,7 +12,7 @@ import type {
 	TokenPair,
 } from "../types/index.js";
 
-import { CookieName, HTTP_STATUS } from "../constants/index.js";
+import { HTTP_STATUS } from "../constants/index.js";
 import { authManager } from "../managers/index.js";
 import { cookieService } from "../services/index.js";
 import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
@@ -412,7 +412,7 @@ export class AuthController implements IAuthController {
 	private _clearAuthCookies(res: Response): void {
 		// clear access token cookie
 		const clearAccessCookieResult = this._cookieService.delete({
-			name: CookieName.ACCESS_TOKEN,
+			name: "accessToken",
 			response: res,
 		});
 		if (!clearAccessCookieResult.success) {
@@ -421,7 +421,7 @@ export class AuthController implements IAuthController {
 
 		// clear refresh token cookie
 		const clearRefreshCookieResult = this._cookieService.delete({
-			name: CookieName.REFRESH_TOKEN,
+			name: "refreshToken",
 			response: res,
 		});
 		if (!clearRefreshCookieResult.success) {
@@ -435,7 +435,7 @@ export class AuthController implements IAuthController {
 
 	private _getRefreshTokenFromCookie(req: Request): string {
 		const result = this._cookieService.get({
-			name: CookieName.REFRESH_TOKEN,
+			name: "refreshToken",
 			request: req,
 			schema: jwtTokenValidator,
 		});
@@ -453,7 +453,7 @@ export class AuthController implements IAuthController {
 	}): void {
 		const accessCookieResult = this._cookieService.set({
 			item: {
-				name: CookieName.ACCESS_TOKEN,
+				name: "accessToken",
 				value: args.token,
 			},
 			options: {
@@ -487,7 +487,7 @@ export class AuthController implements IAuthController {
 	}): void {
 		const refreshCookieResult = this._cookieService.set({
 			item: {
-				name: CookieName.REFRESH_TOKEN,
+				name: "refreshToken",
 				value: args.token,
 			},
 			options: {
