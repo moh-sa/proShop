@@ -31,7 +31,7 @@ export function generateMockInsertProductWithMulterImage(): InsertProduct {
 
 export function generateMockInsertProductWithStringImage(): InsertProductWithStringImage {
 	const mockProduct = generateMockInsertProduct();
-	const mockStringImage = faker.image.urlLoremFlickr();
+	const mockStringImage = faker.image.url();
 	return {
 		...mockProduct,
 		image: mockStringImage,
@@ -44,7 +44,7 @@ export function generateMockSelectProduct(): SelectProduct {
 		...mockProduct,
 		_id: generateMockObjectId(),
 		createdAt: new Date(),
-		image: faker.image.urlLoremFlickr(),
+		image: faker.image.url(),
 		numReviews: 0,
 		rating: 0,
 		updatedAt: new Date(),
