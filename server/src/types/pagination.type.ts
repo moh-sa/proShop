@@ -1,4 +1,4 @@
-import type { FilterQuery, LeanDocument, PipelineStage } from "mongoose";
+import type { FilterQuery, PipelineStage } from "mongoose";
 
 export interface PaginatedResponse<T> {
 	items: Array<T>;
@@ -18,7 +18,7 @@ export type PaginationParams<TDocument> = {
 	pageNumber: number;
 	pageSize?: number;
 	/** `1` - ascending, `-1` - descending */
-	sort?: Partial<Record<keyof LeanDocument<TDocument>, -1 | 1>>;
+	sort?: Partial<Record<keyof TDocument, -1 | 1>>;
 };
 
 export type PaginationParamsQuery<TDocument> = PaginationParams<TDocument> &
@@ -33,5 +33,5 @@ export type PaginationParamsString = {
 
 export type PaginationQuery<TDocument> = {
 	pipeline?: Array<PipelineStage>;
-	query?: FilterQuery<LeanDocument<TDocument>>;
+	query?: FilterQuery<TDocument>;
 };

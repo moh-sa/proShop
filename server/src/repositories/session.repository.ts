@@ -168,7 +168,7 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "getAll">,
 	): MethodReturn<ISessionRepository, "getAll"> {
 		try {
-			const result = await this._paginator.paginate({
+			const result = await this._paginator.paginate<SelectSession>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: args.query,
@@ -188,7 +188,7 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "getAllActiveByUserId">,
 	): MethodReturn<ISessionRepository, "getAllActiveByUserId"> {
 		try {
-			const result = await this._paginator.paginate({
+			const result = await this._paginator.paginate<SelectSession>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: {
@@ -212,7 +212,7 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "getAllByUserId">,
 	): MethodReturn<ISessionRepository, "getAllByUserId"> {
 		try {
-			const result = await this._paginator.paginate({
+			const result = await this._paginator.paginate<SelectSession>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: {
@@ -234,7 +234,7 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "getAllRevoked">,
 	): MethodReturn<ISessionRepository, "getAllRevoked"> {
 		try {
-			const result = await this._paginator.paginate({
+			const result = await this._paginator.paginate<SelectSession>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: {
@@ -256,7 +256,7 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "getAllRevokedByUserId">,
 	): MethodReturn<ISessionRepository, "getAllRevokedByUserId"> {
 		try {
-			const result = await this._paginator.paginate({
+			const result = await this._paginator.paginate<SelectSession>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: {

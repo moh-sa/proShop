@@ -1,4 +1,4 @@
-import type { FilterQuery, LeanDocument, Model, PipelineStage } from "mongoose";
+import type { FilterQuery, Model, PipelineStage } from "mongoose";
 
 import type {
 	PaginatedResponse,
@@ -20,7 +20,7 @@ export interface PaginatorConfig {
  * @example
  * type ProductPaginator = Paginator<SelectProduct>
  *  */
-export class Paginator<TDocument extends LeanDocument<unknown>> {
+export class Paginator<TDocument> {
 	private readonly _defaultPageSize: number;
 	private readonly _maxPageSize: number;
 
@@ -45,9 +45,9 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 	 * @example
 	 * const sort = Paginator.parseSort("createdAt:desc,name:asc");
 	 */
-	static handleSortString<
-		TResult extends LeanDocument<unknown> = LeanDocument<unknown>,
-	>(input: string): Partial<Record<keyof LeanDocument<TResult>, -1 | 1>> {
+	static handleSortString<TResult>(
+		input: string,
+	): Partial<Record<keyof TResult, -1 | 1>> {
 		if (!input) {
 			return {};
 		}
@@ -56,10 +56,10 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 		return input.split(",").reduce(
 			(acc, item) => {
 				const [key, direction] = item.split(":");
-				acc[key as keyof LeanDocument<TResult>] = direction === "desc" ? -1 : 1;
+				acc[key as keyof TResult] = direction === "desc" ? -1 : 1;
 				return acc;
 			},
-			{} as Partial<Record<keyof LeanDocument<TResult>, -1 | 1>>,
+			{} as Partial<Record<keyof TResult, -1 | 1>>,
 		);
 	}
 
@@ -76,7 +76,7 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 	 *   ],
 	 * });
 	 */
-	public async paginate<TResult = LeanDocument<TDocument>>(
+	public async paginate<TResult>(
 		args: PaginationParamsQuery<TDocument>,
 	): Promise<PaginatedResponse<TResult>> {
 		const { pageNumber, pageSize, skip } = this._preparePaginationParams(args);
@@ -111,7 +111,7 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 	 *   pageSize: 10,
 	 * });
 	 */
-	public paginateArray<TResult = LeanDocument<TDocument>>(args: {
+	public paginateArray<TResult>(args: {
 		items: Array<TResult>;
 		pageNumber: number;
 		pageSize?: number;
@@ -203,9 +203,9 @@ export class Paginator<TDocument extends LeanDocument<unknown>> {
 	private async _query<TResult>(args: {
 		additionalAggregate?: Array<PipelineStage>;
 		limit: number;
-		query: FilterQuery<LeanDocument<TDocument>>;
+		query: FilterQuery<TDocument>;
 		skip: number;
-		sort: Partial<Record<keyof LeanDocument<TDocument>, -1 | 1>>;
+		sort: Partial<Record<keyof TDocument, -1 | 1>>;
 	}): Promise<{
 		items: Array<TResult>;
 		totalItems: number;

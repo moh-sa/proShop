@@ -102,7 +102,7 @@ export class UserRepository implements IUserRepository {
 		args: MethodParams<IUserRepository, "getAll">,
 	): MethodReturn<IUserRepository, "getAll"> {
 		try {
-			const result = await this._paginator.paginate({
+			const result = await this._paginator.paginate<SelectUser>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: args.query,

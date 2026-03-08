@@ -115,7 +115,7 @@ export class ProductRepository implements IProductRepository {
 		args: MethodParams<IProductRepository, "getAll">,
 	): MethodReturn<IProductRepository, "getAll"> {
 		try {
-			const result = await this._paginator.paginate({
+			const result = await this._paginator.paginate<AllProducts>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: args.query,

@@ -201,7 +201,7 @@ export class ReviewRepository implements IReviewRepository {
 		args: MethodParams<IReviewRepository, "getAll">,
 	): MethodReturn<IReviewRepository, "getAll"> {
 		try {
-			const result = await this._paginator.paginate({
+			const result = await this._paginator.paginate<SelectReview>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: args.query,
@@ -221,7 +221,7 @@ export class ReviewRepository implements IReviewRepository {
 		args: MethodParams<IReviewRepository, "getAllByProductId">,
 	): MethodReturn<IReviewRepository, "getAllByProductId"> {
 		try {
-			const result = await this._paginator.paginate({
+			const result = await this._paginator.paginate<SelectReview>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: { product: args.productId },
@@ -241,7 +241,7 @@ export class ReviewRepository implements IReviewRepository {
 		args: MethodParams<IReviewRepository, "getAllByUserId">,
 	): MethodReturn<IReviewRepository, "getAllByUserId"> {
 		try {
-			const result = await this._paginator.paginate({
+			const result = await this._paginator.paginate<SelectReview>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: { user: args.userId },

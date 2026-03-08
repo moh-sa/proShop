@@ -1,4 +1,4 @@
-import type { FilterQuery, LeanDocument, Types } from "mongoose";
+import type { FilterQuery, Types } from "mongoose";
 
 import type { IUserRepository } from "../repositories/index.js";
 import type {
@@ -10,6 +10,7 @@ import type {
 	SafeSelectUser,
 	SelectUser,
 	UnSafeSelectUser,
+	UserDocument,
 	UserPaginationParams,
 } from "../types/index.js";
 
@@ -263,8 +264,8 @@ export class UserService implements IUserService {
 			"Validated query data",
 		);
 
-		function searchQuery(): FilterQuery<LeanDocument<SelectUser>> {
-			const result: FilterQuery<LeanDocument<SelectUser>> = {};
+		function searchQuery(): FilterQuery<UserDocument> {
+			const result: FilterQuery<UserDocument> = {};
 
 			if (queryResult.data?.email) {
 				result.email = queryResult.data.email;
