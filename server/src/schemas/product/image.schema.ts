@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { IMAGE_SIZE_LIMIT, IMAGE_TYPE_LIMIT } from "../../constants/index.js";
 import { nonEmptyStringValidator } from "../../validators/non-empty-string.validator.js";
+import { urlValidator } from "../../validators/url.validator.js";
 
 export const insertImageSchema = z.object({
 	buffer: z.unknown().refine((val): val is Buffer => Buffer.isBuffer(val), {
@@ -29,6 +30,4 @@ export const insertImageSchema = z.object({
 		.max(IMAGE_SIZE_LIMIT, { error: "Image size should not exceed 5MB" }),
 });
 
-export const selectImageSchema = nonEmptyStringValidator("image").pipe(
-	z.url({ error: "Invalid image URL" }),
-);
+export const selectImageSchema = urlValidator;

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { urlValidator } from "../../validators/url.validator.js";
 
 export const createCheckoutSessionItem = z.object({
 	name: z.string().min(1),
@@ -7,10 +8,10 @@ export const createCheckoutSessionItem = z.object({
 });
 
 export const createCheckoutSessionParamsSchema = z.object({
-	cancelUrl: z.url(),
+	cancelUrl: urlValidator,
 	currency: z.string().min(1).max(3).toLowerCase(),
 	items: z.array(createCheckoutSessionItem).min(1),
 	orderId: z.string().min(1),
-	successUrl: z.url(),
+	successUrl: urlValidator,
 	userEmail: z.email(),
 });

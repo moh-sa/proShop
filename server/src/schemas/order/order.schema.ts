@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { objectIdValidator } from "../../validators/index.js";
+import { objectIdValidator, urlValidator } from "../../validators/index.js";
 import { paymentProviderSchema } from "../payment/payment.schema.js";
 import { shippingAddressSchema } from "../shipping/shipping-address.schema.js";
 import { selectUserSchema } from "../user/user.schema.js";
@@ -17,7 +17,7 @@ export const paymentSchema = z.object({
 	id: z.string().min(1, { error: "payment ID is required." }),
 	paidAt: z.coerce.date(),
 	provider: paymentProviderSchema,
-	sessionURL: z.url({ error: "Invalid checkout session URL." }),
+	sessionURL: urlValidator,
 });
 
 const baseOrderSchema = z.object({
