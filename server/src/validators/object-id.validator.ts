@@ -19,13 +19,13 @@ export const objectIdValidator = z.preprocess(
 
 		return val;
 	},
-	z.instanceof(Types.ObjectId, { message: "Invalid ObjectId format." }),
+	z.instanceof(Types.ObjectId, { error: "Invalid ObjectId format." }),
 );
 
 export const objectIdStringValidator = (fieldName: string) =>
 	nonEmptyStringValidator(fieldName).refine(
 		(val) => Types.ObjectId.isValid(val),
 		{
-			message: `Invalid ${fieldName} format.`,
+			error: `Invalid ${fieldName} format.`,
 		},
 	);

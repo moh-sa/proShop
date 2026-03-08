@@ -14,13 +14,10 @@ export const orderStatusSchema = z.enum([
 ]);
 
 export const paymentSchema = z.object({
-	id: z.string().min(1, { message: "payment ID is required." }),
+	id: z.string().min(1, { error: "payment ID is required." }),
 	paidAt: z.coerce.date(),
 	provider: paymentProviderSchema,
-	sessionURL: z
-		.string()
-		.min(1, { message: "Checkout session URL is required." })
-		.url({ message: "Invalid checkout session URL." }),
+	sessionURL: z.url({ error: "Invalid checkout session URL." }),
 });
 
 const baseOrderSchema = z.object({
@@ -28,10 +25,10 @@ const baseOrderSchema = z.object({
 
 	itemsPrice: z
 		.number()
-		.min(0, { message: "Items price is required." })
+		.min(0, { error: "Items price is required." })
 		.default(0),
 	orderItems: z.array(insertOrderItemSchema).min(1, {
-		message: "Order items are required.",
+		error: "Order items are required.",
 	}),
 
 	payment: paymentSchema.optional(),
@@ -39,14 +36,14 @@ const baseOrderSchema = z.object({
 
 	shippingPrice: z
 		.number()
-		.min(0, { message: "Shipping price is required." })
+		.min(0, { error: "Shipping price is required." })
 		.default(0),
 	status: orderStatusSchema.default("pending"),
-	taxPrice: z.number().min(0, { message: "Tax price is required." }).default(0),
+	taxPrice: z.number().min(0, { error: "Tax price is required." }).default(0),
 
 	totalPrice: z
 		.number()
-		.min(0, { message: "Total price is required." })
+		.min(0, { error: "Total price is required." })
 		.default(0),
 
 	user: selectUserSchema.pick({ _id: true, email: true, name: true }),

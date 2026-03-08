@@ -14,10 +14,10 @@ const baseUserSchema = z.object({
 		.string()
 		.trim()
 		.min(MIN_NAME_LENGTH, {
-			message: `Name should be at least ${MIN_NAME_LENGTH} characters long`,
+			error: `Name should be at least ${MIN_NAME_LENGTH} characters long`,
 		})
 		.max(MAX_NAME_LENGTH, {
-			message: `Name should be at most ${MAX_NAME_LENGTH} characters long`,
+			error: `Name should be at most ${MAX_NAME_LENGTH} characters long`,
 		}),
 
 	password: passwordValidator,

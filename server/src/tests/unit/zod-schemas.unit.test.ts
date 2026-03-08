@@ -94,9 +94,8 @@ suite("Zod Schemas 〖 Unit Tests 〗", () => {
 				() => emailValidator.parse(email),
 				(error: Error) => {
 					assert.ok(error instanceof ZodError);
-					assert.equal(error.issues.length, 2);
-					assert.equal(error.issues[0].message, "Email is required.");
-					assert.equal(error.issues[1].message, "Invalid email format.");
+					assert.equal(error.issues.length, 1);
+					assert.equal(error.issues[0].message, "Invalid email format.");
 					return true;
 				},
 			);
@@ -111,9 +110,8 @@ suite("Zod Schemas 〖 Unit Tests 〗", () => {
 				() => emailValidator.parse(email),
 				(error: Error) => {
 					assert.ok(error instanceof ZodError);
-					assert.equal(error.issues.length, 2);
-					assert.equal(error.issues[0].message, "Email is required.");
-					assert.equal(error.issues[1].message, "Invalid email format.");
+					assert.equal(error.issues.length, 1);
+					assert.equal(error.issues[0].message, "Invalid email format.");
 					return true;
 				},
 			);
@@ -234,9 +232,8 @@ suite("Zod Schemas 〖 Unit Tests 〗", () => {
 				() => jwtTokenValidator.parse(token),
 				(error: Error) => {
 					assert.ok(error instanceof ZodError);
-					assert.equal(error.issues.length, 2);
-					assert.equal(error.issues[0].message, "Token is required.");
-					assert.equal(error.issues[1].message, "Invalid jwt token format.");
+					assert.equal(error.issues.length, 1);
+					assert.equal(error.issues[0].message, "Invalid jwt token format.");
 					return true;
 				},
 			);
@@ -251,9 +248,8 @@ suite("Zod Schemas 〖 Unit Tests 〗", () => {
 				() => jwtTokenValidator.parse(token),
 				(error: Error) => {
 					assert.ok(error instanceof ZodError);
-					assert.equal(error.issues.length, 2);
-					assert.equal(error.issues[0].message, "Token is required.");
-					assert.equal(error.issues[1].message, "Invalid jwt token format.");
+					assert.equal(error.issues.length, 1);
+					assert.equal(error.issues[0].message, "Invalid jwt token format.");
 					return true;
 				},
 			);

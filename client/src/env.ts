@@ -19,8 +19,8 @@ const envSchema = z.object({
   PROD: z.boolean(),
 
   // custom vars
-  API_URL: z.string().url(),
-  SENTRY_DSN: z.string().url().includes("sentry.io"),
+  API_URL: z.url(),
+  SENTRY_DSN: z.url().includes("sentry.io"),
   SENTRY_AUTH_TOKEN: z.string().startsWith("sntrys_"),
 });
 

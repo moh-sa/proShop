@@ -7,7 +7,7 @@ import {
 
 export const tokenResultSchema = z.object({
 	expiresAt: z.date().refine((date) => date.getTime() > Date.now(), {
-		message: "Token expiration date must be in the future",
+		error: "Token expiration date must be in the future",
 	}),
 	token: nonEmptyStringValidator("Token"),
 	tokenId: uuidValidator("Token ID"),

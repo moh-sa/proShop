@@ -1,48 +1,49 @@
 import type { ZodError } from "zod";
 
-type ZodErrorTypeTesting = Pick<ZodError, "errors">;
+type ZodErrorTypeTesting = Pick<ZodError, "issues">;
+
 export const mockZodError1: ZodErrorTypeTesting = {
-	errors: [
+	issues: [
 		{
 			code: "invalid_type",
 			expected: "string",
 			message: "Name is required",
 			path: ["user", "name"],
-			received: "undefined",
+			input: undefined,
 		},
 	],
 };
 
 export const mockZodError2: ZodErrorTypeTesting = {
-	errors: [
+	issues: [
 		{
 			code: "invalid_type",
 			expected: "string",
 			message: "Invalid email format",
 			path: ["user", "email"],
-			received: "undefined",
+			input: undefined,
 		},
 	],
 };
 
 export const mockZodError3: ZodErrorTypeTesting = {
-	errors: [
+	issues: [
 		{
 			code: "too_small",
 			inclusive: true,
 			message: "Password should be at least 6 characters long",
 			minimum: 8,
 			path: ["user", "password"],
-			type: "number",
+			origin: "number",
 		},
 	],
 };
 
 export const mockZodErrors = {
-	errors: [mockZodError1, mockZodError2, mockZodError3].reduce(
+	issues: [mockZodError1, mockZodError2, mockZodError3].reduce(
 		(acc, cur) => {
-			return [...acc, ...cur.errors];
+			return [...acc, ...cur.issues];
 		},
-		[] as ZodError["errors"],
+		[] as ZodError["issues"],
 	),
 };

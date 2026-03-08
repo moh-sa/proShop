@@ -4,5 +4,4 @@ export const emailValidator = z
 	.string()
 	.trim()
 	.toLowerCase()
-	.min(1, { message: "Email is required." })
-	.email({ message: "Invalid email format." });
+	.pipe(z.email({ error: "Invalid email format." }));

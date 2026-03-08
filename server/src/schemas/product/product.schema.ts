@@ -5,21 +5,21 @@ import { objectIdValidator } from "../../validators/index.js";
 import { insertImageSchema, selectImageSchema } from "./image.schema.js";
 
 const baseProductSchema = z.object({
-	brand: z.string().min(1, { message: "Brand is required." }),
+	brand: z.string().min(1, { error: "Brand is required." }),
 
-	category: z.string().min(1, { message: "Category is required." }),
+	category: z.string().min(1, { error: "Category is required." }),
 
 	countInStock: z.coerce
 		.number()
 		.int()
-		.min(0, { message: "Count in stock is required." })
+		.min(0, { error: "Count in stock is required." })
 		.default(0),
 
-	description: z.string().min(1, { message: "Description is required." }),
+	description: z.string().min(1, { error: "Description is required." }),
 
-	name: z.string().min(1, { message: "Name is required." }),
+	name: z.string().min(1, { error: "Name is required." }),
 
-	price: z.coerce.number().min(0, { message: "Price is required." }).default(0),
+	price: z.coerce.number().min(0, { error: "Price is required." }).default(0),
 
 	user: objectIdValidator,
 });
@@ -36,10 +36,10 @@ export const selectProductSchema = baseProductSchema.extend({
 	numReviews: z
 		.number()
 		.int()
-		.min(0, { message: "Number of reviews is required." }),
+		.min(0, { error: "Number of reviews is required." }),
 	rating: z
 		.number()
-		.min(0, { message: "Rating is required." })
-		.max(5, { message: "Rating must be between 1 and 5." }),
+		.min(0, { error: "Rating is required." })
+		.max(5, { error: "Rating must be between 1 and 5." }),
 	updatedAt: z.date(),
 });

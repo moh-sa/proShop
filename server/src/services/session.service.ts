@@ -559,7 +559,7 @@ export class SessionService implements ISessionService {
 		if (!argsValidationResult.success) {
 			return {
 				error: new SessionValidationError({
-					cause: argsValidationResult.error.errors,
+					cause: argsValidationResult.error,
 				}),
 				success: false,
 			};
@@ -580,7 +580,7 @@ export class SessionService implements ISessionService {
 		if (!argsValidationResult.success) {
 			return {
 				error: new SessionValidationError({
-					cause: argsValidationResult.error.errors,
+					cause: argsValidationResult.error,
 				}),
 				success: false,
 			};
@@ -594,7 +594,7 @@ export class SessionService implements ISessionService {
 		if (!userIdValidationResult.success) {
 			return {
 				error: new SessionValidationError({
-					cause: userIdValidationResult.error.errors,
+					cause: userIdValidationResult.error,
 				}),
 				success: false,
 			};

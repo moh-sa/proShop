@@ -349,7 +349,7 @@ export class CookieService implements ICookieService {
 	}
 
 	private _validateName(name: CookieName): CookieResult<undefined> {
-		const result = z.nativeEnum(CookieName).safeParse(name);
+		const result = z.enum(CookieName).safeParse(name);
 		if (!result.success) {
 			return {
 				error: CookieValidationError.invalidName(name),

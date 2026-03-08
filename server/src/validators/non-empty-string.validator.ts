@@ -4,4 +4,4 @@ export const nonEmptyStringValidator = (fieldName: string) =>
 	z
 		.string()
 		.trim()
-		.min(1, { message: `${fieldName} is required` });
+		.min(1, { error: `${fieldName} is required` });

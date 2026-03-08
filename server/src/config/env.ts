@@ -4,7 +4,7 @@ import { z } from "zod";
 import { InternalError } from "../errors/index.js";
 
 const EnvSchema = z.object({
-	CLIENT_URL: z.string().url(),
+	CLIENT_URL: z.url(),
 	CLOUDINARY_API_KEY: z.string().min(1),
 	CLOUDINARY_API_SECRET: z.string().min(1),
 	CLOUDINARY_CLOUD_NAME: z.string().min(1),
@@ -17,7 +17,7 @@ const EnvSchema = z.object({
 	NODE_ENV: z.enum(["development", "test", "production"]),
 	PAYPAL_CLIENT_ID: z.string().min(1),
 	PORT: z.coerce.number().min(1),
-	SENTRY_DNS: z.string().min(1).url(),
+	SENTRY_DNS: z.url(),
 	STRIPE_SECRET: z.string().min(1),
 	STRIPE_WEBHOOK_SECRET: z.string().min(1),
 });

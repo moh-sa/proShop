@@ -5,7 +5,7 @@ import { nonEmptyStringValidator } from "../../validators/non-empty-string.valid
 
 export const insertImageSchema = z.object({
 	buffer: z.unknown().refine((val): val is Buffer => Buffer.isBuffer(val), {
-		message: "Invalid buffer",
+		error: "Invalid buffer",
 	}),
 
 	encoding: nonEmptyStringValidator("encoding"),
@@ -15,8 +15,8 @@ export const insertImageSchema = z.object({
 	mimetype: nonEmptyStringValidator("mimetype").refine(
 		(val) => IMAGE_TYPE_LIMIT.includes(val),
 		{
-			message: `Invalid image type. Allowed types: ${IMAGE_TYPE_LIMIT.map(
-				(val) => val.replace("image/", ""),
+			error: `Invalid image type. Allowed types: ${IMAGE_TYPE_LIMIT.map((val) =>
+				val.replace("image/", ""),
 			).join(", ")}`,
 		},
 	),
@@ -26,9 +26,9 @@ export const insertImageSchema = z.object({
 	size: z
 		.number()
 		.positive()
-		.max(IMAGE_SIZE_LIMIT, { message: "Image size should not exceed 5MB" }),
+		.max(IMAGE_SIZE_LIMIT, { error: "Image size should not exceed 5MB" }),
 });
 
-export const selectImageSchema = nonEmptyStringValidator("image").url({
-	message: "Invalid image URL",
-});
+export const selectImageSchema = nonEmptyStringValidator("image").pipe(
+	z.url({ error: "Invalid image URL" }),
+);
