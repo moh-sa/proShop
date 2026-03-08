@@ -256,7 +256,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 			response.data.forEach((product) => {
 				const originalProduct = productsWithPriceInDollars.find(
-					(p) => p.name === product.name,
+					(p) => p._id.toString() === product._id.toString(),
 				);
 
 				assert.strictEqual(product.price, originalProduct?.price);
