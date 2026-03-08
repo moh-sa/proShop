@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { emailValidator } from "../../validators/email.validator.js";
 import { urlValidator } from "../../validators/url.validator.js";
 
 export const createCheckoutSessionItem = z.object({
@@ -13,5 +14,5 @@ export const createCheckoutSessionParamsSchema = z.object({
 	items: z.array(createCheckoutSessionItem).min(1),
 	orderId: z.string().min(1),
 	successUrl: urlValidator,
-	userEmail: z.email(),
+	userEmail: emailValidator,
 });
