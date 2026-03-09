@@ -6,12 +6,10 @@ import type {
 	tokenPairSchema,
 	tokenPayloadSchema,
 	tokenResultSchema,
+	tokenTypeSchema,
 } from "../schemas/index.js";
 
-export enum TokenType {
-	ACCESS = "access",
-	REFRESH = "refresh",
-}
+export type TokenType = z.infer<typeof tokenTypeSchema>;
 
 export type JwtConfig = z.infer<typeof jwtConfigSchema>;
 

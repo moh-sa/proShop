@@ -12,7 +12,6 @@ import {
 	CookieValidationError,
 } from "../../errors/index.js";
 import { CookieService } from "../../services/index.js";
-import { TokenType } from "../../types/index.js";
 import { createMockExpressContext } from "../utils/index.js";
 
 suite("Cookie Service〖 Unit Tests 〗", () => {
@@ -86,7 +85,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.set({
-				item: { name: TokenType.REFRESH as any, value: "x" },
+				item: { name: "refresh" as any, value: "x" },
 				response: res,
 			});
 

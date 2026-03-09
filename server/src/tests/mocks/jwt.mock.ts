@@ -47,7 +47,7 @@ export function generateMockJwtPayload(
 	const issuedAt = now.getTime() / 1000;
 
 	const expirationTimeInMs =
-		(type === TokenType.ACCESS
+		(type === "access"
 			? DEFAULT_JWT_CONFIG.accessTokenExpiresIn
 			: DEFAULT_JWT_CONFIG.refreshTokenExpiresIn) * 1000;
 	const expiresAt =
@@ -131,8 +131,8 @@ export function generateMockTokenWithData(
 export function generateMockTokenPairWithData(
 	options: Partial<TokenPair> = {},
 ): TokenPair {
-	const access = generateMockTokenWithData(TokenType.ACCESS, options.access);
-	const refresh = generateMockTokenWithData(TokenType.REFRESH, options.refresh);
+	const access = generateMockTokenWithData("access", options.access);
+	const refresh = generateMockTokenWithData("refresh", options.refresh);
 
 	return {
 		access: {

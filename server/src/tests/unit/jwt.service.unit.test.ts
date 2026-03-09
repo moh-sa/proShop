@@ -11,7 +11,6 @@ import {
 	JwtInvalidTokenError,
 } from "../../errors/index.js";
 import { JwtService } from "../../services/index.js";
-import { TokenType } from "../../types/index.js";
 import { generateMockObjectId, mockJwt } from "../mocks/index.js";
 
 suite("JWT Service〖 Unit Tests 〗", () => {
@@ -55,7 +54,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 			assert.strictEqual(signCall.callCount(), 1);
 			assert.deepStrictEqual(signCall.calls[0].arguments[0], {
 				tokenId,
-				type: TokenType.ACCESS,
+				type: "access",
 				userId,
 			});
 			assert.strictEqual(
@@ -176,7 +175,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 			assert.strictEqual(signCall.callCount(), 1);
 			assert.deepStrictEqual(signCall.calls[0].arguments[0], {
 				tokenId,
-				type: TokenType.REFRESH,
+				type: "refresh",
 				userId,
 			});
 			assert.strictEqual(
@@ -244,9 +243,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 			t.mock.method(crypto, "randomUUID", () => tokenId);
 
 			mockJWT.sign.mock.mockImplementation((payload: any) =>
-				payload.type === TokenType.ACCESS
-					? validAccessToken
-					: validRefreshToken,
+				payload.type === "access" ? validAccessToken : validRefreshToken,
 			);
 
 			mockJWT.decode.mock.mockImplementation(() => ({
@@ -288,7 +285,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 			t.mock.method(crypto, "randomUUID", () => tokenId);
 
 			mockJWT.sign.mock.mockImplementation((payload: any) => {
-				if (payload.type === TokenType.ACCESS) {
+				if (payload.type === "access") {
 					return validAccessToken;
 				}
 
@@ -321,7 +318,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 				exp: mockExpiresAt.getTime() / 1000 + 3600,
 				iat: mockExpiresAt.getTime() / 1000,
 				tokenId,
-				type: TokenType.REFRESH,
+				type: "refresh",
 				userId,
 			};
 
@@ -384,7 +381,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 				exp: mockExpiresAt.getTime() / 1000 + 3600,
 				iat: mockExpiresAt.getTime() / 1000,
 				tokenId,
-				type: TokenType.REFRESH,
+				type: "refresh",
 				userId,
 			};
 
@@ -414,7 +411,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 	describe("verify", () => {
 		it("should successfully verify valid token with correct type", () => {
 			// Arrange
-			const expectedType = TokenType.ACCESS;
+			const expectedType = "access";
 			const mockDecoded = {
 				exp: Math.floor(Date.now() / 1000) + 3600,
 				iat: Math.floor(Date.now() / 1000),
@@ -446,7 +443,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 		it("should fail with invalid token format", () => {
 			// Act
 			const result = service.verify({
-				expectedType: TokenType.ACCESS,
+				expectedType: "access",
 				token: invalidAccessToken,
 			});
 
@@ -479,7 +476,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 				exp: Math.floor(Date.now() / 1000) + 3600,
 				iat: Math.floor(Date.now() / 1000),
 				tokenId: "token-id",
-				type: TokenType.REFRESH,
+				type: "refresh",
 				userId: "user-id",
 			};
 
@@ -487,7 +484,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.verify({
-				expectedType: TokenType.ACCESS,
+				expectedType: "access",
 				token: validAccessToken,
 			});
 
@@ -512,7 +509,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.verify({
-				expectedType: TokenType.ACCESS,
+				expectedType: "access",
 				token: validAccessToken,
 			});
 
@@ -529,7 +526,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.verify({
-				expectedType: TokenType.ACCESS,
+				expectedType: "access",
 				token: invalidAccessToken,
 			});
 
@@ -546,7 +543,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.verify({
-				expectedType: TokenType.ACCESS,
+				expectedType: "access",
 				token: validAccessToken,
 			});
 
@@ -562,7 +559,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.verify({
-				expectedType: TokenType.ACCESS,
+				expectedType: "access",
 				token: validAccessToken,
 			});
 
@@ -574,7 +571,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 		it("should fail when decoded token is missing required fields", () => {
 			// Arrange
 			const mockDecoded = {
-				type: TokenType.ACCESS,
+				type: "access",
 				// Missing userId, exp, iat, tokenId
 			};
 
@@ -582,7 +579,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.verify({
-				expectedType: TokenType.ACCESS,
+				expectedType: "access",
 				token: validAccessToken,
 			});
 

@@ -2,7 +2,6 @@ import { AuthenticationError } from "../errors/index.js";
 import { cookieService } from "../services/cookie.service.js";
 import { jwtService } from "../services/jwt.service.js";
 import { sessionService } from "../services/session.service.js";
-import { TokenType } from "../types/jwt.type.js";
 import { asyncHandler } from "../utils/async-handler.util.js";
 
 /**
@@ -26,7 +25,7 @@ export const authenticateRefreshSession = asyncHandler(
 		}
 
 		const verifyRefreshTokenResult = jwtService.verify({
-			expectedType: TokenType.REFRESH,
+			expectedType: "refresh",
 			token: getRefreshCookieResult.data,
 		});
 		if (!verifyRefreshTokenResult.success) {

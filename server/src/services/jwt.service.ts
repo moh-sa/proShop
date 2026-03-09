@@ -56,7 +56,7 @@ export class JwtService implements IJwtService {
 	): MethodReturn<IJwtService, "generateAccessToken"> {
 		return this._generateToken({
 			payload: {
-				type: TokenType.ACCESS,
+				type: "access",
 				userId: args.userId,
 			},
 		});
@@ -67,7 +67,7 @@ export class JwtService implements IJwtService {
 	): MethodReturn<IJwtService, "generateRefreshToken"> {
 		return this._generateToken({
 			payload: {
-				type: TokenType.REFRESH,
+				type: "refresh",
 				userId: args.userId,
 			},
 		});
@@ -110,7 +110,7 @@ export class JwtService implements IJwtService {
 		);
 
 		const refreshTokenResult = this.verify({
-			expectedType: TokenType.REFRESH,
+			expectedType: "refresh",
 			token: args.refreshToken,
 		});
 		if (!refreshTokenResult.success) {
@@ -297,7 +297,7 @@ export class JwtService implements IJwtService {
 	}
 
 	private _getExpirationTimeByTokenType(tokenType: TokenType): number {
-		return tokenType === TokenType.ACCESS
+		return tokenType === "access"
 			? this._config.accessTokenExpiresIn
 			: this._config.refreshTokenExpiresIn;
 	}
@@ -310,7 +310,7 @@ export class JwtService implements IJwtService {
 	}
 
 	private _getSecretByTokenType(tokenType: TokenType): string {
-		return tokenType === TokenType.ACCESS
+		return tokenType === "access"
 			? this._config.accessTokenSecret
 			: this._config.refreshTokenSecret;
 	}

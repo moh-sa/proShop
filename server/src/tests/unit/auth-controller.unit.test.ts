@@ -3,7 +3,6 @@ import { beforeEach, describe, it, suite } from "node:test";
 
 import { HTTP_STATUS } from "../../constants/index.js";
 import { AuthController } from "../../controllers/auth.controller.js";
-import { TokenType } from "../../types/index.js";
 import {
 	generateMockInsertUser,
 	generateMockJwt,
@@ -305,7 +304,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 	describe("signOut", () => {
 		it("should read refresh cookie and sign out user", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -332,7 +331,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 		it("should clear both access and refresh token cookies", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -362,7 +361,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 		it("should return 200 with success message", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -412,7 +411,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 		it("should throw when manager fails and prevent cookie deletion", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 			const error = new Error("fail");
 
 			const { next, req, res } = createMockExpressContext();
@@ -438,7 +437,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 	describe("signOutAll", () => {
 		it("should sign out all sessions and return removed count", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 			const mockRemovedCount = 3;
 
 			const { next, req, res } = createMockExpressContext();
@@ -465,7 +464,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 		it("should clear both access and refresh token cookies", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -495,7 +494,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 		it("should return 200 with removed count in meta", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 			const mockRemovedCount = 3;
 
 			const { next, req, res } = createMockExpressContext();
@@ -545,7 +544,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 		it("should throw when manager fails and prevent cookie deletion", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 			const error = new Error("Sign out all failed");
 
 			const { next, req, res } = createMockExpressContext();
@@ -572,10 +571,8 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 	describe("refreshAccessToken", () => {
 		it("should refresh access token and return 200", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const { exp: expiresAt, token } = generateMockTokenWithData(
-				TokenType.ACCESS,
-			);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const { exp: expiresAt, token } = generateMockTokenWithData("access");
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -601,10 +598,8 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 		it("should set only access token cookie (not refresh token)", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const { exp: expiresAt, token } = generateMockTokenWithData(
-				TokenType.ACCESS,
-			);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const { exp: expiresAt, token } = generateMockTokenWithData("access");
 			const mockNewAccessToken = {
 				expiresAt: new Date(expiresAt * 1000),
 				token,
@@ -642,10 +637,8 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 		it("should configure access token cookie as httpOnly", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const { exp: expiresAt, token } = generateMockTokenWithData(
-				TokenType.ACCESS,
-			);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const { exp: expiresAt, token } = generateMockTokenWithData("access");
 			const mockNewAccessToken = {
 				expiresAt: new Date(expiresAt * 1000),
 				token,
@@ -698,7 +691,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 		it("should throw when manager fails and prevent cookie setting", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 			const error = new Error("x");
 
 			const { next, req, res } = createMockExpressContext();
@@ -726,7 +719,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 		it("should get user sessions and return 200", async () => {
 			// Arrange
 			const mockSessions = generateMockSelectSessions({ count: 3 });
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 			const mockPaginationMeta = {
 				currentPage: 1,
 				hasNextPage: false,
@@ -763,7 +756,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 		it("should return sessions data in response body", async () => {
 			// Arrange
 			const mockSessions = generateMockSelectSessions({ count: 3 });
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 			const mockPaginationMeta = {
 				currentPage: 1,
 				hasNextPage: false,
@@ -804,7 +797,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 		it("should not modify any cookies during session retrieval", async () => {
 			// Arrange
 			const mockSessions = generateMockSelectSessions({ count: 3 });
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 			const mockPaginationMeta = {
 				currentPage: 1,
 				hasNextPage: false,
@@ -859,7 +852,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 		it("should throw when manager fails", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 			const error = new Error("x");
 
 			const { next, req, res } = createMockExpressContext();
@@ -884,7 +877,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 	describe("revokeSession", () => {
 		it("should revoke current session", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -910,7 +903,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 		it("should clear both access and refresh token cookies", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -940,7 +933,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 		it("should return 200 with success message", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -992,7 +985,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 		it("should throw when manager fails and prevent cookie deletion", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 			const error = new Error("x");
 
 			const { next, req, res } = createMockExpressContext();
@@ -1020,7 +1013,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 		it("should revoke all user sessions", async () => {
 			// Arrange
 			const mockRevokedCount = 5;
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -1046,7 +1039,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 		it("should clear both access and refresh token cookies", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 			const mockRevokedCount = 5;
 
 			const { next, req, res } = createMockExpressContext();
@@ -1076,7 +1069,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 		it("should return 200 with revoked count in meta", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 			const mockRevokedCount = 5;
 
 			const { next, req, res } = createMockExpressContext();
@@ -1126,7 +1119,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 		it("should throw when manager fails and prevent cookie deletion", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 			const error = new Error("x");
 
 			const { next, req, res } = createMockExpressContext();

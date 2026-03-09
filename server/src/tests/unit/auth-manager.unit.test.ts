@@ -10,7 +10,6 @@ import {
 	ValidationError,
 } from "../../errors/index.js";
 import { AuthManager } from "../../managers/auth.manager.js";
-import { TokenType } from "../../types/index.js";
 import {
 	generateMockInsertUser,
 	generateMockJwt,
@@ -43,8 +42,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 	describe("getUserSessions", () => {
 		it("should return success with paginated active sessions when refreshToken is valid and session service resolves", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockDecodedToken = generateMockTokenDecoded("refresh");
 			const mockSessions = generateMockSelectSessions({ count: 2 });
 			const mockPaginationMeta = {
 				currentPage: 1,
@@ -85,7 +84,7 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockJwt.verify.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockJwt.verify.mock.calls[0].arguments[0].expectedType,
-				TokenType.REFRESH,
+				"refresh",
 			);
 			assert.deepStrictEqual(
 				mockJwt.verify.mock.calls[0].arguments[0].token,
@@ -137,8 +136,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 		it("should bubble session service error", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockDecodedToken = generateMockTokenDecoded("refresh");
 			const error = new ValidationError("svc");
 
 			mockJwt.verify.mock.mockImplementation(() => ({
@@ -164,8 +163,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 		it("should return success with empty paginated results when no active sessions exist", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockDecodedToken = generateMockTokenDecoded("refresh");
 			const emptyPaginationMeta = {
 				currentPage: 1,
 				hasNextPage: false,
@@ -206,8 +205,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 		it("should pass pagination parameters correctly to session service", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockDecodedToken = generateMockTokenDecoded("refresh");
 			const mockSessions = generateMockSelectSessions({ count: 1 });
 			const mockPaginationMeta = {
 				currentPage: 2,
@@ -264,10 +263,10 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 	describe("refreshAccessToken", () => {
 		it("should return success with new access token when refresh token and session are valid", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockDecodedToken = generateMockTokenDecoded("refresh");
 
-			const mockAccessData = generateMockTokenWithData(TokenType.ACCESS);
+			const mockAccessData = generateMockTokenWithData("access");
 			const access: TokenResult = {
 				expiresAt: new Date(mockAccessData.exp * 1000),
 				token: mockAccessData.token,
@@ -353,8 +352,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 		it("should bubble session.validate error", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockDecodedToken = generateMockTokenDecoded("refresh");
 
 			const error = new ValidationError("session");
 
@@ -379,8 +378,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 		it("should bubble access token generation error", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockDecodedToken = generateMockTokenDecoded("refresh");
 
 			const error = new ValidationError("gen");
 
@@ -411,8 +410,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 	describe("revokeAllSessions", () => {
 		it("should return success with count when refresh token valid and revokeAllByUserId resolves", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockDecodedToken = generateMockTokenDecoded("refresh");
 
 			mockJwt.verify.mock.mockImplementation(() => ({
 				data: mockDecodedToken,
@@ -475,8 +474,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 		it("should bubble session.revokeAllByUserId error", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockDecodedToken = generateMockTokenDecoded("refresh");
 
 			const error = new ValidationError("svc");
 
@@ -504,8 +503,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 		it("should return success when refresh token valid and revokeByTokenIdAndUserId resolves", async () => {
 			// Arrange
 			const mockSelectSession = generateMockSelectSession();
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockDecodedToken = generateMockTokenDecoded("refresh");
 
 			mockJwt.verify.mock.mockImplementation(() => ({
 				data: mockDecodedToken,
@@ -554,7 +553,7 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 		it("should bubble jwt.verify error", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 			const error = new ValidationError("jwt");
 
 			mockJwt.verify.mock.mockImplementation(() => ({
@@ -574,8 +573,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 		it("should bubble session.revokeByTokenIdAndUserId error", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockDecodedToken = generateMockTokenDecoded("refresh");
 
 			const error = new ValidationError("svc");
 
@@ -736,8 +735,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 	describe("signOut", () => {
 		it("should return success when deleteByTokenIdAndUserId resolves", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockDecodedToken = generateMockTokenDecoded("refresh");
 
 			mockJwt.verify.mock.mockImplementation(() => ({
 				data: mockDecodedToken,
@@ -787,7 +786,7 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 		it("should bubble jwt.verify error", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 
 			const error = new ValidationError("jwt");
 
@@ -808,8 +807,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 		it("should bubble session.deleteByTokenIdAndUserId error", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockDecodedToken = generateMockTokenDecoded("refresh");
 
 			const error = new ValidationError("svc");
 
@@ -835,8 +834,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 	describe("signOutAll", () => {
 		it("should return success with deleted count when deleteAllByUserId resolves", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockDecodedToken = generateMockTokenDecoded("refresh");
 			const expectedDeletedSessions = 5;
 
 			mockJwt.verify.mock.mockImplementation(() => ({
@@ -881,7 +880,7 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 		it("should bubble jwt.verify error", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
 
 			const error = new ValidationError("jwt");
 
@@ -902,8 +901,8 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 		it("should bubble session.deleteAllByUserId error", async () => {
 			// Arrange
-			const mockRefreshToken = generateMockJwt(TokenType.REFRESH);
-			const mockDecodedToken = generateMockTokenDecoded(TokenType.REFRESH);
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockDecodedToken = generateMockTokenDecoded("refresh");
 
 			const error = new ValidationError("svc");
 

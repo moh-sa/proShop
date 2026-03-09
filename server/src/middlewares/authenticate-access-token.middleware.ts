@@ -5,7 +5,6 @@ import {
 } from "../errors/index.js";
 import { cookieService } from "../services/cookie.service.js";
 import { jwtService } from "../services/jwt.service.js";
-import { TokenType } from "../types/jwt.type.js";
 import { asyncHandler } from "../utils/async-handler.util.js";
 
 /**
@@ -36,7 +35,7 @@ export const authenticateAccessToken = asyncHandler(async (req, res, next) => {
 	}
 
 	const verifyAccessTokenResult = jwtService.verify({
-		expectedType: TokenType.ACCESS,
+		expectedType: "access",
 		token: getAccessCookieResult.data,
 	});
 	if (!verifyAccessTokenResult.success) {

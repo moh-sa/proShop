@@ -29,7 +29,6 @@ import {
 	sessionService,
 	userService,
 } from "../services/index.js";
-import { TokenType } from "../types/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 
 // helpers types
@@ -107,7 +106,7 @@ export class AuthManager implements IAuthManager {
 		}
 
 		const refreshTokenValidationResult = this._jwt.verify({
-			expectedType: TokenType.REFRESH,
+			expectedType: "refresh",
 			token: args.refreshToken,
 		});
 		if (!refreshTokenValidationResult.success) {
@@ -143,7 +142,7 @@ export class AuthManager implements IAuthManager {
 		}
 
 		const tokenValidationResult = this._jwt.verify({
-			expectedType: TokenType.REFRESH,
+			expectedType: "refresh",
 			token: args.refreshToken,
 		});
 		if (!tokenValidationResult.success) {
@@ -185,7 +184,7 @@ export class AuthManager implements IAuthManager {
 		}
 
 		const refreshTokenValidationResult = this._jwt.verify({
-			expectedType: TokenType.REFRESH,
+			expectedType: "refresh",
 			token: args.refreshToken,
 		});
 		if (!refreshTokenValidationResult.success) {
@@ -216,7 +215,7 @@ export class AuthManager implements IAuthManager {
 		}
 
 		const refreshTokenValidationResult = this._jwt.verify({
-			expectedType: TokenType.REFRESH,
+			expectedType: "refresh",
 			token: args.refreshToken,
 		});
 		if (!refreshTokenValidationResult.success) {
@@ -311,7 +310,7 @@ export class AuthManager implements IAuthManager {
 		}
 
 		const tokenResult = this._jwt.verify({
-			expectedType: TokenType.REFRESH,
+			expectedType: "refresh",
 			token: args.refreshToken as string,
 		});
 		if (!tokenResult.success) {
@@ -349,7 +348,7 @@ export class AuthManager implements IAuthManager {
 		}
 
 		const refreshTokenResult = this._jwt.verify({
-			expectedType: TokenType.REFRESH,
+			expectedType: "refresh",
 			token: args.refreshToken,
 		});
 		if (!refreshTokenResult.success) {
