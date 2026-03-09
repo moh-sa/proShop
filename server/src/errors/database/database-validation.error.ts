@@ -1,4 +1,4 @@
-import { ErrorType } from "../../constants/index.js";
+import { ERROR_TYPE, HTTP_STATUS } from "../../constants/index.js";
 import { DatabaseBaseError } from "./database-base.error.js";
 
 export class DatabaseValidationError extends DatabaseBaseError {
@@ -6,6 +6,6 @@ export class DatabaseValidationError extends DatabaseBaseError {
 		message: string = "Database validation failed",
 		details?: Record<string, unknown>,
 	) {
-		super(message, ErrorType.DATABASE_ERROR, 400, details);
+		super(message, ERROR_TYPE.DATABASE_ERROR, HTTP_STATUS.BAD_REQUEST, details);
 	}
 }

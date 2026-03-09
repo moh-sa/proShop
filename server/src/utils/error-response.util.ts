@@ -1,7 +1,6 @@
 import type { Response } from "express";
 
-import type { HTTP_STATUS } from "../constants/index.js";
-import type { ErrorResponse } from "../types/index.js";
+import type { ErrorResponse, HttpStatus } from "../types/index.js";
 
 export function createErrorResponseObject({
 	code,
@@ -22,7 +21,7 @@ export function sendErrorResponse({
 	statusCode,
 }: Omit<ErrorResponse, "success" | "timestamp"> & {
 	responseContext: Response;
-	statusCode: HTTP_STATUS;
+	statusCode: HttpStatus;
 }): void {
 	const response = createErrorResponseObject({ code, errors });
 	responseContext.status(statusCode).json(response);

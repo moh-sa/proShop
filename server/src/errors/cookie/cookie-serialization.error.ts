@@ -1,12 +1,12 @@
-import { ErrorType } from "../../constants/index.js";
+import { ERROR_TYPE, HTTP_STATUS } from "../../constants/index.js";
 import { CookieBaseError } from "./cookie-base.error.js";
 
 export class CookieSerializationError extends CookieBaseError {
 	constructor(message: string, details?: Record<string, unknown>) {
 		super(
 			`Cookie serialization failed: ${message}`,
-			ErrorType.COOKIE_SERIALIZATION,
-			400,
+			ERROR_TYPE.COOKIE_SERIALIZATION,
+			HTTP_STATUS.BAD_REQUEST,
 			details,
 		);
 	}

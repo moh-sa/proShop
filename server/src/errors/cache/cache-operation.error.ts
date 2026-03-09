@@ -1,4 +1,4 @@
-import { ErrorType } from "../../constants/index.js";
+import { ERROR_TYPE, HTTP_STATUS } from "../../constants/index.js";
 import { CacheBaseError } from "./cache-base.error.js";
 
 type CacheOperation = "DELETE" | "FLUSH" | "GET" | "HAS" | "SET" | "TAKE";
@@ -13,8 +13,8 @@ export class CacheOperationError extends CacheBaseError {
 	) {
 		super(
 			`Cache ${operation.toLowerCase()} failed: ${message}`,
-			ErrorType.CACHE_ERROR,
-			500,
+			ERROR_TYPE.CACHE_ERROR,
+			HTTP_STATUS.INTERNAL_SERVER_ERROR,
 			details,
 		);
 		this.operation = operation;

@@ -1,4 +1,4 @@
-import { ErrorType } from "../../constants/index.js";
+import { ERROR_TYPE, HTTP_STATUS } from "../../constants/index.js";
 import { DatabaseBaseError } from "./database-base.error.js";
 
 export class DatabaseNetworkError extends DatabaseBaseError {
@@ -6,6 +6,11 @@ export class DatabaseNetworkError extends DatabaseBaseError {
 		message: string = "Database connection failed",
 		details?: Record<string, unknown>,
 	) {
-		super(message, ErrorType.DATABASE_ERROR, 503, details);
+		super(
+			message,
+			ERROR_TYPE.DATABASE_ERROR,
+			HTTP_STATUS.SERVICE_UNAVAILABLE,
+			details,
+		);
 	}
 }

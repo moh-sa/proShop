@@ -5,7 +5,7 @@ import { MulterError } from "multer";
 import { ZodError } from "zod";
 
 import { env } from "../config/index.js";
-import { ErrorType } from "../constants/index.js";
+import { ERROR_TYPE, HTTP_STATUS } from "../constants/index.js";
 import { BaseError, JwtBaseError } from "../errors/index.js";
 import { sendErrorResponse } from "../utils/index.js";
 
@@ -33,13 +33,13 @@ export function errorHandler(
 	if (error instanceof ZodError) {
 		error.format();
 		return sendErrorResponse({
-			code: ErrorType.VALIDATION,
+			code: ERROR_TYPE.VALIDATION,
 			errors: error.issues.map((issue) => ({
 				message: issue.message,
 				path: issue.path.join("."),
 			})),
 			responseContext: res,
-			statusCode: 400,
+			statusCode: HTTP_STATUS.BAD_REQUEST,
 		});
 	}
 
@@ -60,7 +60,7 @@ export function errorHandler(
 
 	if (error instanceof MulterError) {
 		return sendErrorResponse({
-			code: ErrorType.BAD_REQUEST, // FIXME: add a better error type
+			code: ERROR_TYPE.BAD_REQUEST, // FIXME: add a better error type
 			errors: [
 				{
 					message: error.message || "File upload failed",
@@ -68,7 +68,7 @@ export function errorHandler(
 				},
 			],
 			responseContext: res,
-			statusCode: 400,
+			statusCode: HTTP_STATUS.BAD_REQUEST,
 		});
 	}
 
@@ -88,7 +88,7 @@ export function errorHandler(
 	}
 
 	return sendErrorResponse({
-		code: ErrorType.INTERNAL,
+		code: ERROR_TYPE.INTERNAL,
 		errors: [
 			{
 				message: error.message || "Internal server error",
@@ -97,7 +97,7 @@ export function errorHandler(
 			},
 		],
 		responseContext: res,
-		statusCode: 500,
+		statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
 	});
 }
 
@@ -109,7 +109,7 @@ function shouldReportToSentry(error: Error): boolean {
 		return false;
 	}
 	if (error instanceof BaseError) {
-		return error.statusCode >= 500;
+		return error.statusCode >= HTTP_STATUS.INTERNAL_SERVER_ERROR;
 	}
 	return true;
 }

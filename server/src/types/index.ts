@@ -3,6 +3,8 @@ export * from "./async-handler.type.js";
 export * from "./cache.type.js";
 export * from "./cookie.type.js";
 export * from "./deep-partial-type.js";
+export * from "./error-type.type.js";
+export * from "./http-status.type.js";
 export * from "./image.type.js";
 export * from "./jwt.type.js";
 export * from "./method-params.type.js";

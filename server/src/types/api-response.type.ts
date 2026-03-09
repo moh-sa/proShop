@@ -1,4 +1,4 @@
-import type { ErrorType } from "../constants/index.js";
+import { ErrorType } from "./error-type.type.js";
 
 // Error response type
 export interface ErrorDetails {

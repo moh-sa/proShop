@@ -1,10 +1,11 @@
-import { ErrorType } from "../../constants/index.js";
+import { ERROR_TYPE, HTTP_STATUS } from "../../constants/index.js";
+import { HttpStatus } from "../../types/index.js";
 import { CacheBaseError } from "./cache-base.error.js";
 
 export class CacheCapacityError extends CacheBaseError {
 	constructor(
 		message: string,
-		statusCode: number,
+		statusCode: HttpStatus,
 		details?: {
 			batchSize?: number;
 			currentSize?: number;
@@ -13,7 +14,7 @@ export class CacheCapacityError extends CacheBaseError {
 	) {
 		super(
 			`Cache capacity exceeded: ${message}`,
-			ErrorType.CACHE_CAPACITY_ERROR,
+			ERROR_TYPE.CACHE_CAPACITY_ERROR,
 			statusCode,
 			details,
 		);
@@ -22,7 +23,7 @@ export class CacheCapacityError extends CacheBaseError {
 	static batchTooLarge(batchSize: number, maxSize: number) {
 		return new CacheCapacityError(
 			`Batch size (${batchSize}) exceeds maximum cache size (${maxSize})`,
-			413,
+			HTTP_STATUS.CONTENT_TOO_LARGE,
 			{ batchSize, maxSize },
 		);
 	}
@@ -30,7 +31,7 @@ export class CacheCapacityError extends CacheBaseError {
 	static memoryExhausted(currentSize: number, maxSize: number) {
 		return new CacheCapacityError(
 			`Cache memory exhausted: ${currentSize}/${maxSize} keys used`,
-			503,
+			HTTP_STATUS.SERVICE_UNAVAILABLE,
 			{ currentSize, maxSize },
 		);
 	}
