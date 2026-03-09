@@ -1,12 +1,12 @@
-import { ErrorType } from "../../constants/index.js";
+import { ERROR_TYPE, HTTP_STATUS } from "../../constants/index.js";
 import { CookieBaseError } from "./cookie-base.error.js";
 
 export class CookieValidationError extends CookieBaseError {
 	constructor(message: string, details?: Record<string, unknown>) {
 		super(
 			`Cookie validation failed: ${message}`,
-			ErrorType.COOKIE_VALIDATION,
-			400,
+			ERROR_TYPE.COOKIE_VALIDATION,
+			HTTP_STATUS.BAD_REQUEST,
 			details,
 		);
 	}

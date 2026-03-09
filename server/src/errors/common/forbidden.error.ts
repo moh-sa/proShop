@@ -1,4 +1,4 @@
-import { ErrorType } from "../../constants/index.js";
+import { ERROR_TYPE, HTTP_STATUS } from "../../constants/index.js";
 import { BaseError } from "../base.error.js";
 
 export class ForbiddenError extends BaseError {
@@ -6,6 +6,6 @@ export class ForbiddenError extends BaseError {
 		message: string = "You are not allowed to access this resource",
 		details?: Record<string, unknown>,
 	) {
-		super(message, ErrorType.FORBIDDEN, 403, details);
+		super(message, ERROR_TYPE.FORBIDDEN, HTTP_STATUS.FORBIDDEN, details);
 	}
 }

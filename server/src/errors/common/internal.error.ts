@@ -1,4 +1,4 @@
-import { ErrorType } from "../../constants/index.js";
+import { ERROR_TYPE, HTTP_STATUS } from "../../constants/index.js";
 import { BaseError } from "../base.error.js";
 
 export class InternalError extends BaseError {
@@ -6,6 +6,11 @@ export class InternalError extends BaseError {
 		message: string = "Internal server error",
 		details?: Record<string, unknown>,
 	) {
-		super(message, ErrorType.INTERNAL, 500, details);
+		super(
+			message,
+			ERROR_TYPE.INTERNAL,
+			HTTP_STATUS.INTERNAL_SERVER_ERROR,
+			details,
+		);
 	}
 }

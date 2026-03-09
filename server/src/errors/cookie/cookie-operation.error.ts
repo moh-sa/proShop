@@ -1,12 +1,12 @@
-import { ErrorType } from "../../constants/index.js";
+import { ERROR_TYPE, HTTP_STATUS } from "../../constants/index.js";
 import { CookieBaseError } from "./cookie-base.error.js";
 
 export class CookieOperationError extends CookieBaseError {
 	constructor(message: string, details?: Record<string, unknown>) {
 		super(
 			`Cookie operation failed: ${message}`,
-			ErrorType.COOKIE_OPERATION,
-			500,
+			ERROR_TYPE.COOKIE_OPERATION,
+			HTTP_STATUS.INTERNAL_SERVER_ERROR,
 			details,
 		);
 	}

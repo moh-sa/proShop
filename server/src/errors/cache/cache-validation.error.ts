@@ -1,12 +1,12 @@
-import { ErrorType } from "../../constants/index.js";
+import { ERROR_TYPE, HTTP_STATUS } from "../../constants/index.js";
 import { CacheBaseError } from "./cache-base.error.js";
 
 export class CacheValidationError extends CacheBaseError {
 	constructor(message: string, details?: Record<string, unknown>) {
 		super(
 			`Cache validation failed: ${message}`,
-			ErrorType.VALIDATION,
-			400,
+			ERROR_TYPE.VALIDATION,
+			HTTP_STATUS.BAD_REQUEST,
 			details,
 		);
 	}

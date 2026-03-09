@@ -10,7 +10,8 @@ import type {
 	SelectOrder,
 } from "../types/index.js";
 
-import { ErrorType, HTTP_STATUS } from "../constants/index.js";
+import { ERROR_TYPE } from "../constants/error-type.constants.js";
+import { HTTP_STATUS } from "../constants/http-status.constants.js";
 import { ForbiddenError } from "../errors/index.js";
 import { orderManager } from "../managers/index.js";
 import {
@@ -219,7 +220,7 @@ export class OrderController implements IOrderController {
 		if (!signature || typeof signature !== "string") {
 			logger.warn("Missing or invalid stripe-signature header");
 			return sendErrorResponse({
-				code: ErrorType.BAD_REQUEST,
+				code: ERROR_TYPE.BAD_REQUEST,
 				errors: [{ message: "Missing or invalid stripe-signature header" }],
 				responseContext: res,
 				statusCode: HTTP_STATUS.BAD_REQUEST,
@@ -231,7 +232,7 @@ export class OrderController implements IOrderController {
 		if (!Buffer.isBuffer(payload)) {
 			logger.warn("Missing or invalid body");
 			return sendErrorResponse({
-				code: ErrorType.BAD_REQUEST,
+				code: ERROR_TYPE.BAD_REQUEST,
 				errors: [{ message: "Missing or invalid body" }],
 				responseContext: res,
 				statusCode: HTTP_STATUS.BAD_REQUEST,
