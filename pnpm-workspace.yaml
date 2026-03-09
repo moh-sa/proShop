@@ -1,0 +1,11 @@
+packages:
+  - client
+  - server
+  - packages/*
+
+onlyBuiltDependencies:
+  - "@sentry/cli"
+  - "@sentry/profiling-node"
+  - argon2
+  - esbuild
+  - mongodb-memory-server

@@ -1,5 +1,0 @@
-onlyBuiltDependencies:
-  - '@sentry/profiling-node'
-  - argon2
-  - esbuild
-  - mongodb-memory-server

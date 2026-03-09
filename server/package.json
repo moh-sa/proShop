@@ -21,6 +21,7 @@
 		"type-check": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@proshop/shared": "workspace:*",
 		"@sentry/node": "^8.54.0",
 		"@sentry/profiling-node": "^8.54.0",
 		"@typescript-eslint/typescript-estree": "^8.39.0",

@@ -1,0 +1,15 @@
+{
+  "name": "proshop",
+  "private": true,
+  "scripts": {
+    "build:shared": "pnpm --filter @proshop/shared build",
+    "build:shared:watch": "pnpm --filter @proshop/shared build:watch",
+    "build:server": "pnpm --filter server... build",
+    "build:client": "pnpm --filter client... build",
+    "build": "pnpm -r --if-present build",
+    "dev:server": "pnpm --filter server dev",
+    "dev:client": "pnpm --filter client dev",
+    "dev": "pnpm -r --if-present dev",
+    "type-check": "pnpm -r --if-present type-check"
+  }
+}
