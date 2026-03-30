@@ -1,27 +1,34 @@
-import type { Types } from "mongoose";
+import { Types } from "mongoose";
 
 import type { DatabaseBaseError } from "../errors/index.js";
 import type {
 	AllOrdersResponse,
 	FailureResult,
+	GetAllOrdersRepositoryParams,
 	InsertOrder,
 	MarkAsCancelledParams,
 	MarkAsProcessingParams,
 	MethodParams,
 	MethodReturn,
+	OrderFilter,
 	PaginatedResponse,
-	PaginationParamsQuery,
+	PaginationQuery,
 	Result,
 	SelectOrder,
 } from "../types/index.js";
+import type { PaginatorParams } from "../utils/index.js";
 
 import Order from "../models/order.model.js";
-import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
+import {
+	buildMongoSelectProjection,
+	handleDatabaseErrorResult,
+	Paginator,
+} from "../utils/index.js";
 
 export interface IOrderRepository {
 	create(data: InsertOrder): Promise<OrderResult<SelectOrder>>;
 	getAll(
-		args: PaginationParamsQuery<SelectOrder>,
+		args: GetAllOrdersRepositoryParams,
 	): Promise<OrderResult<PaginatedResponse<AllOrdersResponse>>>;
 	getById({
 		orderId,
@@ -67,16 +74,8 @@ export class OrderRepository implements IOrderRepository {
 	public async getAll(
 		args: MethodParams<IOrderRepository, "getAll">,
 	): MethodReturn<IOrderRepository, "getAll"> {
-		const queries = this._bindQuery(args);
-
 		try {
-			const result = await this._paginator.paginate<AllOrdersResponse>({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				pipeline: args.pipeline,
-				query: queries,
-				sort: args.sort,
-			});
+			const result = await this._paginateOrders(args);
 
 			return {
 				data: result,
@@ -182,22 +181,60 @@ export class OrderRepository implements IOrderRepository {
 		}
 	}
 
-	private _bindQuery(args: PaginationParamsQuery<SelectOrder>) {
-		const query: Record<string, unknown> = {};
-
-		if (args.query?.user) {
-			query["user._id"] = args.query.user;
-		}
-
-		if (args.query?.status) {
-			query.status = args.query.status;
-		}
-
-		return query;
-	}
-
 	private _errorHandler(error: unknown): FailureResult<DatabaseBaseError> {
 		return handleDatabaseErrorResult(error);
+	}
+
+	private async _paginateOrders(
+		args: GetAllOrdersRepositoryParams,
+		query?: Partial<PaginationQuery<SelectOrder>>,
+	): Promise<PaginatedResponse<SelectOrder>> {
+		const paginateOptions: PaginatorParams<SelectOrder> = {
+			pageNumber: args.pageNumber,
+			pageSize: args.pageSize,
+		};
+
+		if (args.filters) {
+			const filters = this._prepareFilter(args.filters);
+			paginateOptions.query = { ...filters };
+		}
+
+		if (query) {
+			paginateOptions.query = { ...paginateOptions.query, ...query };
+		}
+
+		if (args.select) {
+			const select = buildMongoSelectProjection(args.select);
+			paginateOptions.pipeline = [{ $project: select }];
+		}
+
+		if (args.sort) {
+			paginateOptions.sort = args.sort;
+		}
+
+		return this._paginator.paginate<SelectOrder>(paginateOptions);
+	}
+
+	private _prepareFilter(
+		filters?: OrderFilter,
+	): Partial<PaginationQuery<SelectOrder>> {
+		if (!filters) {
+			return {};
+		}
+
+		const newFilter: Partial<PaginationQuery<SelectOrder>> = {};
+
+		if (filters.userId) {
+			// mongo doesn't cast in aggregate queries
+			const id = new Types.ObjectId(filters.userId);
+			newFilter["user._id"] = id;
+		}
+
+		if (filters.status) {
+			newFilter.status = filters.status;
+		}
+
+		return newFilter;
 	}
 }
 

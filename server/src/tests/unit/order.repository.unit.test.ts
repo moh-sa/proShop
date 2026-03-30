@@ -11,10 +11,12 @@ import {
 } from "../../errors/index.js";
 import Order from "../../models/order.model.js";
 import { OrderRepository } from "../../repositories/index.js";
+import type { GetAllOrdersRepositoryParams } from "../../types/order.type.js";
 import { Paginator } from "../../utils/paginator.util.js";
 import {
 	generateMockInsertOrder,
 	generateMockInsertOrders,
+	generateMockObjectId,
 	generateMockSelectOrder,
 } from "../mocks/index.js";
 
@@ -152,11 +154,9 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 				Promise.resolve(mockPaginatedResponse),
 			);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-				query: {},
-				sort: {},
 			};
 
 			// Act
@@ -174,11 +174,9 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 				throw validationError;
 			});
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-				query: {},
-				sort: {},
 			};
 
 			// Act
@@ -198,11 +196,9 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 				throw timeoutError;
 			});
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-				query: {},
-				sort: {},
 			};
 
 			// Act
@@ -220,11 +216,9 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 				throw queryError;
 			});
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-				query: {},
-				sort: {},
 			};
 
 			// Act
@@ -242,11 +236,9 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 				throw networkError;
 			});
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-				query: {},
-				sort: {},
 			};
 
 			// Act
@@ -264,11 +256,9 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 				throw unknownError;
 			});
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-				query: {},
-				sort: {},
 			};
 
 			// Act
@@ -277,6 +267,84 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof GenericDatabaseError);
+		});
+
+		test("Should pass filters to paginator as match query", async (t) => {
+			// Arrange
+			const userId = generateMockObjectId();
+			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve(mockPaginatedResponse),
+			);
+
+			const paginationArgs: GetAllOrdersRepositoryParams = {
+				pageNumber: 1,
+				pageSize: 10,
+				filters: {
+					userId: userId.toString(),
+					status: "processing",
+				},
+			};
+
+			// Act
+			await repo.getAll(paginationArgs);
+
+			// Assert
+			const callArgs = paginateMock.mock.calls[0]?.arguments[0] as {
+				query?: Record<string, unknown>;
+			};
+			assert.ok(callArgs?.query);
+			assert.ok(callArgs.query["user._id"] instanceof mongoose.Types.ObjectId);
+			assert.strictEqual(
+				(callArgs.query["user._id"] as mongoose.Types.ObjectId).toString(),
+				userId.toString(),
+			);
+			assert.strictEqual(callArgs.query.status, "processing");
+		});
+
+		test("Should pass select to paginator as $project pipeline stage", async (t) => {
+			// Arrange
+			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve(mockPaginatedResponse),
+			);
+
+			const paginationArgs: GetAllOrdersRepositoryParams = {
+				pageNumber: 1,
+				pageSize: 10,
+				select: { _id: true, status: true },
+			};
+
+			// Act
+			await repo.getAll(paginationArgs);
+
+			// Assert
+			const callArgs = paginateMock.mock.calls[0]?.arguments[0] as {
+				pipeline?: Array<{ $project: Record<string, unknown> }>;
+			};
+			assert.deepStrictEqual(callArgs?.pipeline, [
+				{ $project: { _id: 1, status: 1 } },
+			]);
+		});
+
+		test("Should pass sort through to paginator", async (t) => {
+			// Arrange
+			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve(mockPaginatedResponse),
+			);
+
+			const paginationArgs: GetAllOrdersRepositoryParams = {
+				pageNumber: 1,
+				pageSize: 10,
+				sort: { createdAt: "asc" },
+			};
+
+			// Act
+			await repo.getAll(paginationArgs);
+
+			// Assert
+			const callArgs = paginateMock.mock.calls[0]?.arguments[0] as {
+				sort?: Record<string, unknown>;
+			};
+			assert.deepStrictEqual(callArgs?.sort, { createdAt: "asc" });
 		});
 	});
 

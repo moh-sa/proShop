@@ -6,6 +6,7 @@ import { DatabaseValidationError } from "../../errors/index.js";
 import Order from "../../models/order.model.js";
 import User from "../../models/user.model.js";
 import { OrderRepository } from "../../repositories/order.repository.js";
+import { GetAllOrdersRepositoryParams } from "../../types/order.type.js";
 import {
 	generateMockInsertOrder,
 	generateMockInsertOrders,
@@ -404,8 +405,9 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const mockOrders = generateMockInsertOrders(3);
 			await Order.insertMany(mockOrders);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
+				pageSize: 10,
 			};
 
 			// Act
@@ -423,8 +425,9 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const mockOrders = generateMockInsertOrders(3);
 			await Order.insertMany(mockOrders);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
+				pageSize: 10,
 			};
 
 			// Act
@@ -443,8 +446,9 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should return empty paginated response when no orders exist", async () => {
 			// Arrange
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
+				pageSize: 10,
 			};
 
 			// Act
@@ -464,7 +468,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const mockOrders = generateMockInsertOrders(5);
 			await Order.insertMany(mockOrders);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
 				pageSize,
 			};
@@ -486,7 +490,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const mockOrders = generateMockInsertOrders(5);
 			await Order.insertMany(mockOrders);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber,
 				pageSize,
 			};
@@ -506,7 +510,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const mockOrders = generateMockInsertOrders(5);
 			await Order.insertMany(mockOrders);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 3,
 				pageSize: 2,
 			};
@@ -523,7 +527,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.meta.hasPreviousPage, true);
 		});
 
-		test("Should filter orders by user when query contains user filter", async () => {
+		test("Should filter orders by user when filters contain userId", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
 			const userOrders = generateMockInsertOrders(2, {
@@ -532,9 +536,12 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const otherOrders = generateMockInsertOrders(3);
 			await Order.insertMany([...userOrders, ...otherOrders]);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
-				query: { user: userId },
+				pageSize: 10,
+				filters: {
+					userId: userId.toString(),
+				},
 			};
 
 			// Act
@@ -552,15 +559,16 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			);
 		});
 
-		test("Should filter orders by 'processing' when query has status 'processing'", async () => {
+		test("Should filter orders by 'processing' when filters contain status 'processing'", async () => {
 			// Arrange
 			const paidOrders = generateMockInsertOrders(2, { status: "processing" });
 			const unpaidOrders = generateMockInsertOrders(3, { status: "pending" });
 			await Order.insertMany([...paidOrders, ...unpaidOrders]);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
-				query: { status: "processing" },
+				pageSize: 10,
+				filters: { status: "processing" },
 			};
 
 			// Act
@@ -574,6 +582,33 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			assert.ok(result.data.items.every((o) => o.status === "processing"));
 		});
 
+		test("Should return only selected fields when select is provided", async () => {
+			// Arrange
+			const mockOrders = generateMockInsertOrders(2);
+			await Order.insertMany(mockOrders);
+
+			const paginationArgs: GetAllOrdersRepositoryParams = {
+				pageNumber: 1,
+				pageSize: 10,
+				select: { _id: true, status: true },
+			};
+
+			// Act
+			const result = await orderRepository.getAll(paginationArgs);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.items.length, 2);
+			for (const item of result.data.items) {
+				assert.ok(item._id);
+				assert.ok(item.status);
+
+				assert.strictEqual("orderItems" in item, false);
+				assert.strictEqual("user" in item, false);
+				assert.strictEqual("totalPrice" in item, false);
+			}
+		});
+
 		test("Should sort orders by createdAt descending when sort is not provided", async () => {
 			// Arrange
 			const mockOrders = generateMockSelectOrders(3).map((item, i) => ({
@@ -585,8 +620,9 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			);
 			await Order.insertMany(mockOrders);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
+				pageSize: 10,
 			};
 
 			// Act
@@ -616,11 +652,10 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			);
 			await Order.insertMany(mockOrders);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-				query: {},
-				sort: { createdAt: 1 as const },
+				sort: { createdAt: "asc" },
 			};
 
 			// Act
