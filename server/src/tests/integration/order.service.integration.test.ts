@@ -5,6 +5,7 @@ import { NotFoundError, ValidationError } from "../../errors/index.js";
 import Order from "../../models/order.model.js";
 import User from "../../models/user.model.js";
 import { OrderService } from "../../services/index.js";
+import { GetAllOrdersServiceParams } from "../../types/order.type.js";
 import { generateMockObjectId } from "../mocks/objectid.mock.js";
 import {
 	generateMockInsertOrder,
@@ -49,7 +50,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.totalPrice, mockOrder.totalPrice);
 			assert.strictEqual(
 				result.data.user._id.toString(),
-				mockUser._id._id.toString(),
+				mockUser._id.toString(),
 			);
 		});
 
@@ -72,7 +73,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.totalPrice, mockOrder.totalPrice);
 			assert.strictEqual(
 				result.data.user._id.toString(),
-				mockUser._id._id.toString(),
+				mockUser._id.toString(),
 			);
 		});
 
@@ -380,8 +381,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const mockOrders = generateMockInsertOrders(ordersCount);
 			await Order.insertMany(mockOrders);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
+				pageSize: "10",
 			};
 
 			// Act
@@ -403,9 +405,12 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const otherOrders = generateMockInsertOrders(3);
 			await Order.insertMany([...userOrders, ...otherOrders]);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
-				user: userId.toString(),
+				pageSize: "10",
+				filters: {
+					userId: userId.toString(),
+				},
 			};
 
 			// Act
@@ -427,9 +432,12 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const unpaidOrders = generateMockInsertOrders(3, { status: "pending" });
 			await Order.insertMany([...paidOrders, ...unpaidOrders]);
 
-			const paginationArgs = {
-				status: "processing",
+			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
+				pageSize: "10",
+				filters: {
+					status: "processing",
+				},
 			};
 
 			// Act
@@ -451,9 +459,12 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			});
 			await Order.insertMany([...deliveredOrders, ...undeliveredOrders]);
 
-			const paginationArgs = {
-				status: "delivered",
+			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
+				pageSize: "10",
+				filters: {
+					status: "delivered",
+				},
 			};
 
 			// Act
@@ -470,8 +481,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const mockOrders = generateMockSelectOrders(3);
 			await Order.insertMany(mockOrders);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
+				pageSize: "10",
 				sort: "createdAt:desc",
 			};
 
@@ -492,8 +504,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const mockOrders = generateMockSelectOrders(3);
 			await Order.insertMany(mockOrders);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
+				pageSize: "10",
 				sort: "createdAt:asc",
 			};
 
@@ -511,8 +524,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should return empty response when no orders exist", async () => {
 			// Arrange
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
+				pageSize: "10",
 			};
 
 			// Act
@@ -526,8 +540,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should return ValidationError when pageNumber is invalid", async () => {
 			// Arrange
-			const invalidArgs = {
+			const invalidArgs: GetAllOrdersServiceParams = {
 				pageNumber: "invalid",
+				pageSize: "10",
 			};
 
 			// Act
@@ -540,7 +555,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should return ValidationError when pageSize is invalid", async () => {
 			// Arrange
-			const invalidArgs = {
+			const invalidArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
 				pageSize: "invalid",
 			};
@@ -555,9 +570,12 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should return ValidationError when user parameter is invalid ObjectId", async () => {
 			// Arrange
-			const invalidArgs = {
+			const invalidArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
-				user: "invalid-user-id",
+				pageSize: "10",
+				filters: {
+					userId: "invalid-user-id",
+				},
 			};
 
 			// Act
@@ -570,9 +588,12 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should return ValidationError when status parameter is invalid", async () => {
 			// Arrange
-			const invalidArgs = {
-				status: "invalid-status",
+			const invalidArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
+				pageSize: "10",
+				filters: {
+					status: "invalid-status",
+				},
 			};
 
 			// Act
@@ -588,8 +609,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const mockOrder = generateMockInsertOrder({ status: "delivered" });
 			await Order.create(mockOrder);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
+				pageSize: "10",
 			};
 
 			// Act
@@ -600,11 +622,13 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.items.length, 1);
 
 			const order = result.data.items[0];
-			// Verify that only the projected fields are present
+			// Verify that only the projected fields are present (payment nested under `payment`, not root `paidAt`)
 			assert.strictEqual("_id" in order, true);
 			assert.strictEqual("createdAt" in order, true);
 			assert.strictEqual("status" in order, true);
-			assert.strictEqual("paidAt" in order, true);
+			assert.strictEqual("payment" in order, true);
+			assert.ok(order.payment);
+			assert.strictEqual("paidAt" in order.payment, true);
 			assert.strictEqual("deliveredAt" in order, true);
 			assert.strictEqual("totalPrice" in order, true);
 			assert.strictEqual("user" in order, true);
@@ -638,10 +662,13 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 				...unpaidOrders,
 			]);
 
-			const paginationArgs = {
-				status: "delivered",
+			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
-				user: userId.toString(),
+				pageSize: "10",
+				filters: {
+					status: "delivered",
+					userId: userId.toString(),
+				},
 			};
 
 			// Act

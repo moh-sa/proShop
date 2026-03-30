@@ -1,36 +1,38 @@
 import type { Types } from "mongoose";
 
-import type { IOrderRepository } from "../repositories/index.js";
 import type {
 	AllOrdersResponse,
+	GetAllOrdersServiceParams,
 	InsertOrder,
 	MarkAsCancelledParams,
 	MarkAsProcessingParams,
 	MethodParams,
 	MethodReturn,
-	OrderPaginationParams,
+	OrderSelect,
 	PaginatedResponse,
 	Result,
 	SelectOrder,
 } from "../types/index.js";
 
 import { NotFoundError, ValidationError } from "../errors/index.js";
-import { orderRepository } from "../repositories/index.js";
+import {
+	type IOrderRepository,
+	orderRepository,
+} from "../repositories/index.js";
 import {
 	insertOrderSchema,
 	markAsCancelledParamsSchema,
 	markAsProcessingParamsSchema,
-	orderQuerySchema,
+	orderPaginationParamsSchema,
 	paymentSchema,
 } from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 import { objectIdValidator } from "../validators/object-id.validator.js";
-import { paginationParamsValidator } from "../validators/pagination.validator.js";
 
 export interface IOrderService {
 	create(data: InsertOrder): Promise<OrderResult<SelectOrder>>;
 	getAll(
-		args: OrderPaginationParams,
+		args: GetAllOrdersServiceParams,
 	): Promise<OrderResult<PaginatedResponse<AllOrdersResponse>>>;
 	getById(data: { orderId: string }): Promise<OrderResult<SelectOrder>>;
 	markAsCancelled(
@@ -95,58 +97,42 @@ export class OrderService implements IOrderService {
 		const logger = this._getLogger({ method: "getAll" });
 		logger.debug({ args }, "Getting all orders");
 
-		const paginationResult = paginationParamsValidator
-			.omit({ query: true })
-			.safeParse(args);
-		if (!paginationResult.success) {
-			logger.warn({ error: paginationResult.error }, "Invalid pagination data");
+		// validate arguments
+		const argsValidationResult = orderPaginationParamsSchema.safeParse(args);
+		if (!argsValidationResult.success) {
+			logger.warn(argsValidationResult.error, "Invalid arguments data");
 			return {
-				error: new ValidationError("Invalid pagination data", {
-					cause: paginationResult.error,
+				error: new ValidationError("Invalid arguments data", {
+					cause: argsValidationResult.error,
 				}),
 				success: false,
 			};
 		}
 
 		logger.debug(
-			{ paginationResult: paginationResult.data },
-			"Validated pagination data",
+			{ validatedArgs: argsValidationResult.data },
+			"Validated arguments data",
 		);
 
-		const queryResult = orderQuerySchema.safeParse({
-			status: args.status,
-			user: args.user,
-		});
-		if (!queryResult.success) {
-			logger.warn({ error: queryResult.error }, "Invalid query data");
-			return {
-				error: new ValidationError("Invalid query data", {
-					cause: queryResult.error,
-				}),
-				success: false,
-			};
-		}
-
-		logger.debug({ queryResult: queryResult.data }, "Validated query data");
+		// repository options
+		const select: OrderSelect = {
+			_id: true,
+			createdAt: true,
+			deliveredAt: true,
+			"payment.paidAt": true,
+			status: true,
+			totalPrice: true,
+			"user._id": true,
+			"user.email": true,
+			"user.name": true,
+		};
 
 		const result = await this._repository.getAll({
-			pageNumber: paginationResult.data.pageNumber,
-			pageSize: paginationResult.data.pageSize,
-			pipeline: [
-				{
-					$project: {
-						_id: 1,
-						createdAt: 1,
-						deliveredAt: 1,
-						paidAt: "$payment.paidAt",
-						status: 1,
-						totalPrice: 1,
-						user: 1,
-					},
-				},
-			],
-			query: queryResult.data,
-			sort: paginationResult.data.sort,
+			filters: argsValidationResult.data.filters,
+			pageNumber: argsValidationResult.data.pageNumber,
+			pageSize: argsValidationResult.data.pageSize,
+			select,
+			sort: argsValidationResult.data.sort,
 		});
 		if (!result.success) {
 			logger.error(

@@ -7,6 +7,7 @@ import {
 	ValidationError,
 } from "../../errors/index.js";
 import { OrderService } from "../../services/index.js";
+import { GetAllOrdersServiceParams } from "../../types/order.type.js";
 import {
 	generateMockInsertOrder,
 	generateMockInsertProductWithStringImage,
@@ -73,6 +74,18 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 	});
 
 	describe("getAll", () => {
+		const orderServiceGetAllSelect = {
+			_id: true,
+			createdAt: true,
+			deliveredAt: true,
+			"payment.paidAt": true,
+			status: true,
+			totalPrice: true,
+			"user._id": true,
+			"user.email": true,
+			"user.name": true,
+		} as const;
+
 		const mockOrders = generateMockSelectOrders(4);
 		const mockMeta = {
 			currentPage: 1,
@@ -94,8 +107,9 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
+				pageSize: "10",
 			};
 
 			// Act
@@ -109,8 +123,9 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 		test("Should return ValidationError when pageNumber is invalid", async () => {
 			// Arrange
-			const invalidArgs = {
+			const invalidArgs: GetAllOrdersServiceParams = {
 				pageNumber: "invalid",
+				pageSize: "10",
 			};
 
 			// Act
@@ -125,7 +140,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 		test("Should return ValidationError when pageSize is invalid", async () => {
 			// Arrange
-			const invalidArgs = {
+			const invalidArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
 				pageSize: "invalid",
 			};
@@ -142,13 +157,14 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 		test("Should return ValidationError when sort parameter is invalid", async () => {
 			// Arrange
-			const invalidArgs = {
+			const invalidArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
+				pageSize: "10",
+				// @ts-expect-error - test case
 				sort: 123,
 			};
 
 			// Act
-			// @ts-expect-error - test case
 			const result = await service.getAll(invalidArgs);
 
 			// Assert
@@ -160,9 +176,12 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 		test("Should return ValidationError when user parameter is invalid ObjectId", async () => {
 			// Arrange
-			const invalidArgs = {
+			const invalidArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
-				user: "invalid-user-id",
+				pageSize: "10",
+				filters: {
+					userId: "invalid-user-id",
+				},
 			};
 
 			// Act
@@ -177,9 +196,12 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 		test("Should return ValidationError when status parameter is invalid", async () => {
 			// Arrange
-			const invalidArgs = {
+			const invalidArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
-				status: "invalid-status",
+				pageSize: "10",
+				filters: {
+					status: "invalid-status",
+				},
 			};
 
 			// Act
@@ -202,12 +224,14 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			const pageSize = "5";
 			const sort = "createdAt:desc";
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber,
 				pageSize,
 				sort,
-				status: "pending",
-				user: userId,
+				filters: {
+					status: "pending",
+					userId: userId,
+				},
 			};
 
 			// Act
@@ -226,15 +250,19 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			);
 
 			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0].sort, {
-				createdAt: -1,
+				createdAt: "desc",
 			});
 			assert.strictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].query?.status,
+				mockRepo.getAll.mock.calls[0].arguments[0].filters?.status,
 				"pending",
 			);
 			assert.strictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].query.user.toString(),
+				mockRepo.getAll.mock.calls[0].arguments[0].filters.userId?.toString(),
 				userId,
+			);
+			assert.deepStrictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].select,
+				orderServiceGetAllSelect,
 			);
 		});
 
@@ -245,8 +273,9 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 				Promise.resolve({ error: repositoryError, success: false }),
 			);
 
-			const paginationArgs = {
+			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
+				pageSize: "10",
 			};
 
 			// Act
@@ -551,7 +580,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			// Arrange
 			const updatedOrder = {
 				...mockOrder,
-				payment: { id: paymentId, provider, sessionURL },
+				payment: { id: paymentId, paidAt: new Date(), provider, sessionURL },
 			};
 			mockRepo.updatePayment.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: updatedOrder, success: true }),
@@ -575,7 +604,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			// Arrange
 			const updatedOrder = {
 				...mockOrder,
-				payment: { id: paymentId, provider, sessionURL },
+				payment: { id: paymentId, paidAt: new Date(), provider, sessionURL },
 			};
 			mockRepo.updatePayment.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: updatedOrder, success: true }),
@@ -597,7 +626,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			// Arrange
 			const updatedOrder = {
 				...mockOrder,
-				payment: { id: paymentId, provider, sessionURL },
+				payment: { id: paymentId, paidAt: new Date(), provider, sessionURL },
 			};
 			mockRepo.updatePayment.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: updatedOrder, success: true }),
@@ -619,7 +648,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			// Arrange
 			const updatedOrder = {
 				...mockOrder,
-				payment: { id: paymentId, provider, sessionURL },
+				payment: { id: paymentId, paidAt: new Date(), provider, sessionURL },
 			};
 			mockRepo.updatePayment.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: updatedOrder, success: true }),
