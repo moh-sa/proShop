@@ -310,10 +310,42 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockManager.getAll.mock.calls[0].arguments[0],
-				queryParams,
+			assert.deepStrictEqual(mockManager.getAll.mock.calls[0].arguments[0], {
+				filters: { status: undefined },
+				pageNumber: "2",
+				pageSize: "5",
+				sort: "createdAt:desc",
+			});
+		});
+
+		test("Should pass status in filters to service.getAll when present in query", async (t) => {
+			// Arrange
+			const { next, req, res } = mockExpressCall({
+				req: {
+					query: { pageNumber: "1", status: "processing" },
+				},
+				testContext: t,
+			});
+
+			mockManager.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
+
+			// Act
+			await controller.getAll(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
+			assert.deepStrictEqual(mockManager.getAll.mock.calls[0].arguments[0], {
+				filters: { status: "processing" },
+				pageNumber: "1",
+				pageSize: undefined,
+				sort: undefined,
+			});
 		});
 
 		test("Should convert order prices from cents to dollars for all orders in response", async (t) => {
@@ -422,7 +454,12 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(mockManager.getAll.mock.calls[0].arguments[0], {});
+			assert.deepStrictEqual(mockManager.getAll.mock.calls[0].arguments[0], {
+				filters: { status: undefined },
+				pageNumber: undefined,
+				pageSize: undefined,
+				sort: undefined,
+			});
 		});
 	});
 
@@ -470,8 +507,8 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockManager.getAll.mock.calls[0].arguments[0].user?.toString(),
+			assert.strictEqual(
+				mockManager.getAll.mock.calls[0].arguments[0].filters?.userId,
 				userId,
 			);
 		});
@@ -518,6 +555,10 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(
 				mockManager.getAll.mock.calls[0].arguments[0].sort,
 				queryParams.sort,
+			);
+			assert.strictEqual(
+				mockManager.getAll.mock.calls[0].arguments[0].filters?.userId,
+				userId,
 			);
 		});
 
@@ -642,8 +683,8 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockManager.getAll.mock.calls[0].arguments[0].user?.toString(),
+			assert.strictEqual(
+				mockManager.getAll.mock.calls[0].arguments[0].filters?.userId,
 				userId,
 			);
 		});

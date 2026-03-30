@@ -3,8 +3,10 @@ import type {
 	AllOrdersResponse,
 	AsyncHandler,
 	CreateOrderResponse,
+	GetAllOrdersByUserIdControllerParams,
+	GetAllOrdersControllerParams,
+	GetAllOrdersManagerParams,
 	InsertOrder,
-	OrderPaginationParams,
 	PaginatedResponse,
 	SafeSelectUser,
 	SelectOrder,
@@ -29,7 +31,7 @@ export interface IOrderController {
 		resBody: { data: CreateOrderResponse };
 	}>;
 	getAll: AsyncHandler<{
-		query: Omit<OrderPaginationParams, "user">;
+		query: GetAllOrdersControllerParams;
 		resBody: {
 			data: PaginatedResponse<AllOrdersResponse>["items"];
 			meta: PaginatedResponse<AllOrdersResponse>["meta"];
@@ -37,7 +39,7 @@ export interface IOrderController {
 	}>;
 	getAllByUserId: AsyncHandler<{
 		params: { userId: string };
-		query: Omit<OrderPaginationParams, "user">;
+		query: GetAllOrdersByUserIdControllerParams;
 		resBody: {
 			data: PaginatedResponse<AllOrdersResponse>["items"];
 			meta: PaginatedResponse<AllOrdersResponse>["meta"];
@@ -100,7 +102,7 @@ export class OrderController implements IOrderController {
 	});
 
 	getAll = asyncHandler<{
-		query: Omit<OrderPaginationParams, "user">;
+		query: GetAllOrdersControllerParams;
 		resBody: {
 			data: PaginatedResponse<AllOrdersResponse>["items"];
 			meta: PaginatedResponse<AllOrdersResponse>["meta"];
@@ -109,7 +111,15 @@ export class OrderController implements IOrderController {
 		const logger = this._getLogger({ method: "getAll" });
 		logger.debug({ query: req.query }, "Getting all orders");
 
-		const result = await this._manager.getAll(req.query);
+		const options: GetAllOrdersManagerParams = {
+			filters: {
+				status: req.query.status,
+			},
+			pageNumber: req.query.pageNumber,
+			pageSize: req.query.pageSize,
+			sort: req.query.sort,
+		};
+		const result = await this._manager.getAll(options);
 		if (!result.success) {
 			throw result.error;
 		}
@@ -133,7 +143,7 @@ export class OrderController implements IOrderController {
 
 	getAllByUserId = asyncHandler<{
 		params: { userId: string };
-		query: Omit<OrderPaginationParams, "user">;
+		query: GetAllOrdersByUserIdControllerParams;
 		resBody: {
 			data: PaginatedResponse<AllOrdersResponse>["items"];
 			meta: PaginatedResponse<AllOrdersResponse>["meta"];
@@ -152,10 +162,16 @@ export class OrderController implements IOrderController {
 			userId: req.params.userId,
 		});
 
-		const result = await this._manager.getAll({
-			...req.query,
-			user: req.params.userId,
-		});
+		const options: GetAllOrdersManagerParams = {
+			filters: {
+				status: req.query.status,
+				userId: req.params.userId,
+			},
+			pageNumber: req.query.pageNumber,
+			pageSize: req.query.pageSize,
+			sort: req.query.sort,
+		};
+		const result = await this._manager.getAll(options);
 		if (!result.success) {
 			throw result.error;
 		}
