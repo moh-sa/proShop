@@ -3,6 +3,7 @@ import { after, before, beforeEach, describe, it, suite } from "node:test";
 
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "../../constants/index.js";
 import Product from "../../models/product.model.js";
+import { SelectProduct } from "../../types/product.type.js";
 import { Paginator } from "../../utils/index.js";
 import { generateMockSelectProducts } from "../mocks/index.js";
 import { connectTestDatabase, disconnectTestDatabase } from "../utils/index.js";
@@ -22,7 +23,11 @@ suite("Paginator 〖 Integration Tests 〗", async () => {
 			await Product.insertMany(mockData);
 
 			// Act
-			const result = await paginator.paginate({ pageNumber: 1 });
+			const result = await paginator.paginate({
+				pageNumber: 1,
+				// @ts-expect-error - test case
+				pageSize: undefined,
+			});
 
 			// Assert
 			assert.strictEqual(result.meta.pageSize, DEFAULT_PAGE_SIZE);
@@ -156,10 +161,10 @@ suite("Paginator 〖 Integration Tests 〗", async () => {
 			await Product.insertMany(mockData);
 
 			// Act
-			const result = await paginator.paginate({
+			const result = await paginator.paginate<SelectProduct>({
 				pageNumber: 1,
 				pageSize: 10,
-				sort: { price: 1 },
+				sort: { price: "asc" },
 			});
 
 			// Assert
@@ -173,10 +178,10 @@ suite("Paginator 〖 Integration Tests 〗", async () => {
 			await Product.insertMany(mockData);
 
 			// Act
-			const result = await paginator.paginate({
+			const result = await paginator.paginate<SelectProduct>({
 				pageNumber: 1,
 				pageSize: 10,
-				sort: { price: -1 },
+				sort: { price: "desc" },
 			});
 
 			// Assert
@@ -199,7 +204,10 @@ suite("Paginator 〖 Integration Tests 〗", async () => {
 			await Product.insertMany(mockData);
 
 			// Act
-			const result = await paginator.paginate({ pageNumber: 1, pageSize: 10 });
+			const result = await paginator.paginate<SelectProduct>({
+				pageNumber: 1,
+				pageSize: 10,
+			});
 
 			// Assert
 			assert.strictEqual(
@@ -224,10 +232,10 @@ suite("Paginator 〖 Integration Tests 〗", async () => {
 			await Product.insertMany(mockData);
 
 			// Act
-			const result = await paginator.paginate({
+			const result = await paginator.paginate<SelectProduct>({
 				pageNumber: 2,
 				pageSize: 2,
-				sort: { price: 1 }, // ascending
+				sort: { price: "asc" },
 			});
 
 			// Assert
@@ -241,15 +249,15 @@ suite("Paginator 〖 Integration Tests 〗", async () => {
 			await Product.insertMany(mockData);
 
 			// Act
-			const page1 = await paginator.paginate({
+			const page1 = await paginator.paginate<SelectProduct>({
 				pageNumber: 1,
 				pageSize: 3,
-				sort: { price: 1 },
+				sort: { price: "asc" },
 			});
-			const page2 = await paginator.paginate({
+			const page2 = await paginator.paginate<SelectProduct>({
 				pageNumber: 2,
 				pageSize: 3,
-				sort: { price: 1, _id: 1 },
+				sort: { price: "asc", _id: "asc" },
 			});
 
 			// Assert
@@ -268,11 +276,11 @@ suite("Paginator 〖 Integration Tests 〗", async () => {
 			await Product.insertMany(mockData);
 
 			// Act
-			const result = await paginator.paginate<{ price: number }>({
+			const result = await paginator.paginate<SelectProduct>({
 				pageNumber: 1,
 				pageSize: 10,
 				pipeline: [{ $project: { _id: 0, price: 1 } }],
-				sort: { price: 1 },
+				sort: { price: "asc" },
 			});
 
 			// Assert

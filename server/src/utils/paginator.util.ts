@@ -1,10 +1,10 @@
-import type { Model } from "mongoose";
+import type { Model, PipelineStage } from "mongoose";
 
 import type {
+	DotPathRecord,
 	PaginatedResponse,
 	PaginationMeta,
 	PaginationParams,
-	PaginationParamsQuery,
 	PaginationQuery,
 } from "../types/index.js";
 
@@ -15,13 +15,32 @@ export interface PaginatorConfig {
 	maxPageSize?: number;
 }
 
+export type PaginatorParams<T extends Record<string, unknown>> =
+	PaginationParams & {
+		pipeline?: PaginatorPipeline;
+		query?: PaginatorQuery<T>;
+		sort?: PaginatorSort<T>;
+	};
+
+type PaginatorPipeline = Array<PipelineStage>;
+
+type PaginatorQuery<T extends Record<string, unknown>> = PaginationQuery<T>;
+
+type PaginatorSort<T extends Record<string, unknown>> = Partial<
+	Record<keyof T, "asc" | "desc">
+>;
+
+type ProjectionSort<T extends Record<string, unknown>> = Partial<
+	Record<keyof DotPathRecord<T>, -1 | 1>
+>;
+
 /**
  * Generic Mongoose paginator. TResult allows projected shapes.
  * @generic `TDocument` - The type of the document to paginate.
  * @example
  * type ProductPaginator = Paginator<SelectProduct>
  *  */
-export class Paginator<TDocument> {
+export class Paginator<TDocument extends Record<string, unknown>> {
 	private readonly _defaultPageSize: number;
 	private readonly _maxPageSize: number;
 
@@ -78,16 +97,17 @@ export class Paginator<TDocument> {
 	 * });
 	 */
 	public async paginate<TResult>(
-		args: PaginationParamsQuery<TDocument>,
+		args: PaginatorParams<TDocument>,
 	): Promise<PaginatedResponse<TResult>> {
 		const { pageNumber, pageSize, skip } = this._preparePaginationParams(args);
+		const sort = this._prepareSort(args.sort);
 
 		const result = await this._query<TResult>({
 			additionalAggregate: args.pipeline,
 			limit: pageSize,
 			query: args.query ?? {},
 			skip,
-			sort: args.sort ?? {},
+			sort,
 		});
 
 		const meta = this._generateMetaData({
@@ -115,7 +135,7 @@ export class Paginator<TDocument> {
 	public paginateArray<TResult>(args: {
 		items: Array<TResult>;
 		pageNumber: number;
-		pageSize?: number;
+		pageSize: number;
 	}): PaginatedResponse<TResult> {
 		const { pageNumber, pageSize, skip } = this._preparePaginationParams(args);
 
@@ -187,12 +207,35 @@ export class Paginator<TDocument> {
 	}
 
 	/**
+	 * Normalize the sort object to the database values.
+	 * @example
+	 * this._prepareSort({ createdAt: "desc", name: "asc", price: undefined });
+	 * // ->  { createdAt: -1, name: 1 }
+	 */
+	private _prepareSort(
+		sort?: PaginatorSort<TDocument>,
+	): ProjectionSort<TDocument> {
+		if (!sort) {
+			return {};
+		}
+
+		const normalizedEntries = Object.entries(sort)
+			// remove undefined values
+			.filter(([_, value]) => Boolean(value))
+			.map(([key, value]) => [key, value === "desc" ? -1 : 1]);
+
+		return Object.fromEntries(normalizedEntries);
+	}
+
+	/**
 	 * Prepare pagination parameters.
 	 * @returns `pageNumber`, `pageSize`, and `skip`.
 	 */
-	private _preparePaginationParams(
-		args: Pick<PaginationParams<TDocument>, "pageNumber" | "pageSize">,
-	): { pageNumber: number; pageSize: number; skip: number } {
+	private _preparePaginationParams(args: PaginationParams): {
+		pageNumber: number;
+		pageSize: number;
+		skip: number;
+	} {
 		const pageNumber = this._calculatePageNumber(args.pageNumber);
 		const pageSize = this._calculatePageSize(args.pageSize);
 		const skip = this._calculateSkip(pageNumber, pageSize);
@@ -202,11 +245,11 @@ export class Paginator<TDocument> {
 
 	/** Build and run aggregation for items and total count. */
 	private async _query<TResult>(args: {
-		additionalAggregate?: PaginationQuery<TDocument>["pipeline"];
+		additionalAggregate?: PaginatorPipeline;
 		limit: number;
-		query: Required<PaginationQuery<TDocument>>["query"];
+		query: PaginatorQuery<TDocument>;
 		skip: number;
-		sort: Partial<Record<keyof TDocument, -1 | 1>>;
+		sort: ProjectionSort<TDocument>;
 	}): Promise<{
 		items: Array<TResult>;
 		totalItems: number;
@@ -222,7 +265,10 @@ export class Paginator<TDocument> {
 			items: Array<TResult>;
 			meta: Array<{ totalItems: number }>;
 		}>([
-			{ $match: args.query },
+			{
+				// `PipelineStage.Match["$match"]` is QueryFilter<any> internally
+				$match: args.query as PipelineStage.Match["$match"],
+			},
 			...(args.additionalAggregate ?? []),
 			{
 				$facet: {

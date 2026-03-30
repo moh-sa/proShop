@@ -1,9 +1,15 @@
-import type { PipelineStage, QueryFilter } from "mongoose";
+import type { QueryFilter } from "mongoose";
+import type z from "zod";
+
+import type { paginationParamsSchema } from "../schemas/pagination/pagination.schema.js";
+import type { DotPathRecord } from "./dot-path-record.type.js";
+import type { Stringify } from "./stringify.type.js";
 
 export interface PaginatedResponse<T> {
 	items: Array<T>;
 	meta: PaginationMeta;
 }
+export type PaginationFilter<T extends Record<string, unknown>> = T;
 
 export interface PaginationMeta {
 	currentPage: number;
@@ -14,24 +20,12 @@ export interface PaginationMeta {
 	totalPages: number;
 }
 
-export type PaginationParams<TDocument> = {
-	pageNumber: number;
-	pageSize?: number;
-	/** `1` - ascending, `-1` - descending */
-	sort?: Partial<Record<keyof TDocument, -1 | 1>>;
-};
+export type PaginationParams = z.infer<typeof paginationParamsSchema>;
 
-export type PaginationParamsQuery<TDocument> = PaginationParams<TDocument> &
-	PaginationQuery<TDocument>;
+export type PaginationParamsStringified = Stringify<PaginationParams>;
 
-/**
- * String version of PaginationParams, for use in service and controller layers only.
- */
-export type PaginationParamsString = {
-	[key in keyof PaginationParams<unknown>]: string;
-};
+export type PaginationQuery<T extends Record<string, unknown>> = QueryFilter<T>;
 
-export type PaginationQuery<TDocument> = {
-	pipeline?: Array<PipelineStage>;
-	query?: PipelineStage.Match["$match"] & QueryFilter<TDocument>;
-};
+export type PaginationSelect<T extends Record<string, unknown>> = Partial<
+	Record<keyof DotPathRecord<T>, true>
+>;
