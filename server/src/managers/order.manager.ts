@@ -2,11 +2,11 @@ import type { IOrderService, IPaymentService } from "../services/index.js";
 import type {
 	AllOrdersResponse,
 	CreateOrderResponse,
+	GetAllOrdersManagerParams,
 	InsertOrder,
 	LineItem,
 	MethodParams,
 	MethodReturn,
-	OrderPaginationParams,
 	PaginatedResponse,
 	Result,
 	SelectOrder,
@@ -29,7 +29,7 @@ export interface IOrderManager {
 	 * Gets all orders with pagination and filtering
 	 */
 	getAll(
-		params: OrderPaginationParams,
+		params: GetAllOrdersManagerParams,
 	): Promise<OrderManagerResult<PaginatedResponse<AllOrdersResponse>>>;
 
 	/**

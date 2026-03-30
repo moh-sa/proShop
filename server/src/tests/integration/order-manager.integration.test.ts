@@ -6,6 +6,7 @@ import { OrderManager } from "../../managers/order.manager.js";
 import Order from "../../models/order.model.js";
 import User from "../../models/user.model.js";
 import { OrderService } from "../../services/index.js";
+import { GetAllOrdersServiceParams } from "../../types/order.type.js";
 import {
 	generateMockCheckoutSessionResponse,
 	generateMockInsertOrder,
@@ -147,8 +148,12 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			const mockOrders = generateMockInsertOrders(3);
 			await Order.insertMany(mockOrders);
 
+			const args: GetAllOrdersServiceParams = {
+				pageNumber: "1",
+				pageSize: "10",
+			};
 			// Act
-			const result = await orderManager.getAll({ pageNumber: "1" });
+			const result = await orderManager.getAll(args);
 
 			// Assert
 			assert.strictEqual(result.success, true);

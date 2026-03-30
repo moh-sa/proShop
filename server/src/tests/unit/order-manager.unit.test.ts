@@ -4,6 +4,7 @@ import test, { beforeEach, describe, suite } from "node:test";
 import { faker } from "@faker-js/faker";
 
 import { OrderManager } from "../../managers/order.manager.js";
+import { GetAllOrdersServiceParams } from "../../types/order.type.js";
 import {
 	generateMockInsertOrder,
 	generateMockSelectOrder,
@@ -226,7 +227,10 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 
 		test("should return paginated response when order service succeeds", async () => {
 			// Arrange
-			const args = { pageNumber: "1" };
+			const args: GetAllOrdersServiceParams = {
+				pageNumber: "1",
+				pageSize: "10",
+			};
 			mockOrderSvc.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
@@ -247,7 +251,11 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 
 		test("should pass through all arguments to order service", async () => {
 			// Arrange
-			const args = { pageNumber: "2", pageSize: "5", sort: "createdAt:desc" };
+			const args: GetAllOrdersServiceParams = {
+				pageNumber: "2",
+				pageSize: "5",
+				sort: "createdAt:desc",
+			};
 			mockOrderSvc.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
