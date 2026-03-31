@@ -1,3 +1,4 @@
+import { createPaginationSortSchema } from "../pagination/sort.schema.js";
 import { selectUserSchema } from "./user.schema.js";
 
 export const userPaginationFiltersSchema = selectUserSchema
@@ -7,3 +8,12 @@ export const userPaginationFiltersSchema = selectUserSchema
 		name: true,
 	})
 	.partial();
+
+const userSortableFields = selectUserSchema.pick({
+	createdAt: true,
+	updatedAt: true,
+});
+
+export const userPaginationSortSchema = createPaginationSortSchema(
+	userSortableFields.keyof(),
+);

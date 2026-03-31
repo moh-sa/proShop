@@ -5,6 +5,7 @@ import type {
 	insertUserSchema,
 	selectUserSchema,
 	userPaginationFiltersSchema,
+	userPaginationSortSchema,
 } from "../schemas/index.js";
 import type { PaginationFilter } from "./pagination.type.js";
 
@@ -21,3 +22,5 @@ export type UnSafeSelectUser = SelectUser;
 export type UserFilter = PaginationFilter<
 	z.infer<typeof userPaginationFiltersSchema>
 >;
+
+export type UserSort = z.infer<typeof userPaginationSortSchema>;
