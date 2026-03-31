@@ -28,7 +28,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			const mockUsers = generateMockInsertUsers({ count: 3 });
 			await User.insertMany(mockUsers);
 
-			req.query = { currentPage: "1" };
+			req.query = { pageNumber: "1" };
 
 			// Act
 			await controller.getAll(req, res, next);
@@ -44,7 +44,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 		test("Should return empty array when no users exist", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			req.query = { currentPage: "1" };
+			req.query = { pageNumber: "1" };
 
 			// Act
 			await controller.getAll(req, res, next);
@@ -63,7 +63,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			const mockUsers = generateMockInsertUsers({ count: 3 });
 			await User.insertMany(mockUsers);
 
-			req.query = { currentPage: "1" };
+			req.query = { pageNumber: "1" };
 
 			// Act
 			await controller.getAll(req, res, next);
@@ -78,7 +78,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			const mockUsers = generateMockInsertUsers({ count: 3 });
 			await User.insertMany(mockUsers);
 
-			req.query = { currentPage: "1" };
+			req.query = { pageNumber: "1" };
 
 			// Act
 			await controller.getAll(req, res, next);
@@ -100,7 +100,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			const mockUsers = generateMockInsertUsers({ count: 3 });
 			await User.insertMany(mockUsers);
 
-			req.query = { currentPage: "1" };
+			req.query = { pageNumber: "1" };
 
 			// Act
 			await controller.getAll(req, res, next);

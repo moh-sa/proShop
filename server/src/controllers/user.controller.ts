@@ -1,10 +1,11 @@
 import type { IUserService } from "../services/index.js";
 import type {
 	AsyncHandler,
+	GetAllUsersControllerParams,
+	GetAllUsersServiceParams,
 	InsertUser,
 	PaginatedResponse,
 	SafeSelectUser,
-	UserPaginationParams,
 } from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
@@ -17,7 +18,7 @@ export interface IUserController {
 		resBody: { data: null };
 	}>;
 	getAll: AsyncHandler<{
-		query: UserPaginationParams;
+		query: GetAllUsersControllerParams;
 		resBody: {
 			data: PaginatedResponse<SafeSelectUser>["items"];
 			meta: PaginatedResponse<SafeSelectUser>["meta"];
@@ -60,7 +61,7 @@ export class UserController implements IUserController {
 	});
 
 	getAll = asyncHandler<{
-		query: UserPaginationParams;
+		query: GetAllUsersControllerParams;
 		resBody: {
 			data: PaginatedResponse<SafeSelectUser>["items"];
 			meta: PaginatedResponse<SafeSelectUser>["meta"];
@@ -69,7 +70,18 @@ export class UserController implements IUserController {
 		const logger = this._getLogger({ method: "getAll" });
 		logger.debug({ query: req.query }, "Getting all users");
 
-		const result = await this._service.getAll(req.query);
+		const options: GetAllUsersServiceParams = {
+			filters: {
+				email: req.query.email,
+				isAdmin: req.query.isAdmin,
+				name: req.query.name,
+			},
+			pageNumber: req.query.pageNumber,
+			pageSize: req.query.pageSize,
+			sort: req.query.sort,
+		};
+
+		const result = await this._service.getAll(options);
 		if (!result.success) {
 			throw result.error;
 		}

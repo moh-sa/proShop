@@ -34,6 +34,13 @@ export type UserSelect = PaginationSelect<SelectUser>;
 export type UserSort = z.infer<typeof userPaginationSortSchema>;
 
 // Method Params
+export type GetAllUsersControllerParams = PaginationParamsStringified & {
+	email?: string;
+	isAdmin?: string;
+	name?: string;
+	sort?: string;
+};
+
 export type GetAllUsersRepositoryParams = z.infer<
 	typeof userPaginationParamsSchema
 > & {
