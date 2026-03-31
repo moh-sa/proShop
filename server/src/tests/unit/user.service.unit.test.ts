@@ -1,7 +1,11 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import type { InsertUser, UserPaginationParams } from "../../types/index.js";
+import type {
+	GetAllUsersServiceParams,
+	InsertUser,
+	UserSelect,
+} from "../../types/index.js";
 
 import {
 	InternalError,
@@ -86,10 +90,19 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			const args: UserPaginationParams = {
-				isAdmin: "true",
+			const userServiceGetAllSelect: UserSelect = {
+				_id: true,
+				createdAt: true,
+				email: true,
+				isAdmin: true,
+				name: true,
+				updatedAt: true,
+			};
+
+			const args: GetAllUsersServiceParams = {
 				pageNumber: "2",
 				pageSize: "3",
+				filters: { isAdmin: "true" },
 				sort: "createdAt:asc",
 			};
 
@@ -104,20 +117,13 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(result.data.meta, meta);
 
 			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].pageNumber,
-				Number(args.pageNumber),
-			);
-			assert.deepStrictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].pageSize,
-				Number(args.pageSize),
-			);
-			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0].query, {
-				isAdmin: true,
-			});
-			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0].sort, {
-				createdAt: 1,
-			});
+
+			const callArgs = mockRepo.getAll.mock.calls[0].arguments[0];
+			assert.deepStrictEqual(callArgs.pageNumber, Number(args.pageNumber));
+			assert.deepStrictEqual(callArgs.pageSize, Number(args.pageSize));
+			assert.deepStrictEqual(callArgs.filters, { isAdmin: true });
+			assert.deepStrictEqual(callArgs.sort, { createdAt: "asc" });
+			assert.deepStrictEqual(callArgs.select, userServiceGetAllSelect);
 		});
 
 		test("Should return empty items with meta when repo returns empty page", async () => {
@@ -137,8 +143,13 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
+			const args: GetAllUsersServiceParams = {
+				pageNumber: "1",
+				pageSize: "5",
+			};
+
 			// Act
-			const result = await service.getAll({ pageNumber: "1" });
+			const result = await service.getAll(args);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -148,10 +159,13 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'ValidationError' when pagination args are invalid", async () => {
 			// Arrange
-			const invalidArgs = { pageNumber: "0" };
+			const args: GetAllUsersServiceParams = {
+				pageNumber: "0",
+				pageSize: "5",
+			};
 
 			// Act
-			const result = await service.getAll(invalidArgs);
+			const result = await service.getAll(args);
 
 			// Assert
 			assert.strictEqual(result.success, false);

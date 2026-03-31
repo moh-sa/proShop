@@ -1,17 +1,17 @@
 import type { Types } from "mongoose";
+
 import type { IUserRepository } from "../repositories/index.js";
 import type {
+	GetAllUsersServiceParams,
 	InsertUser,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
-	PaginationQuery,
 	Result,
 	SafeSelectUser,
 	SelectUser,
 	UnSafeSelectUser,
-	UserDocument,
-	UserPaginationParams,
+	UserSelect,
 } from "../types/index.js";
 
 import {
@@ -23,14 +23,10 @@ import { userRepository } from "../repositories/index.js";
 import {
 	insertUserSchema,
 	selectUserSchema,
-	userQuerySchema,
+	userPaginationParamsSchema,
 } from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
-import {
-	emailValidator,
-	objectIdValidator,
-	paginationParamsValidator,
-} from "../validators/index.js";
+import { emailValidator, objectIdValidator } from "../validators/index.js";
 
 export interface IUserService {
 	create: (data: InsertUser) => Promise<UserResult<SafeSelectUser>>;
@@ -39,7 +35,7 @@ export interface IUserService {
 		email: string;
 	}) => Promise<UserResult<null | { _id: Types.ObjectId }>>;
 	getAll: (
-		args: UserPaginationParams,
+		args: GetAllUsersServiceParams,
 	) => Promise<UserResult<PaginatedResponse<SafeSelectUser>>>;
 	getByEmail: (data: { email: string }) => Promise<UserResult<SafeSelectUser>>;
 	getById: (data: { userId: string }) => Promise<UserResult<SafeSelectUser>>;
@@ -225,68 +221,36 @@ export class UserService implements IUserService {
 		const logger = this._getLogger({ method: "getAll" });
 		logger.debug({ args }, "Getting all users");
 
-		const paginationResult = paginationParamsValidator
-			.omit({ query: true })
-			.safeParse({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				sort: args.sort,
-			});
-		if (!paginationResult.success) {
-			logger.warn({ error: paginationResult.error }, "Invalid pagination data");
-
+		// validate arguments
+		const argsValidationResult = userPaginationParamsSchema.safeParse(args);
+		if (!argsValidationResult.success) {
+			logger.warn(argsValidationResult.error, "Invalid arguments data");
 			return {
-				error: new ValidationError("Invalid pagination data", {
-					cause: paginationResult.error,
+				error: new ValidationError("Invalid arguments data", {
+					cause: argsValidationResult.error,
 				}),
 				success: false,
 			};
 		}
 
 		logger.debug(
-			{ validatedPaginationData: paginationResult.data },
-			"Validated pagination data",
+			{ validatedArgs: argsValidationResult.data },
+			"Validated arguments data",
 		);
 
-		const queryResult = userQuerySchema.safeParse(args);
-		if (!queryResult.success) {
-			logger.warn({ error: queryResult.error }, "Invalid query data");
-			return {
-				error: new ValidationError("Invalid query data", {
-					cause: queryResult.error,
-				}),
-				success: false,
-			};
-		}
-
-		logger.debug(
-			{ validatedQueryData: queryResult.data },
-			"Validated query data",
-		);
-
-		function searchQuery(): PaginationQuery<UserDocument>["query"] {
-			const result: PaginationQuery<UserDocument>["query"] = {};
-
-			if (queryResult.data?.email) {
-				result.email = queryResult.data.email;
-			}
-
-			if (queryResult.data?.name) {
-				result.name = { $options: "i", $regex: queryResult.data.name };
-			}
-
-			if (queryResult.data?.isAdmin !== undefined) {
-				result.isAdmin = queryResult.data.isAdmin;
-			}
-
-			return result;
-		}
+		// repository options
+		const select: UserSelect = {
+			_id: true,
+			createdAt: true,
+			email: true,
+			isAdmin: true,
+			name: true,
+			updatedAt: true,
+		};
 
 		const getAllResult = await this._repository.getAll({
-			pageNumber: paginationResult.data.pageNumber,
-			pageSize: paginationResult.data.pageSize,
-			query: searchQuery(),
-			sort: paginationResult.data.sort,
+			...argsValidationResult.data,
+			select,
 		});
 		if (!getAllResult.success) {
 			logger.warn({ error: getAllResult.error }, "Failed to get all users");

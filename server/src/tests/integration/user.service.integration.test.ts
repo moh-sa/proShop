@@ -132,7 +132,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.data.meta.totalItems, 0);
 		});
 
-		test("Should apply query filter before pagination", async () => {
+		test("Should apply filters before pagination", async () => {
 			// Arrange
 			const adminUsers = generateMockInsertUsers({
 				count: 3,
@@ -146,7 +146,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
 			// Act
 			const result = await userService.getAll({
-				isAdmin: "true",
+				filters: { isAdmin: true },
 				pageNumber: "1",
 				pageSize: "10",
 			});

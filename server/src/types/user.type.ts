@@ -8,7 +8,12 @@ import type {
 	userPaginationParamsSchema,
 	userPaginationSortSchema,
 } from "../schemas/index.js";
-import type { PaginationFilter, PaginationSelect } from "./pagination.type.js";
+import type {
+	PaginationFilter,
+	PaginationParamsStringified,
+	PaginationSelect,
+} from "./pagination.type.js";
+import type { Stringify } from "./stringify.type.js";
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type SelectUser = z.infer<typeof selectUserSchema>;
@@ -33,4 +38,9 @@ export type GetAllUsersRepositoryParams = z.infer<
 	typeof userPaginationParamsSchema
 > & {
 	select?: UserSelect;
+};
+
+export type GetAllUsersServiceParams = PaginationParamsStringified & {
+	filters?: Stringify<UserFilter>;
+	sort?: string;
 };
