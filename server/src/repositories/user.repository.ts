@@ -3,17 +3,24 @@ import type { Types } from "mongoose";
 import type { DatabaseBaseError } from "../errors/index.js";
 import type {
 	FailureResult,
+	GetAllUsersRepositoryParams,
 	InsertUser,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
-	PaginationParamsQuery,
+	PaginationQuery,
 	Result,
 	SelectUser,
+	UserFilter,
 } from "../types/index.js";
+import type { PaginatorParams } from "../utils/index.js";
 
 import User from "../models/user.model.js";
-import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
+import {
+	buildMongoSelectProjection,
+	handleDatabaseErrorResult,
+	Paginator,
+} from "../utils/index.js";
 
 export interface IUserRepository {
 	create(data: InsertUser): Promise<UserResult<SelectUser>>;
@@ -24,7 +31,7 @@ export interface IUserRepository {
 		email: string;
 	}): Promise<UserResult<null | { _id: Types.ObjectId }>>;
 	getAll(
-		args: PaginationParamsQuery<SelectUser>,
+		args: GetAllUsersRepositoryParams,
 	): Promise<UserResult<PaginatedResponse<SelectUser>>>;
 	getByEmail(data: { email: string }): Promise<UserResult<null | SelectUser>>;
 	getById(data: {
@@ -102,12 +109,7 @@ export class UserRepository implements IUserRepository {
 		args: MethodParams<IUserRepository, "getAll">,
 	): MethodReturn<IUserRepository, "getAll"> {
 		try {
-			const result = await this._paginator.paginate<SelectUser>({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				query: args.query,
-				sort: args.sort,
-			});
+			const result = await this._paginateUsers(args);
 
 			return {
 				data: result,
@@ -177,6 +179,60 @@ export class UserRepository implements IUserRepository {
 
 	private _errorHandler(error: unknown): FailureResult<DatabaseBaseError> {
 		return handleDatabaseErrorResult(error);
+	}
+
+	private async _paginateUsers(
+		args: GetAllUsersRepositoryParams,
+		query?: Partial<PaginationQuery<SelectUser>>,
+	): Promise<PaginatedResponse<SelectUser>> {
+		const paginateOptions: PaginatorParams<SelectUser> = {
+			pageNumber: args.pageNumber,
+			pageSize: args.pageSize,
+		};
+
+		if (args.filters) {
+			const filters = this._prepareFilters(args.filters);
+			paginateOptions.query = { ...filters };
+		}
+
+		if (query) {
+			paginateOptions.query = { ...paginateOptions.query, ...query };
+		}
+
+		if (args.select) {
+			const select = buildMongoSelectProjection(args.select);
+			paginateOptions.pipeline = [{ $project: select }];
+		}
+
+		if (args.sort) {
+			paginateOptions.sort = args.sort;
+		}
+
+		return this._paginator.paginate<SelectUser>(paginateOptions);
+	}
+
+	private _prepareFilters(
+		filters?: UserFilter,
+	): Partial<PaginationQuery<SelectUser>> {
+		if (!filters) {
+			return {};
+		}
+
+		const newFilter: Partial<PaginationQuery<SelectUser>> = {};
+
+		if (filters.name) {
+			newFilter.name = { $options: "i", $regex: filters.name };
+		}
+
+		if (filters.email) {
+			newFilter.email = filters.email;
+		}
+
+		if (filters.isAdmin !== undefined) {
+			newFilter.isAdmin = filters.isAdmin;
+		}
+
+		return newFilter;
 	}
 }
 

@@ -191,7 +191,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.meta.totalItems, 0);
 		});
 
-		test("Should apply query filter before pagination", async () => {
+		test("Should apply filters before pagination", async () => {
 			// Arrange
 			const adminUsers = generateMockInsertUsers({
 				count: 3,
@@ -207,13 +207,107 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			const result = await repo.getAll({
 				pageNumber: 1,
 				pageSize: 10,
-				query: { isAdmin: true },
+				filters: { isAdmin: true },
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.items.length, adminUsers.length);
 			assert.ok(result.data.items.every((u) => u.isAdmin === true));
+		});
+
+		test("Should order items by sort when sort is provided", async () => {
+			// Arrange
+			const users = generateMockSelectUsers({ count: 10 }).map(
+				(user, index) => ({ ...user, createdAt: new Date(2026, 0, index + 1) }),
+			);
+			await User.insertMany(users);
+
+			// Act
+			const result = await repo.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				sort: { createdAt: "desc" },
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.items.length, 10);
+
+			const sortedItems = users.sort(
+				(a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+			);
+			result.data.items.map((item, index) => {
+				assert.strictEqual(
+					item._id.toString(),
+					sortedItems[index]._id.toString(),
+				);
+			});
+		});
+
+		test("Should filter by exact email", async () => {
+			// Arrange
+			const target = generateMockInsertUser({
+				email: "filterme@example.com",
+			});
+			const other = generateMockInsertUsers({ count: 5 });
+			await User.insertMany([target, ...other]);
+
+			// Act
+			const result = await repo.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				filters: { email: target.email.toLowerCase() },
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.items.length, 1);
+			assert.strictEqual(
+				result.data.items[0].email,
+				target.email.toLowerCase(),
+			);
+		});
+
+		test("Should filter by name using case-insensitive partial match", async () => {
+			// Arrange
+			const target = generateMockInsertUser();
+			const other = generateMockInsertUsers({ count: 5 });
+			await User.insertMany([target, ...other]);
+
+			// Act
+			const result = await repo.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				filters: { name: target.name.toUpperCase() },
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.items.length, 1);
+			assert.strictEqual(result.data.items[0].name, target.name);
+		});
+
+		test("Should return only selected fields when select is provided", async () => {
+			// Arrange
+			await User.create(generateMockInsertUser());
+
+			// Act
+			const result = await repo.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				select: { _id: true, email: true },
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.items.length, 1);
+
+			const item = result.data.items[0];
+			assert.ok("_id" in item);
+			assert.ok("email" in item);
+			assert.strictEqual(item.password, undefined);
+			assert.strictEqual(item.name, undefined);
 		});
 	});
 
