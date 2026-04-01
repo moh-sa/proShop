@@ -7,7 +7,12 @@ import type {
 	sessionPaginationParamsSchema,
 	sessionPaginationSortSchema,
 } from "../schemas/index.js";
-import type { PaginationFilter, PaginationSelect } from "./pagination.type.js";
+import type {
+	PaginationFilter,
+	PaginationParamsStringified,
+	PaginationSelect,
+} from "./pagination.type.js";
+import type { Stringify } from "./stringify.type.js";
 
 export type InsertSession = z.infer<typeof insertSessionSchema>;
 export type SelectSession = z.infer<typeof selectSessionSchema>;
@@ -25,6 +30,13 @@ export type SessionSort = z.infer<typeof sessionPaginationSortSchema>;
 // Method Params
 export type GetAllSessionsByUserIdRepositoryParams =
 	GetAllSessionsRepositoryParams & {
+		userId: string;
+	};
+
+export type GetAllSessionsByUserIdServiceParams =
+	PaginationParamsStringified & {
+		filters?: Stringify<SessionFilter>;
+		sort?: string;
 		userId: string;
 	};
 
