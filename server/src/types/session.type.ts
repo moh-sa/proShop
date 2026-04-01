@@ -27,6 +27,12 @@ export type SessionSelect = PaginationSelect<SelectSession>;
 export type SessionSort = z.infer<typeof sessionPaginationSortSchema>;
 
 // Method Params
+export type GetAllSessionsByUserIdManagerParams =
+	PaginationParamsStringified & {
+		refreshToken: string;
+		sort?: string;
+	};
+
 export type GetAllSessionsByUserIdRepositoryParams =
 	GetAllSessionsRepositoryParams & {
 		userId: string;

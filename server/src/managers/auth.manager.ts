@@ -5,11 +5,11 @@ import type {
 	IUserService,
 } from "../services/index.js";
 import type {
+	GetAllSessionsByUserIdManagerParams,
 	InsertUser,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
-	PaginationParamsString,
 	Result,
 	SafeSelectUser,
 	SelectSession,
@@ -37,16 +37,13 @@ type AuthResult<T> = Result<T>;
 // interfaces
 export interface IAuthManager {
 	getUserSessions(
-		args: Omit<PaginationParamsString, "pipeline" | "query"> & {
-			refreshToken: string;
-		},
+		args: GetAllSessionsByUserIdManagerParams,
 	): Promise<AuthResult<PaginatedResponse<SelectSession>>>;
 
 	refreshAccessToken(args: { refreshToken: string }): Promise<
 		AuthResult<{
 			expiresAt: Date;
 			token: string;
-			// user: SafeSelectUser;
 		}>
 	>;
 
@@ -116,9 +113,7 @@ export class AuthManager implements IAuthManager {
 		const userId = refreshTokenValidationResult.data.userId;
 
 		const result = await this._session.getActiveByUserId({
-			pageNumber: args.pageNumber,
-			pageSize: args.pageSize,
-			sort: args.sort,
+			...args,
 			userId,
 		});
 		if (!result.success) {

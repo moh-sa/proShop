@@ -203,7 +203,7 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockSession.getActiveByUserId.mock.callCount(), 1);
 		});
 
-		it("should pass pagination parameters correctly to session service", async () => {
+		it("should forward manager args and JWT userId to session service", async () => {
 			// Arrange
 			const mockRefreshToken = generateMockJwt("refresh");
 			const mockDecodedToken = generateMockTokenDecoded("refresh");
@@ -241,21 +241,15 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.success, true);
 
 			assert.strictEqual(mockSession.getActiveByUserId.mock.callCount(), 1);
-			assert.strictEqual(
-				mockSession.getActiveByUserId.mock.calls[0].arguments[0].userId,
-				mockDecodedToken.userId,
-			);
-			assert.strictEqual(
-				mockSession.getActiveByUserId.mock.calls[0].arguments[0].pageNumber,
-				"2",
-			);
-			assert.strictEqual(
-				mockSession.getActiveByUserId.mock.calls[0].arguments[0].pageSize,
-				"5",
-			);
-			assert.strictEqual(
-				mockSession.getActiveByUserId.mock.calls[0].arguments[0].sort,
-				"createdAt:desc",
+			assert.deepStrictEqual(
+				mockSession.getActiveByUserId.mock.calls[0].arguments[0],
+				{
+					pageNumber: "2",
+					pageSize: "5",
+					refreshToken: mockRefreshToken,
+					sort: "createdAt:desc",
+					userId: mockDecodedToken.userId,
+				},
 			);
 		});
 	});
