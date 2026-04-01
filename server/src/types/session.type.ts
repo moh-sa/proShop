@@ -4,6 +4,7 @@ import type {
 	insertSessionSchema,
 	selectSessionSchema,
 	sessionPaginationFiltersSchema,
+	sessionPaginationSortSchema,
 } from "../schemas/index.js";
 import type { PaginationFilter } from "./pagination.type.js";
 
@@ -15,3 +16,5 @@ export type SessionSchema = SelectSession;
 export type SessionFilter = PaginationFilter<
 	z.infer<typeof sessionPaginationFiltersSchema>
 >;
+
+export type SessionSort = z.infer<typeof sessionPaginationSortSchema>;
