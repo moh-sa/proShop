@@ -1,19 +1,27 @@
-import type { Types } from "mongoose";
+import { Types } from "mongoose";
 
 import type { DatabaseBaseError } from "../errors/index.js";
 import type {
 	FailureResult,
+	GetAllSessionsByUserIdRepositoryParams,
+	GetAllSessionsRepositoryParams,
 	InsertSession,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
-	PaginationParamsQuery,
+	PaginationQuery,
 	Result,
 	SelectSession,
+	SessionFilter,
 } from "../types/index.js";
+import type { PaginatorParams } from "../utils/index.js";
 
 import { Session } from "../models/session.model.js";
-import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
+import {
+	buildMongoSelectProjection,
+	handleDatabaseErrorResult,
+	Paginator,
+} from "../utils/index.js";
 
 export interface ISessionRepository {
 	countActiveByUserId(args: {
@@ -32,25 +40,19 @@ export interface ISessionRepository {
 		userId: Types.ObjectId;
 	}): Promise<SessionResult<null | { _id: Types.ObjectId }>>;
 	getAll(
-		args: PaginationParamsQuery<SelectSession>,
+		args: GetAllSessionsRepositoryParams,
 	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
 	getAllActiveByUserId(
-		args: PaginationParamsQuery<SelectSession> & {
-			userId: Types.ObjectId;
-		},
+		args: GetAllSessionsByUserIdRepositoryParams,
 	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
 	getAllByUserId(
-		args: PaginationParamsQuery<SelectSession> & {
-			userId: Types.ObjectId;
-		},
+		args: GetAllSessionsByUserIdRepositoryParams,
 	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
 	getAllRevoked(
-		args: PaginationParamsQuery<SelectSession>,
+		args: GetAllSessionsRepositoryParams,
 	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
 	getAllRevokedByUserId(
-		args: PaginationParamsQuery<SelectSession> & {
-			userId: Types.ObjectId;
-		},
+		args: GetAllSessionsByUserIdRepositoryParams,
 	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
 	getByTokenIdAndUserId(args: {
 		tokenId: string;
@@ -168,12 +170,7 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "getAll">,
 	): MethodReturn<ISessionRepository, "getAll"> {
 		try {
-			const result = await this._paginator.paginate<SelectSession>({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				query: args.query,
-				sort: args.sort,
-			});
+			const result = await this._paginateSessions(args);
 
 			return {
 				data: result,
@@ -188,15 +185,12 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "getAllActiveByUserId">,
 	): MethodReturn<ISessionRepository, "getAllActiveByUserId"> {
 		try {
-			const result = await this._paginator.paginate<SelectSession>({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				query: {
-					expiresAt: { $gt: new Date() },
-					revokedAt: null,
-					userId: args.userId,
-				},
-				sort: args.sort,
+			const parsedUserId = new Types.ObjectId(args.userId);
+
+			const result = await this._paginateSessions(args, {
+				expiresAt: { $gt: new Date() },
+				revokedAt: null,
+				userId: parsedUserId,
 			});
 
 			return {
@@ -212,13 +206,10 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "getAllByUserId">,
 	): MethodReturn<ISessionRepository, "getAllByUserId"> {
 		try {
-			const result = await this._paginator.paginate<SelectSession>({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				query: {
-					userId: args.userId,
-				},
-				sort: args.sort,
+			const parsedUserId = new Types.ObjectId(args.userId);
+
+			const result = await this._paginateSessions(args, {
+				userId: parsedUserId,
 			});
 
 			return {
@@ -234,13 +225,8 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "getAllRevoked">,
 	): MethodReturn<ISessionRepository, "getAllRevoked"> {
 		try {
-			const result = await this._paginator.paginate<SelectSession>({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				query: {
-					revokedAt: { $ne: null },
-				},
-				sort: args.sort,
+			const result = await this._paginateSessions(args, {
+				revokedAt: { $ne: null },
 			});
 
 			return {
@@ -256,14 +242,11 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "getAllRevokedByUserId">,
 	): MethodReturn<ISessionRepository, "getAllRevokedByUserId"> {
 		try {
-			const result = await this._paginator.paginate<SelectSession>({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				query: {
-					revokedAt: { $ne: null },
-					userId: args.userId,
-				},
-				sort: args.sort,
+			const parsedUserId = new Types.ObjectId(args.userId);
+
+			const result = await this._paginateSessions(args, {
+				revokedAt: { $ne: null },
+				userId: parsedUserId,
 			});
 
 			return {
@@ -352,6 +335,60 @@ export class SessionRepository implements ISessionRepository {
 
 	private _errorHandler(error: unknown): FailureResult<DatabaseBaseError> {
 		return handleDatabaseErrorResult(error);
+	}
+
+	private async _paginateSessions(
+		args: GetAllSessionsRepositoryParams,
+		query?: Partial<PaginationQuery<SelectSession>>,
+	): Promise<PaginatedResponse<SelectSession>> {
+		const paginateOptions: PaginatorParams<SelectSession> = {
+			pageNumber: args.pageNumber,
+			pageSize: args.pageSize,
+		};
+
+		if (args.filters) {
+			const filters = this._prepareFilters(args.filters);
+			paginateOptions.query = { ...filters };
+		}
+
+		if (query) {
+			paginateOptions.query = { ...paginateOptions.query, ...query };
+		}
+
+		if (args.select) {
+			const select = buildMongoSelectProjection(args.select);
+			paginateOptions.pipeline = [{ $project: select }];
+		}
+
+		if (args.sort) {
+			paginateOptions.sort = args.sort;
+		}
+
+		return this._paginator.paginate<SelectSession>(paginateOptions);
+	}
+
+	private _prepareFilters(
+		filters?: SessionFilter,
+	): Partial<PaginationQuery<SelectSession>> {
+		if (!filters) {
+			return {};
+		}
+
+		const newFilter: Partial<PaginationQuery<SelectSession>> = {};
+
+		if (filters.tokenId !== undefined) {
+			newFilter.tokenId = filters.tokenId;
+		}
+
+		if (filters.userId !== undefined) {
+			newFilter.userId = filters.userId;
+		}
+
+		if (filters.revokedAt !== undefined) {
+			newFilter.revokedAt = filters.revokedAt;
+		}
+
+		return newFilter;
 	}
 }
 

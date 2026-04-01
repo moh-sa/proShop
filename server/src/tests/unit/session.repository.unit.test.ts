@@ -12,6 +12,10 @@ import {
 } from "../../errors/index.js";
 import { Session } from "../../models/session.model.js";
 import { SessionRepository } from "../../repositories/index.js";
+import type {
+	GetAllSessionsByUserIdRepositoryParams,
+	GetAllSessionsRepositoryParams,
+} from "../../types/index.js";
 import { Paginator } from "../../utils/paginator.util.js";
 import {
 	generateMockInsertSession,
@@ -165,11 +169,13 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			// Act
-			const result = await repo.getAll({
+			const args: GetAllSessionsRepositoryParams = {
 				pageNumber,
 				pageSize,
-			});
+			};
+
+			// Act
+			const result = await repo.getAll(args);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -212,11 +218,13 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			// Act
-			const result = await repo.getAll({
+			const args: GetAllSessionsRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-			});
+			};
+
+			// Act
+			const result = await repo.getAll(args);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -232,11 +240,13 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				throw validationError;
 			});
 
-			// Act
-			const result = await repo.getAll({
+			const args: GetAllSessionsRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-			});
+			};
+
+			// Act
+			const result = await repo.getAll(args);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -253,11 +263,13 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				throw timeoutError;
 			});
 
-			// Act
-			const result = await repo.getAll({
+			const args: GetAllSessionsRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-			});
+			};
+
+			// Act
+			const result = await repo.getAll(args);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -272,11 +284,13 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				throw queryError;
 			});
 
-			// Act
-			const result = await repo.getAll({
+			const args: GetAllSessionsRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-			});
+			};
+
+			// Act
+			const result = await repo.getAll(args);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -291,11 +305,13 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				throw networkError;
 			});
 
-			// Act
-			const result = await repo.getAll({
+			const args: GetAllSessionsRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-			});
+			};
+
+			// Act
+			const result = await repo.getAll(args);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -310,20 +326,147 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				throw unknownError;
 			});
 
-			// Act
-			const result = await repo.getAll({
+			const args: GetAllSessionsRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-			});
+			};
+
+			// Act
+			const result = await repo.getAll(args);
 
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof GenericDatabaseError);
 		});
+
+		test("Should pass tokenId and revokedAt filters to paginator query unchanged", async (t) => {
+			// Arrange
+			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({
+					items: [],
+					meta: {},
+				}),
+			);
+
+			const args: GetAllSessionsRepositoryParams = {
+				pageNumber: 1,
+				pageSize: 10,
+				filters: {
+					revokedAt: new Date(),
+					tokenId: "550e8400-e29b-41d4-a716-446655440000",
+				},
+			};
+
+			// Act
+			await repo.getAll(args);
+
+			// Assert
+			const callArgs = paginateMock.mock.calls[0]?.arguments[0];
+			assert.deepStrictEqual(callArgs?.query, args.filters);
+		});
+
+		test("Should set query to empty object when only pageNumber and pageSize are provided", async (t) => {
+			// Arrange
+			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({ items: [], meta: {} }),
+			);
+
+			const args: GetAllSessionsRepositoryParams = {
+				pageNumber: 1,
+				pageSize: 10,
+			};
+
+			// Act
+			await repo.getAll(args);
+
+			// Assert
+			const callArgs = paginateMock.mock.calls[0]?.arguments[0];
+			assert.deepStrictEqual(callArgs?.query, undefined);
+			assert.strictEqual(callArgs?.pipeline, undefined);
+			assert.strictEqual(callArgs?.sort, undefined);
+		});
+
+		test("Should pass select to paginator as $project pipeline stage", async (t) => {
+			// Arrange
+			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({
+					items: [],
+					meta: {},
+				}),
+			);
+
+			const args: GetAllSessionsRepositoryParams = {
+				pageNumber: 1,
+				pageSize: 10,
+				select: { id: true, tokenId: true },
+			};
+
+			// Act
+			await repo.getAll(args);
+
+			// Assert
+			const callArgs = paginateMock.mock.calls[0]?.arguments[0];
+			assert.deepStrictEqual(callArgs?.pipeline, [
+				{ $project: { id: 1, tokenId: 1 } },
+			]);
+		});
+
+		test("Should pass sort through to paginator", async (t) => {
+			// Arrange
+			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({
+					items: [],
+					meta: {},
+				}),
+			);
+
+			const args: GetAllSessionsRepositoryParams = {
+				pageNumber: 1,
+				pageSize: 10,
+				sort: { updatedAt: "asc" },
+			};
+
+			// Act
+			await repo.getAll(args);
+
+			// Assert
+			const callArgs = paginateMock.mock.calls[0]?.arguments[0];
+			assert.deepStrictEqual(callArgs?.sort, args.sort);
+		});
+
+		test("Should pass filters, select pipeline, and sort together in one paginate call", async (t) => {
+			// Arrange
+			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({
+					items: [],
+					meta: {},
+				}),
+			);
+
+			const args: GetAllSessionsRepositoryParams = {
+				pageNumber: 1,
+				pageSize: 5,
+				filters: { tokenId: "550e8400-e29b-41d4-a716-446655440000" },
+				select: { id: true, tokenId: true },
+				sort: { createdAt: "desc" },
+			};
+
+			// Act
+			await repo.getAll(args);
+
+			// Assert
+			const callArgs = paginateMock.mock.calls[0]?.arguments[0];
+			assert.deepStrictEqual(callArgs?.query, args.filters);
+			assert.deepStrictEqual(callArgs?.pipeline, [
+				{ $project: { id: 1, tokenId: 1 } },
+			]);
+			assert.deepStrictEqual(callArgs?.sort, args.sort);
+		});
 	});
 
 	describe("getAllActiveByUserId", () => {
 		const userId = generateMockObjectId();
+		const userIdString = userId.toString();
 		const mockSessions = generateMockSelectSessions({
 			count: 2,
 			options: { userId: userId },
@@ -349,12 +492,14 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			// Act
-			const result = await repo.getAllActiveByUserId({
+			const args: GetAllSessionsByUserIdRepositoryParams = {
 				pageNumber,
 				pageSize,
-				userId,
-			});
+				userId: userIdString,
+			};
+
+			// Act
+			const result = await repo.getAllActiveByUserId(args);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -383,10 +528,9 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				paginateMock.mock.calls[0].arguments[0].query?.revokedAt,
 				null,
 			);
-			assert.strictEqual(
-				paginateMock.mock.calls[0].arguments[0].query?.userId,
-				userId,
-			);
+			const qUserId = paginateMock.mock.calls[0].arguments[0].query?.userId;
+			assert.ok(qUserId instanceof mongoose.Types.ObjectId);
+			assert.ok(qUserId.equals(userId));
 		});
 
 		test("Should return 'empty paginated result' when 'paginator.paginate' returns empty items", async (t) => {
@@ -407,12 +551,14 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			// Act
-			const result = await repo.getAllActiveByUserId({
+			const args: GetAllSessionsByUserIdRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
-			});
+				userId: userIdString,
+			};
+
+			// Act
+			const result = await repo.getAllActiveByUserId(args);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -428,12 +574,14 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				throw validationError;
 			});
 
-			// Act
-			const result = await repo.getAllActiveByUserId({
+			const args: GetAllSessionsByUserIdRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
-			});
+				userId: userIdString,
+			};
+
+			// Act
+			const result = await repo.getAllActiveByUserId(args);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -450,12 +598,14 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				throw timeoutError;
 			});
 
-			// Act
-			const result = await repo.getAllActiveByUserId({
+			const args: GetAllSessionsByUserIdRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
-			});
+				userId: userIdString,
+			};
+
+			// Act
+			const result = await repo.getAllActiveByUserId(args);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -470,12 +620,14 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				throw queryError;
 			});
 
-			// Act
-			const result = await repo.getAllActiveByUserId({
+			const args: GetAllSessionsByUserIdRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
-			});
+				userId: userIdString,
+			};
+
+			// Act
+			const result = await repo.getAllActiveByUserId(args);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -490,12 +642,14 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				throw networkError;
 			});
 
-			// Act
-			const result = await repo.getAllActiveByUserId({
+			const args: GetAllSessionsByUserIdRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
-			});
+				userId: userIdString,
+			};
+
+			// Act
+			const result = await repo.getAllActiveByUserId(args);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -510,21 +664,78 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				throw unknownError;
 			});
 
-			// Act
-			const result = await repo.getAllActiveByUserId({
+			const args: GetAllSessionsByUserIdRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
-			});
+				userId: userIdString,
+			};
+
+			// Act
+			const result = await repo.getAllActiveByUserId(args);
 
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof GenericDatabaseError);
 		});
+
+		test("Should merge active session match with optional filters", async (t) => {
+			// Arrange
+			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({ items: [], meta: {} }),
+			);
+
+			const tokenId = "550e8400-e29b-41d4-a716-446655440000";
+
+			const args: GetAllSessionsByUserIdRepositoryParams = {
+				pageNumber: 1,
+				pageSize: 10,
+				userId: userIdString,
+				filters: { tokenId },
+			};
+
+			// Act
+			await repo.getAllActiveByUserId(args);
+
+			// Assert
+			const callArgs = paginateMock.mock.calls[0]?.arguments[0];
+			const query = callArgs?.query;
+			assert.ok(query);
+			assert.deepStrictEqual(query.tokenId, tokenId);
+			assert.strictEqual(query.revokedAt, null);
+			assert.ok(query.expiresAt?.$gt instanceof Date);
+			assert.ok(query.userId instanceof mongoose.Types.ObjectId);
+			assert.ok(query.userId.equals(userId));
+		});
+
+		test("Should let parsed userId from args override filters.userId", async (t) => {
+			// Arrange
+			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({ items: [], meta: {} }),
+			);
+
+			const otherUserId = generateMockObjectId();
+
+			const args: GetAllSessionsByUserIdRepositoryParams = {
+				pageNumber: 1,
+				pageSize: 10,
+				userId: userIdString,
+				filters: { userId: otherUserId },
+			};
+
+			// Act
+			await repo.getAllActiveByUserId(args);
+
+			// Assert
+			const query = paginateMock.mock.calls[0]?.arguments[0]?.query;
+			assert.ok(query?.userId instanceof mongoose.Types.ObjectId);
+			assert.ok(query.userId.equals(userId));
+			assert.ok(!query.userId.equals(otherUserId));
+		});
 	});
 
 	describe("getAllByUserId", () => {
 		const userId = generateMockObjectId();
+		const userIdString = userId.toString();
 		const mockSessions = generateMockSelectSessions({
 			count: 3,
 			options: { userId: userId },
@@ -554,7 +765,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByUserId({
 				pageNumber,
 				pageSize,
-				userId,
+				userId: userIdString,
 			});
 
 			// Assert
@@ -575,9 +786,10 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				paginateMock.mock.calls[0].arguments[0].pageSize,
 				pageSize,
 			);
-			assert.deepStrictEqual(paginateMock.mock.calls[0].arguments[0].query, {
-				userId,
-			});
+			const q = paginateMock.mock.calls[0].arguments[0].query;
+			assert.ok(q);
+			assert.ok(q.userId instanceof mongoose.Types.ObjectId);
+			assert.ok(q.userId.equals(userId));
 		});
 
 		test("Should return 'empty paginated result' when 'paginator.paginate' returns empty items", async (t) => {
@@ -602,7 +814,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
+				userId: userIdString,
 			});
 
 			// Assert
@@ -623,7 +835,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
+				userId: userIdString,
 			});
 
 			// Assert
@@ -645,7 +857,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
+				userId: userIdString,
 			});
 
 			// Assert
@@ -665,7 +877,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
+				userId: userIdString,
 			});
 
 			// Assert
@@ -685,7 +897,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
+				userId: userIdString,
 			});
 
 			// Assert
@@ -705,12 +917,37 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
+				userId: userIdString,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof GenericDatabaseError);
+		});
+
+		test("Should merge userId match with optional filters", async (t) => {
+			// Arrange
+			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({ items: [], meta: {} }),
+			);
+
+			const tokenId = "550e8400-e29b-41d4-a716-446655440000";
+			const args: GetAllSessionsByUserIdRepositoryParams = {
+				pageNumber: 1,
+				pageSize: 10,
+				userId: userIdString,
+				filters: { tokenId },
+			};
+
+			// Act
+			await repo.getAllByUserId(args);
+
+			// Assert
+			const query = paginateMock.mock.calls[0]?.arguments[0]?.query;
+			assert.ok(query);
+			assert.strictEqual(query.tokenId, tokenId);
+			assert.ok(query.userId instanceof mongoose.Types.ObjectId);
+			assert.ok(query.userId.equals(userId));
 		});
 	});
 
@@ -895,10 +1132,35 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof GenericDatabaseError);
 		});
+
+		test("Should merge revoked filter with optional filters", async (t) => {
+			// Arrange
+			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({ items: [], meta: {} }),
+			);
+
+			const tokenId = "550e8400-e29b-41d4-a716-446655440000";
+			const args: GetAllSessionsRepositoryParams = {
+				pageNumber: 1,
+				pageSize: 10,
+				filters: { tokenId },
+			};
+
+			// Act
+			await repo.getAllRevoked(args);
+
+			// Assert
+			const callArgs = paginateMock.mock.calls[0]?.arguments[0];
+			assert.deepStrictEqual(callArgs?.query, {
+				revokedAt: { $ne: null },
+				tokenId,
+			});
+		});
 	});
 
 	describe("getAllRevokedByUserId", () => {
 		const userId = generateMockObjectId();
+		const userIdString = userId.toString();
 		const mockSessions = generateMockSelectSessions({
 			count: 2,
 			options: { revokedAt: new Date(), userId: userId },
@@ -928,7 +1190,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllRevokedByUserId({
 				pageNumber,
 				pageSize,
-				userId,
+				userId: userIdString,
 			});
 
 			// Assert
@@ -943,10 +1205,12 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			assert.ok(paginateMock.mock.calls[0].arguments[0]);
 			assert.strictEqual(paginateMock.mock.calls[0].arguments[0].pageNumber, 1);
 			assert.strictEqual(paginateMock.mock.calls[0].arguments[0].pageSize, 10);
-			assert.deepStrictEqual(paginateMock.mock.calls[0].arguments[0].query, {
-				revokedAt: { $ne: null },
-				userId,
-			});
+
+			const query = paginateMock.mock.calls[0].arguments[0].query;
+			assert.ok(query);
+			assert.deepStrictEqual(query.revokedAt, { $ne: null });
+			assert.ok(query.userId instanceof mongoose.Types.ObjectId);
+			assert.ok(query.userId.equals(userId));
 		});
 
 		test("Should return 'empty paginated result' when 'paginator.paginate' returns empty items", async (t) => {
@@ -971,7 +1235,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllRevokedByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
+				userId: userIdString,
 			});
 
 			// Assert
@@ -992,7 +1256,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllRevokedByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
+				userId: userIdString,
 			});
 
 			// Assert
@@ -1014,7 +1278,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllRevokedByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
+				userId: userIdString,
 			});
 
 			// Assert
@@ -1034,7 +1298,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllRevokedByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
+				userId: userIdString,
 			});
 
 			// Assert
@@ -1054,7 +1318,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllRevokedByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
+				userId: userIdString,
 			});
 
 			// Assert
@@ -1074,12 +1338,38 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllRevokedByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId,
+				userId: userIdString,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof GenericDatabaseError);
+		});
+
+		test("Should merge revoked+user match with optional filters", async (t) => {
+			// Arrange
+			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({ items: [], meta: {} }),
+			);
+
+			const tokenId = "550e8400-e29b-41d4-a716-446655440000";
+			const args: GetAllSessionsByUserIdRepositoryParams = {
+				pageNumber: 1,
+				pageSize: 10,
+				userId: userIdString,
+				filters: { tokenId },
+			};
+
+			// Act
+			await repo.getAllRevokedByUserId(args);
+
+			// Assert
+			const query = paginateMock.mock.calls[0]?.arguments[0]?.query;
+			assert.ok(query);
+			assert.deepStrictEqual(query.revokedAt, { $ne: null });
+			assert.strictEqual(query.tokenId, tokenId);
+			assert.ok(query.userId instanceof mongoose.Types.ObjectId);
+			assert.ok(query.userId.equals(userId));
 		});
 	});
 
