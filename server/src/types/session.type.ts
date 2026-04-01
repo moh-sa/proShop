@@ -12,7 +12,6 @@ import type {
 	PaginationParamsStringified,
 	PaginationSelect,
 } from "./pagination.type.js";
-import type { Stringify } from "./stringify.type.js";
 
 export type InsertSession = z.infer<typeof insertSessionSchema>;
 export type SelectSession = z.infer<typeof selectSessionSchema>;
@@ -35,7 +34,6 @@ export type GetAllSessionsByUserIdRepositoryParams =
 
 export type GetAllSessionsByUserIdServiceParams =
 	PaginationParamsStringified & {
-		filters?: Stringify<SessionFilter>;
 		sort?: string;
 		userId: string;
 	};

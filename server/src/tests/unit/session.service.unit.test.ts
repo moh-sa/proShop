@@ -255,7 +255,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockRepo.getAllActiveByUserId.mock.callCount(), 1);
 
 			assert.strictEqual(
-				mockRepo.getAllActiveByUserId.mock.calls[0].arguments[0].userId.toString(),
+				mockRepo.getAllActiveByUserId.mock.calls[0].arguments[0].userId,
 				userId,
 			);
 			assert.strictEqual(
@@ -294,6 +294,64 @@ suite("Session Service〖 Unit Tests 〗", () => {
 			const result = await service.getActiveByUserId({
 				pageNumber: "invalid-page",
 				pageSize: "invalid-size",
+				userId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof SessionValidationError);
+
+			assert.strictEqual(mockRepo.getAllActiveByUserId.mock.callCount(), 0);
+		});
+
+		it("Should parse sort string and pass sort object to repository when valid", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+			const sessions = generateMockSelectSessions({ count: 1 });
+			const paginationMeta = {
+				currentPage: 1,
+				hasNextPage: false,
+				hasPreviousPage: false,
+				pageSize: 10,
+				totalItems: 1,
+				totalPages: 1,
+			};
+
+			mockRepo.getAllActiveByUserId.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: {
+						items: sessions,
+						meta: paginationMeta,
+					},
+					success: true,
+				}),
+			);
+
+			// Act
+			const result = await service.getActiveByUserId({
+				pageNumber: "1",
+				pageSize: "10",
+				sort: "createdAt:desc",
+				userId,
+			});
+
+			// Assert
+			assert.ok(result.success);
+			assert.strictEqual(mockRepo.getAllActiveByUserId.mock.callCount(), 1);
+
+			const callArgs = mockRepo.getAllActiveByUserId.mock.calls[0].arguments[0];
+			assert.deepStrictEqual(callArgs.sort, { createdAt: "desc" });
+		});
+
+		it("Should return SessionValidationError for invalid sort string", async () => {
+			// Arrange
+			const userId = generateMockObjectId().toString();
+
+			// Act
+			const result = await service.getActiveByUserId({
+				pageNumber: "1",
+				pageSize: "10",
+				sort: "not-a-valid-sort",
 				userId,
 			});
 

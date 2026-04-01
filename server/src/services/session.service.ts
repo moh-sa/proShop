@@ -5,13 +5,13 @@ import { z } from "zod";
 import type { SessionBaseError } from "../errors/index.js";
 import type { ISessionRepository } from "../repositories/session.repository.js";
 import type {
+	GetAllSessionsByUserIdServiceParams,
 	InsertSession,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
 	Result,
 	SelectSession,
-	SessionPaginationParams,
 } from "../types/index.js";
 
 import {
@@ -23,13 +23,12 @@ import {
 	SessionValidationError,
 } from "../errors/index.js";
 import { sessionRepository } from "../repositories/index.js";
-import { insertSessionSchema } from "../schemas/index.js";
-import { getLoggerFromContext } from "../utils/index.js";
 import {
-	objectIdValidator,
-	paginationParamsValidator,
-	uuidValidator,
-} from "../validators/index.js";
+	insertSessionSchema,
+	sessionByUserIdPaginationParamsSchema,
+} from "../schemas/index.js";
+import { getLoggerFromContext } from "../utils/index.js";
+import { objectIdValidator, uuidValidator } from "../validators/index.js";
 
 export interface ISessionService {
 	create(args: InsertSession): Promise<SessionResult<SelectSession>>;
@@ -42,7 +41,7 @@ export interface ISessionService {
 	}): Promise<SessionResult<SelectSession>>;
 
 	getActiveByUserId(
-		args: SessionPaginationParams,
+		args: GetAllSessionsByUserIdServiceParams,
 	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
 
 	getByTokenIdAndUserId(args: {
@@ -233,48 +232,32 @@ export class SessionService implements ISessionService {
 		const logger = this._getLogger({ method: "getActiveByUserId" });
 		logger.debug({ args }, "Getting active sessions by user ID");
 
-		const paginationResult = paginationParamsValidator.safeParse({
-			pageNumber: args.pageNumber,
-			pageSize: args.pageSize,
-			sort: args.sort,
-		});
-		if (!paginationResult.success) {
+		// validate arguments
+		const argsValidationResult = sessionByUserIdPaginationParamsSchema
+			.omit({ filters: true })
+			.safeParse(args);
+		if (!argsValidationResult.success) {
 			logger.warn(
-				{ error: paginationResult.error, userId: args.userId },
-				"Invalid pagination parameters",
+				{ error: argsValidationResult.error, userId: args.userId },
+				"Invalid arguments data",
 			);
-
 			return {
 				error: new SessionValidationError({
-					cause: paginationResult.error,
+					cause: argsValidationResult.error,
 				}),
 				success: false,
 			};
 		}
 
 		logger.debug(
-			{ validatedPaginationData: paginationResult.data },
-			"Validated pagination parameters",
+			{ validatedArgs: argsValidationResult.data },
+			"Validated arguments data",
 		);
 
-		const userIdResult = this._validateUserId(args.userId);
-		if (!userIdResult.success) {
-			logger.warn(
-				{ error: userIdResult.error, userId: args.userId },
-				"Invalid user ID",
-			);
-
-			return userIdResult;
-		}
-
-		logger.debug({ validatedUserId: userIdResult.data }, "Validated user ID");
-
-		const sessions = await this._repository.getAllActiveByUserId({
-			pageNumber: paginationResult.data.pageNumber,
-			pageSize: paginationResult.data.pageSize,
-			sort: paginationResult.data.sort,
-			userId: userIdResult.data,
-		});
+		// repository call
+		const sessions = await this._repository.getAllActiveByUserId(
+			argsValidationResult.data,
+		);
 		if (!sessions.success) {
 			logger.warn(
 				{ error: sessions.error, userId: args.userId },
