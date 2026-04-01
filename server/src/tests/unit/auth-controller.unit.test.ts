@@ -753,6 +753,95 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.OK);
 		});
 
+		it("should pass refresh token from cookie and query params to auth manager", async () => {
+			// Arrange
+			const mockSessions = generateMockSelectSessions({ count: 3 });
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockPaginationMeta = {
+				currentPage: 2,
+				hasNextPage: false,
+				hasPreviousPage: true,
+				pageSize: 20,
+				totalItems: 3,
+				totalPages: 1,
+			};
+
+			const { next, req, res } = createMockExpressContext();
+			req.query = {
+				pageNumber: "2",
+				pageSize: "20",
+				sort: "createdAt:-1",
+			};
+
+			mockCookie.get.mock.mockImplementation(() => ({
+				data: mockRefreshToken,
+				success: true,
+			}));
+			mockManager.getUserSessions.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: {
+						items: mockSessions,
+						meta: mockPaginationMeta,
+					},
+					success: true,
+				}),
+			);
+
+			// Act
+			await controller.getUserSessions(req, res, next);
+
+			// Assert
+			const callArgs = mockManager.getUserSessions.mock.calls[0].arguments[0];
+			assert.deepStrictEqual(callArgs, {
+				pageNumber: req.query.pageNumber,
+				pageSize: req.query.pageSize,
+				refreshToken: mockRefreshToken,
+				sort: req.query.sort,
+			});
+		});
+
+		it("should pass refresh token from cookie when query params are absent", async () => {
+			// Arrange
+			const mockSessions = generateMockSelectSessions({ count: 3 });
+			const mockRefreshToken = generateMockJwt("refresh");
+			const mockPaginationMeta = {
+				currentPage: 1,
+				hasNextPage: false,
+				hasPreviousPage: false,
+				pageSize: 10,
+				totalItems: 3,
+				totalPages: 1,
+			};
+
+			const { next, req, res } = createMockExpressContext();
+
+			mockCookie.get.mock.mockImplementation(() => ({
+				data: mockRefreshToken,
+				success: true,
+			}));
+			mockManager.getUserSessions.mock.mockImplementation(() =>
+				Promise.resolve({
+					data: {
+						items: mockSessions,
+						meta: mockPaginationMeta,
+					},
+					success: true,
+				}),
+			);
+
+			// Act
+			await controller.getUserSessions(req, res, next);
+
+			// Assert
+			const callArgs = mockManager.getUserSessions.mock.calls[0].arguments[0];
+			assert.deepStrictEqual(callArgs, {
+				pageNumber: req.query.pageNumber,
+				pageSize: req.query.pageSize,
+				refreshToken: mockRefreshToken,
+				sort: req.query.sort,
+			});
+		});
+
 		it("should return sessions data in response body", async () => {
 			// Arrange
 			const mockSessions = generateMockSelectSessions({ count: 3 });

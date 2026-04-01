@@ -4,9 +4,9 @@ import type { IAuthManager } from "../managers/index.js";
 import type { ICookieService } from "../services/index.js";
 import type {
 	AsyncHandler,
+	GetAllSessionsByUserIdControllerParams,
 	InsertUser,
 	PaginatedResponse,
-	PaginationParamsString,
 	SafeSelectUser,
 	SelectSession,
 	TokenPair,
@@ -67,7 +67,7 @@ export interface IAuthController {
 	 * GET /auth/sessions
 	 */
 	getUserSessions: AsyncHandler<{
-		query: PaginationParamsString;
+		query: GetAllSessionsByUserIdControllerParams;
 		resBody: {
 			data: PaginatedResponse<SelectSession>["items"];
 			meta: PaginatedResponse<SelectSession>["meta"];
@@ -295,7 +295,7 @@ export class AuthController implements IAuthController {
 	 * GET /auth/sessions
 	 */
 	getUserSessions = asyncHandler<{
-		query: PaginationParamsString;
+		query: GetAllSessionsByUserIdControllerParams;
 		resBody: {
 			data: PaginatedResponse<SelectSession>["items"];
 			meta: PaginatedResponse<SelectSession>["meta"];
@@ -305,14 +305,13 @@ export class AuthController implements IAuthController {
 		logger.debug({ query: req.query }, "Getting user sessions");
 
 		// Get refresh token from cookie
-		const refreshCookie = this._getRefreshTokenFromCookie(req);
-		logger.debug({ refreshCookie }, "Got refresh token from cookie");
+		const refreshToken = this._getRefreshTokenFromCookie(req);
+		logger.debug({ refreshToken }, "Got refresh token from cookie");
 
-		// Get user sessions
 		const result = await this._authManager.getUserSessions({
 			pageNumber: req.query.pageNumber,
 			pageSize: req.query.pageSize,
-			refreshToken: refreshCookie,
+			refreshToken,
 			sort: req.query.sort,
 		});
 		if (!result.success) {
