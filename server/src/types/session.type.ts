@@ -23,4 +23,13 @@ export type SessionSelect = PaginationSelect<SelectSession>;
 export type SessionSort = z.infer<typeof sessionPaginationSortSchema>;
 
 // Method Params
+export type GetAllSessionsByUserIdRepositoryParams =
+	GetAllSessionsRepositoryParams & {
+		userId: string;
+	};
+
+export type GetAllSessionsRepositoryParams = SessionPaginationParams & {
+	select?: SessionSelect;
+};
+
 type SessionPaginationParams = z.infer<typeof sessionPaginationParamsSchema>;
