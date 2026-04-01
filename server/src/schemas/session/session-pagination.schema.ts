@@ -1,3 +1,4 @@
+import { paginationParamsSchema } from "../pagination/pagination.schema.js";
 import { createPaginationSortSchema } from "../pagination/sort.schema.js";
 import { selectSessionSchema } from "./session.schema.js";
 
@@ -18,3 +19,8 @@ const sessionSortableFields = selectSessionSchema.pick({
 export const sessionPaginationSortSchema = createPaginationSortSchema(
 	sessionSortableFields.keyof(),
 );
+
+export const sessionPaginationParamsSchema = paginationParamsSchema.extend({
+	filters: sessionPaginationFiltersSchema.optional(),
+	sort: sessionPaginationSortSchema.optional(),
+});
