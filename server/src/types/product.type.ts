@@ -9,8 +9,10 @@ import type {
 import type {
 	PaginationFilter,
 	PaginationParams,
+	PaginationParamsStringified,
 	PaginationSelect,
 } from "./pagination.type.js";
+import type { Stringify } from "./stringify.type.js";
 
 export type AllProducts = Pick<
 	SelectProduct,
@@ -44,4 +46,9 @@ export type GetAllProductsRepositoryParams = PaginationParams & {
 	filters?: ProductFilter;
 	select?: ProductSelect;
 	sort?: ProductSort;
+};
+
+export type GetAllProductsServiceParams = PaginationParamsStringified & {
+	filters?: Stringify<ProductFilter>;
+	sort?: string;
 };

@@ -276,6 +276,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.getAll({
 				pageNumber: "1",
+				pageSize: "10",
 			});
 
 			// Assert
@@ -313,7 +314,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should call 'repo.getAll' with search query when keyword is provided", async () => {
+		test("Should call 'repo.getAll' with filters when keyword is provided", async () => {
 			// Arrange
 			const keyword = "test";
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
@@ -322,18 +323,20 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 			// Act
 			await service.getAll({
-				keyword,
 				pageNumber: "1",
+				pageSize: "10",
+				filters: { keyword },
 			});
 
 			// Assert
 			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
-			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0].query, {
-				$text: { $search: keyword },
-			});
+			assert.deepStrictEqual(
+				mockRepo.getAll.mock.calls[0].arguments[0].filters,
+				{ keyword },
+			);
 		});
 
-		test("Should call 'repo.getAll' with pipeline projection", async () => {
+		test("Should call 'repo.getAll' with select projection", async () => {
 			// Arrange
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
@@ -342,27 +345,21 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			// Act
 			await service.getAll({
 				pageNumber: "1",
+				pageSize: "10",
 			});
 
 			// Assert
 			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
-			assert.ok(mockRepo.getAll.mock.calls[0].arguments[0].pipeline);
-			assert.strictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].pipeline.length,
-				1,
-			);
 			assert.deepStrictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].pipeline[0],
+				mockRepo.getAll.mock.calls[0].arguments[0].select,
 				{
-					$project: {
-						_id: 1,
-						brand: 1,
-						category: 1,
-						image: 1,
-						name: 1,
-						price: 1,
-						rating: 1,
-					},
+					_id: true,
+					brand: true,
+					category: true,
+					image: true,
+					name: true,
+					price: true,
+					rating: true,
 				},
 			);
 		});
@@ -387,6 +384,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.getAll({
 				pageNumber: "1",
+				pageSize: "10",
 			});
 
 			// Assert
@@ -399,6 +397,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.getAll({
 				pageNumber: "invalid",
+				pageSize: "10",
 			});
 
 			// Assert
@@ -422,6 +421,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.getAll({
 				pageNumber: "0",
+				pageSize: "10",
 			});
 
 			// Assert
@@ -433,6 +433,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.getAll({
 				pageNumber: "-1",
+				pageSize: "10",
 			});
 
 			// Assert
@@ -474,6 +475,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.getAll({
 				pageNumber: "1",
+				pageSize: "10",
 			});
 
 			// Assert

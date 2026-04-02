@@ -1,11 +1,12 @@
 import type { IProductRepository } from "../repositories/index.js";
 import type {
 	AllProducts,
+	GetAllProductsServiceParams,
 	InsertProductWithStringImage,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
-	ProductPaginationParams,
+	ProductSelect,
 	Result,
 	SelectProduct,
 	TopRatedProduct,
@@ -17,12 +18,13 @@ import {
 } from "../constants/index.js";
 import { NotFoundError, ValidationError } from "../errors/index.js";
 import { productRepository } from "../repositories/index.js";
-import { insertProductSchema, selectImageSchema } from "../schemas/index.js";
-import { getLoggerFromContext } from "../utils/index.js";
 import {
-	objectIdValidator,
-	paginationParamsValidator,
-} from "../validators/index.js";
+	insertProductSchema,
+	productPaginationParamsSchema,
+	selectImageSchema,
+} from "../schemas/index.js";
+import { getLoggerFromContext } from "../utils/index.js";
+import { objectIdValidator } from "../validators/index.js";
 
 export interface IProductService {
 	create(
@@ -30,7 +32,7 @@ export interface IProductService {
 	): Promise<ProductResult<SelectProduct>>;
 	delete(data: { productId: string }): Promise<ProductResult<void>>;
 	getAll(
-		args: ProductPaginationParams,
+		args: GetAllProductsServiceParams,
 	): Promise<ProductResult<PaginatedResponse<AllProducts>>>;
 	getById(data: { productId: string }): Promise<ProductResult<SelectProduct>>;
 	getTopRated(): Promise<ProductResult<Array<TopRatedProduct>>>;
@@ -131,55 +133,39 @@ export class ProductService implements IProductService {
 		const logger = this._getLogger({ method: "getAll" });
 		logger.debug({ args }, "Getting all products");
 
-		const paginationResult = paginationParamsValidator.safeParse({
-			pageNumber: args.pageNumber,
-			pageSize: args.pageSize,
-			sort: args.sort,
-		});
-		if (!paginationResult.success) {
-			logger.warn({ error: paginationResult.error }, "Invalid pagination data");
+		// validate arguments
+		const paginationValidationResult =
+			productPaginationParamsSchema.safeParse(args);
+		if (!paginationValidationResult.success) {
+			logger.warn(paginationValidationResult.error, "Invalid pagination data");
 			return {
 				error: new ValidationError("Invalid pagination data", {
-					cause: paginationResult.error,
+					cause: paginationValidationResult.error,
 				}),
 				success: false,
 			};
 		}
 
 		logger.debug(
-			{ paginationResult: paginationResult.data },
+			{ paginationResult: paginationValidationResult.data },
 			"Validated pagination data",
 		);
 
-		const searchQuery =
-			args.keyword &&
-			typeof args.keyword === "string" &&
-			args.keyword.trim().length > 0
-				? { $text: { $search: args.keyword } }
-				: {};
-
-		logger.debug({ searchQuery }, "Search query");
+		// call repository
+		const selectedFields: ProductSelect = {
+			_id: true,
+			brand: true,
+			category: true,
+			image: true,
+			name: true,
+			price: true,
+			rating: true,
+		};
 
 		const result = await this._repository.getAll({
-			pageNumber: paginationResult.data.pageNumber,
-			pageSize: paginationResult.data.pageSize,
-			pipeline: [
-				{
-					$project: {
-						_id: 1,
-						brand: 1,
-						category: 1,
-						image: 1,
-						name: 1,
-						price: 1,
-						rating: 1,
-					},
-				},
-			],
-			query: searchQuery,
-			sort: paginationResult.data.sort,
+			...paginationValidationResult.data,
+			select: selectedFields,
 		});
-
 		if (!result.success) {
 			logger.error(
 				{ error: result.error },

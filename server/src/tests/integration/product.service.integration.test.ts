@@ -8,7 +8,7 @@ import { ProductRepository } from "../../repositories/index.js";
 import { CacheService, ProductService } from "../../services/index.js";
 import { generateMockObjectId } from "../mocks/index.js";
 import {
-	generateMockInsertProductWithMulterImage,
+	generateMockInsertProductWithStringImage,
 	generateMockSelectProduct,
 	generateMockSelectProducts,
 } from "../mocks/product.mock.js";
@@ -39,12 +39,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 	describe("create", () => {
 		test("should create and return product when 'repo.create' is called with valid data", async () => {
 			// Arrange
-			const mockProductWithFile = generateMockInsertProductWithMulterImage();
-			const mockImageUrl = "https://example.com/image.jpg";
-			const mockProduct = {
-				...mockProductWithFile,
-				image: mockImageUrl, // Use string URL instead of File
-			};
+			const mockProduct = generateMockInsertProductWithStringImage();
 
 			// Act
 			const result = await productService.create(mockProduct);
@@ -59,7 +54,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.description, mockProduct.description);
 			assert.strictEqual(result.data.price, mockProduct.price);
 			assert.strictEqual(result.data.countInStock, mockProduct.countInStock);
-			assert.strictEqual(result.data.image, mockImageUrl);
+			assert.strictEqual(result.data.image, mockProduct.image);
 			assert.strictEqual(result.data.rating, 0);
 			assert.strictEqual(result.data.numReviews, 0);
 		});
@@ -67,7 +62,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 		test("should return validation error when 'repo.create' is called with invalid data", async () => {
 			// Arrange
 			const invalidProduct = {
-				...generateMockInsertProductWithMulterImage(),
+				...generateMockInsertProductWithStringImage(),
 				price: "invalid-price" as unknown as number,
 			};
 
@@ -82,7 +77,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 		test("Should return validation error when 'repo.create' is called without required fields", async () => {
 			// Arrange
 			const { name: _name, ...mockProduct } =
-				generateMockInsertProductWithMulterImage();
+				generateMockInsertProductWithStringImage();
 
 			// Act
 			// @ts-expect-error - test case
@@ -103,6 +98,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Act
 			const result = await productService.getAll({
 				pageNumber: "1",
+				pageSize: "10",
 			});
 
 			// Assert
@@ -121,6 +117,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Act
 			const result = await productService.getAll({
 				pageNumber: "1",
+				pageSize: "10",
 			});
 
 			// Assert
@@ -141,7 +138,6 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 			// Act
 			const result = await productService.getAll({
-				keyword: "",
 				pageNumber: "1",
 				pageSize,
 			});
@@ -180,7 +176,6 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 			// Act
 			const result = await productService.getAll({
-				keyword: "",
 				pageNumber,
 				pageSize,
 			});
@@ -203,8 +198,9 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 			// Act
 			const result = await productService.getAll({
-				keyword,
 				pageNumber: "1",
+				pageSize: "10",
+				filters: { keyword },
 			});
 
 			// Assert
@@ -221,8 +217,9 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 			// Act
 			const result = await productService.getAll({
-				keyword,
 				pageNumber: "1",
+				pageSize: "10",
+				filters: { keyword },
 			});
 
 			// Assert
@@ -239,8 +236,9 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 			// Act
 			const result = await productService.getAll({
-				keyword,
 				pageNumber: "1",
+				pageSize: "10",
+				filters: { keyword },
 			});
 
 			// Assert
@@ -261,6 +259,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Act
 			const result = await productService.getAll({
 				pageNumber: "1",
+				pageSize: "10",
 			});
 
 			// Assert
@@ -280,6 +279,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Act
 			const result = await productService.getAll({
 				pageNumber: "invalid",
+				pageSize: "10",
 			});
 
 			// Assert
@@ -303,6 +303,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Act
 			const result = await productService.getAll({
 				pageNumber: "0",
+				pageSize: "10",
 			});
 
 			// Assert
@@ -314,6 +315,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Act
 			const result = await productService.getAll({
 				pageNumber: "-1",
+				pageSize: "10",
 			});
 
 			// Assert
