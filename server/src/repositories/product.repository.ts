@@ -4,19 +4,26 @@ import type { DatabaseBaseError } from "../errors/index.js";
 import type {
 	AllProducts,
 	FailureResult,
+	GetAllProductsRepositoryParams,
 	InsertProductWithStringImage,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
-	PaginationParamsQuery,
+	PaginationQuery,
+	ProductFilter,
 	Result,
 	SelectProduct,
 	TopRatedProduct,
 } from "../types/index.js";
+import type { PaginatorParams } from "../utils/index.js";
 
 import Product from "../models/product.model.js";
 import { CacheService } from "../services/cache.service.js";
-import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
+import {
+	buildMongoSelectProjection,
+	handleDatabaseErrorResult,
+	Paginator,
+} from "../utils/index.js";
 
 export interface IProductRepository {
 	count(query: Record<string, unknown>): Promise<ProductResult<number>>;
@@ -27,7 +34,7 @@ export interface IProductRepository {
 		productId: Types.ObjectId;
 	}): Promise<ProductResult<null | SelectProduct>>;
 	getAll(
-		args: PaginationParamsQuery<SelectProduct>,
+		args: GetAllProductsRepositoryParams,
 	): Promise<ProductResult<PaginatedResponse<AllProducts>>>;
 	getById(data: {
 		productId: Types.ObjectId;
@@ -115,12 +122,7 @@ export class ProductRepository implements IProductRepository {
 		args: MethodParams<IProductRepository, "getAll">,
 	): MethodReturn<IProductRepository, "getAll"> {
 		try {
-			const result = await this._paginator.paginate<AllProducts>({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				query: args.query,
-				sort: args.sort,
-			});
+			const result = await this._paginateProducts(args);
 
 			return {
 				data: result,
@@ -258,6 +260,60 @@ export class ProductRepository implements IProductRepository {
 		this._cache.delete({
 			key: this._getTopRatedCacheKey,
 		});
+	}
+
+	private async _paginateProducts(
+		args: GetAllProductsRepositoryParams,
+		query?: Partial<PaginationQuery<SelectProduct>>,
+	): Promise<PaginatedResponse<SelectProduct>> {
+		const paginateOptions: PaginatorParams<SelectProduct> = {
+			pageNumber: args.pageNumber,
+			pageSize: args.pageSize,
+		};
+
+		if (args.filters) {
+			const filters = this._prepareFilter(args.filters);
+			paginateOptions.query = { ...filters };
+		}
+
+		if (query) {
+			paginateOptions.query = { ...paginateOptions.query, ...query };
+		}
+
+		if (args.select) {
+			const select = buildMongoSelectProjection(args.select);
+			paginateOptions.pipeline = [{ $project: select }];
+		}
+
+		if (args.sort) {
+			paginateOptions.sort = args.sort;
+		}
+
+		return this._paginator.paginate<SelectProduct>(paginateOptions);
+	}
+
+	private _prepareFilter(
+		filters?: ProductFilter,
+	): Partial<PaginationQuery<SelectProduct>> {
+		if (!filters) {
+			return {};
+		}
+
+		const newFilter: Partial<PaginationQuery<SelectProduct>> = {};
+
+		if (filters.keyword) {
+			newFilter.$text = { $search: filters.keyword };
+		}
+
+		if (filters.brand) {
+			newFilter.brand = filters.brand;
+		}
+
+		if (filters.category) {
+			newFilter.category = filters.category;
+		}
+
+		return newFilter;
 	}
 }
 

@@ -194,6 +194,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await repo.getAll({
 				pageNumber: 1,
+				pageSize: 10,
 			});
 
 			// Assert
@@ -212,6 +213,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Act
 			await repo.getAll({
 				pageNumber: 1,
+				pageSize: 10,
 			});
 
 			// Assert
@@ -228,6 +230,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Act
 			await repo.getAll({
 				pageNumber,
+				pageSize: 10,
 			});
 
 			// Assert
@@ -248,7 +251,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			await repo.getAll({
 				pageNumber: 1,
 				pageSize,
-				query: {},
 			});
 
 			// Assert
@@ -258,7 +260,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should call 'paginator.paginate' with query filters", async (t) => {
+		test("Should call 'paginator.paginate' with filters", async (t) => {
 			// Arrange
 			const mockPaginate = t.mock.method(Paginator.prototype, "paginate", () =>
 				Promise.resolve(mockPaginatedResponse),
@@ -268,7 +270,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			await repo.getAll({
 				pageNumber: 1,
 				pageSize: 10,
-				query: { brand: "TestBrand" },
+				filters: { brand: "TestBrand" },
 			});
 
 			// Assert
@@ -287,15 +289,72 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			await repo.getAll({
 				pageNumber: 1,
 				pageSize: 10,
-				query: {},
-				sort: { name: 1, price: -1 },
+				sort: { price: "asc", rating: "desc" },
 			});
 
 			// Assert
 			assert.deepStrictEqual(mockPaginate.mock.calls[0].arguments[0]?.sort, {
-				name: 1,
-				price: -1,
+				price: "asc",
+				rating: "desc",
 			});
+		});
+
+		test("Should call 'paginator.paginate' with $text query when filters contains keyword", async (t) => {
+			// Arrange
+			const mockPaginate = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve(mockPaginatedResponse),
+			);
+
+			// Act
+			await repo.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				filters: { keyword: "foo" },
+			});
+
+			// Assert
+			assert.deepStrictEqual(mockPaginate.mock.calls[0].arguments[0]?.query, {
+				$text: { $search: "foo" },
+			});
+		});
+
+		test("Should call 'paginator.paginate' with category filter", async (t) => {
+			// Arrange
+			const mockPaginate = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve(mockPaginatedResponse),
+			);
+
+			// Act
+			await repo.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				filters: { category: "Electronics" },
+			});
+
+			// Assert
+			assert.deepStrictEqual(mockPaginate.mock.calls[0].arguments[0]?.query, {
+				category: "Electronics",
+			});
+		});
+
+		test("Should call 'paginator.paginate' with pipeline when select is provided", async (t) => {
+			// Arrange
+			const mockPaginate = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve(mockPaginatedResponse),
+			);
+
+			// Act
+			await repo.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				select: { name: true, price: true },
+			});
+
+			// Assert
+			assert.deepStrictEqual(
+				mockPaginate.mock.calls[0].arguments[0]?.pipeline,
+				[{ $project: { name: 1, price: 1 } }],
+			);
 		});
 
 		test("Should return paginated response with empty items when 'paginator.paginate' returns empty items", async (t) => {
@@ -318,6 +377,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await repo.getAll({
 				pageNumber: 1,
+				pageSize: 10,
 			});
 
 			// Assert
@@ -336,6 +396,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await repo.getAll({
 				pageNumber: 1,
+				pageSize: 10,
 			});
 
 			// Assert
@@ -355,6 +416,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await repo.getAll({
 				pageNumber: 1,
+				pageSize: 10,
 			});
 
 			// Assert
@@ -372,6 +434,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await repo.getAll({
 				pageNumber: 1,
+				pageSize: 10,
 			});
 
 			// Assert
@@ -389,6 +452,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await repo.getAll({
 				pageNumber: 1,
+				pageSize: 10,
 			});
 
 			// Assert
@@ -406,6 +470,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await repo.getAll({
 				pageNumber: 1,
+				pageSize: 10,
 			});
 
 			// Assert

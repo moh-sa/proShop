@@ -116,6 +116,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			// Act
 			const result = await productRepository.getAll({
 				pageNumber: 1,
+				pageSize: 10,
 			});
 
 			// Assert
@@ -135,6 +136,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			// Act
 			const result = await productRepository.getAll({
 				pageNumber: 1,
+				pageSize: 10,
 			});
 
 			// Assert
@@ -207,7 +209,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.meta.hasPreviousPage, true);
 		});
 
-		test("should return filtered items when 'getAll' is called with query filters", async () => {
+		test("should return filtered items when 'getAll' is called with filters", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			const targetBrand = mockProducts[0].brand;
@@ -217,7 +219,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			const result = await productRepository.getAll({
 				pageNumber: 1,
 				pageSize: 10,
-				query: { brand: targetBrand },
+				filters: { brand: targetBrand },
 			});
 
 			// Assert
@@ -239,7 +241,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			const result = await productRepository.getAll({
 				pageNumber: 1,
 				pageSize: 10,
-				query: { brand: "Non-existent Brand" },
+				filters: { brand: "Non-existent Brand" },
 			});
 
 			// Assert
@@ -259,7 +261,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			const result = await productRepository.getAll({
 				pageNumber: 1,
 				pageSize: 10,
-				query: { brand: "Non-existent Brand" },
+				filters: { brand: "Non-existent Brand" },
 			});
 
 			// Assert
@@ -282,8 +284,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			const result = await productRepository.getAll({
 				pageNumber: 1,
 				pageSize: 10,
-				query: {},
-				sort: { price: 1 },
+				sort: { price: "asc" },
 			});
 
 			// Assert
@@ -293,6 +294,76 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			result.data.items.map((item, index) => {
 				const expectedItem = expectedResult[index];
 				assert.strictEqual(item.price, expectedItem.price);
+			});
+		});
+
+		test("should return filtered items when 'getAll' is called with category filter", async () => {
+			// Arrange
+			const mockProducts = generateMockSelectProducts({ count: 5 });
+			const targetCategory = mockProducts[0].category;
+			await Product.insertMany(mockProducts);
+
+			// Act
+			const result = await productRepository.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				filters: { category: targetCategory },
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.ok(result.data);
+			assert.ok(Array.isArray(result.data.items));
+			assert.ok(result.data.items.length > 0);
+
+			result.data.items.forEach((product) => {
+				assert.equal(product.category, targetCategory);
+			});
+		});
+
+		test("should return items matching keyword text search when 'getAll' is called with filters.keyword", async () => {
+			// Arrange
+			const mockProducts = generateMockSelectProducts({ count: 4 });
+			const targetProduct = mockProducts[0];
+			const keyword = targetProduct.name;
+			await Product.insertMany(mockProducts);
+
+			// Act
+			const result = await productRepository.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				filters: { keyword },
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.ok(result.data);
+			assert.ok(result.data.items.length >= 1);
+			const matched = result.data.items.some((product) =>
+				product._id.equals(targetProduct._id),
+			);
+			assert.ok(matched);
+		});
+
+		test("should return only selected fields when 'getAll' is called with select", async () => {
+			// Arrange
+			const mockProducts = generateMockSelectProducts({ count: 3 });
+			await Product.insertMany(mockProducts);
+
+			// Act
+			const result = await productRepository.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				select: { name: true, price: true },
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.items.length, 3);
+			result.data.items.forEach((item) => {
+				assert.ok("name" in item && item.name !== undefined);
+				assert.ok("price" in item && typeof item.price === "number");
+				assert.ok(!("description" in item));
 			});
 		});
 	});
