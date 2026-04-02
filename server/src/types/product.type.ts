@@ -3,6 +3,7 @@ import type { z } from "zod";
 import type {
 	insertProductSchema,
 	productPaginationFiltersSchema,
+	productPaginationSortSchema,
 	selectProductSchema,
 } from "../schemas/index.js";
 import type { PaginationFilter } from "./pagination.type.js";
@@ -29,3 +30,5 @@ export type TopRatedProduct = Pick<
 export type ProductFilter = PaginationFilter<
 	z.infer<typeof productPaginationFiltersSchema>
 >;
+
+export type ProductSort = z.infer<typeof productPaginationSortSchema>;
