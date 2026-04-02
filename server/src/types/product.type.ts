@@ -2,9 +2,10 @@ import type { z } from "zod";
 
 import type {
 	insertProductSchema,
+	productPaginationFiltersSchema,
 	selectProductSchema,
 } from "../schemas/index.js";
-import type { PaginationParamsString } from "./pagination.type.js";
+import type { PaginationFilter } from "./pagination.type.js";
 
 export type AllProducts = Pick<
 	SelectProduct,
@@ -25,6 +26,6 @@ export type TopRatedProduct = Pick<
 >;
 
 // Pagination
-export type ProductPaginationParams = PaginationParamsString & {
-	keyword?: string;
-};
+export type ProductFilter = PaginationFilter<
+	z.infer<typeof productPaginationFiltersSchema>
+>;
