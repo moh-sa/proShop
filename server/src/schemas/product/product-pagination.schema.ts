@@ -1,5 +1,6 @@
 import z from "zod";
 
+import { paginationParamsSchema } from "../pagination/pagination.schema.js";
 import { createPaginationSortSchema } from "../pagination/sort.schema.js";
 import { selectProductSchema } from "./product.schema.js";
 
@@ -25,3 +26,8 @@ const productSortableFields = selectProductSchema.pick({
 export const productPaginationSortSchema = createPaginationSortSchema(
 	productSortableFields.keyof(),
 );
+
+export const productPaginationParamsSchema = paginationParamsSchema.extend({
+	filters: productPaginationFiltersSchema.optional(),
+	sort: productPaginationSortSchema.optional(),
+});

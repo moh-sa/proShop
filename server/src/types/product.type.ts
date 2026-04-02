@@ -6,7 +6,11 @@ import type {
 	productPaginationSortSchema,
 	selectProductSchema,
 } from "../schemas/index.js";
-import type { PaginationFilter, PaginationSelect } from "./pagination.type.js";
+import type {
+	PaginationFilter,
+	PaginationParams,
+	PaginationSelect,
+} from "./pagination.type.js";
 
 export type AllProducts = Pick<
 	SelectProduct,
@@ -34,3 +38,10 @@ export type ProductFilter = PaginationFilter<
 export type ProductSelect = PaginationSelect<SelectProduct>;
 
 export type ProductSort = z.infer<typeof productPaginationSortSchema>;
+
+// Method Params
+export type GetAllProductsRepositoryParams = PaginationParams & {
+	filters?: ProductFilter;
+	select?: ProductSelect;
+	sort?: ProductSort;
+};
