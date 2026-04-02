@@ -326,14 +326,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.meta.totalPages, 3);
 		});
 
-		test("Should return products sorted by name when 'service.getAll' is called with sort parameter", async () => {
+		test("Should return products sorted by price when 'service.getAll' is called with sort parameter", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockProducts = generateMockSelectProducts({ count: 3 });
-			// Set specific names for sorting test
-			mockProducts[0].name = "Zebra Product";
-			mockProducts[1].name = "Apple Product";
-			mockProducts[2].name = "Banana Product";
+			mockProducts[0].price = 99;
+			mockProducts[1].price = 10;
+			mockProducts[2].price = 50;
 
 			const mockProductsInCents = mockProducts.map((product) => ({
 				...product,
@@ -341,7 +340,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			}));
 
 			await Product.insertMany(mockProductsInCents);
-			req.query = { sort: "name:asc" };
+			req.query = { sort: "price:asc" };
 
 			// Act
 			await controller.getAll(req, res, next);
@@ -351,9 +350,67 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.strictEqual(response.data.length, 3);
-			assert.strictEqual(response.data[0].name, "Apple Product");
-			assert.strictEqual(response.data[1].name, "Banana Product");
-			assert.strictEqual(response.data[2].name, "Zebra Product");
+			assert.strictEqual(response.data[0].price, 10);
+			assert.strictEqual(response.data[1].price, 50);
+			assert.strictEqual(response.data[2].price, 99);
+		});
+
+		test("Should return products filtered by brand when 'service.getAll' is called with brand query", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			const mockProducts = generateMockSelectProducts({ count: 4 });
+			const targetBrand = "UniqueBrandFilter";
+			mockProducts[0].brand = targetBrand;
+			mockProducts[1].brand = "OtherBrand";
+			mockProducts[2].brand = "OtherBrand";
+			mockProducts[3].brand = "OtherBrand";
+
+			const mockProductsInCents = mockProducts.map((product) => ({
+				...product,
+				price: toCents(product.price),
+			}));
+
+			await Product.insertMany(mockProductsInCents);
+			req.query = { brand: targetBrand };
+
+			// Act
+			await controller.getAll(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.ok(response.success);
+			assert.ok(response.data);
+			assert.strictEqual(response.data.length, 1);
+			assert.strictEqual(response.data[0].brand, targetBrand);
+		});
+
+		test("Should return products filtered by category when 'service.getAll' is called with category query", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContext();
+			const mockProducts = generateMockSelectProducts({ count: 4 });
+			const targetCategory = "UniqueCategoryFilter";
+			mockProducts[0].category = targetCategory;
+			mockProducts[1].category = "OtherCategory";
+			mockProducts[2].category = "OtherCategory";
+			mockProducts[3].category = "OtherCategory";
+
+			const mockProductsInCents = mockProducts.map((product) => ({
+				...product,
+				price: toCents(product.price),
+			}));
+
+			await Product.insertMany(mockProductsInCents);
+			req.query = { category: targetCategory };
+
+			// Act
+			await controller.getAll(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.ok(response.success);
+			assert.ok(response.data);
+			assert.strictEqual(response.data.length, 1);
+			assert.strictEqual(response.data[0].category, targetCategory);
 		});
 	});
 

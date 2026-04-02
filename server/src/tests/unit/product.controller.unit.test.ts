@@ -288,7 +288,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(
-				mockManager.getAll.mock.calls[0]?.arguments[0]?.keyword,
+				mockManager.getAll.mock.calls[0]?.arguments[0]?.filters?.keyword,
 				mockProducts[0].name,
 			);
 		});
@@ -318,8 +318,71 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(
-				mockManager.getAll.mock.calls[0]?.arguments[0]?.keyword?.length,
+				mockManager.getAll.mock.calls[0]?.arguments[0]?.filters?.keyword
+					?.length,
 				0,
+			);
+		});
+
+		test("Should parse 'brand' from 'req.query'", async (t) => {
+			// Arrange
+			const brand = "Acme";
+			const { next, req, res } = mockExpressCall({
+				req: {
+					query: {
+						brand,
+						pageNumber: "1",
+					},
+				},
+				testContext: t,
+			});
+
+			mockManager.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: serviceResult, success: true }),
+			);
+
+			// Act
+			await controller.getAll(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(
+				mockManager.getAll.mock.calls[0]?.arguments[0]?.filters?.brand,
+				brand,
+			);
+		});
+
+		test("Should parse 'category' from 'req.query'", async (t) => {
+			// Arrange
+			const category = "Electronics";
+			const { next, req, res } = mockExpressCall({
+				req: {
+					query: {
+						category,
+						pageNumber: "1",
+					},
+				},
+				testContext: t,
+			});
+
+			mockManager.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: serviceResult, success: true }),
+			);
+
+			// Act
+			await controller.getAll(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(
+				mockManager.getAll.mock.calls[0]?.arguments[0]?.filters?.category,
+				category,
 			);
 		});
 
@@ -411,7 +474,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should call 'service.getAll' once with all pagination parameters", async (t) => {
+		test("Should call 'manager.getAll' once with all pagination parameters", async (t) => {
 			// Arrange
 			const pageNumber = "2";
 			const pageSize = "15";
@@ -444,14 +507,18 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
 			assert.deepStrictEqual(mockManager.getAll.mock.calls[0]?.arguments[0], {
-				keyword,
+				filters: {
+					brand: undefined,
+					category: undefined,
+					keyword,
+				},
 				pageNumber,
 				pageSize,
 				sort,
 			});
 		});
 
-		test("Should call 'service.getAll' once with empty query object when no parameters provided", async (t) => {
+		test("Should call 'manager.getAll' once with only pageNumber when no filter query params provided", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { query: { pageNumber: "1" } },
@@ -472,7 +539,14 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(mockManager.getAll.mock.callCount(), 1);
 			assert.deepStrictEqual(mockManager.getAll.mock.calls[0]?.arguments[0], {
+				filters: {
+					brand: undefined,
+					category: undefined,
+					keyword: undefined,
+				},
 				pageNumber: "1",
+				pageSize: undefined,
+				sort: undefined,
 			});
 		});
 

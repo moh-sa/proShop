@@ -2,9 +2,9 @@ import type { IProductManager } from "../managers/index.js";
 import type {
 	AllProducts,
 	AsyncHandler,
+	GetAllProductsControllerParams,
 	InsertProduct,
 	PaginatedResponse,
-	ProductPaginationParams,
 	SafeSelectUser,
 	SelectProduct,
 	TopRatedProduct,
@@ -30,7 +30,7 @@ export interface IProductController {
 		resBody: { data: null };
 	}>;
 	getAll: AsyncHandler<{
-		query: ProductPaginationParams;
+		query: GetAllProductsControllerParams;
 		resBody: {
 			data: PaginatedResponse<AllProducts>["items"];
 			meta: PaginatedResponse<AllProducts>["meta"];
@@ -113,7 +113,7 @@ export class ProductController implements IProductController {
 	});
 
 	getAll = asyncHandler<{
-		query: ProductPaginationParams;
+		query: GetAllProductsControllerParams;
 		resBody: {
 			data: PaginatedResponse<AllProducts>["items"];
 			meta: PaginatedResponse<AllProducts>["meta"];
@@ -122,7 +122,16 @@ export class ProductController implements IProductController {
 		const logger = this._getLogger({ method: "getAll" });
 		logger.debug({ query: req.query }, "Getting all products");
 
-		const result = await this._manager.getAll(req.query);
+		const result = await this._manager.getAll({
+			filters: {
+				brand: req.query.brand,
+				category: req.query.category,
+				keyword: req.query.keyword,
+			},
+			pageNumber: req.query.pageNumber,
+			pageSize: req.query.pageSize,
+			sort: req.query.sort,
+		});
 		if (!result.success) {
 			throw result.error;
 		}

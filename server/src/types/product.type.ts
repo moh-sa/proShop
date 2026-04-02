@@ -42,6 +42,13 @@ export type ProductSelect = PaginationSelect<SelectProduct>;
 export type ProductSort = z.infer<typeof productPaginationSortSchema>;
 
 // Method Params
+export type GetAllProductsControllerParams = PaginationParamsStringified & {
+	brand?: string;
+	category?: string;
+	keyword?: string;
+	sort?: string;
+};
+
 export type GetAllProductsManagerParams = GetAllProductsServiceParams;
 
 export type GetAllProductsRepositoryParams = PaginationParams & {
