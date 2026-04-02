@@ -6,6 +6,7 @@ import { ProductManager } from "../../managers/product.manager.js";
 import Product from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { CacheService, ProductService } from "../../services/index.js";
+import type { GetAllProductsManagerParams } from "../../types/index.js";
 import {
 	generateMockInsertProductWithMulterImage,
 	generateMockObjectId,
@@ -293,7 +294,11 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 			await Product.insertMany(mockProducts);
 
 			// Act
-			const result = await productManager.getAll({ pageNumber: "1" });
+			const args: GetAllProductsManagerParams = {
+				pageNumber: "1",
+				pageSize: "10",
+			};
+			const result = await productManager.getAll(args);
 
 			// Assert
 			assert.strictEqual(result.success, true);

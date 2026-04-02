@@ -42,6 +42,8 @@ export type ProductSelect = PaginationSelect<SelectProduct>;
 export type ProductSort = z.infer<typeof productPaginationSortSchema>;
 
 // Method Params
+export type GetAllProductsManagerParams = GetAllProductsServiceParams;
+
 export type GetAllProductsRepositoryParams = PaginationParams & {
 	filters?: ProductFilter;
 	select?: ProductSelect;

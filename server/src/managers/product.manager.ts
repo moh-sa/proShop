@@ -4,11 +4,11 @@ import type {
 } from "../services/index.js";
 import type {
 	AllProducts,
+	GetAllProductsManagerParams,
 	InsertProduct,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
-	ProductPaginationParams,
 	Result,
 	SelectProduct,
 	TopRatedProduct,
@@ -22,7 +22,7 @@ export interface IProductManager {
 	create(data: InsertProduct): Promise<ProductManagerResult<SelectProduct>>;
 	delete(data: { productId: string }): Promise<ProductManagerResult<void>>;
 	getAll(
-		args: ProductPaginationParams,
+		args: GetAllProductsManagerParams,
 	): Promise<ProductManagerResult<PaginatedResponse<AllProducts>>>;
 	getById(data: {
 		productId: string;

@@ -3,6 +3,7 @@ import test, { beforeEach, describe, suite } from "node:test";
 
 import { ValidationError } from "../../errors/index.js";
 import { ProductManager } from "../../managers/product.manager.js";
+import type { GetAllProductsManagerParams } from "../../types/index.js";
 import {
 	generateMockInsertProductWithMulterImage,
 	generateMockSelectProduct,
@@ -397,7 +398,10 @@ suite("Product Manager 〖 Unit Tests 〗", () => {
 
 		test("should return paginated response when product service succeeds", async () => {
 			// Arrange
-			const args = { pageNumber: "1" };
+			const args: GetAllProductsManagerParams = {
+				pageNumber: "1",
+				pageSize: "10",
+			};
 			mockProductSvc.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
@@ -418,7 +422,11 @@ suite("Product Manager 〖 Unit Tests 〗", () => {
 
 		test("should pass through arguments to product service", async () => {
 			// Arrange
-			const args = { keyword: "test", pageNumber: "2", pageSize: "5" };
+			const args: GetAllProductsManagerParams = {
+				pageNumber: "2",
+				pageSize: "5",
+				filters: { keyword: "test" },
+			};
 			mockProductSvc.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
