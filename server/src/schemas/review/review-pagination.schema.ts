@@ -24,3 +24,9 @@ export const reviewByProductIdPaginationFiltersSchema = baseFiltersSchema
 		userId: true,
 	})
 	.partial();
+
+export const reviewByUserIdPaginationFiltersSchema = baseFiltersSchema
+	.pick({
+		productId: true,
+	})
+	.partial();
