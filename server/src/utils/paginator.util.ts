@@ -61,31 +61,6 @@ export class Paginator<TDocument extends Record<string, unknown>> {
 	}
 
 	/**
-	 * Parse sort string into a sort object.
-	 * @param input - The sort string to parse.
-	 * @returns The sort object.
-	 * @example
-	 * const sort = Paginator.parseSort("createdAt:desc,name:asc");
-	 */
-	static handleSortString<TResult>(
-		input: string,
-	): Partial<Record<keyof TResult, -1 | 1>> {
-		if (!input) {
-			return {};
-		}
-
-		// TODO: handle security
-		return input.split(",").reduce(
-			(acc, item) => {
-				const [key, direction] = item.split(":");
-				acc[key as keyof TResult] = direction === "desc" ? -1 : 1;
-				return acc;
-			},
-			{} as Partial<Record<keyof TResult, -1 | 1>>,
-		);
-	}
-
-	/**
 	 * Paginate documents with optional pipeline, query and sort.
 	 * @returns `Items` and `totalItems` count.
 	 * @example
