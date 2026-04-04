@@ -18,3 +18,9 @@ const baseFiltersSchema = z.object({
 });
 
 export const reviewPaginationFiltersSchema = baseFiltersSchema.partial();
+
+export const reviewByProductIdPaginationFiltersSchema = baseFiltersSchema
+	.pick({
+		userId: true,
+	})
+	.partial();
