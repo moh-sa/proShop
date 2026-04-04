@@ -8,6 +8,7 @@ import type {
 	reviewByProductIdPaginationFiltersSchema,
 	reviewByProductIdPaginationParamsSchema,
 	reviewByUserIdPaginationFiltersSchema,
+	reviewByUserIdPaginationParamsSchema,
 	reviewPaginationFiltersSchema,
 	reviewPaginationParamsSchema,
 	reviewPaginationSortSchema,
@@ -38,6 +39,12 @@ export type ReviewSort = z.infer<typeof reviewPaginationSortSchema>;
 // Method Params
 export type GetAllReviewsByProductIdRepositoryParams = z.infer<
 	typeof reviewByProductIdPaginationParamsSchema
+> & {
+	select?: ReviewSelect;
+};
+
+export type GetAllReviewsByUserIdRepositoryParams = z.infer<
+	typeof reviewByUserIdPaginationParamsSchema
 > & {
 	select?: ReviewSelect;
 };

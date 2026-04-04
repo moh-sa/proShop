@@ -57,3 +57,9 @@ export const reviewByProductIdPaginationParamsSchema =
 		filters: reviewByProductIdPaginationFiltersSchema.optional(),
 		productId: baseFiltersSchema.shape.productId,
 	});
+
+export const reviewByUserIdPaginationParamsSchema =
+	reviewPaginationParamsSchema.extend({
+		filters: reviewByUserIdPaginationFiltersSchema.optional(),
+		userId: baseFiltersSchema.shape.userId,
+	});
