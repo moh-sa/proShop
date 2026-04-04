@@ -1,6 +1,9 @@
 import { isValidObjectId } from "mongoose";
 import z from "zod";
 
+import { createPaginationSortSchema } from "../pagination/sort.schema.js";
+import { selectReviewSchema } from "./review.schema.js";
+
 // Filters
 const baseFiltersSchema = z.object({
 	productId: z
@@ -30,3 +33,14 @@ export const reviewByUserIdPaginationFiltersSchema = baseFiltersSchema
 		productId: true,
 	})
 	.partial();
+
+// Sort
+const reviewSortableFields = selectReviewSchema.pick({
+	createdAt: true,
+	rating: true,
+	updatedAt: true,
+});
+
+export const reviewPaginationSortSchema = createPaginationSortSchema(
+	reviewSortableFields.keyof(),
+);

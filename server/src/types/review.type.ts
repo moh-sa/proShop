@@ -8,6 +8,7 @@ import type {
 	reviewByProductIdPaginationFiltersSchema,
 	reviewByUserIdPaginationFiltersSchema,
 	reviewPaginationFiltersSchema,
+	reviewPaginationSortSchema,
 } from "../schemas/review/review-pagination.schema.js";
 import type { PaginationFilter } from "./pagination.type.js";
 
@@ -27,3 +28,5 @@ export type ReviewByUserIdFilter = PaginationFilter<
 export type ReviewFilter = PaginationFilter<
 	z.infer<typeof reviewPaginationFiltersSchema>
 >;
+
+export type ReviewSort = z.infer<typeof reviewPaginationSortSchema>;
