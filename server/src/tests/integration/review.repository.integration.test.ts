@@ -18,6 +18,7 @@ import {
 } from "../mocks/index.js";
 import {
 	generateMockInsertReview,
+	generateMockInsertReviews,
 	generateMockSelectReview,
 	generateMockSelectReviews,
 } from "../mocks/review.mock.js";
@@ -121,7 +122,10 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 	describe("getAll", () => {
 		test("should return empty paginated result when 'getAll' is called with no reviews in database", async () => {
 			// Act
-			const reviews = await reviewRepository.getAll({ pageNumber: 1 });
+			const reviews = await reviewRepository.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+			});
 
 			// Assert
 			assert.ok(reviews.success);
@@ -140,7 +144,10 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			await Review.insertMany(mockReviews);
 
 			// Act
-			const reviews = await reviewRepository.getAll({ pageNumber: 1 });
+			const reviews = await reviewRepository.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+			});
 
 			// Assert
 			assert.ok(reviews.success);
@@ -212,6 +219,157 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(reviews.data.meta.hasNextPage, true);
 			assert.strictEqual(reviews.data.meta.hasPreviousPage, true);
 		});
+
+		test("should return only reviews for a product when 'getAll' is called with filters.productId", async () => {
+			// Arrange
+			const targetProductId = generateMockObjectId();
+			const otherProductId = generateMockObjectId();
+			const targetReviews = generateMockInsertReviews({
+				count: 3,
+				options: { product: targetProductId },
+			});
+			const otherReviews = generateMockInsertReviews({
+				count: 2,
+				options: { product: otherProductId },
+			});
+
+			await Review.insertMany([...targetReviews, ...otherReviews]);
+
+			// Act
+			const result = await reviewRepository.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				filters: { productId: targetProductId.toString() },
+			});
+
+			// Assert
+			assert.ok(result.success);
+			assert.strictEqual(result.data.meta.totalItems, 3);
+			assert.strictEqual(
+				result.data.items.every(
+					(r) => r.product.toString() === targetProductId.toString(),
+				),
+				true,
+			);
+		});
+
+		test("should return only reviews for a user when 'getAll' is called with filters.userId", async () => {
+			// Arrange — one review per (user, product)
+			const userId = generateMockObjectId();
+			const targetReviews = generateMockInsertReviews({
+				count: 2,
+				options: { user: userId },
+			});
+
+			const otherReviews = generateMockSelectReviews({ count: 3 });
+			await Review.insertMany([...targetReviews, ...otherReviews]);
+
+			// Act
+			const result = await reviewRepository.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				filters: { userId: userId.toString() },
+			});
+
+			// Assert
+			assert.ok(result.success);
+			assert.strictEqual(result.data.meta.totalItems, 2);
+			assert.strictEqual(
+				result.data.items.every((r) => r.user.toString() === userId.toString()),
+				true,
+			);
+		});
+
+		test("should return reviews matching product and user when 'getAll' is called with both filter fields", async () => {
+			// Arrange
+			const userId = generateMockObjectId();
+			const productId = generateMockObjectId();
+
+			const targetReview = generateMockInsertReview({
+				product: productId,
+				user: userId,
+			});
+			const otherReviews = [
+				...generateMockInsertReviews({ count: 2 }),
+				generateMockInsertReview({ user: userId }),
+			];
+
+			await Review.insertMany([targetReview, ...otherReviews]);
+
+			// Act
+			const result = await reviewRepository.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				filters: {
+					productId: productId.toString(),
+					userId: userId.toString(),
+				},
+			});
+
+			// Assert
+			assert.ok(result.success);
+			assert.strictEqual(result.data.meta.totalItems, 1);
+			assert.strictEqual(
+				result.data.items.every(
+					(r) =>
+						r.product.toString() === productId.toString() &&
+						r.user.toString() === userId.toString(),
+				),
+				true,
+			);
+		});
+
+		test("should return reviews sorted by rating when 'getAll' is called with sort", async () => {
+			// Arrange
+			const productId = generateMockObjectId();
+
+			const reviews = generateMockInsertReviews({
+				count: 3,
+				options: { product: productId },
+			}).map((review, index) => ({ ...review, rating: index + 2 }));
+
+			const expectedSortedRatings = reviews
+				.sort((a, b) => b.rating - a.rating)
+				.map((review) => review.rating);
+
+			await Review.insertMany(reviews);
+
+			// Act
+			const result = await reviewRepository.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				sort: { rating: "desc" },
+				filters: { productId: productId.toString() },
+			});
+
+			// Assert
+			assert.ok(result.success);
+			assert.strictEqual(result.data.items.length, 3);
+
+			const resultRatings = result.data.items.map((r) => r.rating);
+			assert.deepStrictEqual(resultRatings, expectedSortedRatings);
+		});
+
+		test("should return only selected fields when 'getAll' is called with select", async () => {
+			// Arrange
+			const mockReviews = generateMockSelectReviews({ count: 2 });
+			await Review.insertMany(mockReviews);
+
+			// Act
+			const result = await reviewRepository.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				select: { comment: true, rating: true },
+			});
+
+			// Assert
+			assert.ok(result.success);
+			assert.strictEqual(result.data.items.length, 2);
+			for (const item of result.data.items) {
+				const keys = Object.keys(item).sort();
+				assert.deepStrictEqual(keys, ["_id", "comment", "rating"]);
+			}
+		});
 	});
 
 	describe("getAllByUserId", () => {
@@ -228,7 +386,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Act
 			const reviews = await reviewRepository.getAllByUserId({
 				pageNumber: 1,
-				userId,
+				pageSize: 10,
+				userId: userId.toString(),
 			});
 
 			// Assert
@@ -258,7 +417,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Act
 			const reviews = await reviewRepository.getAllByUserId({
 				pageNumber: 1,
-				userId,
+				pageSize: 10,
+				userId: userId.toString(),
 			});
 
 			// Assert
@@ -286,7 +446,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const reviews = await reviewRepository.getAllByUserId({
 				pageNumber: 1,
 				pageSize: 3,
-				userId,
+				userId: userId.toString(),
 			});
 
 			// Assert
@@ -310,20 +470,52 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			);
 		});
 
-		test("should return 'empty array' when 'getAllByUserId' is called with invalid ObjectId", async () => {
+		test("should narrow reviews when 'getAllByUserId' is called with filters.productId", async () => {
 			// Arrange
-			const invalidId = "invalid-id" as unknown as Types.ObjectId;
+			const userId = generateMockObjectId();
+			const reviews = generateMockInsertReviews({
+				count: 2,
+				options: { user: userId },
+			});
+			const productId = reviews[0].product;
+
+			await Review.insertMany(reviews);
 
 			// Act
 			const result = await reviewRepository.getAllByUserId({
 				pageNumber: 1,
+				pageSize: 10,
+				userId: userId.toString(),
+				filters: { productId: productId.toString() },
+			});
+
+			// Assert
+			assert.ok(result.success);
+			assert.strictEqual(result.data.meta.totalItems, 1);
+			assert.strictEqual(
+				result.data.items.every(
+					(r) =>
+						r.user.toString() === userId.toString() &&
+						r.product.toString() === productId.toString(),
+				),
+				true,
+			);
+		});
+
+		test("should return 'DatabaseValidationError' when 'getAllByUserId' is called with invalid ObjectId", async () => {
+			// Arrange
+			const invalidId = "invalid-id";
+
+			// Act
+			const result = await reviewRepository.getAllByUserId({
+				pageNumber: 1,
+				pageSize: 10,
 				userId: invalidId,
 			});
 
 			// Assert
-			assert.strictEqual(result.success, true);
-			assert.ok(Array.isArray(result.data.items));
-			assert.strictEqual(result.data.items.length, 0);
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 	});
 
@@ -341,7 +533,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Act
 			const reviews = await reviewRepository.getAllByProductId({
 				pageNumber: 1,
-				productId,
+				pageSize: 10,
+				productId: productId.toString(),
 			});
 
 			// Assert
@@ -371,7 +564,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Act
 			const reviews = await reviewRepository.getAllByProductId({
 				pageNumber: 1,
-				productId,
+				pageSize: 10,
+				productId: productId.toString(),
 			});
 
 			// Assert
@@ -399,7 +593,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			const reviews = await reviewRepository.getAllByProductId({
 				pageNumber: 1,
 				pageSize: 3,
-				productId,
+				productId: productId.toString(),
 			});
 
 			// Assert
@@ -423,20 +617,54 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			);
 		});
 
-		test("should return 'empty array' when 'getAllByProductId' is called with invalid ObjectId", async () => {
+		test("should narrow reviews when 'getAllByProductId' is called with filters.userId", async () => {
 			// Arrange
-			const invalidId = "invalid-id" as unknown as Types.ObjectId;
+			const targetReview = generateMockInsertReview();
+			const userId = targetReview.user;
+			const productId = targetReview.product;
+
+			const otherReviews = generateMockInsertReviews({
+				count: 3,
+				options: { product: productId },
+			});
+
+			await Review.insertMany([targetReview, ...otherReviews]);
+
+			// Act
+			const reviews = await reviewRepository.getAllByProductId({
+				pageNumber: 1,
+				pageSize: 10,
+				productId: productId.toString(),
+				filters: { userId: userId.toString() },
+			});
+
+			// Assert
+			assert.ok(reviews.success);
+			assert.strictEqual(reviews.data.meta.totalItems, 1);
+			assert.strictEqual(
+				reviews.data.items.every(
+					(r) =>
+						r.product.toString() === productId.toString() &&
+						r.user.toString() === userId.toString(),
+				),
+				true,
+			);
+		});
+
+		test("should return 'DatabaseValidationError' when 'getAllByProductId' is called with invalid ObjectId", async () => {
+			// Arrange
+			const invalidId = "invalid-id";
 
 			// Act
 			const result = await reviewRepository.getAllByProductId({
 				pageNumber: 1,
+				pageSize: 10,
 				productId: invalidId,
 			});
 
 			// Assert
-			assert.strictEqual(result.success, true);
-			assert.ok(Array.isArray(result.data.items));
-			assert.strictEqual(result.data.items.length, 0);
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 	});
 

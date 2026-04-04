@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import assert from "node:assert/strict";
 import { beforeEach, describe, mock, suite, test } from "node:test";
 
@@ -180,6 +180,80 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			);
 		});
 
+		test("Should call 'paginator.paginate' with filters converted to ObjectId query fields", async (t) => {
+			// Arrange
+			const productId = generateMockObjectId();
+			const userId = generateMockObjectId();
+			const mockPaginate = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({
+					items: mockReviews,
+					meta: mockPaginationMeta,
+				}),
+			);
+
+			// Act
+			await repo.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				filters: {
+					productId: productId.toString(),
+					userId: userId.toString(),
+				},
+			});
+
+			// Assert
+			assert.deepStrictEqual(mockPaginate.mock.calls[0].arguments[0]?.query, {
+				product: productId,
+				user: userId,
+			});
+		});
+
+		test("Should call 'paginator.paginate' with sort parameters", async (t) => {
+			// Arrange
+			const mockPaginate = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({
+					items: mockReviews,
+					meta: mockPaginationMeta,
+				}),
+			);
+
+			// Act
+			await repo.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				sort: { createdAt: "desc", rating: "asc" },
+			});
+
+			// Assert
+			assert.deepStrictEqual(mockPaginate.mock.calls[0].arguments[0]?.sort, {
+				createdAt: "desc",
+				rating: "asc",
+			});
+		});
+
+		test("Should call 'paginator.paginate' with pipeline when select is provided", async (t) => {
+			// Arrange
+			const mockPaginate = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({
+					items: mockReviews,
+					meta: mockPaginationMeta,
+				}),
+			);
+
+			// Act
+			await repo.getAll({
+				pageNumber: 1,
+				pageSize: 10,
+				select: { comment: true, rating: true },
+			});
+
+			// Assert
+			assert.deepStrictEqual(
+				mockPaginate.mock.calls[0].arguments[0]?.pipeline,
+				[{ $project: { comment: 1, rating: 1 } }],
+			);
+		});
+
 		test("Should return empty paginated result when 'paginator.paginate' returns empty items", async (t) => {
 			// Arrange
 			const emptyMeta = {
@@ -199,7 +273,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const reviews = await repo.getAll({ pageNumber: 1 });
+			const reviews = await repo.getAll({ pageNumber: 1, pageSize: 10 });
 
 			// Assert
 			assert.strictEqual(reviews.success, true);
@@ -217,7 +291,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.getAll({ pageNumber: 1 });
+			const result = await repo.getAll({ pageNumber: 1, pageSize: 10 });
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -235,7 +309,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.getAll({ pageNumber: 1 });
+			const result = await repo.getAll({ pageNumber: 1, pageSize: 10 });
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -251,7 +325,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.getAll({ pageNumber: 1 });
+			const result = await repo.getAll({ pageNumber: 1, pageSize: 10 });
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -267,7 +341,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.getAll({ pageNumber: 1 });
+			const result = await repo.getAll({ pageNumber: 1, pageSize: 10 });
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -283,7 +357,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.getAll({ pageNumber: 1 });
+			const result = await repo.getAll({ pageNumber: 1, pageSize: 10 });
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -434,7 +508,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const reviews = await repo.getAllByUserId({
 				pageNumber,
 				pageSize,
-				userId,
+				userId: userId.toString(),
 			});
 
 			// Assert
@@ -460,7 +534,34 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				pageSize,
 			);
 			assert.deepStrictEqual(paginateMock.mock.calls[0].arguments[0].query, {
-				user: userId,
+				user: new Types.ObjectId(userId.toString()),
+			});
+		});
+
+		test("Should merge filters.productId with scoped userId in paginate query", async (t) => {
+			// Arrange
+			const productId = generateMockObjectId();
+			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({
+					items: mockReviews,
+					meta: mockPaginationMeta,
+				}),
+			);
+
+			// Act
+			await repo.getAllByUserId({
+				pageNumber: 1,
+				pageSize: 10,
+				userId: userId.toString(),
+				filters: { productId: productId.toString() },
+			});
+
+			// Assert
+			const firstCall = paginateMock.mock.calls[0]?.arguments[0];
+			assert.ok(firstCall);
+			assert.deepStrictEqual(firstCall.query, {
+				product: new Types.ObjectId(productId.toString()),
+				user: new Types.ObjectId(userId.toString()),
 			});
 		});
 
@@ -483,7 +584,11 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const reviews = await repo.getAllByUserId({ pageNumber: 1, userId });
+			const reviews = await repo.getAllByUserId({
+				pageNumber: 1,
+				pageSize: 10,
+				userId: userId.toString(),
+			});
 
 			// Assert
 			assert.strictEqual(reviews.success, true);
@@ -501,7 +606,11 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.getAllByUserId({ pageNumber: 1, userId });
+			const result = await repo.getAllByUserId({
+				pageNumber: 1,
+				pageSize: 10,
+				userId: userId.toString(),
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -519,7 +628,11 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.getAllByUserId({ pageNumber: 1, userId });
+			const result = await repo.getAllByUserId({
+				pageNumber: 1,
+				pageSize: 10,
+				userId: userId.toString(),
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -535,7 +648,11 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.getAllByUserId({ pageNumber: 1, userId });
+			const result = await repo.getAllByUserId({
+				pageNumber: 1,
+				pageSize: 10,
+				userId: userId.toString(),
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -551,7 +668,11 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.getAllByUserId({ pageNumber: 1, userId });
+			const result = await repo.getAllByUserId({
+				pageNumber: 1,
+				pageSize: 10,
+				userId: userId.toString(),
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -567,7 +688,11 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.getAllByUserId({ pageNumber: 1, userId });
+			const result = await repo.getAllByUserId({
+				pageNumber: 1,
+				pageSize: 10,
+				userId: userId.toString(),
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -602,7 +727,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const reviews = await repo.getAllByProductId({
 				pageNumber,
 				pageSize,
-				productId,
+				productId: productId.toString(),
 			});
 
 			// Assert
@@ -627,7 +752,34 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				pageSize,
 			);
 			assert.deepStrictEqual(paginateMock.mock.calls[0].arguments[0].query, {
-				product: productId,
+				product: new Types.ObjectId(productId.toString()),
+			});
+		});
+
+		test("Should merge filters.userId with scoped productId in paginate query", async (t) => {
+			// Arrange
+			const userId = generateMockObjectId();
+			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
+				Promise.resolve({
+					items: mockReviews,
+					meta: mockPaginationMeta,
+				}),
+			);
+
+			// Act
+			await repo.getAllByProductId({
+				pageNumber: 1,
+				pageSize: 10,
+				productId: productId.toString(),
+				filters: { userId: userId.toString() },
+			});
+
+			// Assert
+			const mergeCall = paginateMock.mock.calls[0]?.arguments[0];
+			assert.ok(mergeCall);
+			assert.deepStrictEqual(mergeCall.query, {
+				product: new Types.ObjectId(productId.toString()),
+				user: new Types.ObjectId(userId.toString()),
 			});
 		});
 
@@ -652,7 +804,8 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Act
 			const reviews = await repo.getAllByProductId({
 				pageNumber: 1,
-				productId,
+				pageSize: 10,
+				productId: productId.toString(),
 			});
 
 			// Assert
@@ -671,7 +824,11 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.getAllByProductId({ pageNumber: 1, productId });
+			const result = await repo.getAllByProductId({
+				pageNumber: 1,
+				pageSize: 10,
+				productId: productId.toString(),
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -689,7 +846,11 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.getAllByProductId({ pageNumber: 1, productId });
+			const result = await repo.getAllByProductId({
+				pageNumber: 1,
+				pageSize: 10,
+				productId: productId.toString(),
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -705,7 +866,11 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.getAllByProductId({ pageNumber: 1, productId });
+			const result = await repo.getAllByProductId({
+				pageNumber: 1,
+				pageSize: 10,
+				productId: productId.toString(),
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -721,7 +886,11 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.getAllByProductId({ pageNumber: 1, productId });
+			const result = await repo.getAllByProductId({
+				pageNumber: 1,
+				pageSize: 10,
+				productId: productId.toString(),
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -737,7 +906,11 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.getAllByProductId({ pageNumber: 1, productId });
+			const result = await repo.getAllByProductId({
+				pageNumber: 1,
+				pageSize: 10,
+				productId: productId.toString(),
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);

@@ -1,19 +1,28 @@
-import type { Types } from "mongoose";
+import { Types } from "mongoose";
 
 import type { DatabaseBaseError } from "../errors/index.js";
 import type {
 	FailureResult,
+	GetAllReviewsByProductIdRepositoryParams,
+	GetAllReviewsByUserIdRepositoryParams,
+	GetAllReviewsRepositoryParams,
 	InsertReview,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
-	PaginationParamsQuery,
+	PaginationQuery,
 	Result,
+	ReviewFilter,
 	SelectReview,
 } from "../types/index.js";
+import type { PaginatorParams } from "../utils/index.js";
 
 import Review from "../models/review.model.js";
-import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
+import {
+	buildMongoSelectProjection,
+	handleDatabaseErrorResult,
+	Paginator,
+} from "../utils/index.js";
 
 export interface IReviewRepository {
 	count: () => Promise<ReviewResult<number>>;
@@ -35,17 +44,13 @@ export interface IReviewRepository {
 		userId: Types.ObjectId;
 	}) => Promise<ReviewResult<null | { _id: Types.ObjectId }>>;
 	getAll: (
-		args: PaginationParamsQuery<SelectReview>,
+		args: GetAllReviewsRepositoryParams,
 	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
 	getAllByProductId: (
-		data: PaginationParamsQuery<SelectReview> & {
-			productId: Types.ObjectId;
-		},
+		data: GetAllReviewsByProductIdRepositoryParams,
 	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
 	getAllByUserId: (
-		data: PaginationParamsQuery<SelectReview> & {
-			userId: Types.ObjectId;
-		},
+		data: GetAllReviewsByUserIdRepositoryParams,
 	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
 	getById: (data: {
 		reviewId: Types.ObjectId;
@@ -201,12 +206,7 @@ export class ReviewRepository implements IReviewRepository {
 		args: MethodParams<IReviewRepository, "getAll">,
 	): MethodReturn<IReviewRepository, "getAll"> {
 		try {
-			const result = await this._paginator.paginate<SelectReview>({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				query: args.query,
-				sort: args.sort,
-			});
+			const result = await this._paginateReviews(args);
 
 			return {
 				data: result,
@@ -221,11 +221,8 @@ export class ReviewRepository implements IReviewRepository {
 		args: MethodParams<IReviewRepository, "getAllByProductId">,
 	): MethodReturn<IReviewRepository, "getAllByProductId"> {
 		try {
-			const result = await this._paginator.paginate<SelectReview>({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				query: { product: args.productId },
-				sort: args.sort,
+			const result = await this._paginateReviews(args, {
+				product: new Types.ObjectId(args.productId),
 			});
 
 			return {
@@ -241,11 +238,8 @@ export class ReviewRepository implements IReviewRepository {
 		args: MethodParams<IReviewRepository, "getAllByUserId">,
 	): MethodReturn<IReviewRepository, "getAllByUserId"> {
 		try {
-			const result = await this._paginator.paginate<SelectReview>({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				query: { user: args.userId },
-				sort: args.sort,
+			const result = await this._paginateReviews(args, {
+				user: new Types.ObjectId(args.userId),
 			});
 
 			return {
@@ -298,6 +292,56 @@ export class ReviewRepository implements IReviewRepository {
 
 	private _errorHandler(error: unknown): FailureResult<DatabaseBaseError> {
 		return handleDatabaseErrorResult(error);
+	}
+
+	private _paginateReviews(
+		args: GetAllReviewsRepositoryParams,
+		query?: Partial<PaginationQuery<SelectReview>>,
+	): Promise<PaginatedResponse<SelectReview>> {
+		const paginateOptions: PaginatorParams<SelectReview> = {
+			pageNumber: args.pageNumber,
+			pageSize: args.pageSize,
+		};
+
+		if (args.filters) {
+			const filters = this._prepareFilters(args.filters);
+			paginateOptions.query = { ...filters };
+		}
+
+		if (query) {
+			paginateOptions.query = { ...paginateOptions.query, ...query };
+		}
+
+		if (args.select) {
+			const select = buildMongoSelectProjection(args.select);
+			paginateOptions.pipeline = [{ $project: select }];
+		}
+
+		if (args.sort) {
+			paginateOptions.sort = args.sort;
+		}
+
+		return this._paginator.paginate<SelectReview>(paginateOptions);
+	}
+
+	private _prepareFilters(
+		filters?: ReviewFilter,
+	): Partial<PaginationQuery<SelectReview>> {
+		if (!filters) {
+			return {};
+		}
+
+		const newFilter: Partial<PaginationQuery<SelectReview>> = {};
+
+		if (filters.productId) {
+			newFilter.product = new Types.ObjectId(filters.productId);
+		}
+
+		if (filters.userId) {
+			newFilter.user = new Types.ObjectId(filters.userId);
+		}
+
+		return newFilter;
 	}
 }
 
