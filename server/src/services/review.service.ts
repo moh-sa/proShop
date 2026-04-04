@@ -2,25 +2,27 @@ import type { Types } from "mongoose";
 
 import type { IReviewRepository } from "../repositories/index.js";
 import type {
+	GetAllReviewsByProductIdServiceParams,
+	GetAllReviewsByUserIdServiceParams,
+	GetAllReviewsServiceParams,
 	InsertReview,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
-	PaginationParamsString,
 	Result,
-	ReviewPaginationParamsByProductId,
-	ReviewPaginationParamsByUserId,
 	SelectReview,
 } from "../types/index.js";
 
 import { NotFoundError, ValidationError } from "../errors/index.js";
 import { reviewRepository } from "../repositories/index.js";
 import { insertReviewSchema } from "../schemas/index.js";
-import { getLoggerFromContext } from "../utils/index.js";
 import {
-	objectIdValidator,
-	paginationParamsValidator,
-} from "../validators/index.js";
+	reviewByProductIdPaginationParamsSchema,
+	reviewByUserIdPaginationParamsSchema,
+	reviewPaginationParamsSchema,
+} from "../schemas/review/review-pagination.schema.js";
+import { getLoggerFromContext } from "../utils/index.js";
+import { objectIdValidator } from "../validators/index.js";
 
 export interface IReviewService {
 	count: () => Promise<ReviewResult<number>>;
@@ -38,13 +40,13 @@ export interface IReviewService {
 		userId: string;
 	}) => Promise<ReviewResult<{ _id: Types.ObjectId }>>;
 	getAll: (
-		args: PaginationParamsString,
+		args: GetAllReviewsServiceParams,
 	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
 	getAllByProductId: (
-		args: ReviewPaginationParamsByProductId,
+		args: GetAllReviewsByProductIdServiceParams,
 	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
 	getAllByUserId: (
-		args: ReviewPaginationParamsByUserId,
+		args: GetAllReviewsByUserIdServiceParams,
 	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
 	getById: (data: { reviewId: string }) => Promise<ReviewResult<SelectReview>>;
 	update: (data: {
@@ -376,34 +378,25 @@ export class ReviewService implements IReviewService {
 		const logger = this._getLogger({ method: "getAll" });
 		logger.debug({ args }, "Getting all reviews");
 
-		const paginationValidationResult = paginationParamsValidator.safeParse({
-			pageNumber: args.pageNumber,
-			pageSize: args.pageSize,
-			sort: args.sort,
-		});
-		if (!paginationValidationResult.success) {
-			logger.warn(
-				{ error: paginationValidationResult.error },
-				"Invalid pagination data",
-			);
+		// validate arguments
+		const argsValidationResult = reviewPaginationParamsSchema.safeParse(args);
+		if (!argsValidationResult.success) {
+			logger.warn(argsValidationResult.error, "Invalid arguments data");
 			return {
-				error: new ValidationError("Invalid pagination data", {
-					cause: paginationValidationResult.error,
+				error: new ValidationError("Invalid arguments data", {
+					cause: argsValidationResult.error,
 				}),
 				success: false,
 			};
 		}
 
 		logger.debug(
-			{ validatedPaginationData: paginationValidationResult.data },
-			"Validated pagination data",
+			{ validatedArgs: argsValidationResult.data },
+			"Validated arguments data",
 		);
 
-		const result = await this._repository.getAll({
-			pageNumber: paginationValidationResult.data.pageNumber,
-			pageSize: paginationValidationResult.data.pageSize,
-			sort: paginationValidationResult.data.sort,
-		});
+		// repository call
+		const result = await this._repository.getAll(argsValidationResult.data);
 		if (!result.success) {
 			logger.error({ error: result.error }, "Failed to get all reviews");
 			return result;
@@ -426,47 +419,29 @@ export class ReviewService implements IReviewService {
 		const logger = this._getLogger({ method: "getAllByProductId" });
 		logger.debug({ args }, "Getting all reviews by product ID");
 
-		const paginationValidationResult = paginationParamsValidator.safeParse({
-			pageNumber: args.pageNumber,
-			pageSize: args.pageSize,
-			sort: args.sort,
-		});
-		if (!paginationValidationResult.success) {
-			logger.warn(
-				{ error: paginationValidationResult.error },
-				"Invalid pagination data",
-			);
+		// validate arguments
+		const argsValidationResult =
+			reviewByProductIdPaginationParamsSchema.safeParse(args);
+		if (!argsValidationResult.success) {
+			logger.warn(argsValidationResult.error, "Invalid arguments data");
 			return {
-				error: new ValidationError("Invalid pagination data", {
-					cause: paginationValidationResult.error,
+				error: new ValidationError("Invalid arguments data", {
+					cause: argsValidationResult.error,
 				}),
 				success: false,
 			};
 		}
 
 		logger.debug(
-			{ validatedPaginationData: paginationValidationResult.data },
-			"Validated pagination data",
+			{ validatedArgs: argsValidationResult.data },
+			"Validated arguments data",
 		);
 
-		const productIdValidationResult = this._validateObjectId(
-			"productId",
-			args.productId,
-		);
-		if (!productIdValidationResult.success) {
-			logger.warn(
-				{ error: productIdValidationResult.error, productId: args.productId },
-				"product ID validation failed",
-			);
-			return productIdValidationResult;
-		}
+		// repository call
 
-		const result = await this._repository.getAllByProductId({
-			pageNumber: paginationValidationResult.data.pageNumber,
-			pageSize: paginationValidationResult.data.pageSize,
-			productId: productIdValidationResult.data,
-			sort: paginationValidationResult.data.sort,
-		});
+		const result = await this._repository.getAllByProductId(
+			argsValidationResult.data,
+		);
 		if (!result.success) {
 			logger.error(
 				{ error: result.error },
@@ -492,46 +467,28 @@ export class ReviewService implements IReviewService {
 		const logger = this._getLogger({ method: "getAllByUserId" });
 		logger.debug({ args }, "Getting all reviews by user ID");
 
-		const paginationValidationResult = paginationParamsValidator.safeParse({
-			pageNumber: args.pageNumber,
-			pageSize: args.pageSize,
-			sort: args.sort,
-		});
-		if (!paginationValidationResult.success) {
-			logger.warn(
-				{ error: paginationValidationResult.error },
-				"Invalid pagination data",
-			);
+		// validate arguments
+		const argsValidationResult =
+			reviewByUserIdPaginationParamsSchema.safeParse(args);
+		if (!argsValidationResult.success) {
+			logger.warn(argsValidationResult.error, "Invalid arguments data");
 			return {
-				error: new ValidationError("Invalid pagination data", {
-					cause: paginationValidationResult.error,
+				error: new ValidationError("Invalid arguments data", {
+					cause: argsValidationResult.error,
 				}),
 				success: false,
 			};
 		}
 
 		logger.debug(
-			{ validatedPaginationData: paginationValidationResult.data },
-			"Validated pagination data",
+			{ validatedArgs: argsValidationResult.data },
+			"Validated arguments data",
 		);
 
-		const userIdValidationResult = this._validateObjectId(
-			"userId",
-			args.userId,
+		// repository call
+		const result = await this._repository.getAllByUserId(
+			argsValidationResult.data,
 		);
-		if (!userIdValidationResult.success) {
-			logger.warn(
-				{ error: userIdValidationResult.error, userId: args.userId },
-				"user ID validation failed",
-			);
-			return userIdValidationResult;
-		}
-		const result = await this._repository.getAllByUserId({
-			pageNumber: paginationValidationResult.data.pageNumber,
-			pageSize: paginationValidationResult.data.pageSize,
-			sort: paginationValidationResult.data.sort,
-			userId: userIdValidationResult.data,
-		});
 		if (!result.success) {
 			logger.error(
 				{ error: result.error },

@@ -141,7 +141,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			totalPages: 1,
 		};
 
-		test("Should return 'paginated reviews' when 'repo.getAll' is called once with pagination params", async () => {
+		test("Should return 'paginated reviews' when 'repo.getAll' is called once with valid arguments", async () => {
 			// Arrange
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({
@@ -151,7 +151,10 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const result = await service.getAll({ pageNumber: "1" });
+			const result = await service.getAll({
+				pageNumber: "1",
+				pageSize: "10",
+			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -187,7 +190,10 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const result = await service.getAll({ pageNumber: "1" });
+			const result = await service.getAll({
+				pageNumber: "1",
+				pageSize: "10",
+			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -198,9 +204,49 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(result.data.meta, emptyMeta);
 		});
 
-		test("Should return 'ValidationError' when pagination params are invalid", async () => {
+		test("Should return 'ValidationError' when service arguments are invalid", async () => {
 			// Act
-			const result = await service.getAll({ pageNumber: "invalid" });
+			const result = await service.getAll({
+				pageNumber: "invalid",
+				pageSize: "10",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("Should pass parsed 'sort' to 'repo.getAll' when 'sort' is valid", async () => {
+			// Arrange
+			mockRepo.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { items: mockReviews, meta: mockPaginationMeta },
+					success: true,
+				}),
+			);
+
+			// Act
+			const result = await service.getAll({
+				pageNumber: "1",
+				pageSize: "10",
+				sort: "rating:desc",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(mockRepo.getAll.mock.callCount(), 1);
+			assert.deepStrictEqual(mockRepo.getAll.mock.calls[0].arguments[0].sort, {
+				rating: "desc",
+			});
+		});
+
+		test("Should return 'ValidationError' when 'sort' is invalid", async () => {
+			// Act
+			const result = await service.getAll({
+				pageNumber: "1",
+				pageSize: "10",
+				sort: "not-a-sort",
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -232,6 +278,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.getAllByUserId({
 				pageNumber: "1",
+				pageSize: "10",
 				userId,
 			});
 
@@ -275,6 +322,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.getAllByUserId({
 				pageNumber: "1",
+				pageSize: "10",
 				userId,
 			});
 
@@ -294,6 +342,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.getAllByUserId({
 				pageNumber: "1",
+				pageSize: "10",
 				userId,
 			});
 
@@ -302,10 +351,25 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should return 'ValidationError' if pagination params are invalid", async () => {
+		test("Should return 'ValidationError' if service arguments are invalid", async () => {
 			// Act
 			const result = await service.getAllByUserId({
 				pageNumber: "invalid",
+				pageSize: "10",
+				userId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("Should return 'ValidationError' when 'sort' is invalid", async () => {
+			// Act
+			const result = await service.getAllByUserId({
+				pageNumber: "1",
+				pageSize: "10",
+				sort: "not-a-sort",
 				userId,
 			});
 
@@ -339,6 +403,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.getAllByProductId({
 				pageNumber: "1",
+				pageSize: "10",
 				productId,
 			});
 
@@ -382,6 +447,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.getAllByProductId({
 				pageNumber: "1",
+				pageSize: "10",
 				productId,
 			});
 
@@ -401,6 +467,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.getAllByProductId({
 				pageNumber: "1",
+				pageSize: "10",
 				productId,
 			});
 
@@ -409,10 +476,39 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should return 'ValidationError' if pagination params are invalid", async () => {
+		test("Should return 'ValidationError' if service arguments are invalid", async () => {
 			// Act
 			const result = await service.getAllByProductId({
 				pageNumber: "invalid",
+				pageSize: "10",
+				productId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("Should return 'ValidationError' when 'sort' is invalid", async () => {
+			// Act
+			const result = await service.getAllByProductId({
+				pageNumber: "1",
+				pageSize: "10",
+				productId,
+				sort: "not-a-sort",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("Should return 'ValidationError' when 'filters.userId' is invalid ObjectId", async () => {
+			// Act
+			const result = await service.getAllByProductId({
+				filters: { userId: "not-an-objectid" },
+				pageNumber: "1",
+				pageSize: "10",
 				productId,
 			});
 

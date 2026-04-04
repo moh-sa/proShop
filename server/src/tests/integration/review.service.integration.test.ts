@@ -247,7 +247,10 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			await Review.insertMany(mockReviews);
 
 			// Act
-			const result = await reviewService.getAll({ pageNumber: "1" });
+			const result = await reviewService.getAll({
+				pageNumber: "1",
+				pageSize: "10",
+			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -281,7 +284,10 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 		test("Should return empty paginated result when 'repo.getAll' is called with no reviews in database", async () => {
 			// Act
-			const result = await reviewService.getAll({ pageNumber: "1" });
+			const result = await reviewService.getAll({
+				pageNumber: "1",
+				pageSize: "10",
+			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -344,9 +350,58 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.data.meta.hasPreviousPage, true);
 		});
 
-		test("Should return 'ValidationError' when pagination params are invalid", async () => {
+		test("Should return 'ValidationError' when service arguments are invalid", async () => {
 			// Act
-			const result = await reviewService.getAll({ pageNumber: "invalid" });
+			const result = await reviewService.getAll({
+				pageNumber: "invalid",
+				pageSize: "10",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("Should return reviews sorted by rating when 'getAll' is called with valid 'sort'", async () => {
+			// Arrange
+			const productId = generateMockObjectId();
+
+			const reviews = generateMockInsertReviews({
+				count: 3,
+				options: { product: productId },
+			}).map((review, index) => ({ ...review, rating: index + 2 }));
+
+			const expectedSortedRatings = reviews
+				.slice()
+				.sort((a, b) => b.rating - a.rating)
+				.map((review) => review.rating);
+
+			await Review.insertMany(reviews);
+
+			// Act
+			const result = await reviewService.getAll({
+				filters: { productId: productId.toString() },
+				pageNumber: "1",
+				pageSize: "10",
+				sort: "rating:desc",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.ok(result.data);
+			assert.strictEqual(result.data.items.length, 3);
+
+			const resultRatings = result.data.items.map((r) => r.rating);
+			assert.deepStrictEqual(resultRatings, expectedSortedRatings);
+		});
+
+		test("Should return 'ValidationError' when 'sort' is invalid", async () => {
+			// Act
+			const result = await reviewService.getAll({
+				pageNumber: "1",
+				pageSize: "10",
+				sort: "invalid",
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -370,6 +425,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Act
 			const result = await reviewService.getAllByUserId({
 				pageNumber: "1",
+				pageSize: "10",
 				userId: userId.toString(),
 			});
 
@@ -398,6 +454,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Act
 			const result = await reviewService.getAllByUserId({
 				pageNumber: "1",
+				pageSize: "10",
 				userId: userId.toString(),
 			});
 
@@ -459,6 +516,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Act
 			const result = await reviewService.getAllByUserId({
 				pageNumber: "1",
+				pageSize: "10",
 				userId,
 			});
 
@@ -467,17 +525,32 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should return 'ValidationError' when pagination params are invalid", async () => {
+		test("Should return 'ValidationError' when service arguments are invalid", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
 
 			// Act
 			const result = await reviewService.getAllByUserId({
 				pageNumber: "invalid",
+				pageSize: "10",
 				userId: userId.toString(),
 			});
 
 			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("Should return 'ValidationError' when 'sort' is invalid", async () => {
+			const userId = generateMockObjectId();
+
+			const result = await reviewService.getAllByUserId({
+				pageNumber: "1",
+				pageSize: "10",
+				sort: "bad-sort",
+				userId: userId.toString(),
+			});
+
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof ValidationError);
 		});
@@ -497,6 +570,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Act
 			const result = await reviewService.getAllByProductId({
 				pageNumber: "1",
+				pageSize: "10",
 				productId: productId.toString(),
 			});
 
@@ -527,6 +601,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Act
 			const result = await reviewService.getAllByProductId({
 				pageNumber: "1",
+				pageSize: "10",
 				productId: productId.toString(),
 			});
 
@@ -571,8 +646,10 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.data.meta.hasNextPage, true);
 			assert.strictEqual(result.data.meta.hasPreviousPage, false);
 
-			result.data.items.every(
-				(review) => review.product.toString() === productId.toString(),
+			assert.strictEqual(
+				result.data.items.every(
+					(review) => review.product.toString() === productId.toString(),
+				),
 				true,
 			);
 		});
@@ -584,6 +661,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Act
 			const result = await reviewService.getAllByProductId({
 				pageNumber: "1",
+				pageSize: "10",
 				productId,
 			});
 
@@ -592,14 +670,32 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should return 'ValidationError' when pagination params are invalid", async () => {
+		test("Should return 'ValidationError' when service arguments are invalid", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
 
 			// Act
 			const result = await reviewService.getAllByProductId({
 				pageNumber: "invalid",
+				pageSize: "10",
 				productId: productId.toString(),
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+		});
+
+		test("Should return 'ValidationError' when 'sort' is invalid", async () => {
+			// Arrange
+			const productId = generateMockObjectId();
+
+			// Act
+			const result = await reviewService.getAllByProductId({
+				pageNumber: "1",
+				pageSize: "10",
+				productId: productId.toString(),
+				sort: "bad-sort",
 			});
 
 			// Assert

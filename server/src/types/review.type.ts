@@ -13,7 +13,12 @@ import type {
 	reviewPaginationParamsSchema,
 	reviewPaginationSortSchema,
 } from "../schemas/review/review-pagination.schema.js";
-import type { PaginationFilter, PaginationSelect } from "./pagination.type.js";
+import type {
+	PaginationFilter,
+	PaginationParamsStringified,
+	PaginationSelect,
+} from "./pagination.type.js";
+import type { Stringify } from "./stringify.type.js";
 
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type ReviewSchema = SelectReview;
@@ -53,4 +58,23 @@ export type GetAllReviewsRepositoryParams = z.infer<
 	typeof reviewPaginationParamsSchema
 > & {
 	select?: ReviewSelect;
+};
+
+// Service Params
+export type GetAllReviewsByProductIdServiceParams =
+	PaginationParamsStringified & {
+		filters?: Stringify<ReviewByProductIdFilter>;
+		productId: string;
+		sort?: string;
+	};
+
+export type GetAllReviewsByUserIdServiceParams = PaginationParamsStringified & {
+	filters?: Stringify<ReviewByUserIdFilter>;
+	sort?: string;
+	userId: string;
+};
+
+export type GetAllReviewsServiceParams = PaginationParamsStringified & {
+	filters?: Stringify<ReviewFilter>;
+	sort?: string;
 };
