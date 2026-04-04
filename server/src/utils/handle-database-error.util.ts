@@ -27,7 +27,8 @@ export function handleDatabaseErrorResult(
 
 	if (
 		error instanceof mongoose.Error.ValidationError ||
-		error instanceof mongoose.Error.CastError
+		error instanceof mongoose.Error.CastError ||
+		error instanceof mongoose.mongo.BSON.BSONError
 	) {
 		return {
 			error: new DatabaseValidationError(error.message, { cause: error }),
