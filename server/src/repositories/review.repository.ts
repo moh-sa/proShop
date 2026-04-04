@@ -15,14 +15,9 @@ import type {
 	ReviewFilter,
 	SelectReview,
 } from "../types/index.js";
-import type { PaginatorParams } from "../utils/index.js";
 
 import Review from "../models/review.model.js";
-import {
-	buildMongoSelectProjection,
-	handleDatabaseErrorResult,
-	Paginator,
-} from "../utils/index.js";
+import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IReviewRepository {
 	count: () => Promise<ReviewResult<number>>;
@@ -206,7 +201,13 @@ export class ReviewRepository implements IReviewRepository {
 		args: MethodParams<IReviewRepository, "getAll">,
 	): MethodReturn<IReviewRepository, "getAll"> {
 		try {
-			const result = await this._paginateReviews(args);
+			const result = await this._paginator.paginate<SelectReview>({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: args.filters && this._prepareFilters(args.filters),
+				select: args.select,
+				sort: args.sort,
+			});
 
 			return {
 				data: result,
@@ -221,8 +222,15 @@ export class ReviewRepository implements IReviewRepository {
 		args: MethodParams<IReviewRepository, "getAllByProductId">,
 	): MethodReturn<IReviewRepository, "getAllByProductId"> {
 		try {
-			const result = await this._paginateReviews(args, {
-				product: new Types.ObjectId(args.productId),
+			const result = await this._paginator.paginate<SelectReview>({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: {
+					...(args.filters && this._prepareFilters(args.filters)),
+					product: new Types.ObjectId(args.productId),
+				},
+				select: args.select,
+				sort: args.sort,
 			});
 
 			return {
@@ -238,8 +246,15 @@ export class ReviewRepository implements IReviewRepository {
 		args: MethodParams<IReviewRepository, "getAllByUserId">,
 	): MethodReturn<IReviewRepository, "getAllByUserId"> {
 		try {
-			const result = await this._paginateReviews(args, {
-				user: new Types.ObjectId(args.userId),
+			const result = await this._paginator.paginate<SelectReview>({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: {
+					...(args.filters && this._prepareFilters(args.filters)),
+					user: new Types.ObjectId(args.userId),
+				},
+				select: args.select,
+				sort: args.sort,
 			});
 
 			return {
@@ -292,36 +307,6 @@ export class ReviewRepository implements IReviewRepository {
 
 	private _errorHandler(error: unknown): FailureResult<DatabaseBaseError> {
 		return handleDatabaseErrorResult(error);
-	}
-
-	private _paginateReviews(
-		args: GetAllReviewsRepositoryParams,
-		query?: Partial<PaginationQuery<SelectReview>>,
-	): Promise<PaginatedResponse<SelectReview>> {
-		const paginateOptions: PaginatorParams<SelectReview> = {
-			pageNumber: args.pageNumber,
-			pageSize: args.pageSize,
-		};
-
-		if (args.filters) {
-			const filters = this._prepareFilters(args.filters);
-			paginateOptions.query = { ...filters };
-		}
-
-		if (query) {
-			paginateOptions.query = { ...paginateOptions.query, ...query };
-		}
-
-		if (args.select) {
-			const select = buildMongoSelectProjection(args.select);
-			paginateOptions.pipeline = [{ $project: select }];
-		}
-
-		if (args.sort) {
-			paginateOptions.sort = args.sort;
-		}
-
-		return this._paginator.paginate<SelectReview>(paginateOptions);
 	}
 
 	private _prepareFilters(

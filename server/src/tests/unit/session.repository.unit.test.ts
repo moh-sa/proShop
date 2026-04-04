@@ -382,11 +382,11 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Assert
 			const callArgs = paginateMock.mock.calls[0]?.arguments[0];
 			assert.deepStrictEqual(callArgs?.query, undefined);
-			assert.strictEqual(callArgs?.pipeline, undefined);
+			assert.strictEqual(callArgs?.select, undefined);
 			assert.strictEqual(callArgs?.sort, undefined);
 		});
 
-		test("Should pass select to paginator as $project pipeline stage", async (t) => {
+		test("Should pass select to paginator", async (t) => {
 			// Arrange
 			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
 				Promise.resolve({
@@ -406,9 +406,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 
 			// Assert
 			const callArgs = paginateMock.mock.calls[0]?.arguments[0];
-			assert.deepStrictEqual(callArgs?.pipeline, [
-				{ $project: { id: 1, tokenId: 1 } },
-			]);
+			assert.deepStrictEqual(callArgs?.select, { id: true, tokenId: true });
 		});
 
 		test("Should pass sort through to paginator", async (t) => {
@@ -434,7 +432,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(callArgs?.sort, args.sort);
 		});
 
-		test("Should pass filters, select pipeline, and sort together in one paginate call", async (t) => {
+		test("Should pass filters, select, and sort together in one paginate call", async (t) => {
 			// Arrange
 			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
 				Promise.resolve({
@@ -457,9 +455,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Assert
 			const callArgs = paginateMock.mock.calls[0]?.arguments[0];
 			assert.deepStrictEqual(callArgs?.query, args.filters);
-			assert.deepStrictEqual(callArgs?.pipeline, [
-				{ $project: { id: 1, tokenId: 1 } },
-			]);
+			assert.deepStrictEqual(callArgs?.select, { id: true, tokenId: true });
 			assert.deepStrictEqual(callArgs?.sort, args.sort);
 		});
 	});

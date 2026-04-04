@@ -1,6 +1,5 @@
 export * from "./async-context.util.js";
 export * from "./async-handler.util.js";
-export * from "./build-mongo-select-projection.util.js";
 export * from "./currency-unit-conversion.util.js";
 export * from "./error-response.util.js";
 export * from "./format-zod-errors.util.js";

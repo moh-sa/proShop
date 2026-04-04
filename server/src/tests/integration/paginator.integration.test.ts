@@ -3,6 +3,7 @@ import { after, before, beforeEach, describe, it, suite } from "node:test";
 
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "../../constants/index.js";
 import Product from "../../models/product.model.js";
+import type { PaginationSelect } from "../../types/index.js";
 import { SelectProduct } from "../../types/product.type.js";
 import { Paginator } from "../../utils/index.js";
 import { generateMockSelectProducts } from "../mocks/index.js";
@@ -286,6 +287,95 @@ suite("Paginator 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(
 				result.items.every((i) => Object.keys(i).length === 1),
+				true,
+			);
+		});
+	});
+
+	describe("select", () => {
+		it("should project only selected top-level fields", async () => {
+			// Arrange
+			const mockData = generateMockSelectProducts({ count: 10 });
+			await Product.insertMany(mockData);
+
+			// Act
+			const result = await paginator.paginate<SelectProduct>({
+				pageNumber: 1,
+				pageSize: 10,
+				select: { name: true, price: true },
+				sort: { price: "asc" },
+			});
+
+			// Assert
+			assert.strictEqual(result.items.length, 10);
+			assert.strictEqual(
+				result.items.every(
+					(i) =>
+						!("category" in i) &&
+						!("brand" in i) &&
+						"name" in i &&
+						"price" in i,
+				),
+				true,
+			);
+		});
+
+		it("should combine select with query filters", async () => {
+			// Arrange
+			const mockData = generateMockSelectProducts({ count: 10 });
+			await Product.insertMany(mockData);
+
+			// Act
+			const result = await paginator.paginate<SelectProduct>({
+				pageNumber: 1,
+				pageSize: 10,
+				query: { price: { $gte: 50 } },
+				select: { name: true, price: true },
+				sort: { price: "asc" },
+			});
+
+			// Assert
+			assert.strictEqual(
+				result.items.every(
+					(i) =>
+						i.price >= 50 &&
+						!("category" in i) &&
+						!("brand" in i) &&
+						"name" in i &&
+						"price" in i,
+				),
+				true,
+			);
+		});
+
+		it("should run custom pipeline before select projection", async () => {
+			// Arrange
+			const mockData = generateMockSelectProducts({ count: 5 });
+			await Product.insertMany(mockData);
+
+			// Act
+			const result = await paginator.paginate<
+				SelectProduct & { label: string }
+			>({
+				pageNumber: 1,
+				pageSize: 10,
+				pipeline: [{ $addFields: { label: { $literal: "x" } } }],
+				select: { name: true, label: true } as PaginationSelect<
+					SelectProduct & { label: unknown }
+				>,
+				sort: { price: "asc" },
+			});
+
+			// Assert
+			assert.strictEqual(result.items.length, 5);
+			assert.strictEqual(
+				result.items.every(
+					(i) =>
+						i.label === "x" &&
+						!("category" in i) &&
+						!("brand" in i) &&
+						"name" in i,
+				),
 				true,
 			);
 		});

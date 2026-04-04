@@ -13,14 +13,9 @@ import type {
 	SelectUser,
 	UserFilter,
 } from "../types/index.js";
-import type { PaginatorParams } from "../utils/index.js";
 
 import User from "../models/user.model.js";
-import {
-	buildMongoSelectProjection,
-	handleDatabaseErrorResult,
-	Paginator,
-} from "../utils/index.js";
+import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IUserRepository {
 	create(data: InsertUser): Promise<UserResult<SelectUser>>;
@@ -109,7 +104,13 @@ export class UserRepository implements IUserRepository {
 		args: MethodParams<IUserRepository, "getAll">,
 	): MethodReturn<IUserRepository, "getAll"> {
 		try {
-			const result = await this._paginateUsers(args);
+			const result = await this._paginator.paginate<SelectUser>({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: args.filters && this._prepareFilters(args.filters),
+				select: args.select,
+				sort: args.sort,
+			});
 
 			return {
 				data: result,
@@ -179,36 +180,6 @@ export class UserRepository implements IUserRepository {
 
 	private _errorHandler(error: unknown): FailureResult<DatabaseBaseError> {
 		return handleDatabaseErrorResult(error);
-	}
-
-	private async _paginateUsers(
-		args: GetAllUsersRepositoryParams,
-		query?: Partial<PaginationQuery<SelectUser>>,
-	): Promise<PaginatedResponse<SelectUser>> {
-		const paginateOptions: PaginatorParams<SelectUser> = {
-			pageNumber: args.pageNumber,
-			pageSize: args.pageSize,
-		};
-
-		if (args.filters) {
-			const filters = this._prepareFilters(args.filters);
-			paginateOptions.query = { ...filters };
-		}
-
-		if (query) {
-			paginateOptions.query = { ...paginateOptions.query, ...query };
-		}
-
-		if (args.select) {
-			const select = buildMongoSelectProjection(args.select);
-			paginateOptions.pipeline = [{ $project: select }];
-		}
-
-		if (args.sort) {
-			paginateOptions.sort = args.sort;
-		}
-
-		return this._paginator.paginate<SelectUser>(paginateOptions);
 	}
 
 	private _prepareFilters(

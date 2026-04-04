@@ -16,14 +16,9 @@ import type {
 	Result,
 	SelectOrder,
 } from "../types/index.js";
-import type { PaginatorParams } from "../utils/index.js";
 
 import Order from "../models/order.model.js";
-import {
-	buildMongoSelectProjection,
-	handleDatabaseErrorResult,
-	Paginator,
-} from "../utils/index.js";
+import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IOrderRepository {
 	create(data: InsertOrder): Promise<OrderResult<SelectOrder>>;
@@ -75,7 +70,13 @@ export class OrderRepository implements IOrderRepository {
 		args: MethodParams<IOrderRepository, "getAll">,
 	): MethodReturn<IOrderRepository, "getAll"> {
 		try {
-			const result = await this._paginateOrders(args);
+			const result = await this._paginator.paginate<AllOrdersResponse>({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: args.filters && this._prepareFilter(args.filters),
+				select: args.select,
+				sort: args.sort,
+			});
 
 			return {
 				data: result,
@@ -183,36 +184,6 @@ export class OrderRepository implements IOrderRepository {
 
 	private _errorHandler(error: unknown): FailureResult<DatabaseBaseError> {
 		return handleDatabaseErrorResult(error);
-	}
-
-	private async _paginateOrders(
-		args: GetAllOrdersRepositoryParams,
-		query?: Partial<PaginationQuery<SelectOrder>>,
-	): Promise<PaginatedResponse<SelectOrder>> {
-		const paginateOptions: PaginatorParams<SelectOrder> = {
-			pageNumber: args.pageNumber,
-			pageSize: args.pageSize,
-		};
-
-		if (args.filters) {
-			const filters = this._prepareFilter(args.filters);
-			paginateOptions.query = { ...filters };
-		}
-
-		if (query) {
-			paginateOptions.query = { ...paginateOptions.query, ...query };
-		}
-
-		if (args.select) {
-			const select = buildMongoSelectProjection(args.select);
-			paginateOptions.pipeline = [{ $project: select }];
-		}
-
-		if (args.sort) {
-			paginateOptions.sort = args.sort;
-		}
-
-		return this._paginator.paginate<SelectOrder>(paginateOptions);
 	}
 
 	private _prepareFilter(

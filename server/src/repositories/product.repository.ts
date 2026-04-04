@@ -15,15 +15,10 @@ import type {
 	SelectProduct,
 	TopRatedProduct,
 } from "../types/index.js";
-import type { PaginatorParams } from "../utils/index.js";
 
 import Product from "../models/product.model.js";
 import { CacheService } from "../services/cache.service.js";
-import {
-	buildMongoSelectProjection,
-	handleDatabaseErrorResult,
-	Paginator,
-} from "../utils/index.js";
+import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IProductRepository {
 	count(query: Record<string, unknown>): Promise<ProductResult<number>>;
@@ -122,7 +117,13 @@ export class ProductRepository implements IProductRepository {
 		args: MethodParams<IProductRepository, "getAll">,
 	): MethodReturn<IProductRepository, "getAll"> {
 		try {
-			const result = await this._paginateProducts(args);
+			const result = await this._paginator.paginate<AllProducts>({
+				pageNumber: args.pageNumber,
+				pageSize: args.pageSize,
+				query: args.filters && this._prepareFilter(args.filters),
+				select: args.select,
+				sort: args.sort,
+			});
 
 			return {
 				data: result,
@@ -260,36 +261,6 @@ export class ProductRepository implements IProductRepository {
 		this._cache.delete({
 			key: this._getTopRatedCacheKey,
 		});
-	}
-
-	private async _paginateProducts(
-		args: GetAllProductsRepositoryParams,
-		query?: Partial<PaginationQuery<SelectProduct>>,
-	): Promise<PaginatedResponse<SelectProduct>> {
-		const paginateOptions: PaginatorParams<SelectProduct> = {
-			pageNumber: args.pageNumber,
-			pageSize: args.pageSize,
-		};
-
-		if (args.filters) {
-			const filters = this._prepareFilter(args.filters);
-			paginateOptions.query = { ...filters };
-		}
-
-		if (query) {
-			paginateOptions.query = { ...paginateOptions.query, ...query };
-		}
-
-		if (args.select) {
-			const select = buildMongoSelectProjection(args.select);
-			paginateOptions.pipeline = [{ $project: select }];
-		}
-
-		if (args.sort) {
-			paginateOptions.sort = args.sort;
-		}
-
-		return this._paginator.paginate<SelectProduct>(paginateOptions);
 	}
 
 	private _prepareFilter(

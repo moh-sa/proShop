@@ -301,7 +301,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			assert.strictEqual(callArgs.query.status, "processing");
 		});
 
-		test("Should pass select to paginator as $project pipeline stage", async (t) => {
+		test("Should pass select to paginator", async (t) => {
 			// Arrange
 			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
 				Promise.resolve(mockPaginatedResponse),
@@ -318,11 +318,9 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 
 			// Assert
 			const callArgs = paginateMock.mock.calls[0]?.arguments[0] as {
-				pipeline?: Array<{ $project: Record<string, unknown> }>;
+				select?: Record<string, boolean>;
 			};
-			assert.deepStrictEqual(callArgs?.pipeline, [
-				{ $project: { _id: 1, status: 1 } },
-			]);
+			assert.deepStrictEqual(callArgs?.select, { _id: true, status: true });
 		});
 
 		test("Should pass sort through to paginator", async (t) => {

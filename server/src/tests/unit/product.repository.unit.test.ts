@@ -337,7 +337,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			});
 		});
 
-		test("Should call 'paginator.paginate' with pipeline when select is provided", async (t) => {
+		test("Should call 'paginator.paginate' with select when select is provided", async (t) => {
 			// Arrange
 			const mockPaginate = t.mock.method(Paginator.prototype, "paginate", () =>
 				Promise.resolve(mockPaginatedResponse),
@@ -351,10 +351,10 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Assert
-			assert.deepStrictEqual(
-				mockPaginate.mock.calls[0].arguments[0]?.pipeline,
-				[{ $project: { name: 1, price: 1 } }],
-			);
+			assert.deepStrictEqual(mockPaginate.mock.calls[0].arguments[0]?.select, {
+				name: true,
+				price: true,
+			});
 		});
 
 		test("Should return paginated response with empty items when 'paginator.paginate' returns empty items", async (t) => {

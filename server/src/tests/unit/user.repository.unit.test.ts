@@ -386,7 +386,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			});
 		});
 
-		test("Should omit query, pipeline, and sort when only pageNumber and pageSize are provided", async (t) => {
+		test("Should pass empty query and omit select and sort when only pageNumber and pageSize are provided", async (t) => {
 			// Arrange
 			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
 				Promise.resolve({ items: [], meta: {} }),
@@ -402,12 +402,12 @@ suite("User Repository〖 Unit Tests 〗", () => {
 
 			// Assert
 			const callArgs = paginateMock.mock.calls[0]?.arguments[0];
-			assert.strictEqual(callArgs?.query, undefined);
-			assert.strictEqual(callArgs?.pipeline, undefined);
+			assert.deepStrictEqual(callArgs?.query, undefined);
+			assert.strictEqual(callArgs?.select, undefined);
 			assert.strictEqual(callArgs?.sort, undefined);
 		});
 
-		test("Should pass select to paginator as $project pipeline stage", async (t) => {
+		test("Should pass select to paginator", async (t) => {
 			// Arrange
 			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
 				Promise.resolve({
@@ -427,9 +427,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 
 			// Assert
 			const callArgs = paginateMock.mock.calls[0]?.arguments[0];
-			assert.deepStrictEqual(callArgs?.pipeline, [
-				{ $project: { _id: 1, email: 1 } },
-			]);
+			assert.deepStrictEqual(callArgs?.select, { _id: true, email: true });
 		});
 
 		test("Should pass sort through to paginator", async (t) => {
@@ -455,7 +453,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(callArgs?.sort, args.sort);
 		});
 
-		test("Should pass filters, select pipeline, and sort together in one paginate call", async (t) => {
+		test("Should pass filters, select, and sort together in one paginate call", async (t) => {
 			// Arrange
 			const paginateMock = t.mock.method(Paginator.prototype, "paginate", () =>
 				Promise.resolve({
@@ -477,9 +475,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 
 			const callArgs = paginateMock.mock.calls[0]?.arguments[0];
 			assert.deepStrictEqual(callArgs?.query, { isAdmin: true });
-			assert.deepStrictEqual(callArgs?.pipeline, [
-				{ $project: { _id: 1, email: 1 } },
-			]);
+			assert.deepStrictEqual(callArgs?.select, { _id: true, email: true });
 			assert.deepStrictEqual(callArgs?.sort, args.sort);
 		});
 	});

@@ -6,6 +6,7 @@ import type {
 	PaginationMeta,
 	PaginationParams,
 	PaginationQuery,
+	PaginationSelect,
 } from "../types/index.js";
 
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "../constants/index.js";
@@ -19,6 +20,7 @@ export type PaginatorParams<T extends Record<string, unknown>> =
 	PaginationParams & {
 		pipeline?: PaginatorPipeline;
 		query?: PaginatorQuery<T>;
+		select?: PaginationSelect<T>;
 		sort?: PaginatorSort<T>;
 	};
 
@@ -102,8 +104,13 @@ export class Paginator<TDocument extends Record<string, unknown>> {
 		const { pageNumber, pageSize, skip } = this._preparePaginationParams(args);
 		const sort = this._prepareSort(args.sort);
 
+		const selectStage = args.select
+			? [{ $project: this._buildSelectProjection(args.select) }]
+			: [];
+		const additionalAggregate = [...(args.pipeline ?? []), ...selectStage];
+
 		const result = await this._query<TResult>({
-			additionalAggregate: args.pipeline,
+			additionalAggregate,
 			limit: pageSize,
 			query: args.query ?? {},
 			skip,
@@ -204,6 +211,22 @@ export class Paginator<TDocument extends Record<string, unknown>> {
 			totalItems: args.totalItems,
 			totalPages,
 		};
+	}
+
+	/**
+	 * Builds a MongoDB `$project` shape from a select object (dot-path keys).
+	 */
+	private _buildSelectProjection(
+		select: PaginationSelect<TDocument>,
+	): Record<string, unknown> {
+		const entries = Object.entries(select)
+			.filter(([_, value]) => value === true)
+			.map(([key]) => {
+				const mappedValue = key.includes(".") ? `$${key}` : 1;
+				return [key, mappedValue];
+			});
+
+		return Object.fromEntries(entries);
 	}
 
 	/**
