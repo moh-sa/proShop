@@ -1,6 +1,7 @@
 import { isValidObjectId } from "mongoose";
 import z from "zod";
 
+import { paginationParamsSchema } from "../pagination/pagination.schema.js";
 import { createPaginationSortSchema } from "../pagination/sort.schema.js";
 import { selectReviewSchema } from "./review.schema.js";
 
@@ -44,3 +45,9 @@ const reviewSortableFields = selectReviewSchema.pick({
 export const reviewPaginationSortSchema = createPaginationSortSchema(
 	reviewSortableFields.keyof(),
 );
+
+// Params
+export const reviewPaginationParamsSchema = paginationParamsSchema.extend({
+	filters: reviewPaginationFiltersSchema.optional(),
+	sort: reviewPaginationSortSchema.optional(),
+});
