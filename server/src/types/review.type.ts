@@ -78,3 +78,16 @@ export type GetAllReviewsServiceParams = PaginationParamsStringified & {
 	filters?: Stringify<ReviewFilter>;
 	sort?: string;
 };
+
+// Controller Params
+export type GetAllReviewsByProductIdControllerParams =
+	GetAllReviewsControllerParams;
+
+export type GetAllReviewsByUserIdControllerParams =
+	GetAllReviewsControllerParams;
+
+export type GetAllReviewsControllerParams = PaginationParamsStringified & {
+	productId?: string;
+	sort?: string;
+	userId?: string;
+};

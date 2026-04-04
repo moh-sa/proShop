@@ -295,6 +295,38 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.meta.hasNextPage, true);
 			assert.strictEqual(response.meta.hasPreviousPage, true);
 		});
+
+		test("Should return only reviews for productId when 'service.getAll' is called with productId query", async () => {
+			// Arrange
+			const productId = generateMockObjectId();
+			const targetReviews = generateMockSelectReviews({
+				count: 2,
+				options: { product: productId },
+			});
+			const otherReviews = generateMockSelectReviews({
+				count: 3,
+			});
+			await Review.insertMany([...targetReviews, ...otherReviews]);
+
+			const { next, req, res } = createMockExpressContext();
+			req.query = { productId: productId.toString() };
+
+			// Act
+			await controller.getAll(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.strictEqual(response.success, true);
+			assert.strictEqual(response.meta.totalItems, 2);
+			assert.strictEqual(response.data.length, 2);
+			assert.strictEqual(
+				response.data.every(
+					(review: SelectReview) =>
+						review.product.toString() === productId.toString(),
+				),
+				true,
+			);
+		});
 	});
 
 	describe("getAllByUserId", () => {
@@ -423,6 +455,34 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.meta.hasNextPage, true);
 			assert.strictEqual(response.meta.hasPreviousPage, false);
 		});
+
+		test("Should return only reviews for productId when 'service.getAllByUserId' is called with productId query", async () => {
+			// Arrange
+			const targetReview = generateMockSelectReview();
+			const userId = targetReview.user;
+			const productId = targetReview.product;
+
+			const otherReview = generateMockSelectReview({ user: userId });
+
+			await Review.insertMany([targetReview, otherReview]);
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { userId: userId.toString() };
+			req.query = { productId: productId.toString() };
+
+			// Act
+			await controller.getAllByUserId(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.strictEqual(response.success, true);
+			assert.strictEqual(response.meta.totalItems, 1);
+			assert.strictEqual(response.data.length, 1);
+			assert.strictEqual(
+				response.data[0].product.toString(),
+				productId.toString(),
+			);
+		});
 	});
 
 	describe("getAllByProductId", () => {
@@ -550,6 +610,30 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.meta.totalPages, 3);
 			assert.strictEqual(response.meta.hasNextPage, true);
 			assert.strictEqual(response.meta.hasPreviousPage, false);
+		});
+
+		test("Should return only reviews for userId when 'service.getAllByProductId' is called with userId query", async () => {
+			// Arrange
+			const targetReview = generateMockInsertReview();
+			const productId = targetReview.product;
+			const userId = targetReview.user;
+
+			const reviewFromB = generateMockInsertReview({ product: productId });
+			await Review.insertMany([targetReview, reviewFromB]);
+
+			const { next, req, res } = createMockExpressContext();
+			req.params = { productId: productId.toString() };
+			req.query = { userId: userId.toString() };
+
+			// Act
+			await controller.getAllByProductId(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.strictEqual(response.success, true);
+			assert.strictEqual(response.meta.totalItems, 1);
+			assert.strictEqual(response.data.length, 1);
+			assert.strictEqual(response.data[0].user.toString(), userId.toString());
 		});
 	});
 

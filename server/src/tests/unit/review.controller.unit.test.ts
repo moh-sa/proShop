@@ -178,6 +178,49 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 				mockService.getAll.mock.calls[0].arguments[0].sort,
 				"createdAt:desc",
 			);
+			assert.deepStrictEqual(
+				mockService.getAll.mock.calls[0].arguments[0].filters,
+				{ productId: undefined, userId: undefined },
+			);
+		});
+
+		test("Should pass filters with productId and userId from query when provided", async (t) => {
+			// Arrange
+			const productId = generateMockObjectId().toString();
+			const userId = generateMockObjectId().toString();
+
+			const { next, req, res } = mockExpressCall({
+				req: {
+					query: {
+						pageNumber: "1",
+						pageSize: "10",
+						productId,
+						userId,
+					},
+				},
+				testContext: t,
+			});
+
+			mockService.getAll.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { items: mockReviews, meta: mockPaginationMeta },
+					success: true,
+				}),
+			);
+
+			// Act
+			await controller.getAll(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockService.getAll.mock.calls[0].arguments[0].filters,
+				{ productId, userId },
+			);
 		});
 
 		test("Should call 'service.getAll' once with default pagination params when no query provided", async (t) => {
@@ -207,6 +250,10 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(
 				mockService.getAll.mock.calls[0].arguments[0].pageNumber,
 				"1",
+			);
+			assert.deepStrictEqual(
+				mockService.getAll.mock.calls[0].arguments[0].filters,
+				{ productId: undefined, userId: undefined },
 			);
 		});
 
@@ -317,6 +364,44 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 				mockService.getAllByUserId.mock.calls[0].arguments[0].pageSize,
 				"10",
 			);
+			assert.deepStrictEqual(
+				mockService.getAllByUserId.mock.calls[0].arguments[0].filters,
+				{ productId: undefined },
+			);
+		});
+
+		test("Should pass filters.productId from query when provided", async (t) => {
+			// Arrange
+			const productId = generateMockObjectId().toString();
+
+			const { next, req, res } = mockExpressCall({
+				req: {
+					params: { userId },
+					query: { pageNumber: "1", pageSize: "10", productId },
+				},
+				testContext: t,
+			});
+
+			mockService.getAllByUserId.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { items: mockReviews, meta: mockPaginationMeta },
+					success: true,
+				}),
+			);
+
+			// Act
+			await controller.getAllByUserId(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockService.getAllByUserId.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockService.getAllByUserId.mock.calls[0].arguments[0].filters,
+				{ productId },
+			);
 		});
 
 		test("Should call 'service.getAllByUserId' once with default pagination params when no query provided", async (t) => {
@@ -352,6 +437,10 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(
 				mockService.getAllByUserId.mock.calls[0].arguments[0].pageNumber,
 				"1",
+			);
+			assert.deepStrictEqual(
+				mockService.getAllByUserId.mock.calls[0].arguments[0].filters,
+				{ productId: undefined },
 			);
 		});
 
@@ -468,6 +557,44 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 				mockService.getAllByProductId.mock.calls[0].arguments[0].pageSize,
 				"10",
 			);
+			assert.deepStrictEqual(
+				mockService.getAllByProductId.mock.calls[0].arguments[0].filters,
+				{ userId: undefined },
+			);
+		});
+
+		test("Should pass filters.userId from query when provided", async (t) => {
+			// Arrange
+			const userIdFilter = generateMockObjectId().toString();
+
+			const { next, req, res } = mockExpressCall({
+				req: {
+					params: { productId },
+					query: { pageNumber: "1", pageSize: "10", userId: userIdFilter },
+				},
+				testContext: t,
+			});
+
+			mockService.getAllByProductId.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { items: mockReviews, meta: mockPaginationMeta },
+					success: true,
+				}),
+			);
+
+			// Act
+			await controller.getAllByProductId(
+				req as unknown as Request,
+				res as unknown as Response,
+				next,
+			);
+
+			// Assert
+			assert.strictEqual(mockService.getAllByProductId.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockService.getAllByProductId.mock.calls[0].arguments[0].filters,
+				{ userId: userIdFilter },
+			);
 		});
 
 		test("Should call 'service.getAllByProductId' once with default pagination params when no query provided", async (t) => {
@@ -503,6 +630,10 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(
 				mockService.getAllByProductId.mock.calls[0].arguments[0].pageNumber,
 				"1",
+			);
+			assert.deepStrictEqual(
+				mockService.getAllByProductId.mock.calls[0].arguments[0].filters,
+				{ userId: undefined },
 			);
 		});
 

@@ -3,9 +3,11 @@ import type { Types } from "mongoose";
 import type { IReviewService } from "../services/index.js";
 import type {
 	AsyncHandler,
+	GetAllReviewsByProductIdControllerParams,
+	GetAllReviewsByUserIdControllerParams,
+	GetAllReviewsControllerParams,
 	InsertReview,
 	PaginatedResponse,
-	PaginationParamsString,
 	SafeSelectUser,
 	SelectReview,
 } from "../types/index.js";
@@ -44,7 +46,7 @@ export interface IReviewController {
 		resBody: { data: { _id: Types.ObjectId } };
 	}>;
 	getAll: AsyncHandler<{
-		query: PaginationParamsString;
+		query: GetAllReviewsControllerParams;
 		resBody: {
 			data: PaginatedResponse<SelectReview>["items"];
 			meta: PaginatedResponse<SelectReview>["meta"];
@@ -52,7 +54,7 @@ export interface IReviewController {
 	}>;
 	getAllByProductId: AsyncHandler<{
 		params: { productId: string };
-		query: PaginationParamsString;
+		query: GetAllReviewsByProductIdControllerParams;
 		resBody: {
 			data: PaginatedResponse<SelectReview>["items"];
 			meta: PaginatedResponse<SelectReview>["meta"];
@@ -60,7 +62,7 @@ export interface IReviewController {
 	}>;
 	getAllByUserId: AsyncHandler<{
 		params: { userId: string };
-		query: PaginationParamsString;
+		query: GetAllReviewsByUserIdControllerParams;
 		resBody: {
 			data: PaginatedResponse<SelectReview>["items"];
 			meta: PaginatedResponse<SelectReview>["meta"];
@@ -268,7 +270,7 @@ export class ReviewController implements IReviewController {
 	});
 
 	getAll = asyncHandler<{
-		query: PaginationParamsString;
+		query: GetAllReviewsControllerParams;
 		resBody: {
 			data: PaginatedResponse<SelectReview>["items"];
 			meta: PaginatedResponse<SelectReview>["meta"];
@@ -278,6 +280,10 @@ export class ReviewController implements IReviewController {
 		logger.debug({ query: req.query }, "Getting all reviews");
 
 		const reviews = await this._service.getAll({
+			filters: {
+				productId: req.query.productId,
+				userId: req.query.userId,
+			},
 			pageNumber: req.query.pageNumber,
 			pageSize: req.query.pageSize,
 			sort: req.query.sort,
@@ -300,7 +306,7 @@ export class ReviewController implements IReviewController {
 
 	getAllByProductId = asyncHandler<{
 		params: { productId: string };
-		query: PaginationParamsString;
+		query: GetAllReviewsByProductIdControllerParams;
 		resBody: {
 			data: PaginatedResponse<SelectReview>["items"];
 			meta: PaginatedResponse<SelectReview>["meta"];
@@ -313,6 +319,9 @@ export class ReviewController implements IReviewController {
 		);
 
 		const reviews = await this._service.getAllByProductId({
+			filters: {
+				userId: req.query.userId,
+			},
 			pageNumber: req.query.pageNumber,
 			pageSize: req.query.pageSize,
 			productId: req.params.productId,
@@ -336,7 +345,7 @@ export class ReviewController implements IReviewController {
 
 	getAllByUserId = asyncHandler<{
 		params: { userId: string };
-		query: PaginationParamsString;
+		query: GetAllReviewsByUserIdControllerParams;
 		resBody: {
 			data: PaginatedResponse<SelectReview>["items"];
 			meta: PaginatedResponse<SelectReview>["meta"];
@@ -349,6 +358,9 @@ export class ReviewController implements IReviewController {
 		);
 
 		const reviews = await this._service.getAllByUserId({
+			filters: {
+				productId: req.query.productId,
+			},
 			pageNumber: req.query.pageNumber,
 			pageSize: req.query.pageSize,
 			sort: req.query.sort,
