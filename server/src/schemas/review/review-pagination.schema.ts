@@ -51,3 +51,9 @@ export const reviewPaginationParamsSchema = paginationParamsSchema.extend({
 	filters: reviewPaginationFiltersSchema.optional(),
 	sort: reviewPaginationSortSchema.optional(),
 });
+
+export const reviewByProductIdPaginationParamsSchema =
+	reviewPaginationParamsSchema.extend({
+		filters: reviewByProductIdPaginationFiltersSchema.optional(),
+		productId: baseFiltersSchema.shape.productId,
+	});

@@ -6,6 +6,7 @@ import type {
 } from "../schemas/index.js";
 import type {
 	reviewByProductIdPaginationFiltersSchema,
+	reviewByProductIdPaginationParamsSchema,
 	reviewByUserIdPaginationFiltersSchema,
 	reviewPaginationFiltersSchema,
 	reviewPaginationParamsSchema,
@@ -35,6 +36,12 @@ export type ReviewSelect = PaginationSelect<SelectReview>;
 export type ReviewSort = z.infer<typeof reviewPaginationSortSchema>;
 
 // Method Params
+export type GetAllReviewsByProductIdRepositoryParams = z.infer<
+	typeof reviewByProductIdPaginationParamsSchema
+> & {
+	select?: ReviewSelect;
+};
+
 export type GetAllReviewsRepositoryParams = z.infer<
 	typeof reviewPaginationParamsSchema
 > & {
