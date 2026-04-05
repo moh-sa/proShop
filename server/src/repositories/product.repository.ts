@@ -16,7 +16,7 @@ import type {
 	TopRatedProduct,
 } from "../types/index.js";
 
-import Product from "../models/product.model.js";
+import { ProductModel } from "../models/product.model.js";
 import { CacheService } from "../services/cache.service.js";
 import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
@@ -47,14 +47,14 @@ type ProductResult<T> = Result<T, DatabaseBaseError>;
 
 export class ProductRepository implements IProductRepository {
 	private _cache: CacheService;
-	private readonly _db: typeof Product;
+	private readonly _db: typeof ProductModel;
 	private _paginator: Paginator<SelectProduct>;
 
 	// Cache keys
 	private readonly _getTopRatedCacheKey = "top-rated";
 
-	constructor(db?: typeof Product, cache?: CacheService) {
-		this._db = db ?? Product;
+	constructor(db?: typeof ProductModel, cache?: CacheService) {
+		this._db = db ?? ProductModel;
 		this._cache = cache ?? new CacheService("product");
 		this._paginator = new Paginator(this._db);
 	}

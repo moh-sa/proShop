@@ -11,7 +11,7 @@ import {
 	DatabaseValidationError,
 	GenericDatabaseError,
 } from "../../errors/index.js";
-import Review from "../../models/review.model.js";
+import { ReviewModel } from "../../models/review.model.js";
 import { ReviewRepository } from "../../repositories/index.js";
 import { Paginator } from "../../utils/index.js";
 import {
@@ -31,7 +31,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return review object when 'db.create' is called once with review data", async (t) => {
 			// Arrange
-			const mockCreate = t.mock.method(Review, "create", () => ({
+			const mockCreate = t.mock.method(ReviewModel, "create", () => ({
 				toObject: () => mockReview,
 			}));
 
@@ -50,7 +50,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Review, "create", () => {
+			t.mock.method(ReviewModel, "create", () => {
 				throw validationError;
 			});
 
@@ -68,7 +68,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Review, "create", () => {
+			t.mock.method(ReviewModel, "create", () => {
 				throw timeoutError;
 			});
 
@@ -84,7 +84,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Review, "create", () => {
+			t.mock.method(ReviewModel, "create", () => {
 				throw queryError;
 			});
 
@@ -100,7 +100,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Review, "create", () => {
+			t.mock.method(ReviewModel, "create", () => {
 				throw networkError;
 			});
 
@@ -116,7 +116,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Review, "create", () => {
+			t.mock.method(ReviewModel, "create", () => {
 				throw unknownError;
 			});
 
@@ -371,7 +371,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return review object when 'db.findById' is called once with 'reviewId'", async (t) => {
 			// Arrange
-			const findByIdMock = t.mock.method(Review, "findById", () => ({
+			const findByIdMock = t.mock.method(ReviewModel, "findById", () => ({
 				lean: async () => mockReview,
 			}));
 
@@ -389,7 +389,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.findById' returns 'null'", async (t) => {
 			// Arrange
-			t.mock.method(Review, "findById", () => ({
+			t.mock.method(ReviewModel, "findById", () => ({
 				lean: async () => null,
 			}));
 
@@ -405,7 +405,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Review, "findById", () => {
+			t.mock.method(ReviewModel, "findById", () => {
 				throw validationError;
 			});
 
@@ -423,7 +423,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Review, "findById", () => {
+			t.mock.method(ReviewModel, "findById", () => {
 				throw timeoutError;
 			});
 
@@ -439,7 +439,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Review, "findById", () => {
+			t.mock.method(ReviewModel, "findById", () => {
 				throw queryError;
 			});
 
@@ -454,7 +454,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Review, "findById", () => {
+			t.mock.method(ReviewModel, "findById", () => {
 				throw networkError;
 			});
 
@@ -469,7 +469,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Review, "findById", () => {
+			t.mock.method(ReviewModel, "findById", () => {
 				throw unknownError;
 			});
 
@@ -927,7 +927,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 		test("Should return review object when 'db.findByIdAndUpdate' is called once with 'reviewId' and 'updateData'", async (t) => {
 			// Arrange
 			const findByIdAndUpdateMock = t.mock.method(
-				Review,
+				ReviewModel,
 				"findByIdAndUpdate",
 				() => ({
 					lean: async () => expectedResult,
@@ -955,7 +955,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.findByIdAndUpdate' returns 'null'", async (t) => {
 			// Arrange
-			t.mock.method(Review, "findByIdAndUpdate", () => ({
+			t.mock.method(ReviewModel, "findByIdAndUpdate", () => ({
 				lean: async () => null,
 			}));
 
@@ -971,7 +971,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Review, "findByIdAndUpdate", () => {
+			t.mock.method(ReviewModel, "findByIdAndUpdate", () => {
 				throw validationError;
 			});
 
@@ -989,7 +989,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Review, "findByIdAndUpdate", () => {
+			t.mock.method(ReviewModel, "findByIdAndUpdate", () => {
 				throw timeoutError;
 			});
 
@@ -1005,7 +1005,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Review, "findByIdAndUpdate", () => {
+			t.mock.method(ReviewModel, "findByIdAndUpdate", () => {
 				throw queryError;
 			});
 
@@ -1021,7 +1021,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Review, "findByIdAndUpdate", () => {
+			t.mock.method(ReviewModel, "findByIdAndUpdate", () => {
 				throw networkError;
 			});
 
@@ -1037,7 +1037,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Review, "findByIdAndUpdate", () => {
+			t.mock.method(ReviewModel, "findByIdAndUpdate", () => {
 				throw unknownError;
 			});
 
@@ -1057,7 +1057,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 		test("Should return review object when 'db.findByIdAndDelete' is called once with'reviewId'", async (t) => {
 			// Arrange
 			const findByIdAndDeleteMock = t.mock.method(
-				Review,
+				ReviewModel,
 				"findByIdAndDelete",
 				() => ({
 					lean: async () => mockReview,
@@ -1081,7 +1081,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.findByIdAndDelete' returns 'null'", async (t) => {
 			// Arrange
-			t.mock.method(Review, "findByIdAndDelete", () => ({
+			t.mock.method(ReviewModel, "findByIdAndDelete", () => ({
 				lean: async () => null,
 			}));
 
@@ -1097,7 +1097,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Review, "findByIdAndDelete", () => {
+			t.mock.method(ReviewModel, "findByIdAndDelete", () => {
 				throw validationError;
 			});
 
@@ -1115,7 +1115,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Review, "findByIdAndDelete", () => {
+			t.mock.method(ReviewModel, "findByIdAndDelete", () => {
 				throw timeoutError;
 			});
 
@@ -1131,7 +1131,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Review, "findByIdAndDelete", () => {
+			t.mock.method(ReviewModel, "findByIdAndDelete", () => {
 				throw queryError;
 			});
 
@@ -1147,7 +1147,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Review, "findByIdAndDelete", () => {
+			t.mock.method(ReviewModel, "findByIdAndDelete", () => {
 				throw networkError;
 			});
 
@@ -1163,7 +1163,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Review, "findByIdAndDelete", () => {
+			t.mock.method(ReviewModel, "findByIdAndDelete", () => {
 				throw unknownError;
 			});
 
@@ -1182,7 +1182,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 		test("Should return the count as number when 'db.countDocuments' is called once with no args", async (t) => {
 			// Arrange
 			const countDocumentsMock = t.mock.method(
-				Review,
+				ReviewModel,
 				"countDocuments",
 				() => ({
 					lean: async () => mockCount,
@@ -1206,7 +1206,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return '0' when 'db.countDocuments' returns '0'", async (t) => {
 			// Arrange
-			t.mock.method(Review, "countDocuments", () => ({
+			t.mock.method(ReviewModel, "countDocuments", () => ({
 				lean: async () => 0,
 			}));
 
@@ -1222,7 +1222,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Review, "countDocuments", () => {
+			t.mock.method(ReviewModel, "countDocuments", () => {
 				throw validationError;
 			});
 
@@ -1240,7 +1240,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Review, "countDocuments", () => {
+			t.mock.method(ReviewModel, "countDocuments", () => {
 				throw timeoutError;
 			});
 
@@ -1256,7 +1256,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Review, "countDocuments", () => {
+			t.mock.method(ReviewModel, "countDocuments", () => {
 				throw queryError;
 			});
 
@@ -1272,7 +1272,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Review, "countDocuments", () => {
+			t.mock.method(ReviewModel, "countDocuments", () => {
 				throw networkError;
 			});
 
@@ -1288,7 +1288,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Review, "countDocuments", () => {
+			t.mock.method(ReviewModel, "countDocuments", () => {
 				throw unknownError;
 			});
 
@@ -1308,7 +1308,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 		test("Should return the count as number when 'db.countDocuments' is called once with 'userId' ", async (t) => {
 			// Arrange
 			const countDocumentsMock = t.mock.method(
-				Review,
+				ReviewModel,
 				"countDocuments",
 				() => ({
 					lean: async () => mockCount,
@@ -1330,7 +1330,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return '0' when 'db.countDocuments' returns '0'", async (t) => {
 			// Arrange
-			t.mock.method(Review, "countDocuments", () => ({
+			t.mock.method(ReviewModel, "countDocuments", () => ({
 				lean: async () => 0,
 			}));
 
@@ -1346,7 +1346,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Review, "countDocuments", () => {
+			t.mock.method(ReviewModel, "countDocuments", () => {
 				throw validationError;
 			});
 
@@ -1364,7 +1364,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Review, "countDocuments", () => {
+			t.mock.method(ReviewModel, "countDocuments", () => {
 				throw timeoutError;
 			});
 
@@ -1380,7 +1380,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Review, "countDocuments", () => {
+			t.mock.method(ReviewModel, "countDocuments", () => {
 				throw queryError;
 			});
 
@@ -1396,7 +1396,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Review, "countDocuments", () => {
+			t.mock.method(ReviewModel, "countDocuments", () => {
 				throw networkError;
 			});
 
@@ -1412,7 +1412,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Review, "countDocuments", () => {
+			t.mock.method(ReviewModel, "countDocuments", () => {
 				throw unknownError;
 			});
 
@@ -1432,7 +1432,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 		test("Should return the count as number when 'db.countDocuments' is called once with 'productId'", async (t) => {
 			// Arrange
 			const countDocumentsMock = t.mock.method(
-				Review,
+				ReviewModel,
 				"countDocuments",
 				() => ({
 					lean: async () => mockCount,
@@ -1455,7 +1455,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return '0' when 'db.countDocuments' returns '0'", async (t) => {
 			// Arrange
-			t.mock.method(Review, "countDocuments", () => ({
+			t.mock.method(ReviewModel, "countDocuments", () => ({
 				lean: async () => 0,
 			}));
 
@@ -1471,7 +1471,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Review, "countDocuments", () => {
+			t.mock.method(ReviewModel, "countDocuments", () => {
 				throw validationError;
 			});
 
@@ -1489,7 +1489,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Review, "countDocuments", () => {
+			t.mock.method(ReviewModel, "countDocuments", () => {
 				throw timeoutError;
 			});
 
@@ -1505,7 +1505,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Review, "countDocuments", () => {
+			t.mock.method(ReviewModel, "countDocuments", () => {
 				throw queryError;
 			});
 
@@ -1521,7 +1521,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Review, "countDocuments", () => {
+			t.mock.method(ReviewModel, "countDocuments", () => {
 				throw networkError;
 			});
 
@@ -1537,7 +1537,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Review, "countDocuments", () => {
+			t.mock.method(ReviewModel, "countDocuments", () => {
 				throw unknownError;
 			});
 
@@ -1556,7 +1556,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return the 'reviewId' when 'db.exists' is called once with 'reviewId'", async (t) => {
 			// Arrange
-			const existsMock = t.mock.method(Review, "exists", () => ({
+			const existsMock = t.mock.method(ReviewModel, "exists", () => ({
 				lean: async () => expectedResult,
 			}));
 
@@ -1576,7 +1576,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.exists' returns 'null'", async (t) => {
 			// Arrange
-			t.mock.method(Review, "exists", () => ({
+			t.mock.method(ReviewModel, "exists", () => ({
 				lean: async () => null,
 			}));
 
@@ -1592,7 +1592,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Review, "exists", () => {
+			t.mock.method(ReviewModel, "exists", () => {
 				throw validationError;
 			});
 
@@ -1610,7 +1610,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Review, "exists", () => {
+			t.mock.method(ReviewModel, "exists", () => {
 				throw timeoutError;
 			});
 
@@ -1626,7 +1626,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Review, "exists", () => {
+			t.mock.method(ReviewModel, "exists", () => {
 				throw queryError;
 			});
 
@@ -1642,7 +1642,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Review, "exists", () => {
+			t.mock.method(ReviewModel, "exists", () => {
 				throw networkError;
 			});
 
@@ -1658,7 +1658,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Review, "exists", () => {
+			t.mock.method(ReviewModel, "exists", () => {
 				throw unknownError;
 			});
 
@@ -1679,7 +1679,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return 'reviewId' when 'db.exists' is called once with 'userId' and 'productId'", async (t) => {
 			// Arrange
-			const existsMock = t.mock.method(Review, "exists", () => ({
+			const existsMock = t.mock.method(ReviewModel, "exists", () => ({
 				lean: async () => expectedResult,
 			}));
 
@@ -1703,7 +1703,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.exists' returns 'null'", async (t) => {
 			// Arrange
-			t.mock.method(Review, "exists", () => ({
+			t.mock.method(ReviewModel, "exists", () => ({
 				lean: async () => null,
 			}));
 
@@ -1722,7 +1722,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Review, "exists", () => {
+			t.mock.method(ReviewModel, "exists", () => {
 				throw validationError;
 			});
 
@@ -1743,7 +1743,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Review, "exists", () => {
+			t.mock.method(ReviewModel, "exists", () => {
 				throw timeoutError;
 			});
 
@@ -1762,7 +1762,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Review, "exists", () => {
+			t.mock.method(ReviewModel, "exists", () => {
 				throw queryError;
 			});
 
@@ -1781,7 +1781,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Review, "exists", () => {
+			t.mock.method(ReviewModel, "exists", () => {
 				throw networkError;
 			});
 
@@ -1800,7 +1800,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Review, "exists", () => {
+			t.mock.method(ReviewModel, "exists", () => {
 				throw unknownError;
 			});
 

@@ -10,7 +10,7 @@ import {
 	DatabaseValidationError,
 	GenericDatabaseError,
 } from "../../errors/index.js";
-import { Session } from "../../models/session.model.js";
+import { SessionModel } from "../../models/session.model.js";
 import { SessionRepository } from "../../repositories/index.js";
 import type {
 	GetAllSessionsByUserIdRepositoryParams,
@@ -32,7 +32,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 
 		test("Should return 'session object' when 'db.create' is called once with 'session data'", async (t) => {
 			// Arrange
-			const createMock = t.mock.method(Session, "create", async () => ({
+			const createMock = t.mock.method(SessionModel, "create", async () => ({
 				toObject: () => mockSession,
 			}));
 
@@ -54,7 +54,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Session, "create", () => {
+			t.mock.method(SessionModel, "create", () => {
 				throw validationError;
 			});
 
@@ -70,7 +70,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const duplicateError = new mongoose.mongo.MongoServerError({});
 			duplicateError.code = 11000;
 
-			t.mock.method(Session, "create", () => {
+			t.mock.method(SessionModel, "create", () => {
 				throw duplicateError;
 			});
 
@@ -87,7 +87,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Session, "create", () => {
+			t.mock.method(SessionModel, "create", () => {
 				throw timeoutError;
 			});
 
@@ -102,7 +102,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Session, "create", () => {
+			t.mock.method(SessionModel, "create", () => {
 				throw queryError;
 			});
 
@@ -118,7 +118,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Session, "create", () => {
+			t.mock.method(SessionModel, "create", () => {
 				throw networkError;
 			});
 
@@ -134,7 +134,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Session, "create", () => {
+			t.mock.method(SessionModel, "create", () => {
 				throw unknownError;
 			});
 
@@ -1379,7 +1379,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 
 		test("Should return 'session object' when 'db.findOne' is called once with 'tokenId+userId'", async (t) => {
 			// Arrange
-			const findOneMock = t.mock.method(Session, "findOne", () => ({
+			const findOneMock = t.mock.method(SessionModel, "findOne", () => ({
 				lean: async () => mockSession,
 			}));
 
@@ -1400,7 +1400,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.findOne' returns 'null'", async (t) => {
 			// Arrange
-			t.mock.method(Session, "findOne", () => ({
+			t.mock.method(SessionModel, "findOne", () => ({
 				lean: async () => null,
 			}));
 
@@ -1416,7 +1416,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Session, "findOne", () => {
+			t.mock.method(SessionModel, "findOne", () => {
 				throw validationError;
 			});
 
@@ -1434,7 +1434,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Session, "findOne", () => {
+			t.mock.method(SessionModel, "findOne", () => {
 				throw timeoutError;
 			});
 
@@ -1450,7 +1450,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Session, "findOne", () => {
+			t.mock.method(SessionModel, "findOne", () => {
 				throw queryError;
 			});
 
@@ -1466,7 +1466,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Session, "findOne", () => {
+			t.mock.method(SessionModel, "findOne", () => {
 				throw networkError;
 			});
 
@@ -1482,7 +1482,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Session, "findOne", () => {
+			t.mock.method(SessionModel, "findOne", () => {
 				throw unknownError;
 			});
 
@@ -1508,7 +1508,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 		test("Should return 'session object' when 'db.findOneAndUpdate' is called once with 'tokenId+userId' and 'data'", async (t) => {
 			// Arrange
 			const findOneAndUpdateMock = t.mock.method(
-				Session,
+				SessionModel,
 				"findOneAndUpdate",
 				() => ({
 					lean: async () => expected,
@@ -1543,7 +1543,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.findOneAndUpdate' returns 'null'", async (t) => {
 			// Arrange
-			t.mock.method(Session, "findOneAndUpdate", () => ({
+			t.mock.method(SessionModel, "findOneAndUpdate", () => ({
 				lean: async () => null,
 			}));
 
@@ -1563,7 +1563,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Session, "findOneAndUpdate", () => {
+			t.mock.method(SessionModel, "findOneAndUpdate", () => {
 				throw validationError;
 			});
 
@@ -1584,7 +1584,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const duplicateError = new mongoose.mongo.MongoServerError({});
 			duplicateError.code = 11000;
 
-			t.mock.method(Session, "findOneAndUpdate", () => {
+			t.mock.method(SessionModel, "findOneAndUpdate", () => {
 				throw duplicateError;
 			});
 
@@ -1606,7 +1606,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Session, "findOneAndUpdate", () => {
+			t.mock.method(SessionModel, "findOneAndUpdate", () => {
 				throw timeoutError;
 			});
 
@@ -1626,7 +1626,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Session, "findOneAndUpdate", () => {
+			t.mock.method(SessionModel, "findOneAndUpdate", () => {
 				throw queryError;
 			});
 
@@ -1646,7 +1646,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Session, "findOneAndUpdate", () => {
+			t.mock.method(SessionModel, "findOneAndUpdate", () => {
 				throw networkError;
 			});
 
@@ -1666,7 +1666,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Session, "findOneAndUpdate", () => {
+			t.mock.method(SessionModel, "findOneAndUpdate", () => {
 				throw unknownError;
 			});
 
@@ -1689,7 +1689,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 		test("Should return 'modified count' when 'db.updateMany' is called once with 'userId' and 'revokedAt'", async (t) => {
 			// Arrange
 			const expected = 2;
-			const updateManyMock = t.mock.method(Session, "updateMany", () => ({
+			const updateManyMock = t.mock.method(SessionModel, "updateMany", () => ({
 				lean: async () => ({ modifiedCount: expected }),
 			}));
 
@@ -1714,7 +1714,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Session, "updateMany", () => {
+			t.mock.method(SessionModel, "updateMany", () => {
 				throw validationError;
 			});
 
@@ -1732,7 +1732,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Session, "updateMany", () => {
+			t.mock.method(SessionModel, "updateMany", () => {
 				throw timeoutError;
 			});
 
@@ -1748,7 +1748,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Session, "updateMany", () => {
+			t.mock.method(SessionModel, "updateMany", () => {
 				throw queryError;
 			});
 
@@ -1764,7 +1764,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Session, "updateMany", () => {
+			t.mock.method(SessionModel, "updateMany", () => {
 				throw networkError;
 			});
 
@@ -1780,7 +1780,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Session, "updateMany", () => {
+			t.mock.method(SessionModel, "updateMany", () => {
 				throw unknownError;
 			});
 
@@ -1805,7 +1805,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 		test("Should return 'session object' when 'db.findOneAndUpdate' is called once with 'tokenId+userId' and sets 'revokedAt'", async (t) => {
 			// Arrange
 			const findOneAndUpdateMock = t.mock.method(
-				Session,
+				SessionModel,
 				"findOneAndUpdate",
 				() => ({
 					lean: async () => expected,
@@ -1832,7 +1832,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.findOneAndUpdate' returns 'null'", async (t) => {
 			// Arrange
-			t.mock.method(Session, "findOneAndUpdate", () => ({
+			t.mock.method(SessionModel, "findOneAndUpdate", () => ({
 				lean: async () => null,
 			}));
 
@@ -1848,7 +1848,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Session, "findOneAndUpdate", () => {
+			t.mock.method(SessionModel, "findOneAndUpdate", () => {
 				throw validationError;
 			});
 
@@ -1866,7 +1866,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Session, "findOneAndUpdate", () => {
+			t.mock.method(SessionModel, "findOneAndUpdate", () => {
 				throw timeoutError;
 			});
 
@@ -1882,7 +1882,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Session, "findOneAndUpdate", () => {
+			t.mock.method(SessionModel, "findOneAndUpdate", () => {
 				throw queryError;
 			});
 
@@ -1898,7 +1898,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Session, "findOneAndUpdate", () => {
+			t.mock.method(SessionModel, "findOneAndUpdate", () => {
 				throw networkError;
 			});
 
@@ -1914,7 +1914,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Session, "findOneAndUpdate", () => {
+			t.mock.method(SessionModel, "findOneAndUpdate", () => {
 				throw unknownError;
 			});
 
@@ -1933,7 +1933,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 		test("Should return 'deleted count' when 'db.deleteMany' is called once with 'userId'", async (t) => {
 			// Arrange
 			const expected = 3;
-			const deleteManyMock = t.mock.method(Session, "deleteMany", () => ({
+			const deleteManyMock = t.mock.method(SessionModel, "deleteMany", () => ({
 				lean: async () => ({ deletedCount: expected }),
 			}));
 
@@ -1954,7 +1954,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Session, "deleteMany", () => {
+			t.mock.method(SessionModel, "deleteMany", () => {
 				throw validationError;
 			});
 
@@ -1972,7 +1972,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Session, "deleteMany", () => {
+			t.mock.method(SessionModel, "deleteMany", () => {
 				throw timeoutError;
 			});
 
@@ -1988,7 +1988,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Session, "deleteMany", () => {
+			t.mock.method(SessionModel, "deleteMany", () => {
 				throw queryError;
 			});
 
@@ -2004,7 +2004,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Session, "deleteMany", () => {
+			t.mock.method(SessionModel, "deleteMany", () => {
 				throw networkError;
 			});
 
@@ -2020,7 +2020,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Session, "deleteMany", () => {
+			t.mock.method(SessionModel, "deleteMany", () => {
 				throw unknownError;
 			});
 
@@ -2044,7 +2044,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 		test("Should return 'session object' when 'db.findOneAndDelete' is called once with 'tokenId+userId'", async (t) => {
 			// Arrange
 			const findOneAndDeleteMock = t.mock.method(
-				Session,
+				SessionModel,
 				"findOneAndDelete",
 				() => ({
 					lean: async () => mockSession,
@@ -2068,7 +2068,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.findOneAndDelete' returns 'null'", async (t) => {
 			// Arrange
-			t.mock.method(Session, "findOneAndDelete", () => ({
+			t.mock.method(SessionModel, "findOneAndDelete", () => ({
 				lean: async () => null,
 			}));
 
@@ -2084,7 +2084,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Session, "findOneAndDelete", () => {
+			t.mock.method(SessionModel, "findOneAndDelete", () => {
 				throw validationError;
 			});
 
@@ -2102,7 +2102,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Session, "findOneAndDelete", () => {
+			t.mock.method(SessionModel, "findOneAndDelete", () => {
 				throw timeoutError;
 			});
 
@@ -2118,7 +2118,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Session, "findOneAndDelete", () => {
+			t.mock.method(SessionModel, "findOneAndDelete", () => {
 				throw queryError;
 			});
 
@@ -2134,7 +2134,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Session, "findOneAndDelete", () => {
+			t.mock.method(SessionModel, "findOneAndDelete", () => {
 				throw networkError;
 			});
 
@@ -2150,7 +2150,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Session, "findOneAndDelete", () => {
+			t.mock.method(SessionModel, "findOneAndDelete", () => {
 				throw unknownError;
 			});
 
@@ -2170,7 +2170,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const expected = 4;
 			const countMock = t.mock.method(
-				Session,
+				SessionModel,
 				"countDocuments",
 				async () => expected,
 			);
@@ -2199,7 +2199,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Session, "countDocuments", () => {
+			t.mock.method(SessionModel, "countDocuments", () => {
 				throw validationError;
 			});
 
@@ -2217,7 +2217,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Session, "countDocuments", () => {
+			t.mock.method(SessionModel, "countDocuments", () => {
 				throw timeoutError;
 			});
 
@@ -2233,7 +2233,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Session, "countDocuments", () => {
+			t.mock.method(SessionModel, "countDocuments", () => {
 				throw queryError;
 			});
 
@@ -2249,7 +2249,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Session, "countDocuments", () => {
+			t.mock.method(SessionModel, "countDocuments", () => {
 				throw networkError;
 			});
 
@@ -2265,7 +2265,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Session, "countDocuments", () => {
+			t.mock.method(SessionModel, "countDocuments", () => {
 				throw unknownError;
 			});
 
@@ -2285,7 +2285,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 
 		test("Should return 'document id' when 'db.exists' is called once with 'tokenId+userId'", async (t) => {
 			// Arrange
-			const existsMock = t.mock.method(Session, "exists", () => ({
+			const existsMock = t.mock.method(SessionModel, "exists", () => ({
 				lean: async () => expectedResult,
 			}));
 
@@ -2306,7 +2306,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.exists' returns 'null'", async (t) => {
 			// Arrange
-			t.mock.method(Session, "exists", () => ({
+			t.mock.method(SessionModel, "exists", () => ({
 				lean: async () => null,
 			}));
 
@@ -2322,7 +2322,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Session, "exists", () => {
+			t.mock.method(SessionModel, "exists", () => {
 				throw validationError;
 			});
 
@@ -2340,7 +2340,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Session, "exists", () => {
+			t.mock.method(SessionModel, "exists", () => {
 				throw timeoutError;
 			});
 
@@ -2356,7 +2356,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Session, "exists", () => {
+			t.mock.method(SessionModel, "exists", () => {
 				throw queryError;
 			});
 
@@ -2372,7 +2372,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Session, "exists", () => {
+			t.mock.method(SessionModel, "exists", () => {
 				throw networkError;
 			});
 
@@ -2388,7 +2388,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Session, "exists", () => {
+			t.mock.method(SessionModel, "exists", () => {
 				throw unknownError;
 			});
 

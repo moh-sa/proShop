@@ -2,8 +2,8 @@ import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 
 import { NotFoundError, ValidationError } from "../../errors/index.js";
-import Order from "../../models/order.model.js";
-import User from "../../models/user.model.js";
+import { OrderModel } from "../../models/order.model.js";
+import { UserModel } from "../../models/user.model.js";
 import { OrderService } from "../../services/index.js";
 import { GetAllOrdersServiceParams } from "../../types/order.type.js";
 import { generateMockObjectId } from "../mocks/objectid.mock.js";
@@ -26,15 +26,15 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 	beforeEach(async () => {
 		orderService = new OrderService();
-		await Order.deleteMany({});
-		await User.deleteMany({});
+		await OrderModel.deleteMany({});
+		await UserModel.deleteMany({});
 	});
 
 	describe("create", async () => {
 		test("Should create and return order object when 'repo.create' is called with '1' order item", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const orderItemsCount = 1;
 			const mockOrder = generateMockInsertOrder({
 				orderItemsCount,
@@ -57,7 +57,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should create and return order object when 'repo.create' is called with '3' order items", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const orderItemsCount = 3;
 			const mockOrder = generateMockInsertOrder({
 				orderItemsCount,
@@ -92,7 +92,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should create and return order object when 'repo.create' is called with shipping address", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const mockOrder = generateMockInsertOrder({ user: mockUser });
 			const expectedAddress = mockOrder.shippingAddress;
 
@@ -107,7 +107,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should create and return order object when 'repo.create' is called with tax price", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const taxPrice = 10.99;
 			const mockOrder = generateMockInsertOrder({
 				taxPrice,
@@ -125,7 +125,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should create and return order object when 'repo.create' is called with shipping price", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const shippingPrice = 5.99;
 			const mockOrder = generateMockInsertOrder({
 				shippingPrice,
@@ -143,7 +143,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should create and return order object when 'repo.create' is called with total price", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const itemsPrice = 100;
 			const taxPrice = 20;
 			const shippingPrice = 10;
@@ -170,7 +170,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should NOT set 'paidAt' when 'repo.create' is called", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const mockOrder = generateMockInsertOrder({
 				status: "pending",
 				user: mockUser,
@@ -188,7 +188,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should NOT set 'deliveredAt' when 'repo.create' is called", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const mockOrder = generateMockInsertOrder({
 				status: "pending",
 				user: mockUser,
@@ -206,7 +206,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should create and return order object when 'repo.create' is called with current timestamp as createdAt", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const beforeCreate = new Date();
 			const mockOrder = generateMockInsertOrder({ user: mockUser });
 
@@ -225,7 +225,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should return order object by its ID when 'repo.getById' is called with existing order ID", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder();
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id;
 
 			// Act
@@ -243,7 +243,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const orderItemsCount = 3;
 			const mockOrder = generateMockInsertOrder({ orderItemsCount });
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
 			// Act
@@ -264,7 +264,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should return order object with shipping address when 'repo.getById' is called with existing order ID", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder();
-			const createdOrder = (await Order.create(mockOrder)).toObject();
+			const createdOrder = (await OrderModel.create(mockOrder)).toObject();
 			const orderId = createdOrder._id.toString();
 
 			// Act
@@ -283,7 +283,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should return order object with payment details when 'repo.getById' is called with existing order ID", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({ status: "processing" });
-			const createdOrder = (await Order.create(mockOrder)).toObject();
+			const createdOrder = (await OrderModel.create(mockOrder)).toObject();
 			const orderId = createdOrder._id.toString();
 
 			// Act
@@ -300,7 +300,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should return order object with delivery status when 'repo.getById' is called with existing order ID", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({ status: "delivered" });
-			const createdOrder = (await Order.create(mockOrder)).toObject();
+			const createdOrder = (await OrderModel.create(mockOrder)).toObject();
 			const orderId = createdOrder._id.toString();
 
 			// Act
@@ -317,7 +317,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should return order object with payment status when 'repo.getById' is called with existing order ID", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({ status: "processing" });
-			const createdOrder = (await Order.create(mockOrder)).toObject();
+			const createdOrder = (await OrderModel.create(mockOrder)).toObject();
 			const orderId = createdOrder._id.toString();
 
 			// Act
@@ -335,7 +335,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should return order object with timestamps when 'repo.getById' is called with existing order ID", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder();
-			const createdOrder = (await Order.create(mockOrder)).toObject();
+			const createdOrder = (await OrderModel.create(mockOrder)).toObject();
 			const orderId = createdOrder._id.toString();
 
 			// Act
@@ -379,7 +379,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const ordersCount = 5;
 			const mockOrders = generateMockInsertOrders(ordersCount);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
@@ -403,7 +403,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 				user: { _id: userId, name: "Test User", email: "test@example.com" },
 			});
 			const otherOrders = generateMockInsertOrders(3);
-			await Order.insertMany([...userOrders, ...otherOrders]);
+			await OrderModel.insertMany([...userOrders, ...otherOrders]);
 
 			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
@@ -430,7 +430,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const paidOrders = generateMockInsertOrders(2, { status: "processing" });
 			const unpaidOrders = generateMockInsertOrders(3, { status: "pending" });
-			await Order.insertMany([...paidOrders, ...unpaidOrders]);
+			await OrderModel.insertMany([...paidOrders, ...unpaidOrders]);
 
 			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
@@ -457,7 +457,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const undeliveredOrders = generateMockInsertOrders(3, {
 				status: "pending",
 			});
-			await Order.insertMany([...deliveredOrders, ...undeliveredOrders]);
+			await OrderModel.insertMany([...deliveredOrders, ...undeliveredOrders]);
 
 			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
@@ -479,7 +479,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should sort orders by createdAt descending when sort parameter is provided", async () => {
 			// Arrange
 			const mockOrders = generateMockSelectOrders(3);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
@@ -502,7 +502,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should sort orders by createdAt ascending when sort parameter is provided", async () => {
 			// Arrange
 			const mockOrders = generateMockSelectOrders(3);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
@@ -607,7 +607,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should return orders with correct field projection", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({ status: "delivered" });
-			await Order.create(mockOrder);
+			await OrderModel.create(mockOrder);
 
 			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
@@ -656,7 +656,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 				status: "pending",
 				user: user,
 			});
-			await Order.insertMany([
+			await OrderModel.insertMany([
 				...paidDeliveredOrders,
 				...paidUndeliveredOrders,
 				...unpaidOrders,
@@ -692,7 +692,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			const mockOrder = generateMockInsertOrder({
 				status: "pending",
 			});
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 
 			const orderId = createdOrder._id.toString();
 			const paidAt = new Date();
@@ -734,7 +734,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should update order status to cancelled and persist to database when order exists", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({ status: "pending" });
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
 			// Act
@@ -746,7 +746,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.status, "cancelled");
 
 			// Verify in DB
-			const dbOrder = await Order.findById(orderId).lean();
+			const dbOrder = await OrderModel.findById(orderId).lean();
 			assert.strictEqual(dbOrder?.status, "cancelled");
 		});
 
@@ -772,7 +772,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 				status: "processing",
 				payment: undefined,
 			});
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 			const newPaymentId = "pay_stripe_456";
 			const provider = "stripe";
@@ -793,7 +793,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.payment?.sessionURL, sessionURL);
 
 			// Verify in DB
-			const dbOrder = await Order.findById(orderId).lean();
+			const dbOrder = await OrderModel.findById(orderId).lean();
 			assert.strictEqual(dbOrder?.payment?.sessionURL, sessionURL);
 		});
 
@@ -824,7 +824,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 					sessionURL: "https://checkout.stripe.com/c/pay/cs_123",
 				},
 			});
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 			const paymentId = "cs_456";
 
@@ -852,7 +852,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 					sessionURL: "https://checkout.stripe.com/c/pay/cs_123",
 				},
 			});
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
 			// Act
@@ -880,7 +880,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 					sessionURL: oldSessionURL,
 				},
 			});
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 			const newSessionURL = "https://checkout.stripe.com/c/pay/cs_new";
 
@@ -903,7 +903,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 				status: "pending",
 				payment: undefined,
 			});
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 			const paymentId = "pay_added_789";
 			const provider = "stripe";

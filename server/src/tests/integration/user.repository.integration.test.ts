@@ -9,7 +9,7 @@ import {
 	DatabaseDuplicateKeyError,
 	DatabaseValidationError,
 } from "../../errors/index.js";
-import User from "../../models/user.model.js";
+import { UserModel } from "../../models/user.model.js";
 import { UserRepository } from "../../repositories/index.js";
 import {
 	generateMockInsertUser,
@@ -27,7 +27,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 	before(async () => connectTestDatabase());
 	after(async () => disconnectTestDatabase());
-	beforeEach(async () => await User.deleteMany({}));
+	beforeEach(async () => await UserModel.deleteMany({}));
 
 	describe("create", () => {
 		test("Should return 'success result' with 'new user' when user is created successfully", async () => {
@@ -164,7 +164,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			const expectedResult = mockUsers
 				.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
 				.slice(2, 4);
-			await User.insertMany(mockUsers);
+			await UserModel.insertMany(mockUsers);
 
 			// Act
 			const result = await repo.getAll({
@@ -201,7 +201,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 				count: 2,
 				options: { isAdmin: false },
 			});
-			await User.insertMany([...adminUsers, ...regularUsers]);
+			await UserModel.insertMany([...adminUsers, ...regularUsers]);
 
 			// Act
 			const result = await repo.getAll({
@@ -221,7 +221,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			const users = generateMockSelectUsers({ count: 10 }).map(
 				(user, index) => ({ ...user, createdAt: new Date(2026, 0, index + 1) }),
 			);
-			await User.insertMany(users);
+			await UserModel.insertMany(users);
 
 			// Act
 			const result = await repo.getAll({
@@ -251,7 +251,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 				email: "filterme@example.com",
 			});
 			const other = generateMockInsertUsers({ count: 5 });
-			await User.insertMany([target, ...other]);
+			await UserModel.insertMany([target, ...other]);
 
 			// Act
 			const result = await repo.getAll({
@@ -273,7 +273,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const target = generateMockInsertUser();
 			const other = generateMockInsertUsers({ count: 5 });
-			await User.insertMany([target, ...other]);
+			await UserModel.insertMany([target, ...other]);
 
 			// Act
 			const result = await repo.getAll({
@@ -290,7 +290,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should return only selected fields when select is provided", async () => {
 			// Arrange
-			await User.create(generateMockInsertUser());
+			await UserModel.create(generateMockInsertUser());
 
 			// Act
 			const result = await repo.getAll({
@@ -315,7 +315,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 		test("Should return 'success result' with 'user object' when user is found by ID", async () => {
 			// Arrange
 			const mockUser = generateMockInsertUser();
-			const user = await User.create(mockUser);
+			const user = await UserModel.create(mockUser);
 
 			// Act
 			const result = await repo.getById({ userId: user._id });
@@ -356,7 +356,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 		test("Should return 'success result' with 'user object' when user is found by email", async () => {
 			// Arrange
 			const mockUser = generateMockInsertUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 
 			// Act
 			const result = await repo.getByEmail({
@@ -389,7 +389,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			const mockUser = generateMockInsertUser({
 				email: "test+label@example.com",
 			});
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 
 			// Act
 			const result = await repo.getByEmail({
@@ -407,7 +407,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 		test("Should return 'success result' with 'updated user' when user data is updated", async () => {
 			// Arrange
 			const mockUser = generateMockInsertUser();
-			const user = await User.create(mockUser);
+			const user = await UserModel.create(mockUser);
 			const updateData = {
 				email: "updated@example.com",
 				name: "Updated Name",
@@ -429,7 +429,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 		test("Should return 'success result' with 'partially updated user' when only some fields are updated", async () => {
 			// Arrange
 			const mockUser = generateMockInsertUser();
-			const user = await User.create(mockUser);
+			const user = await UserModel.create(mockUser);
 			const updateData = { name: "Updated Name" };
 
 			// Act
@@ -449,7 +449,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			t.mock.timers.enable({ apis: ["Date"], now: new Date() });
 			const mockUser = generateMockInsertUser();
-			const user = await User.create(mockUser);
+			const user = await UserModel.create(mockUser);
 			const originalUpdatedAt = user.updatedAt;
 
 			t.mock.timers.tick(100);
@@ -507,11 +507,11 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 		test("Should return 'success result' with 'deleted user' when user is deleted successfully", async () => {
 			// Arrange
 			const mockUser = generateMockInsertUser();
-			const user = await User.create(mockUser);
+			const user = await UserModel.create(mockUser);
 
 			// Act
 			const result = await repo.delete({ userId: user._id });
-			const foundUser = await User.findById(user._id);
+			const foundUser = await UserModel.findById(user._id);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -549,7 +549,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 		test("Should return 'success result' with 'userId' when user exists by email", async () => {
 			// Arrange
 			const mockUser = generateMockInsertUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 
 			// Act
 			const result = await repo.existsByEmail({
@@ -577,7 +577,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			const mockUser = generateMockInsertUser({
 				email: "test+label@example.com",
 			});
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 
 			// Act
 			const result = await repo.existsByEmail({

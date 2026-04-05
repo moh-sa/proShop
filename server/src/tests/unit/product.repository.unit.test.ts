@@ -12,7 +12,7 @@ import {
 	DatabaseValidationError,
 	GenericDatabaseError,
 } from "../../errors/index.js";
-import Product from "../../models/product.model.js";
+import { ProductModel } from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { Paginator } from "../../utils/paginator.util.js";
 import {
@@ -29,7 +29,7 @@ import {
 suite("Product Repository 〖 Unit Tests 〗", () => {
 	const mockCache = mockCacheService();
 	const repo = new ProductRepository(
-		Product,
+		ProductModel,
 		mockCache as unknown as CacheService,
 	);
 
@@ -46,7 +46,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return product object when 'db.create' is called once with product data", async () => {
 			// Arrange
-			const mockCreate = mock.method(Product, "create", async () => ({
+			const mockCreate = mock.method(ProductModel, "create", async () => ({
 				toObject: () => mockSelectProduct,
 			}));
 
@@ -70,7 +70,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return product object when 'cache.get' is called once and returns 'true'", async () => {
 			// Arrange
-			mock.method(Product, "create", async () => ({
+			mock.method(ProductModel, "create", async () => ({
 				toObject: () => mockSelectProduct,
 			}));
 
@@ -91,7 +91,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Product, "create", () => {
+			t.mock.method(ProductModel, "create", () => {
 				throw validationError;
 			});
 
@@ -109,7 +109,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Product, "create", () => {
+			t.mock.method(ProductModel, "create", () => {
 				throw timeoutError;
 			});
 
@@ -125,7 +125,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Product, "create", () => {
+			t.mock.method(ProductModel, "create", () => {
 				throw queryError;
 			});
 
@@ -141,7 +141,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Product, "create", () => {
+			t.mock.method(ProductModel, "create", () => {
 				throw networkError;
 			});
 
@@ -157,7 +157,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Product, "create", () => {
+			t.mock.method(ProductModel, "create", () => {
 				throw unknownError;
 			});
 
@@ -490,7 +490,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				instance: mockCache,
 			});
 
-			const mockFindById = t.mock.method(Product, "findById", () => ({
+			const mockFindById = t.mock.method(ProductModel, "findById", () => ({
 				lean: () => mockProduct,
 			}));
 
@@ -515,7 +515,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				instance: mockCache,
 			});
 
-			t.mock.method(Product, "findById", () => ({
+			t.mock.method(ProductModel, "findById", () => ({
 				lean: () => mockProduct,
 			}));
 
@@ -555,7 +555,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			mockCacheMiss({ instance: mockCache });
 
-			const mockFindById = t.mock.method(Product, "findById", () => ({
+			const mockFindById = t.mock.method(ProductModel, "findById", () => ({
 				lean: () => null,
 			}));
 
@@ -577,7 +577,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Product, "findById", () => {
+			t.mock.method(ProductModel, "findById", () => {
 				throw validationError;
 			});
 
@@ -597,7 +597,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Product, "findById", () => {
+			t.mock.method(ProductModel, "findById", () => {
 				throw timeoutError;
 			});
 
@@ -615,7 +615,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Product, "findById", () => {
+			t.mock.method(ProductModel, "findById", () => {
 				throw queryError;
 			});
 
@@ -633,7 +633,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Product, "findById", () => {
+			t.mock.method(ProductModel, "findById", () => {
 				throw networkError;
 			});
 
@@ -651,7 +651,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Product, "findById", () => {
+			t.mock.method(ProductModel, "findById", () => {
 				throw unknownError;
 			});
 
@@ -677,7 +677,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				instance: mockCache,
 			});
 
-			const mockFind = t.mock.method(Product, "find", () => ({
+			const mockFind = t.mock.method(ProductModel, "find", () => ({
 				select: () => ({
 					sort: () => ({
 						limit: () => ({
@@ -706,7 +706,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				instance: mockCache,
 			});
 
-			t.mock.method(Product, "find", () => ({
+			t.mock.method(ProductModel, "find", () => ({
 				select: () => ({
 					sort: () => ({
 						limit: () => ({
@@ -753,7 +753,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			mockCacheMiss({ instance: mockCache });
 
-			t.mock.method(Product, "find", () => ({
+			t.mock.method(ProductModel, "find", () => ({
 				select: () => ({
 					sort: () => ({
 						limit: () => ({
@@ -777,7 +777,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Product, "find", () => {
+			t.mock.method(ProductModel, "find", () => {
 				throw validationError;
 			});
 
@@ -797,7 +797,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Product, "find", () => {
+			t.mock.method(ProductModel, "find", () => {
 				throw timeoutError;
 			});
 
@@ -815,7 +815,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Product, "find", () => {
+			t.mock.method(ProductModel, "find", () => {
 				throw queryError;
 			});
 
@@ -833,7 +833,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Product, "find", () => {
+			t.mock.method(ProductModel, "find", () => {
 				throw networkError;
 			});
 
@@ -851,7 +851,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Product, "find", () => {
+			t.mock.method(ProductModel, "find", () => {
 				throw unknownError;
 			});
 
@@ -884,7 +884,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			});
 
 			const mockFindByIdAndUpdate = t.mock.method(
-				Product,
+				ProductModel,
 				"findByIdAndUpdate",
 				() => ({
 					lean: () => expectedResult,
@@ -920,7 +920,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				instance: mockCache,
 			});
 
-			t.mock.method(Product, "findByIdAndUpdate", () => ({
+			t.mock.method(ProductModel, "findByIdAndUpdate", () => ({
 				lean: () => expectedResult,
 			}));
 
@@ -940,7 +940,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.findByIdAndUpdate' returns 'null'", async (t) => {
 			// Arrange
-			t.mock.method(Product, "findByIdAndUpdate", () => ({
+			t.mock.method(ProductModel, "findByIdAndUpdate", () => ({
 				lean: () => null,
 			}));
 
@@ -959,7 +959,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Product, "findByIdAndUpdate", () => {
+			t.mock.method(ProductModel, "findByIdAndUpdate", () => {
 				throw validationError;
 			});
 
@@ -980,7 +980,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Product, "findByIdAndUpdate", () => {
+			t.mock.method(ProductModel, "findByIdAndUpdate", () => {
 				throw timeoutError;
 			});
 
@@ -999,7 +999,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Product, "findByIdAndUpdate", () => {
+			t.mock.method(ProductModel, "findByIdAndUpdate", () => {
 				throw queryError;
 			});
 
@@ -1018,7 +1018,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Product, "findByIdAndUpdate", () => {
+			t.mock.method(ProductModel, "findByIdAndUpdate", () => {
 				throw networkError;
 			});
 
@@ -1037,7 +1037,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Product, "findByIdAndUpdate", () => {
+			t.mock.method(ProductModel, "findByIdAndUpdate", () => {
 				throw unknownError;
 			});
 
@@ -1067,7 +1067,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			});
 
 			const mockFindByIdAndDelete = t.mock.method(
-				Product,
+				ProductModel,
 				"findByIdAndDelete",
 				() => ({
 					lean: () => mockProduct,
@@ -1096,7 +1096,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				instance: mockCache,
 			});
 
-			t.mock.method(Product, "findByIdAndDelete", () => ({
+			t.mock.method(ProductModel, "findByIdAndDelete", () => ({
 				lean: () => mockProduct,
 			}));
 
@@ -1113,7 +1113,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.findByIdAndDelete' returns 'null'", async (t) => {
 			// Arrange
-			t.mock.method(Product, "findByIdAndDelete", () => ({
+			t.mock.method(ProductModel, "findByIdAndDelete", () => ({
 				lean: async () => null,
 			}));
 
@@ -1128,7 +1128,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Product, "findByIdAndDelete", () => {
+			t.mock.method(ProductModel, "findByIdAndDelete", () => {
 				throw validationError;
 			});
 
@@ -1146,7 +1146,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Product, "findByIdAndDelete", () => {
+			t.mock.method(ProductModel, "findByIdAndDelete", () => {
 				throw timeoutError;
 			});
 
@@ -1162,7 +1162,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Product, "findByIdAndDelete", () => {
+			t.mock.method(ProductModel, "findByIdAndDelete", () => {
 				throw queryError;
 			});
 
@@ -1178,7 +1178,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Product, "findByIdAndDelete", () => {
+			t.mock.method(ProductModel, "findByIdAndDelete", () => {
 				throw networkError;
 			});
 
@@ -1194,7 +1194,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Product, "findByIdAndDelete", () => {
+			t.mock.method(ProductModel, "findByIdAndDelete", () => {
 				throw unknownError;
 			});
 
@@ -1213,7 +1213,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			const mockCount = 10;
 
 			const mockCountDocuments = t.mock.method(
-				Product,
+				ProductModel,
 				"countDocuments",
 				() => ({
 					lean: () => mockCount,
@@ -1236,7 +1236,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockCount = 0;
 
-			t.mock.method(Product, "countDocuments", () => ({
+			t.mock.method(ProductModel, "countDocuments", () => ({
 				lean: () => mockCount,
 			}));
 
@@ -1252,7 +1252,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Product, "countDocuments", () => {
+			t.mock.method(ProductModel, "countDocuments", () => {
 				throw validationError;
 			});
 
@@ -1270,7 +1270,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Product, "countDocuments", () => {
+			t.mock.method(ProductModel, "countDocuments", () => {
 				throw timeoutError;
 			});
 
@@ -1286,7 +1286,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Product, "countDocuments", () => {
+			t.mock.method(ProductModel, "countDocuments", () => {
 				throw queryError;
 			});
 
@@ -1302,7 +1302,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Product, "countDocuments", () => {
+			t.mock.method(ProductModel, "countDocuments", () => {
 				throw networkError;
 			});
 
@@ -1318,7 +1318,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Product, "countDocuments", () => {
+			t.mock.method(ProductModel, "countDocuments", () => {
 				throw unknownError;
 			});
 

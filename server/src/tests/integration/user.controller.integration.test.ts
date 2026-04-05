@@ -2,7 +2,7 @@ import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 
 import { UserController } from "../../controllers/index.js";
-import User from "../../models/user.model.js";
+import { UserModel } from "../../models/user.model.js";
 import {
 	generateMockInsertUsers,
 	generateMockObjectId,
@@ -19,14 +19,14 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 	before(async () => await connectTestDatabase());
 	after(async () => await disconnectTestDatabase());
-	beforeEach(async () => await User.deleteMany({}));
+	beforeEach(async () => await UserModel.deleteMany({}));
 
 	describe("getAll", () => {
 		test("Should return success response when 'service.getAll' is called successfully", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUsers = generateMockInsertUsers({ count: 3 });
-			await User.insertMany(mockUsers);
+			await UserModel.insertMany(mockUsers);
 
 			req.query = { pageNumber: "1" };
 
@@ -61,7 +61,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUsers = generateMockInsertUsers({ count: 3 });
-			await User.insertMany(mockUsers);
+			await UserModel.insertMany(mockUsers);
 
 			req.query = { pageNumber: "1" };
 
@@ -76,7 +76,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUsers = generateMockInsertUsers({ count: 3 });
-			await User.insertMany(mockUsers);
+			await UserModel.insertMany(mockUsers);
 
 			req.query = { pageNumber: "1" };
 
@@ -98,7 +98,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUsers = generateMockInsertUsers({ count: 3 });
-			await User.insertMany(mockUsers);
+			await UserModel.insertMany(mockUsers);
 
 			req.query = { pageNumber: "1" };
 
@@ -125,7 +125,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser._id.toString();
 
-			await User.insertMany([mockUser]);
+			await UserModel.insertMany([mockUser]);
 			req.params = { userId };
 
 			// Act
@@ -143,7 +143,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser();
-			await User.insertMany([mockUser]);
+			await UserModel.insertMany([mockUser]);
 			res.locals = {
 				review: {
 					_id: generateMockObjectId(),
@@ -196,7 +196,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser();
-			await User.insertMany([mockUser]);
+			await UserModel.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 
 			// Act
@@ -210,7 +210,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser();
-			await User.insertMany([mockUser]);
+			await UserModel.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 
 			// Act
@@ -228,7 +228,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser({ isAdmin: true });
-			await User.insertMany([mockUser]);
+			await UserModel.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 
 			// Act
@@ -249,7 +249,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser();
-			await User.insertMany([mockUser]);
+			await UserModel.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 			req.body = { name: "Updated Name" };
 
@@ -268,7 +268,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser();
-			await User.insertMany([mockUser]);
+			await UserModel.insertMany([mockUser]);
 			res.locals = {
 				review: {
 					_id: generateMockObjectId(),
@@ -323,7 +323,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser();
-			await User.insertMany([mockUser]);
+			await UserModel.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 			req.body = { name: "Updated Name" };
 
@@ -339,7 +339,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser();
 			const originalEmail = mockUser.email;
-			await User.insertMany([mockUser]);
+			await UserModel.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 			req.body = { name: "Updated Name" };
 
@@ -356,7 +356,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser();
-			await User.insertMany([mockUser]);
+			await UserModel.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 			req.body = { name: "Updated Name" };
 
@@ -376,7 +376,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser();
 			const originalData = { ...mockUser };
-			await User.insertMany([mockUser]);
+			await UserModel.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 			req.body = { name: "Updated Name" };
 
@@ -396,7 +396,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser();
-			await User.insertMany([mockUser]);
+			await UserModel.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 
 			// Act
@@ -413,7 +413,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser();
-			await User.insertMany([mockUser]);
+			await UserModel.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 
 			// Act
@@ -445,14 +445,14 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockSelectUser();
-			await User.insertMany([mockUser]);
+			await UserModel.insertMany([mockUser]);
 			req.params = { userId: mockUser._id.toString() };
 
 			// Act
 			await controller.delete(req, res, next);
 
 			// Assert
-			const deletedUser = await User.findById(mockUser._id);
+			const deletedUser = await UserModel.findById(mockUser._id);
 			assert.equal(deletedUser, null, "User should be removed from database");
 		});
 	});

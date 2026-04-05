@@ -1,7 +1,7 @@
 import { after, before, beforeEach, describe, suite } from "node:test";
 
-import { Session } from "../../models/session.model.js";
-import User from "../../models/user.model.js";
+import { SessionModel } from "../../models/session.model.js";
+import { UserModel } from "../../models/user.model.js";
 import { SessionService } from "../../services/session.service.js";
 import { mockSessionRepository } from "../mocks/session-repository.mock.js";
 import {
@@ -18,8 +18,8 @@ suite("Session Service 〖 Integration Tests 〗", { todo: "IMPLEMENT" }, () => 
 	beforeEach(() => mockRepo.reset());
 
 	beforeEach(async () => {
-		await Session.deleteMany({});
-		await User.deleteMany({});
+		await SessionModel.deleteMany({});
+		await UserModel.deleteMany({});
 	});
 
 	// I AM TIRED BOSS :')

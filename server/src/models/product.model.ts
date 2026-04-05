@@ -78,6 +78,4 @@ productSchema.index({ createdAt: -1 }, { name: "product_created_desc" });
 productSchema.index({ rating: -1 }, { name: "product_rating_desc" });
 
 // Model
-const Product = model<ProductSchema>("Product", productSchema);
-
-export default Product;
+export const ProductModel = model<ProductSchema>("Product", productSchema);

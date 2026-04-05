@@ -17,10 +17,10 @@ import {
 	checkUserExists,
 	verifyReviewOwnership,
 } from "../../middlewares/index.js";
-import Product from "../../models/product.model.js";
-import Review from "../../models/review.model.js";
-import { Session } from "../../models/session.model.js";
-import User from "../../models/user.model.js";
+import { ProductModel } from "../../models/product.model.js";
+import { ReviewModel } from "../../models/review.model.js";
+import { SessionModel } from "../../models/session.model.js";
+import { UserModel } from "../../models/user.model.js";
 import { JwtService } from "../../services/index.js";
 import {
 	generateMockInsertProductWithStringImage,
@@ -40,21 +40,21 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 	before(async () => await connectTestDatabase());
 	after(async () => await disconnectTestDatabase());
 	beforeEach(async () => {
-		await User.deleteMany({});
-		await Session.deleteMany({});
-		await Review.deleteMany({});
+		await UserModel.deleteMany({});
+		await SessionModel.deleteMany({});
+		await ReviewModel.deleteMany({});
 	});
 
 	describe("checkProductReviewedByUser", () => {
 		test("Should throw ConflictError when review exists for user and product", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const user = await User.create(generateMockInsertUser());
-			const product = await Product.create({
+			const user = await UserModel.create(generateMockInsertUser());
+			const product = await ProductModel.create({
 				...generateMockInsertProductWithStringImage(),
 				user: user._id,
 			});
-			await Review.create({
+			await ReviewModel.create({
 				...generateMockInsertReview(),
 				product: product._id,
 				user: user._id,
@@ -73,9 +73,12 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		test("Should not throw when review does not exist", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const user = await User.create(generateMockInsertUser());
+			const user = await UserModel.create(generateMockInsertUser());
 			const productData = generateMockInsertProductWithStringImage();
-			const product = await Product.create({ ...productData, user: user._id });
+			const product = await ProductModel.create({
+				...productData,
+				user: user._id,
+			});
 
 			res.locals.user = user;
 			req.params.productId = product._id.toString();
@@ -89,7 +92,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		test("Should throw ValidationError when productId is invalid", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const user = await User.create(generateMockInsertUser());
+			const user = await UserModel.create(generateMockInsertUser());
 
 			res.locals.user = user;
 			req.params.productId = "invalid";
@@ -119,7 +122,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockInsertUser();
-			const user = await User.create(mockUser);
+			const user = await UserModel.create(mockUser);
 
 			res.locals.userId = user._id.toString();
 
@@ -134,7 +137,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const mockUser = generateMockInsertUser();
-			const user = await User.create(mockUser);
+			const user = await UserModel.create(mockUser);
 
 			res.locals.userId = user._id.toString();
 
@@ -216,7 +219,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			res.locals.user = mockUser;
 
 			const mockReview = generateMockSelectReview();
-			const created = await Review.create({
+			const created = await ReviewModel.create({
 				...mockReview,
 				user: mockUser._id,
 			});
@@ -235,7 +238,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			res.locals.user = mockUser;
 
 			const mockReview = generateMockSelectReview();
-			const created = await Review.create({ ...mockReview });
+			const created = await ReviewModel.create({ ...mockReview });
 			req.params.reviewId = created._id.toString();
 
 			// Act & Assert
@@ -251,7 +254,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			res.locals.user = mockUser;
 
 			const mockReview = generateMockSelectReview();
-			const created = await Review.create({ ...mockReview });
+			const created = await ReviewModel.create({ ...mockReview });
 			req.params.reviewId = created._id.toString();
 
 			// Act & Assert
@@ -357,7 +360,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			const userId = generateMockObjectId().toString();
 			const refresh = jwtService.generateRefreshToken({ userId });
 			assert.ok(refresh.success);
-			await Session.create({
+			await SessionModel.create({
 				expiresAt: new Date(Date.now() + 60_000),
 				tokenId: refresh.data.tokenId,
 				userId,

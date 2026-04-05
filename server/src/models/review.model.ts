@@ -4,7 +4,7 @@ import { model, Schema } from "mongoose";
 
 import type { ReviewSchema } from "../types/index.js";
 
-import Product from "./product.model.js";
+import { ProductModel } from "./product.model.js";
 
 const reviewSchema = new Schema<ReviewSchema>(
 	{
@@ -41,7 +41,7 @@ reviewSchema.index({ product: 1, user: 1 }, { unique: true });
 
 // Update product 'rating' and 'numReviews' after review is saved or updated
 async function updateProductRating(productId: Types.ObjectId) {
-	const newStats = await Review.aggregate([
+	const newStats = await ReviewModel.aggregate([
 		{ $match: { product: productId } },
 		{
 			$group: {
@@ -52,7 +52,7 @@ async function updateProductRating(productId: Types.ObjectId) {
 		},
 	]);
 
-	await Product.findByIdAndUpdate(productId, {
+	await ProductModel.findByIdAndUpdate(productId, {
 		numReviews: newStats.length > 0 ? newStats[0].numReviews : 0,
 		rating: newStats.length > 0 ? newStats[0].rating.toFixed(1) : 0,
 	});
@@ -71,5 +71,4 @@ reviewSchema.post(
 	},
 );
 
-const Review = model("Review", reviewSchema);
-export default Review;
+export const ReviewModel = model("Review", reviewSchema);

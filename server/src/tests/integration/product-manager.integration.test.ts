@@ -3,7 +3,7 @@ import test, { after, before, beforeEach, describe, suite } from "node:test";
 
 import { ValidationError } from "../../errors/index.js";
 import { ProductManager } from "../../managers/product.manager.js";
-import Product from "../../models/product.model.js";
+import { ProductModel } from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { CacheService, ProductService } from "../../services/index.js";
 import type { GetAllProductsManagerParams } from "../../types/index.js";
@@ -25,18 +25,18 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 	before(async () => {
 		await connectTestDatabase();
 		cacheService = new CacheService("product");
-		productRepository = new ProductRepository(Product, cacheService);
+		productRepository = new ProductRepository(ProductModel, cacheService);
 		productService = new ProductService(productRepository);
 		productManager = new ProductManager(productService, mockImageSvc);
 	});
 
 	after(async () => {
-		await Product.deleteMany({});
+		await ProductModel.deleteMany({});
 		await disconnectTestDatabase();
 	});
 
 	beforeEach(async () => {
-		await Product.deleteMany({});
+		await ProductModel.deleteMany({});
 		cacheService.flush();
 		mockImageSvc.reset();
 	});
@@ -84,7 +84,7 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof ValidationError);
 
-			const productCount = await Product.countDocuments();
+			const productCount = await ProductModel.countDocuments();
 			assert.strictEqual(productCount, 0);
 		});
 
@@ -103,7 +103,7 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.success, false);
 			assert.strictEqual(result.error, uploadError);
 
-			const productCount = await Product.countDocuments();
+			const productCount = await ProductModel.countDocuments();
 			assert.strictEqual(productCount, 0);
 		});
 	});
@@ -112,7 +112,7 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 		test("should delete product and its image when product exists", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
-			await Product.create(mockProduct);
+			await ProductModel.create(mockProduct);
 			mockImageSvc.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: undefined, success: true }),
 			);
@@ -125,7 +125,7 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 
-			const deletedProduct = await Product.findById(mockProduct._id);
+			const deletedProduct = await ProductModel.findById(mockProduct._id);
 			assert.strictEqual(deletedProduct, null);
 
 			assert.strictEqual(mockImageSvc.delete.mock.callCount(), 1);
@@ -150,7 +150,7 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 		test("should return error when image deletion fails", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
-			await Product.create(mockProduct);
+			await ProductModel.create(mockProduct);
 			const deleteError = new Error("Cloudinary deletion failed");
 			mockImageSvc.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ error: deleteError, success: false }),
@@ -165,7 +165,7 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.success, false);
 			assert.strictEqual(result.error, deleteError);
 
-			const stillExists = await Product.findById(mockProduct._id);
+			const stillExists = await ProductModel.findById(mockProduct._id);
 			assert.strictEqual(stillExists, null);
 		});
 	});
@@ -175,7 +175,7 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
 			const originalImage = mockProduct.image;
-			await Product.create(mockProduct);
+			await ProductModel.create(mockProduct);
 			const updateData = {
 				name: "Updated Product Name",
 				price: 999,
@@ -195,7 +195,7 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 
 			assert.strictEqual(mockImageSvc.replace.mock.callCount(), 0);
 
-			const updatedProduct = await Product.findById(mockProduct._id);
+			const updatedProduct = await ProductModel.findById(mockProduct._id);
 			assert.ok(updatedProduct);
 			assert.strictEqual(updatedProduct.name, updateData.name);
 			assert.strictEqual(updatedProduct.price, updateData.price);
@@ -206,7 +206,7 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
 			const originalImage = mockProduct.image;
-			await Product.create(mockProduct);
+			await ProductModel.create(mockProduct);
 			const newImageFile = generateMockInsertProductWithMulterImage().image;
 			const newImageUrl = "https://cloudinary.com/proshop/new-image.avif";
 			const updateData = {
@@ -239,7 +239,7 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 				originalImage,
 			);
 
-			const updatedProduct = await Product.findById(mockProduct._id);
+			const updatedProduct = await ProductModel.findById(mockProduct._id);
 			assert.ok(updatedProduct);
 			assert.strictEqual(updatedProduct.name, updateData.name);
 			assert.strictEqual(updatedProduct.image, newImageUrl);
@@ -263,7 +263,7 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 		test("should return error when image replacement fails", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
-			await Product.create(mockProduct);
+			await ProductModel.create(mockProduct);
 			const newImageFile = generateMockInsertProductWithMulterImage().image;
 			const replaceError = new Error("Cloudinary replace failed");
 			const updateData = { image: newImageFile };
@@ -291,7 +291,7 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 				generateMockSelectProduct(),
 				generateMockSelectProduct(),
 			];
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const args: GetAllProductsManagerParams = {
@@ -311,7 +311,7 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 		test("should delegate to product service and return result", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
-			await Product.create(mockProduct);
+			await ProductModel.create(mockProduct);
 
 			// Act
 			const result = await productManager.getById({
@@ -334,7 +334,7 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 				{ ...generateMockSelectProduct(), rating: 4.5 },
 				{ ...generateMockSelectProduct(), rating: 4.8 },
 			];
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productManager.getTopRated();

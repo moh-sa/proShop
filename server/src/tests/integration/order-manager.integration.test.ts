@@ -3,8 +3,8 @@ import test, { after, before, beforeEach, describe, suite } from "node:test";
 
 import { NotFoundError } from "../../errors/index.js";
 import { OrderManager } from "../../managers/order.manager.js";
-import Order from "../../models/order.model.js";
-import User from "../../models/user.model.js";
+import { OrderModel } from "../../models/order.model.js";
+import { UserModel } from "../../models/user.model.js";
 import { OrderService } from "../../services/index.js";
 import { GetAllOrdersServiceParams } from "../../types/order.type.js";
 import {
@@ -32,15 +32,15 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 	});
 
 	beforeEach(async () => {
-		await Order.deleteMany({});
-		await User.deleteMany({});
+		await OrderModel.deleteMany({});
+		await UserModel.deleteMany({});
 		mockPayment.reset();
 	});
 
 	describe("create", () => {
 		test("should store order in database and return checkout URL", async () => {
 			// Arrange
-			const mockUser = await User.create(generateMockInsertUser());
+			const mockUser = await UserModel.create(generateMockInsertUser());
 			const mockOrder = generateMockInsertOrder({
 				orderItemsCount: 2,
 				user: mockUser,
@@ -67,14 +67,14 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			);
 
 			// Verify order was persisted in DB
-			const order = await Order.findById(result.data.order._id);
+			const order = await OrderModel.findById(result.data.order._id);
 			assert.strictEqual(order !== null, true);
 			assert.strictEqual(order?.totalPrice, mockOrder.totalPrice);
 		});
 
 		test("should transform order items to Stripe checkout line items", async () => {
 			// Arrange
-			const mockUser = await User.create(generateMockInsertUser());
+			const mockUser = await UserModel.create(generateMockInsertUser());
 			const mockOrder = generateMockInsertOrder({
 				orderItemsCount: 3,
 				user: mockUser,
@@ -134,7 +134,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 
-			const order = await Order.findById(result.data.order._id);
+			const order = await OrderModel.findById(result.data.order._id);
 			assert.strictEqual(order !== null, true);
 			assert.strictEqual(order?.payment?.id, mockCheckoutResponse.id);
 			assert.strictEqual(order?.payment?.provider, "stripe");
@@ -146,7 +146,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 		test("should return paginated orders from the order service", async () => {
 			// Arrange
 			const mockOrders = generateMockInsertOrders(3);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const args: GetAllOrdersServiceParams = {
 				pageNumber: "1",
@@ -168,7 +168,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 		test("should return order by id from the order service", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder();
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
 			// Act
@@ -200,7 +200,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.error, verifyError);
 
 			// Verify no data stored in database
-			const orders = await Order.find({});
+			const orders = await OrderModel.find({});
 			assert.strictEqual(orders.length, 0);
 		});
 
@@ -209,7 +209,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			const mockWebhookParams = generateMockVerifyWebhookParams();
 			const mockPaidAt = new Date();
 			const mockOrder = generateMockInsertOrder({ status: "pending" });
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
 			mockPayment.verifyWebhook.mock.mockImplementationOnce(() => ({
@@ -230,7 +230,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.data, undefined);
 
 			// Verify status and paidAt were updated in DB
-			const order = await Order.findById(orderId);
+			const order = await OrderModel.findById(orderId);
 			assert.ok(order);
 			assert.strictEqual(order.status, "processing");
 
@@ -265,7 +265,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockWebhookParams = generateMockVerifyWebhookParams();
 			const mockOrder = generateMockInsertOrder({ status: "pending" });
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
 			mockPayment.verifyWebhook.mock.mockImplementationOnce(() => ({
@@ -286,7 +286,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.data, undefined);
 
 			// Verify order was updated to cancelled in DB
-			const order = await Order.findById(orderId);
+			const order = await OrderModel.findById(orderId);
 			assert.strictEqual(order !== null, true);
 			assert.strictEqual(order?.status, "cancelled");
 		});
@@ -318,7 +318,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockWebhookParams = generateMockVerifyWebhookParams();
 			const mockOrder = generateMockInsertOrder({ status: "pending" });
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
 			mockPayment.verifyWebhook.mock.mockImplementationOnce(() => ({
@@ -339,7 +339,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.data, undefined);
 
 			// Verify order was NOT updated in DB
-			const unchangedOrder = await Order.findById(orderId);
+			const unchangedOrder = await OrderModel.findById(orderId);
 			assert.strictEqual(unchangedOrder !== null, true);
 			assert.strictEqual(unchangedOrder?.status, "pending");
 		});
@@ -349,7 +349,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 		test("Should update payment through manager", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({ status: "processing" });
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
 			const paymentId = "cs_123";
@@ -371,7 +371,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.data.payment?.sessionURL, sessionURL);
 
 			// Verify in DB
-			const order = await Order.findById(orderId);
+			const order = await OrderModel.findById(orderId);
 			assert.strictEqual(order !== null, true);
 			assert.strictEqual(order?.payment?.id, paymentId);
 			assert.strictEqual(order?.payment?.provider, paymentProvider);

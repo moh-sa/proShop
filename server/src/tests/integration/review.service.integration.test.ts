@@ -8,9 +8,9 @@ import {
 	NotFoundError,
 	ValidationError,
 } from "../../errors/index.js";
-import Product from "../../models/product.model.js";
-import Review from "../../models/review.model.js";
-import User from "../../models/user.model.js";
+import { ProductModel } from "../../models/product.model.js";
+import { ReviewModel } from "../../models/review.model.js";
+import { UserModel } from "../../models/user.model.js";
 import { ReviewService } from "../../services/review.service.js";
 import {
 	generateMockInsertProductWithStringImage,
@@ -37,9 +37,9 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 	before(async () => connectTestDatabase());
 	after(async () => disconnectTestDatabase());
 	beforeEach(async () => {
-		await Review.deleteMany({});
-		await Product.deleteMany({});
-		await User.deleteMany({});
+		await ReviewModel.deleteMany({});
+		await ProductModel.deleteMany({});
+		await UserModel.deleteMany({});
 	});
 
 	describe("create", () => {
@@ -68,7 +68,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should update product 'rating' and 'numReviews' when 'repo.create' is called with valid review data", async () => {
 			// Arrange
 			const mockProduct = generateMockInsertProductWithStringImage();
-			const product = await Product.create(mockProduct);
+			const product = await ProductModel.create(mockProduct);
 			const mockReview = generateMockInsertReview({ product: product._id });
 
 			// Act
@@ -77,7 +77,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 
-			const updatedProduct = await Product.findById(product._id);
+			const updatedProduct = await ProductModel.findById(product._id);
 			assert.ok(updatedProduct);
 			assert.strictEqual(updatedProduct.rating, mockReview.rating);
 			assert.strictEqual(updatedProduct.numReviews, 1);
@@ -90,7 +90,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 				count: 3,
 				options: { product: mockProduct._id },
 			});
-			await Product.create(mockProduct);
+			await ProductModel.create(mockProduct);
 
 			// Act
 			const results = await Promise.all(
@@ -100,7 +100,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Assert
 			results.forEach((result) => assert.strictEqual(result.success, true));
 
-			const updatedProduct = await Product.findById(mockProduct._id);
+			const updatedProduct = await ProductModel.findById(mockProduct._id);
 			assert.ok(updatedProduct);
 			assert.strictEqual(updatedProduct.numReviews, mockReviews.length);
 			assert.strictEqual(
@@ -244,7 +244,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return paginated reviews when 'repo.getAll' is called with multiple reviews in database", async () => {
 			// Arrange
 			const mockReviews = generateMockInsertReviews({ count: 3 });
-			await Review.insertMany(mockReviews);
+			await ReviewModel.insertMany(mockReviews);
 
 			// Act
 			const result = await reviewService.getAll({
@@ -303,7 +303,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return paginated reviews with correct pagination when 'repo.getAll' is called with pageSize", async () => {
 			// Arrange
 			const mockReviews = generateMockInsertReviews({ count: 15 });
-			await Review.insertMany(mockReviews);
+			await ReviewModel.insertMany(mockReviews);
 
 			// Act
 			const result = await reviewService.getAll({
@@ -328,7 +328,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return second page of reviews when 'repo.getAll' is called with pageNumber 2", async () => {
 			// Arrange
 			const mockReviews = generateMockInsertReviews({ count: 15 });
-			await Review.insertMany(mockReviews);
+			await ReviewModel.insertMany(mockReviews);
 
 			// Act
 			const result = await reviewService.getAll({
@@ -376,7 +376,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 				.sort((a, b) => b.rating - a.rating)
 				.map((review) => review.rating);
 
-			await Review.insertMany(reviews);
+			await ReviewModel.insertMany(reviews);
 
 			// Act
 			const result = await reviewService.getAll({
@@ -420,7 +420,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			const otherReviews = generateMockInsertReviews({
 				count: 3,
 			});
-			await Review.insertMany([...mockReviews, ...otherReviews]);
+			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
 
 			// Act
 			const result = await reviewService.getAllByUserId({
@@ -479,7 +479,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			const otherReviews = generateMockInsertReviews({
 				count: 5,
 			});
-			await Review.insertMany([...mockReviews, ...otherReviews]);
+			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
 
 			// Act
 			const result = await reviewService.getAllByUserId({
@@ -565,7 +565,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 				options: { product: productId },
 			});
 			const otherReviews = generateMockInsertReviews({ count: 3 });
-			await Review.insertMany([...mockReviews, ...otherReviews]);
+			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
 
 			// Act
 			const result = await reviewService.getAllByProductId({
@@ -596,7 +596,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Arrange
 			const productId = generateMockObjectId();
 			const mockReviews = generateMockInsertReviews({ count: 3 });
-			await Review.insertMany(mockReviews);
+			await ReviewModel.insertMany(mockReviews);
 
 			// Act
 			const result = await reviewService.getAllByProductId({
@@ -624,7 +624,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 				options: { product: productId },
 			});
 			const otherReviews = generateMockInsertReviews({ count: 4 });
-			await Review.insertMany([...mockReviews, ...otherReviews]);
+			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
 
 			// Act
 			const result = await reviewService.getAllByProductId({
@@ -708,7 +708,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should update review when 'repo.update' is called with valid review ID and data", async () => {
 			// Arrange
 			const mockReview = generateMockInsertReview();
-			const createdReview = await Review.create(mockReview);
+			const createdReview = await ReviewModel.create(mockReview);
 			const updateData: Partial<InsertReview> = {
 				comment: "Updated Comment",
 				name: "Updated Name",
@@ -738,7 +738,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should update product 'rating' when 'repo.update' is called with new rating value", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
-			await Product.create(mockProduct);
+			await ProductModel.create(mockProduct);
 			const mockReview = generateMockInsertReview({
 				product: mockProduct._id,
 				rating: 3,
@@ -759,7 +759,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 
-			const updatedProduct = await Product.findById(mockReview.product);
+			const updatedProduct = await ProductModel.findById(mockReview.product);
 			assert.ok(updatedProduct);
 			assert.strictEqual(updatedProduct.numReviews, 1);
 			assert.strictEqual(updatedProduct.rating, updatedRating);
@@ -812,7 +812,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should delete review when 'repo.delete' is called with valid review ID", async () => {
 			// Arrange
 			const mockReview = generateMockInsertReview();
-			const createdReview = await Review.create(mockReview);
+			const createdReview = await ReviewModel.create(mockReview);
 
 			// Act
 			const result = await reviewService.delete({
@@ -826,14 +826,14 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.data.comment, mockReview.comment);
 			assert.deepStrictEqual(result.data.user, mockReview.user);
 			assert.deepStrictEqual(result.data.product, mockReview.product);
-			const deletedReview = await Review.findById(createdReview._id);
+			const deletedReview = await ReviewModel.findById(createdReview._id);
 			assert.strictEqual(deletedReview, null);
 		});
 
 		test("Should update product 'rating' and 'numReviews' when 'repo.delete' is called with valid review ID", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
-			await Product.create(mockProduct);
+			await ProductModel.create(mockProduct);
 			const mockReview = generateMockInsertReview({
 				product: mockProduct._id,
 			});
@@ -847,7 +847,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			const updatedProduct = await Product.findById(mockReview.product);
+			const updatedProduct = await ProductModel.findById(mockReview.product);
 			assert.ok(updatedProduct);
 			assert.strictEqual(updatedProduct.rating, 0);
 			assert.strictEqual(updatedProduct.numReviews, 0);
@@ -884,7 +884,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return correct count when 'repo.count' is called with multiple reviews in database", async () => {
 			// Arrange
 			const mockReviews = generateMockInsertReviews({ count: 3 });
-			await Review.insertMany(mockReviews);
+			await ReviewModel.insertMany(mockReviews);
 
 			// Act
 			const result = await reviewService.count();
@@ -913,7 +913,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 				options: { user: userId },
 			});
 			const otherReviews = generateMockInsertReviews({ count: 3 });
-			await Review.insertMany([...mockReviews, ...otherReviews]);
+			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
 
 			// Act
 			const result = await reviewService.countByUserId({
@@ -929,7 +929,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Arrange
 			const userId = generateMockObjectId();
 			const mockReviews = generateMockInsertReviews({ count: 3 });
-			await Review.insertMany(mockReviews);
+			await ReviewModel.insertMany(mockReviews);
 
 			// Act
 			const result = await reviewService.countByUserId({
@@ -963,7 +963,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 				options: { product: productId },
 			});
 			const otherReviews = generateMockInsertReviews({ count: 3 });
-			await Review.insertMany([...mockReviews, ...otherReviews]);
+			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
 
 			// Act
 			const result = await reviewService.countByProductId({
@@ -979,7 +979,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Arrange
 			const productId = generateMockObjectId();
 			const mockReviews = generateMockInsertReviews({ count: 3 });
-			await Review.insertMany(mockReviews);
+			await ReviewModel.insertMany(mockReviews);
 
 			// Act
 			const result = await reviewService.countByProductId({
@@ -1008,7 +1008,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return review ID when 'repo.existsById' is called with existing review ID", async () => {
 			// Arrange
 			const mockReview = generateMockInsertReview();
-			const createdReview = await Review.create(mockReview);
+			const createdReview = await ReviewModel.create(mockReview);
 
 			// Act
 			const result = await reviewService.existsById({
@@ -1052,7 +1052,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return review ID when 'repo.existsByUserIdAndProductId' is called with existing user-product review", async () => {
 			// Arrange
 			const mockReviews = generateMockInsertReviews({ count: 3 });
-			const createdReview = await Review.insertMany(mockReviews);
+			const createdReview = await ReviewModel.insertMany(mockReviews);
 
 			// Act
 			const result = await reviewService.existsByUserIdAndProductId({

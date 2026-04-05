@@ -1,8 +1,8 @@
 import { after, before, beforeEach, describe, suite } from "node:test";
 
 import { AuthController } from "../../controllers/auth.controller.js";
-import { Session } from "../../models/session.model.js";
-import User from "../../models/user.model.js";
+import { SessionModel } from "../../models/session.model.js";
+import { UserModel } from "../../models/user.model.js";
 import {
 	connectTestDatabase,
 	disconnectTestDatabase,
@@ -18,8 +18,8 @@ suite(
 		after(async () => await disconnectTestDatabase());
 
 		beforeEach(async () => {
-			await User.deleteMany({});
-			await Session.deleteMany({});
+			await UserModel.deleteMany({});
+			await SessionModel.deleteMany({});
 		});
 
 		// I AM TIRED BOSS :')

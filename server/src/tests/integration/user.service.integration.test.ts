@@ -2,7 +2,7 @@ import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 
 import { NotFoundError, ValidationError } from "../../errors/index.js";
-import User from "../../models/user.model.js";
+import { UserModel } from "../../models/user.model.js";
 import { UserService } from "../../services/user.service.js";
 import {
 	generateMockInsertUsers,
@@ -24,14 +24,14 @@ suite("User Service 〖 Integration Tests 〗", () => {
 	before(async () => connectTestDatabase());
 	after(async () => disconnectTestDatabase());
 	beforeEach(async () => {
-		await User.deleteMany({});
+		await UserModel.deleteMany({});
 		userService = new UserService();
 	});
 
 	describe("getById", () => {
 		test("Should return user when 'repo.getById' is called with a valid ID", async () => {
 			// Arrange
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 
 			// Act
 			const result = await userService.getById({
@@ -73,7 +73,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 	describe("getByEmail", () => {
 		test("Should return user when 'repo.getByEmail' is called with a valid email", async () => {
 			// Arrange
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 
 			// Act
 			const result = await userService.getByEmail({ email: mockUser.email });
@@ -101,7 +101,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 	describe("getAll", () => {
 		test("Should return paginated sanitized items and meta", async () => {
 			// Arrange
-			await User.insertMany(mockUsers);
+			await UserModel.insertMany(mockUsers);
 
 			// Act
 			const result = await userService.getAll({
@@ -142,11 +142,11 @@ suite("User Service 〖 Integration Tests 〗", () => {
 				count: 2,
 				options: { isAdmin: false },
 			});
-			await User.insertMany([...adminUsers, ...regularUsers]);
+			await UserModel.insertMany([...adminUsers, ...regularUsers]);
 
 			// Act
 			const result = await userService.getAll({
-				filters: { isAdmin: true },
+				filters: { isAdmin: "true" },
 				pageNumber: "1",
 				pageSize: "10",
 			});
@@ -161,7 +161,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 	describe("updateById", () => {
 		test("Should update user when 'repo.updateById' is called with valid data", async () => {
 			// Arrange
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const updateData = {
 				email: "updated@example.com",
 				name: "Updated Name",
@@ -182,7 +182,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
 		test("Should update admin status when 'repo.updateById' is called with isAdmin field", async () => {
 			// Arrange
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const updateData = { isAdmin: true };
 
 			// Act
@@ -200,7 +200,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
 		test("Should not update fields when 'repo.updateById' is called with empty object", async () => {
 			// Arrange
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const updateData = {};
 
 			// Act
@@ -218,7 +218,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
 		test("Should not update fields when 'repo.updateById' is called with undefined values", async () => {
 			// Arrange
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const updateData = { email: "new@example.com", name: undefined };
 
 			// Act
@@ -299,7 +299,7 @@ suite("User Service 〖 Integration Tests 〗", () => {
 	describe("delete", () => {
 		test("Should delete user when 'repo.delete' is called with a valid ID", async () => {
 			// Arrange
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 
 			// Act
 			const result = await userService.delete({

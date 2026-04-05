@@ -3,8 +3,8 @@ import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 
 import { DatabaseValidationError } from "../../errors/index.js";
-import Order from "../../models/order.model.js";
-import User from "../../models/user.model.js";
+import { OrderModel } from "../../models/order.model.js";
+import { UserModel } from "../../models/user.model.js";
 import { OrderRepository } from "../../repositories/order.repository.js";
 import { GetAllOrdersRepositoryParams } from "../../types/order.type.js";
 import {
@@ -25,7 +25,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 	before(async () => connectTestDatabase());
 	after(async () => disconnectTestDatabase());
 	beforeEach(async () => {
-		await Order.deleteMany({});
+		await OrderModel.deleteMany({});
 		orderRepository = new OrderRepository();
 	});
 
@@ -33,7 +33,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 		test("Should create a new order when 'db.create' is called with valid data", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const mockOrder = generateMockInsertOrder({ user: mockUser });
 
 			// Act
@@ -164,8 +164,8 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const mockOrder = generateMockInsertOrder({ user: mockUser });
-			const order = await Order.create(mockOrder);
-			await User.create(mockUser);
+			const order = await OrderModel.create(mockOrder);
+			await UserModel.create(mockUser);
 
 			// Act
 			const foundOrder = await orderRepository.getById({
@@ -199,8 +199,8 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const mockOrder = generateMockInsertOrder({ user: mockUser });
-			await User.create(mockUser);
-			const order = await Order.create(mockOrder);
+			await UserModel.create(mockUser);
+			const order = await OrderModel.create(mockOrder);
 
 			// Act
 			const foundOrder = await orderRepository.getById({
@@ -236,7 +236,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 				product: new Types.ObjectId(),
 				qty: i + 1,
 			}));
-			const order = await Order.create(mockOrder);
+			const order = await OrderModel.create(mockOrder);
 
 			// Act
 			const foundOrder = await orderRepository.getById({
@@ -261,7 +261,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 		test("Should update both 'payment.id' and 'payment.provider' in the database", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder();
-			const order = await Order.create(mockOrder);
+			const order = await OrderModel.create(mockOrder);
 			const paymentParams = {
 				id: "pay_123",
 				orderId: order._id,
@@ -283,7 +283,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			);
 
 			// Verify in DB
-			const dbOrder = await Order.findById(order._id).lean();
+			const dbOrder = await OrderModel.findById(order._id).lean();
 			assert.strictEqual(dbOrder?.payment?.id, paymentParams.id);
 			assert.strictEqual(dbOrder?.payment?.provider, paymentParams.provider);
 			assert.strictEqual(
@@ -295,7 +295,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 		test("Should update only 'payment.id' in the database", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder();
-			const order = await Order.create(mockOrder);
+			const order = await OrderModel.create(mockOrder);
 			const paymentParams = {
 				id: "pay_456",
 				orderId: order._id,
@@ -310,14 +310,14 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.payment?.id, paymentParams.id);
 
 			// Verify in DB
-			const dbOrder = await Order.findById(order._id).lean();
+			const dbOrder = await OrderModel.findById(order._id).lean();
 			assert.strictEqual(dbOrder?.payment?.id, paymentParams.id);
 		});
 
 		test("Should update only 'payment.provider' in the database", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder();
-			const order = await Order.create(mockOrder);
+			const order = await OrderModel.create(mockOrder);
 			const paymentParams = {
 				orderId: order._id,
 				provider: "stripe" as const,
@@ -332,14 +332,14 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.payment?.provider, paymentParams.provider);
 
 			// Verify in DB
-			const dbOrder = await Order.findById(order._id).lean();
+			const dbOrder = await OrderModel.findById(order._id).lean();
 			assert.strictEqual(dbOrder?.payment?.provider, paymentParams.provider);
 		});
 
 		test("Should update only 'payment.sessionURL' in the database", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder();
-			const order = await Order.create(mockOrder);
+			const order = await OrderModel.create(mockOrder);
 			const paymentParams = {
 				orderId: order._id,
 				sessionURL: "https://checkout.stripe.com/c/pay/cs_new",
@@ -357,7 +357,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			);
 
 			// Verify in DB
-			const dbOrder = await Order.findById(order._id).lean();
+			const dbOrder = await OrderModel.findById(order._id).lean();
 			assert.strictEqual(
 				dbOrder?.payment?.sessionURL,
 				paymentParams.sessionURL,
@@ -403,7 +403,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 		test("Should return paginated response with array of orders", async () => {
 			// Arrange
 			const mockOrders = generateMockInsertOrders(3);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
@@ -423,7 +423,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 		test("Should return paginated response with meta data", async () => {
 			// Arrange
 			const mockOrders = generateMockInsertOrders(3);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
@@ -466,7 +466,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const pageSize = 2;
 			const mockOrders = generateMockInsertOrders(5);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
@@ -488,7 +488,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const pageSize = 2;
 			const pageNumber = 2;
 			const mockOrders = generateMockInsertOrders(5);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber,
@@ -508,7 +508,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 		test("Should return last page when pageNumber equals totalPages", async () => {
 			// Arrange
 			const mockOrders = generateMockInsertOrders(5);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 3,
@@ -534,7 +534,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 				user: { _id: userId, name: "Test User", email: "test@example.com" },
 			});
 			const otherOrders = generateMockInsertOrders(3);
-			await Order.insertMany([...userOrders, ...otherOrders]);
+			await OrderModel.insertMany([...userOrders, ...otherOrders]);
 
 			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
@@ -563,7 +563,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const paidOrders = generateMockInsertOrders(2, { status: "processing" });
 			const unpaidOrders = generateMockInsertOrders(3, { status: "pending" });
-			await Order.insertMany([...paidOrders, ...unpaidOrders]);
+			await OrderModel.insertMany([...paidOrders, ...unpaidOrders]);
 
 			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
@@ -585,7 +585,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 		test("Should return only selected fields when select is provided", async () => {
 			// Arrange
 			const mockOrders = generateMockInsertOrders(2);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
@@ -618,7 +618,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const expectedResult = mockOrders.sort((a, b) =>
 				b.createdAt.toISOString().localeCompare(a.createdAt.toISOString()),
 			);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
@@ -650,7 +650,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			const expectedResult = mockOrders.sort((a, b) =>
 				a.createdAt.toISOString().localeCompare(b.createdAt.toISOString()),
 			);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
@@ -679,7 +679,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 		test("Should update 'paidAt', and 'status'", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({ status: "pending" });
-			const order = await Order.create(mockOrder);
+			const order = await OrderModel.create(mockOrder);
 
 			const paidAt = new Date();
 
@@ -735,7 +735,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 		test("Should update 'status' to 'cancelled' in the database", async () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder({ status: "pending" });
-			const order = await Order.create(mockOrder);
+			const order = await OrderModel.create(mockOrder);
 
 			// Act
 			const result = await orderRepository.markAsCancelled({
@@ -748,7 +748,7 @@ suite("OrderRepository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.status, "cancelled");
 
 			// Verify in DB
-			const dbOrder = await Order.findById(order._id).lean();
+			const dbOrder = await OrderModel.findById(order._id).lean();
 			assert.strictEqual(dbOrder?.status, "cancelled");
 		});
 

@@ -14,7 +14,7 @@ import type {
 	UserFilter,
 } from "../types/index.js";
 
-import User from "../models/user.model.js";
+import { UserModel } from "../models/user.model.js";
 import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IUserRepository {
@@ -41,11 +41,11 @@ export interface IUserRepository {
 type UserResult<T> = Result<T, DatabaseBaseError>;
 
 export class UserRepository implements IUserRepository {
-	private readonly _db: typeof User;
+	private readonly _db: typeof UserModel;
 	private _paginator: Paginator<SelectUser>;
 
-	constructor(db?: typeof User) {
-		this._db = db ?? User;
+	constructor(db?: typeof UserModel) {
+		this._db = db ?? UserModel;
 		this._paginator = new Paginator(this._db);
 	}
 

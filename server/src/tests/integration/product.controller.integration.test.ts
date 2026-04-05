@@ -6,7 +6,7 @@ import type { AllProducts, InsertProduct } from "../../types/index.js";
 import { ProductController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
 import { ProductManager } from "../../managers/index.js";
-import Product from "../../models/product.model.js";
+import { ProductModel } from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { CacheService, ProductService } from "../../services/index.js";
 import {
@@ -25,7 +25,7 @@ import { createMockExpressContext, toCents } from "../utils/index.js";
 
 suite("Product Controller 〖 Integration Tests 〗", () => {
 	const cache = new CacheService("product");
-	const repo = new ProductRepository(Product, cache);
+	const repo = new ProductRepository(ProductModel, cache);
 	const storage = mockImageStorage();
 	const service = new ProductService(repo);
 	const manager = new ProductManager(service, storage);
@@ -35,7 +35,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 	after(async () => await disconnectTestDatabase());
 
 	beforeEach(async () => {
-		await Product.deleteMany({});
+		await ProductModel.deleteMany({});
 		await cache.flush();
 		storage.reset();
 	});
@@ -136,7 +136,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(product.price),
 			}));
 
-			await Product.insertMany(mockProductsInCents);
+			await ProductModel.insertMany(mockProductsInCents);
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -191,7 +191,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(product.price),
 			}));
 
-			await Product.insertMany(mockProductsInCents);
+			await ProductModel.insertMany(mockProductsInCents);
 
 			// Act
 			await controller.getAll(req, res, next);
@@ -216,7 +216,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(product.price),
 			}));
 
-			await Product.insertMany(mockProductsInCents);
+			await ProductModel.insertMany(mockProductsInCents);
 			req.query = { keyword };
 
 			// Act
@@ -243,7 +243,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(product.price),
 			}));
 
-			await Product.insertMany(mockProductsInCents);
+			await ProductModel.insertMany(mockProductsInCents);
 			req.query = { pageNumber: "1" };
 
 			// Act
@@ -270,7 +270,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(product.price),
 			}));
 
-			await Product.insertMany(mockProductsInCents);
+			await ProductModel.insertMany(mockProductsInCents);
 			req.query = { pageNumber: "2" };
 
 			// Act
@@ -311,7 +311,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(product.price),
 			}));
 
-			await Product.insertMany(mockProductsInCents);
+			await ProductModel.insertMany(mockProductsInCents);
 			req.query = { pageSize: "5" };
 
 			// Act
@@ -339,7 +339,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(product.price),
 			}));
 
-			await Product.insertMany(mockProductsInCents);
+			await ProductModel.insertMany(mockProductsInCents);
 			req.query = { sort: "price:asc" };
 
 			// Act
@@ -370,7 +370,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(product.price),
 			}));
 
-			await Product.insertMany(mockProductsInCents);
+			await ProductModel.insertMany(mockProductsInCents);
 			req.query = { brand: targetBrand };
 
 			// Act
@@ -399,7 +399,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(product.price),
 			}));
 
-			await Product.insertMany(mockProductsInCents);
+			await ProductModel.insertMany(mockProductsInCents);
 			req.query = { category: targetCategory };
 
 			// Act
@@ -425,7 +425,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(product.price),
 			}));
 
-			await Product.insertMany(mockProductsInCents);
+			await ProductModel.insertMany(mockProductsInCents);
 
 			// Act
 			await controller.getTopRated(req, res, next);
@@ -448,7 +448,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(product.price),
 			}));
 
-			await Product.insertMany(mockProductsInCents);
+			await ProductModel.insertMany(mockProductsInCents);
 
 			// Act
 			await controller.getTopRated(req, res, next);
@@ -468,7 +468,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(product.price),
 			}));
 
-			await Product.insertMany(mockProductsInCents);
+			await ProductModel.insertMany(mockProductsInCents);
 
 			// Act
 			await controller.getTopRated(req, res, next);
@@ -506,7 +506,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(mockProduct.price),
 			};
 
-			await Product.insertMany([mockProductInCents]);
+			await ProductModel.insertMany([mockProductInCents]);
 
 			req.params = { productId: mockProduct._id.toString() };
 
@@ -530,7 +530,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(mockProduct.price),
 			};
 
-			await Product.insertMany([mockProductInCents]);
+			await ProductModel.insertMany([mockProductInCents]);
 			req.params = { productId: mockProduct._id.toString() };
 
 			// Act
@@ -551,7 +551,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(mockProduct.price),
 			};
 
-			await Product.insertMany([mockProductInCents]);
+			await ProductModel.insertMany([mockProductInCents]);
 			req.params = { productId: mockProduct._id.toString() };
 
 			// Act
@@ -598,7 +598,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(mockProduct.price),
 			};
 
-			await Product.insertMany([mockProductInCents]);
+			await ProductModel.insertMany([mockProductInCents]);
 			cache.set({ key: mockProduct._id.toString(), value: mockProductInCents });
 
 			// Act
@@ -624,7 +624,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(mockProduct.price),
 			};
 
-			await Product.insertMany([mockProductInCents]);
+			await ProductModel.insertMany([mockProductInCents]);
 			cache.set({ key: productId, value: mockProductInCents });
 
 			// Act
@@ -651,7 +651,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(mockProduct.price),
 			};
 
-			await Product.insertMany([mockProductInCents]);
+			await ProductModel.insertMany([mockProductInCents]);
 			cache.set({ key: productId, value: mockProductInCents });
 
 			// Act
@@ -691,7 +691,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(mockProduct.price),
 			};
 
-			await Product.insertMany([mockProductInCents]);
+			await ProductModel.insertMany([mockProductInCents]);
 			cache.set({ key: productId, value: mockProductInCents });
 
 			storage.delete.mock.mockImplementationOnce(() =>
@@ -720,7 +720,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(mockProduct.price),
 			};
 
-			await Product.insertMany([mockProductInCents]);
+			await ProductModel.insertMany([mockProductInCents]);
 			cache.set({ key: productId, value: mockProductInCents });
 
 			storage.delete.mock.mockImplementationOnce(() =>
@@ -748,7 +748,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				price: toCents(mockProduct.price),
 			};
 
-			await Product.insertMany([mockProductInCents]);
+			await ProductModel.insertMany([mockProductInCents]);
 			cache.set({ key: productId, value: mockProductInCents });
 
 			storage.delete.mock.mockImplementationOnce(() =>

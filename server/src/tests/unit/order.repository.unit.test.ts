@@ -9,7 +9,7 @@ import {
 	DatabaseValidationError,
 	GenericDatabaseError,
 } from "../../errors/index.js";
-import Order from "../../models/order.model.js";
+import { OrderModel } from "../../models/order.model.js";
 import { OrderRepository } from "../../repositories/index.js";
 import type { GetAllOrdersRepositoryParams } from "../../types/order.type.js";
 import { Paginator } from "../../utils/paginator.util.js";
@@ -32,7 +32,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return the user object when 'db.create' is called once with user data", async (t) => {
 			// Arrange
 
-			const mockCreate = t.mock.method(Order, "create", () => ({
+			const mockCreate = t.mock.method(OrderModel, "create", () => ({
 				toObject: () => mockSelectOrder,
 			}));
 
@@ -55,7 +55,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Order, "create", () => {
+			t.mock.method(OrderModel, "create", () => {
 				throw validationError;
 			});
 
@@ -73,7 +73,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Order, "create", () => {
+			t.mock.method(OrderModel, "create", () => {
 				throw timeoutError;
 			});
 
@@ -89,7 +89,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Order, "create", () => {
+			t.mock.method(OrderModel, "create", () => {
 				throw queryError;
 			});
 
@@ -105,7 +105,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Order, "create", () => {
+			t.mock.method(OrderModel, "create", () => {
 				throw networkError;
 			});
 
@@ -121,7 +121,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Order, "create", () => {
+			t.mock.method(OrderModel, "create", () => {
 				throw unknownError;
 			});
 
@@ -352,7 +352,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return the order object when 'db.findById' is called once with 'orderId'", async (t) => {
 			// Arrange
-			const findByIdMock = t.mock.method(Order, "findById", () => ({
+			const findByIdMock = t.mock.method(OrderModel, "findById", () => ({
 				lean: async () => mockOrder,
 			}));
 
@@ -370,7 +370,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.findById' returns 'null'", async (t) => {
 			// Arrange
-			t.mock.method(Order, "findById", () => ({
+			t.mock.method(OrderModel, "findById", () => ({
 				lean: async () => null,
 			}));
 
@@ -387,7 +387,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
 
-			t.mock.method(Order, "findById", () => {
+			t.mock.method(OrderModel, "findById", () => {
 				throw validationError;
 			});
 
@@ -405,7 +405,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 				"Timeout",
 			);
 
-			t.mock.method(Order, "findById", () => {
+			t.mock.method(OrderModel, "findById", () => {
 				throw timeoutError;
 			});
 
@@ -421,7 +421,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
 
-			t.mock.method(Order, "findById", () => {
+			t.mock.method(OrderModel, "findById", () => {
 				throw queryError;
 			});
 
@@ -437,7 +437,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
 
-			t.mock.method(Order, "findById", () => {
+			t.mock.method(OrderModel, "findById", () => {
 				throw networkError;
 			});
 
@@ -453,7 +453,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
 
-			t.mock.method(Order, "findById", () => {
+			t.mock.method(OrderModel, "findById", () => {
 				throw unknownError;
 			});
 
@@ -474,7 +474,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return the updated order when 'db.findByIdAndUpdate' is called once with correct params", async (t) => {
 			// Arrange
 			const findByIdAndUpdateMock = t.mock.method(
-				Order,
+				OrderModel,
 				"findByIdAndUpdate",
 				() => ({
 					lean: async () => mockOrder,
@@ -509,7 +509,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.findByIdAndUpdate' returns 'null'", async (t) => {
 			// Arrange
-			t.mock.method(Order, "findByIdAndUpdate", () => ({
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => ({
 				lean: async () => null,
 			}));
 
@@ -527,7 +527,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return 'DatabaseValidationError' when 'db.findByIdAndUpdate' throws 'ValidationError'", async (t) => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
-			t.mock.method(Order, "findByIdAndUpdate", () => {
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => {
 				throw validationError;
 			});
 
@@ -547,7 +547,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
-			t.mock.method(Order, "findByIdAndUpdate", () => {
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => {
 				throw timeoutError;
 			});
 
@@ -565,7 +565,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return 'DatabaseQueryError' when 'db.findByIdAndUpdate' throws 'MongooseError'", async (t) => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
-			t.mock.method(Order, "findByIdAndUpdate", () => {
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => {
 				throw queryError;
 			});
 
@@ -583,7 +583,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return 'DatabaseNetworkError' when 'db.findByIdAndUpdate' throws 'MongoError'", async (t) => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
-			t.mock.method(Order, "findByIdAndUpdate", () => {
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => {
 				throw networkError;
 			});
 
@@ -601,7 +601,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return 'GenericDatabaseError' when 'db.findByIdAndUpdate' throws unknown error", async (t) => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
-			t.mock.method(Order, "findByIdAndUpdate", () => {
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => {
 				throw unknownError;
 			});
 
@@ -624,7 +624,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return the updated order when 'db.findByIdAndUpdate' is called once with correct params", async (t) => {
 			// Arrange
 			const findByIdAndUpdateMock = t.mock.method(
-				Order,
+				OrderModel,
 				"findByIdAndUpdate",
 				() => ({
 					lean: async () => mockOrder,
@@ -655,7 +655,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.findByIdAndUpdate' returns 'null'", async (t) => {
 			// Arrange
-			t.mock.method(Order, "findByIdAndUpdate", () => ({
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => ({
 				lean: async () => null,
 			}));
 
@@ -670,7 +670,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return 'DatabaseValidationError' when 'db.findByIdAndUpdate' throws 'ValidationError'", async (t) => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
-			t.mock.method(Order, "findByIdAndUpdate", () => {
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => {
 				throw validationError;
 			});
 
@@ -687,7 +687,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
-			t.mock.method(Order, "findByIdAndUpdate", () => {
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => {
 				throw timeoutError;
 			});
 
@@ -702,7 +702,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return 'DatabaseQueryError' when 'db.findByIdAndUpdate' throws 'MongooseError'", async (t) => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
-			t.mock.method(Order, "findByIdAndUpdate", () => {
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => {
 				throw queryError;
 			});
 
@@ -717,7 +717,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return 'DatabaseNetworkError' when 'db.findByIdAndUpdate' throws 'MongoError'", async (t) => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
-			t.mock.method(Order, "findByIdAndUpdate", () => {
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => {
 				throw networkError;
 			});
 
@@ -732,7 +732,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return 'GenericDatabaseError' when 'db.findByIdAndUpdate' throws unknown error", async (t) => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
-			t.mock.method(Order, "findByIdAndUpdate", () => {
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => {
 				throw unknownError;
 			});
 
@@ -758,7 +758,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should update id, provider, and sessionURL when all three are provided", async (t) => {
 			// Arrange
 			const mockFindByIdAndUpdate = t.mock.method(
-				Order,
+				OrderModel,
 				"findByIdAndUpdate",
 				() => ({
 					lean: async () => mockOrder,
@@ -785,7 +785,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const params = { id: "pay_123", orderId };
 			const mockFindByIdAndUpdate = t.mock.method(
-				Order,
+				OrderModel,
 				"findByIdAndUpdate",
 				() => ({
 					lean: async () => mockOrder,
@@ -808,7 +808,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			// Arrange
 			const params = { orderId, provider: "stripe" as const };
 			const mockFindByIdAndUpdate = t.mock.method(
-				Order,
+				OrderModel,
 				"findByIdAndUpdate",
 				() => ({
 					lean: async () => mockOrder,
@@ -834,7 +834,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 				sessionURL: "https://checkout.stripe.com/c/pay/cs_test_abc",
 			};
 			const mockFindByIdAndUpdate = t.mock.method(
-				Order,
+				OrderModel,
 				"findByIdAndUpdate",
 				() => ({
 					lean: async () => mockOrder,
@@ -855,7 +855,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 
 		test("Should return 'null' when 'db.findByIdAndUpdate' returns 'null'", async (t) => {
 			// Arrange
-			t.mock.method(Order, "findByIdAndUpdate", () => ({
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => ({
 				lean: async () => null,
 			}));
 
@@ -870,7 +870,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return 'DatabaseValidationError' when 'db.findByIdAndUpdate' throws 'ValidationError'", async (t) => {
 			// Arrange
 			const validationError = new mongoose.Error.ValidationError();
-			t.mock.method(Order, "findByIdAndUpdate", () => {
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => {
 				throw validationError;
 			});
 
@@ -887,7 +887,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
-			t.mock.method(Order, "findByIdAndUpdate", () => {
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => {
 				throw timeoutError;
 			});
 
@@ -902,7 +902,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return 'DatabaseQueryError' when 'db.findByIdAndUpdate' throws 'MongooseError'", async (t) => {
 			// Arrange
 			const queryError = new mongoose.Error("Query failed");
-			t.mock.method(Order, "findByIdAndUpdate", () => {
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => {
 				throw queryError;
 			});
 
@@ -917,7 +917,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return 'DatabaseNetworkError' when 'db.findByIdAndUpdate' throws 'MongoError'", async (t) => {
 			// Arrange
 			const networkError = new mongoose.mongo.MongoError("Network error");
-			t.mock.method(Order, "findByIdAndUpdate", () => {
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => {
 				throw networkError;
 			});
 
@@ -932,7 +932,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 		test("Should return 'GenericDatabaseError' when 'db.findByIdAndUpdate' throws unknown error", async (t) => {
 			// Arrange
 			const unknownError = new Error("Something unexpected happened");
-			t.mock.method(Order, "findByIdAndUpdate", () => {
+			t.mock.method(OrderModel, "findByIdAndUpdate", () => {
 				throw unknownError;
 			});
 

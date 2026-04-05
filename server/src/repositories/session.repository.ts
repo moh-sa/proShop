@@ -15,7 +15,7 @@ import type {
 	SessionFilter,
 } from "../types/index.js";
 
-import { Session } from "../models/session.model.js";
+import { SessionModel } from "../models/session.model.js";
 import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface ISessionRepository {
@@ -70,11 +70,11 @@ export interface ISessionRepository {
 type SessionResult<T> = Result<T, DatabaseBaseError>;
 
 export class SessionRepository implements ISessionRepository {
-	private readonly _db: typeof Session;
+	private readonly _db: typeof SessionModel;
 	private _paginator: Paginator<SelectSession>;
 
-	constructor(db?: typeof Session) {
-		this._db = db ?? Session;
+	constructor(db?: typeof SessionModel) {
+		this._db = db ?? SessionModel;
 		this._paginator = new Paginator(this._db);
 	}
 

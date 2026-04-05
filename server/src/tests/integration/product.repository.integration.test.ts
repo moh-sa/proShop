@@ -5,7 +5,7 @@ import test, { after, before, beforeEach, describe, suite } from "node:test";
 import type { SelectProduct, TopRatedProduct } from "../../types/index.js";
 
 import { DatabaseValidationError } from "../../errors/index.js";
-import Product from "../../models/product.model.js";
+import { ProductModel } from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { CacheService } from "../../services/index.js";
 import { generateMockObjectId } from "../mocks/index.js";
@@ -26,16 +26,15 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 	before(async () => {
 		await connectTestDatabase();
 		cacheService = new CacheService("product");
-		productRepository = new ProductRepository(Product, cacheService);
+		productRepository = new ProductRepository(ProductModel, cacheService);
 	});
 
 	after(async () => {
-		await Product.deleteMany({});
 		await disconnectTestDatabase();
 	});
 
 	beforeEach(async () => {
-		await Product.deleteMany({});
+		await ProductModel.deleteMany({});
 		cacheService.flush();
 	});
 
@@ -131,7 +130,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 		test("should return correct pagination meta when 'getAll' is called", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 3 });
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productRepository.getAll({
@@ -152,7 +151,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 		test("should return correct number of items per page when 'getAll' is called with specific pageSize", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 			const pageSize = 2;
 
 			// Act
@@ -170,7 +169,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 		test("should return correct page of items when 'getAll' is called with specific pageNumber", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 			const pageSize = 2;
 			const pageNumber = 2;
 
@@ -189,7 +188,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 		test("should return correct pagination meta for multiple pages when 'getAll' is called", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 			const pageSize = 2;
 			const pageNumber = 2;
 
@@ -213,7 +212,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			const targetBrand = mockProducts[0].brand;
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productRepository.getAll({
@@ -235,7 +234,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 		test("should return empty items array when 'getAll' is called and no products match criteria", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 3 });
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productRepository.getAll({
@@ -255,7 +254,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 		test("should return correct pagination meta when no products match criteria", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 3 });
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productRepository.getAll({
@@ -278,7 +277,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 3 });
 			const expectedResult = mockProducts.sort((a, b) => a.price - b.price);
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productRepository.getAll({
@@ -301,7 +300,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			const targetCategory = mockProducts[0].category;
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productRepository.getAll({
@@ -326,7 +325,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			const mockProducts = generateMockSelectProducts({ count: 4 });
 			const targetProduct = mockProducts[0];
 			const keyword = targetProduct.name;
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productRepository.getAll({
@@ -348,7 +347,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 		test("should return only selected fields when 'getAll' is called with select", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 3 });
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productRepository.getAll({
@@ -396,7 +395,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 		test("should return and cache products when 'db.getTopRated' is called and cache doesn't exist", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 3 });
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act & Assert
 			const noProductsCached = cacheService.get({ key: "top-rated" });
@@ -419,7 +418,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 		test("should return correct number of products when 'db.getTopRated' is called with limit", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 			const limit = 2;
 
 			// Act
@@ -440,7 +439,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 				...product,
 				rating: 5 - index, // Create descending ratings: 5, 4, 3
 			}));
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const products = await productRepository.getTopRated({ limit: 3 });
@@ -451,10 +450,10 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(products.data.length, numberOfProducts);
 
 			for (let i = 1; i < products.data.length; i++) {
-				const prevProduct = await Product.findById(
+				const prevProduct = await ProductModel.findById(
 					products.data[i - 1]._id,
 				).lean();
-				const currentProduct = await Product.findById(
+				const currentProduct = await ProductModel.findById(
 					products.data[i]._id,
 				).lean();
 				assert.ok(
@@ -505,7 +504,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 		test("should return product and cache it when 'db.findById' is called with valid ID not in cache", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
-			await Product.create(mockProduct);
+			await ProductModel.create(mockProduct);
 
 			// Act & Assert
 			const noProductCached = cacheService.get({
@@ -621,7 +620,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 		test("should return DatabaseValidationError when 'db.update' is called with invalid data", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
-			await Product.create(mockProduct);
+			await ProductModel.create(mockProduct);
 			const invalidData = { price: "invalid-price" as unknown as number };
 
 			// Act
@@ -677,7 +676,9 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			assert.equal(deletedProduct.data.numReviews, mockProduct.numReviews);
 
 			// Verify product is actually deleted
-			const isProductExists = await Product.findById(mockProduct._id).lean();
+			const isProductExists = await ProductModel.findById(
+				mockProduct._id,
+			).lean();
 			assert.strictEqual(isProductExists, null);
 		});
 
@@ -733,7 +734,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			test("should return total count when 'db.count' is called without query", async () => {
 				// Arrange
 				const mockProducts = generateMockSelectProducts({ count: 3 });
-				await Product.insertMany(mockProducts);
+				await ProductModel.insertMany(mockProducts);
 
 				// Act
 				const count = await productRepository.count({});
@@ -750,7 +751,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 				const productsWithTargetBrand = mockProducts.filter(
 					(p) => p.brand === targetBrand,
 				);
-				await Product.insertMany(mockProducts);
+				await ProductModel.insertMany(mockProducts);
 
 				// Act
 				const count = await productRepository.count({ brand: targetBrand });
@@ -763,7 +764,7 @@ suite("Product Repository 〖 Integration Tests 〗", async () => {
 			test("should return 0 when 'db.count' is called and no products match criteria", async () => {
 				// Arrange
 				const mockProducts = generateMockSelectProducts({ count: 3 });
-				await Product.insertMany(mockProducts);
+				await ProductModel.insertMany(mockProducts);
 
 				// Act
 				const count = await productRepository.count({

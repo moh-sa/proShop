@@ -9,8 +9,8 @@ import {
 	DatabaseDuplicateKeyError,
 	DatabaseValidationError,
 } from "../../errors/index.js";
-import Product from "../../models/product.model.js";
-import Review from "../../models/review.model.js";
+import { ProductModel } from "../../models/product.model.js";
+import { ReviewModel } from "../../models/review.model.js";
 import { ReviewRepository } from "../../repositories/index.js";
 import {
 	generateMockObjectId,
@@ -33,8 +33,8 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 	before(async () => await connectTestDatabase());
 	after(async () => await disconnectTestDatabase());
 	beforeEach(async () => {
-		await Review.deleteMany({});
-		await Product.deleteMany({});
+		await ReviewModel.deleteMany({});
+		await ProductModel.deleteMany({});
 	});
 
 	describe("create", () => {
@@ -141,7 +141,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 		test("should return paginated reviews when 'getAll' is called with multiple reviews in database", async () => {
 			// Arrange
 			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await Review.insertMany(mockReviews);
+			await ReviewModel.insertMany(mockReviews);
 
 			// Act
 			const reviews = await reviewRepository.getAll({
@@ -173,7 +173,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 		test("should return paginated reviews with correct pagination when 'getAll' is called with pageSize", async () => {
 			// Arrange
 			const mockReviews = generateMockSelectReviews({ count: 15 });
-			await Review.insertMany(mockReviews);
+			await ReviewModel.insertMany(mockReviews);
 
 			// Act
 			const reviews = await reviewRepository.getAll({
@@ -198,7 +198,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 		test("should return second page of reviews when 'getAll' is called with pageNumber 2", async () => {
 			// Arrange
 			const mockReviews = generateMockSelectReviews({ count: 15 });
-			await Review.insertMany(mockReviews);
+			await ReviewModel.insertMany(mockReviews);
 
 			// Act
 			const reviews = await reviewRepository.getAll({
@@ -233,7 +233,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 				options: { product: otherProductId },
 			});
 
-			await Review.insertMany([...targetReviews, ...otherReviews]);
+			await ReviewModel.insertMany([...targetReviews, ...otherReviews]);
 
 			// Act
 			const result = await reviewRepository.getAll({
@@ -262,7 +262,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			});
 
 			const otherReviews = generateMockSelectReviews({ count: 3 });
-			await Review.insertMany([...targetReviews, ...otherReviews]);
+			await ReviewModel.insertMany([...targetReviews, ...otherReviews]);
 
 			// Act
 			const result = await reviewRepository.getAll({
@@ -294,7 +294,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 				generateMockInsertReview({ user: userId }),
 			];
 
-			await Review.insertMany([targetReview, ...otherReviews]);
+			await ReviewModel.insertMany([targetReview, ...otherReviews]);
 
 			// Act
 			const result = await reviewRepository.getAll({
@@ -332,7 +332,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 				.sort((a, b) => b.rating - a.rating)
 				.map((review) => review.rating);
 
-			await Review.insertMany(reviews);
+			await ReviewModel.insertMany(reviews);
 
 			// Act
 			const result = await reviewRepository.getAll({
@@ -353,7 +353,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 		test("should return only selected fields when 'getAll' is called with select", async () => {
 			// Arrange
 			const mockReviews = generateMockSelectReviews({ count: 2 });
-			await Review.insertMany(mockReviews);
+			await ReviewModel.insertMany(mockReviews);
 
 			// Act
 			const result = await reviewRepository.getAll({
@@ -381,7 +381,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 				options: { user: userId },
 			});
 			const otherReviews = generateMockSelectReviews({ count: 2 });
-			await Review.insertMany([...mockReviews, ...otherReviews]);
+			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
 
 			// Act
 			const reviews = await reviewRepository.getAllByUserId({
@@ -412,7 +412,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
 			const mockReviews = generateMockSelectReviews({ count: 2 });
-			await Review.insertMany(mockReviews);
+			await ReviewModel.insertMany(mockReviews);
 
 			// Act
 			const reviews = await reviewRepository.getAllByUserId({
@@ -440,7 +440,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 				options: { user: userId },
 			});
 			const otherReviews = generateMockSelectReviews({ count: 5 });
-			await Review.insertMany([...mockReviews, ...otherReviews]);
+			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
 
 			// Act
 			const reviews = await reviewRepository.getAllByUserId({
@@ -479,7 +479,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			});
 			const productId = reviews[0].product;
 
-			await Review.insertMany(reviews);
+			await ReviewModel.insertMany(reviews);
 
 			// Act
 			const result = await reviewRepository.getAllByUserId({
@@ -528,7 +528,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 				options: { product: productId },
 			});
 			const otherReviews = generateMockSelectReviews({ count: 2 });
-			await Review.insertMany([...mockReviews, ...otherReviews]);
+			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
 
 			// Act
 			const reviews = await reviewRepository.getAllByProductId({
@@ -559,7 +559,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
 			const mockReviews = generateMockSelectReviews({ count: 2 });
-			await Review.insertMany(mockReviews);
+			await ReviewModel.insertMany(mockReviews);
 
 			// Act
 			const reviews = await reviewRepository.getAllByProductId({
@@ -587,7 +587,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 				options: { product: productId },
 			});
 			const otherReviews = generateMockSelectReviews({ count: 4 });
-			await Review.insertMany([...mockReviews, ...otherReviews]);
+			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
 
 			// Act
 			const reviews = await reviewRepository.getAllByProductId({
@@ -628,7 +628,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 				options: { product: productId },
 			});
 
-			await Review.insertMany([targetReview, ...otherReviews]);
+			await ReviewModel.insertMany([targetReview, ...otherReviews]);
 
 			// Act
 			const reviews = await reviewRepository.getAllByProductId({
@@ -736,7 +736,9 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			assert.deepStrictEqual(deletedReview.data.product, mockReview.product);
 
 			// Verify review is actually deleted
-			const reviewInDb = await Review.findById(createdReview.data._id).lean();
+			const reviewInDb = await ReviewModel.findById(
+				createdReview.data._id,
+			).lean();
 			assert.strictEqual(reviewInDb, null);
 		});
 
@@ -771,7 +773,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 		test("should return correct count when 'count' is called with reviews in database", async () => {
 			// Arrange
 			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await Review.insertMany(mockReviews);
+			await ReviewModel.insertMany(mockReviews);
 
 			// Act
 			const count = await reviewRepository.count();
@@ -800,7 +802,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 				options: { user: userId },
 			});
 			const otherReviews = generateMockSelectReviews({ count: 2 });
-			await Review.insertMany([...mockReviews, ...otherReviews]);
+			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
 
 			// Act
 			const count = await reviewRepository.countByUserId({ userId });
@@ -814,7 +816,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
 			// Add some reviews by other users
-			await Review.insertMany(generateMockSelectReviews({ count: 2 }));
+			await ReviewModel.insertMany(generateMockSelectReviews({ count: 2 }));
 
 			// Act
 			const count = await reviewRepository.countByUserId({ userId });
@@ -848,7 +850,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 				options: { product: productId },
 			});
 			const otherReviews = generateMockSelectReviews({ count: 2 });
-			await Review.insertMany([...mockReviews, ...otherReviews]);
+			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
 
 			// Act
 			const count = await reviewRepository.countByProductId({ productId });
@@ -862,7 +864,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
 			// Add some reviews for other products
-			await Review.insertMany(generateMockSelectReviews({ count: 2 }));
+			await ReviewModel.insertMany(generateMockSelectReviews({ count: 2 }));
 
 			// Act
 			const count = await reviewRepository.countByProductId({ productId });
@@ -992,13 +994,13 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 				product: productId,
 				rating: 4,
 			});
-			await Product.create(mockProduct);
+			await ProductModel.create(mockProduct);
 
 			// Act
 			await reviewRepository.create(mockReview);
 
 			// Assert
-			const updatedProduct = await Product.findById(productId).lean();
+			const updatedProduct = await ProductModel.findById(productId).lean();
 			assert.ok(updatedProduct);
 			assert.strictEqual(updatedProduct.rating, 4.0);
 			assert.strictEqual(updatedProduct.numReviews, 1);
@@ -1013,7 +1015,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 				rating: 4,
 			});
 			const updateData: Partial<InsertReview> = { rating: 5 };
-			await Product.create(mockProduct);
+			await ProductModel.create(mockProduct);
 			await reviewRepository.create(mockReview);
 
 			// Act
@@ -1023,7 +1025,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			});
 
 			// Assert
-			const updatedProduct = await Product.findById(productId).lean();
+			const updatedProduct = await ProductModel.findById(productId).lean();
 
 			assert.ok(updatedProduct);
 			assert.strictEqual(updatedProduct.rating, updateData.rating);
@@ -1038,14 +1040,14 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 				product: productId,
 				rating: 4,
 			});
-			await Product.create(mockProduct);
-			await Review.create(mockReview);
+			await ProductModel.create(mockProduct);
+			await ReviewModel.create(mockReview);
 
 			// Act
 			await reviewRepository.delete({ reviewId: mockReview._id });
 
 			// Assert
-			const updatedProduct = await Product.findById(productId).lean();
+			const updatedProduct = await ProductModel.findById(productId).lean();
 
 			assert.ok(updatedProduct);
 			assert.strictEqual(updatedProduct.rating, 0);

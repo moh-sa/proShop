@@ -4,9 +4,9 @@ import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { OrderController } from "../../controllers/index.js";
 import { ForbiddenError, NotFoundError } from "../../errors/index.js";
 import { OrderManager } from "../../managers/index.js";
-import Order from "../../models/order.model.js";
-import Product from "../../models/product.model.js";
-import User from "../../models/user.model.js";
+import { OrderModel } from "../../models/order.model.js";
+import { ProductModel } from "../../models/product.model.js";
+import { UserModel } from "../../models/user.model.js";
 import { SuccessResponse } from "../../types/api-response.type.js";
 import type { CreateOrderResponse } from "../../types/index.js";
 import {
@@ -36,9 +36,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 	after(async () => await disconnectTestDatabase());
 
 	beforeEach(async () => {
-		await Order.deleteMany({});
-		await User.deleteMany({});
-		await Product.deleteMany({});
+		await OrderModel.deleteMany({});
+		await UserModel.deleteMany({});
+		await ProductModel.deleteMany({});
 		paymentService.reset();
 	});
 
@@ -48,7 +48,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when 'manager.create' is called with valid data", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const mockOrderData = generateMockInsertOrder({ user: mockUser });
 
 			const { next, req, res } = createMockExpressContext();
@@ -74,7 +74,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should return '201' status code when 'manager.create' is called with valid data", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const mockOrderData = generateMockInsertOrder({ user: mockUser });
 
 			const { next, req, res } = createMockExpressContext();
@@ -96,7 +96,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should create order when 'manager.create' is called with valid data", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const mockOrderData = generateMockInsertOrder({ user: mockUser });
 
 			const { next, req, res } = createMockExpressContext();
@@ -127,7 +127,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should include user ID in created order when 'manager.create' is called with valid data", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const mockOrderData = generateMockInsertOrder({ user: mockUser });
 
 			const { next, req, res } = createMockExpressContext();
@@ -154,7 +154,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should include session URL in response when 'manager.create' is called with valid data", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const mockOrderData = generateMockInsertOrder({ user: mockUser });
 
 			const { next, req, res } = createMockExpressContext();
@@ -177,7 +177,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should convert all price fields from dollars to cents when creating order", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const mockOrderData = generateMockInsertOrder({ user: mockUser });
 			const expectedData = convertOrderToCents(mockOrderData);
 
@@ -194,7 +194,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			const createdOrder = await Order.findById(response.data.order._id);
+			const createdOrder = await OrderModel.findById(response.data.order._id);
 			assert.ok(createdOrder);
 
 			assert.strictEqual(createdOrder.itemsPrice, expectedData.itemsPrice);
@@ -213,7 +213,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should convert all price fields from cents to dollars in response when creating order", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.create(mockUser);
+			await UserModel.create(mockUser);
 			const mockOrderData = normalizeOrderPrices(
 				generateMockInsertOrder({ user: mockUser }),
 			);
@@ -258,7 +258,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when 'service.getById' is called with valid data", async () => {
 			// Arrange
 			const mockOrder = convertOrderToCents(generateMockSelectOrder());
-			await Order.insertMany([mockOrder]);
+			await OrderModel.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrder._id.toString() };
@@ -280,7 +280,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should return '200' status code when 'service.getById' is called with valid data", async () => {
 			// Arrange
 			const mockOrder = convertOrderToCents(generateMockSelectOrder());
-			await Order.insertMany([mockOrder]);
+			await OrderModel.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrder._id.toString() };
@@ -300,7 +300,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should return order object when 'service.getById' is called with existing order", async () => {
 			// Arrange
 			const mockOrder = generateMockSelectOrder();
-			await Order.insertMany([mockOrder]);
+			await OrderModel.insertMany([mockOrder]);
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrder._id.toString() };
 			res.locals.user = generateMockSelectUser({
@@ -321,12 +321,12 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should return order with correct user data when 'service.getById' is called with existing order", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.insertMany([mockUser]);
+			await UserModel.insertMany([mockUser]);
 
 			const mockOrder = convertOrderToCents(
 				generateMockSelectOrder({ user: mockUser }),
 			);
-			await Order.insertMany([mockOrder]);
+			await OrderModel.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { orderId: mockOrder._id.toString() };
@@ -363,7 +363,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should convert all price fields from cents to dollars in response when retrieving order by id", async () => {
 			// Arrange
 			const mockOrderData = convertOrderToCents(generateMockSelectOrder());
-			await Order.insertMany([mockOrderData]);
+			await OrderModel.insertMany([mockOrderData]);
 			const expectedData = convertOrderToDollars(mockOrderData);
 
 			const { next, req, res } = createMockExpressContext();
@@ -400,7 +400,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const mockOrder = convertOrderToCents(
 				generateMockSelectOrder({ user: orderOwner }),
 			);
-			await Order.insertMany([mockOrder]);
+			await OrderModel.insertMany([mockOrder]);
 
 			const differentUser = generateMockSelectUser({ isAdmin: false });
 
@@ -428,7 +428,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const mockOrder = convertOrderToCents(
 				generateMockSelectOrder({ user: orderOwner }),
 			);
-			await Order.insertMany([mockOrder]);
+			await OrderModel.insertMany([mockOrder]);
 
 			const adminUser = generateMockSelectUser({ isAdmin: true });
 
@@ -455,7 +455,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when called with valid pagination parameters", async () => {
 			// Arrange
 			const mockOrders = generateMockSelectOrders(2);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const { next, req, res } = createMockExpressContext();
 			req.query = { pageNumber: "1", pageSize: "10" };
@@ -487,7 +487,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should return paginated response structure when called with existing orders", async () => {
 			// Arrange
 			const mockOrders = generateMockSelectOrders(2);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const { next, req, res } = createMockExpressContext();
 			req.query = { pageNumber: "1", pageSize: "10" };
@@ -524,7 +524,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should handle query parameters correctly", async () => {
 			// Arrange
 			const mockOrders = generateMockSelectOrders(3);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const { next, req, res } = createMockExpressContext();
 			req.query = {
@@ -548,7 +548,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should handle empty query parameters", async () => {
 			// Arrange
 			const mockOrders = generateMockSelectOrders(1);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const { next, req, res } = createMockExpressContext();
 			req.query = {};
@@ -566,7 +566,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should convert totalPrice from cents to dollars in response when retrieving all orders", async () => {
 			// Arrange
 			const mockOrders = generateMockSelectOrders(2).map(convertOrderToCents);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const expectedData = mockOrders.map(convertOrderToDollars);
 
@@ -595,7 +595,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when called with valid userId and pagination parameters", async () => {
 			// Arrange
 			const mockOrder = generateMockSelectOrder();
-			await Order.insertMany([mockOrder]);
+			await OrderModel.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockOrder.user._id.toString() };
@@ -640,7 +640,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const mockUser = generateMockSelectUser();
 			const mockOrders = generateMockSelectOrders(3, { user: mockUser });
 			const otherOrders = generateMockSelectOrders(2);
-			await Order.insertMany([...mockOrders, ...otherOrders]);
+			await OrderModel.insertMany([...mockOrders, ...otherOrders]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockUser._id.toString() };
@@ -663,7 +663,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const mockOrders = generateMockSelectOrders(5);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockUser._id.toString() };
@@ -685,11 +685,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should not return orders from other users when called with specific userId", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			await User.insertMany([mockUser]);
+			await UserModel.insertMany([mockUser]);
 
 			const mockOrder1 = generateMockSelectOrder({ user: mockUser });
 			const mockOrder2 = generateMockSelectOrder();
-			await Order.insertMany([mockOrder1, mockOrder2]);
+			await OrderModel.insertMany([mockOrder1, mockOrder2]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockOrder1.user._id.toString() };
@@ -722,7 +722,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 				status: "pending",
 				user: mockUser,
 			});
-			await Order.insertMany([...paidOrders, ...unpaidOrders]);
+			await OrderModel.insertMany([...paidOrders, ...unpaidOrders]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockUser._id.toString() };
@@ -750,7 +750,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should handle empty query parameters with userId", async () => {
 			// Arrange
 			const mockOrder = generateMockSelectOrder();
-			await Order.insertMany([mockOrder]);
+			await OrderModel.insertMany([mockOrder]);
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = { userId: mockOrder.user._id.toString() };
@@ -777,7 +777,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const mockOrders = generateMockSelectOrders(2, {
 				user: mockUser,
 			}).map(convertOrderToCents);
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const expectedData = mockOrders.map(convertOrderToDollars);
 
@@ -807,7 +807,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const orderOwner = generateMockSelectUser();
 			const mockOrders = generateMockSelectOrders(2, { user: orderOwner });
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const differentUser = generateMockSelectUser({ isAdmin: false });
 
@@ -834,7 +834,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const orderOwner = generateMockSelectUser();
 			const mockOrders = generateMockSelectOrders(2, { user: orderOwner });
-			await Order.insertMany(mockOrders);
+			await OrderModel.insertMany(mockOrders);
 
 			const adminUser = generateMockSelectUser({ isAdmin: true });
 
@@ -866,7 +866,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const mockOrder = generateMockInsertOrder({
 				status: "processing",
 			});
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
 			const { next, req, res } = createMockExpressContext();
@@ -892,7 +892,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const mockOrder = generateMockInsertOrder({
 				status: "processing",
 			});
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 
 			const { next, req, res } = createMockExpressContext();
@@ -916,7 +916,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const mockOrder = generateMockInsertOrder({
 				status: "processing",
 			});
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 			const paymentId = "cs_456";
 			const provider = "stripe";
@@ -933,7 +933,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const response = res._getJSONData();
 			assert.strictEqual(response.data.payment?.sessionURL, sessionURL);
 
-			const order = await Order.findById(orderId);
+			const order = await OrderModel.findById(orderId);
 			assert.ok(order);
 			assert.strictEqual(order.payment?.id, paymentId);
 			assert.strictEqual(order.payment?.provider, provider);
@@ -945,7 +945,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const mockOrder = generateMockInsertOrder({
 				status: "processing",
 			});
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 			const paymentId = "cs_456";
 			const sessionURL = "https://checkout.stripe.com/c/pay/cs_456";
@@ -995,7 +995,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 				payment: undefined,
 				status: "pending",
 			});
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 			const paymentId = "cs_123";
 			const provider = "stripe";
@@ -1016,7 +1016,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.data.payment?.provider, provider);
 			assert.strictEqual(response.data.payment?.sessionURL, sessionURL);
 
-			const order = await Order.findById(orderId);
+			const order = await OrderModel.findById(orderId);
 			assert.ok(order);
 			assert.strictEqual(order.payment?.id, paymentId);
 			assert.strictEqual(order.payment?.provider, provider);
@@ -1035,7 +1035,7 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 					status: "processing",
 				}),
 			);
-			const createdOrder = await Order.create(mockOrder);
+			const createdOrder = await OrderModel.create(mockOrder);
 			const orderId = createdOrder._id.toString();
 			const expectedData = convertOrderToDollars(mockOrder);
 

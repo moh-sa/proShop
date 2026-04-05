@@ -17,7 +17,7 @@ import type {
 	SelectOrder,
 } from "../types/index.js";
 
-import Order from "../models/order.model.js";
+import { OrderModel } from "../models/order.model.js";
 import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IOrderRepository {
@@ -44,11 +44,11 @@ export interface IOrderRepository {
 type OrderResult<T> = Result<T, DatabaseBaseError>;
 
 export class OrderRepository implements IOrderRepository {
-	private readonly _db: typeof Order;
+	private readonly _db: typeof OrderModel;
 	private _paginator: Paginator<SelectOrder>;
 
-	constructor(db?: typeof Order) {
-		this._db = db ?? Order;
+	constructor(db?: typeof OrderModel) {
+		this._db = db ?? OrderModel;
 		this._paginator = new Paginator(this._db);
 	}
 

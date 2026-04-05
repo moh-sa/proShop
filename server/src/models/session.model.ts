@@ -76,4 +76,4 @@ const SessionSchema = new Schema<SessionSchema>(
 SessionSchema.index({ tokenId: 1, userId: 1 }, { unique: true });
 SessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-export const Session = model<SessionSchema>("Session", SessionSchema);
+export const SessionModel = model<SessionSchema>("Session", SessionSchema);

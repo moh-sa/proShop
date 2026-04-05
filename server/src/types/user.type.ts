@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import type User from "../models/user.model.js";
+import type UserModel from "../models/user.model.js";
 import type {
 	insertUserSchema,
 	selectUserSchema,
@@ -17,7 +17,7 @@ import type { Stringify } from "./stringify.type.js";
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type SelectUser = z.infer<typeof selectUserSchema>;
-export type UserDocument = ReturnType<(typeof User)["hydrate"]>;
+export type UserDocument = ReturnType<(typeof UserModel)["hydrate"]>;
 export type UserSchema = SelectUser;
 
 // SAFE/UNSAFE user types

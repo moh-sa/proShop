@@ -3,7 +3,7 @@ import test, { after, before, beforeEach, describe, suite } from "node:test";
 
 import { MAX_TOP_RATED_PRODUCTS } from "../../constants/product.constants.js";
 import { NotFoundError, ValidationError } from "../../errors/index.js";
-import Product from "../../models/product.model.js";
+import { ProductModel } from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { CacheService, ProductService } from "../../services/index.js";
 import { generateMockObjectId } from "../mocks/index.js";
@@ -22,17 +22,17 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 	before(async () => {
 		await connectTestDatabase();
 		cacheService = new CacheService("product");
-		productRepository = new ProductRepository(Product, cacheService);
+		productRepository = new ProductRepository(ProductModel, cacheService);
 		productService = new ProductService(productRepository);
 	});
 
 	after(async () => {
-		await Product.deleteMany({});
+		await ProductModel.deleteMany({});
 		await disconnectTestDatabase();
 	});
 
 	beforeEach(async () => {
-		await Product.deleteMany({});
+		await ProductModel.deleteMany({});
 		cacheService.flush();
 	});
 
@@ -93,7 +93,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 		test("should return paginated response with items and meta when 'getAll' is called with valid parameters", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productService.getAll({
@@ -112,7 +112,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 		test("should return correct pagination meta when 'getAll' is called", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productService.getAll({
@@ -134,7 +134,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			const pageSize = "2";
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productService.getAll({
@@ -153,7 +153,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			const pageSize = "2";
 			const pageNumber = "2";
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productService.getAll({
@@ -172,7 +172,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			const pageSize = "2";
 			const pageNumber = "2";
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productService.getAll({
@@ -194,7 +194,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			const keyword = mockProducts[0].name;
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productService.getAll({
@@ -213,7 +213,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			const keyword = "nonexistentproduct";
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productService.getAll({
@@ -232,7 +232,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
 			const keyword = "nonexistentproduct";
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productService.getAll({
@@ -254,7 +254,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 		test("should return items with correct structure when 'getAll' is called", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 1 });
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productService.getAll({
@@ -352,7 +352,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 		test("should return top rated products sorted by rating when 'repo.getTopRated' is called", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 5 });
-			const expectedResult = (await Product.insertMany(mockProducts))
+			const expectedResult = (await ProductModel.insertMany(mockProducts))
 				.map((p) => ({
 					_id: p._id.toString(),
 					image: p.image,
@@ -378,7 +378,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 		test("should return at most MAX_TOP_RATED_PRODUCTS products when 'repo.getTopRated' is called", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 10 });
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productService.getTopRated();
@@ -391,7 +391,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 		test("should return only id, name, price and image fields for each product", async () => {
 			// Arrange
 			const mockProducts = generateMockSelectProducts({ count: 3 });
-			await Product.insertMany(mockProducts);
+			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productService.getTopRated();
@@ -425,7 +425,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
 			const productId = mockProduct._id.toString();
-			await Product.create(mockProduct);
+			await ProductModel.create(mockProduct);
 
 			// Act
 			const result = await productService.getById({
@@ -537,7 +537,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const mockProduct = generateMockSelectProduct();
 			const productId = mockProduct._id.toString();
-			await Product.create(mockProduct);
+			await ProductModel.create(mockProduct);
 			const invalidData = { price: "invalid-price" as unknown as number };
 
 			// Act
@@ -580,7 +580,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			const deletedProduct = await Product.findById(mockProduct._id);
+			const deletedProduct = await ProductModel.findById(mockProduct._id);
 			assert.strictEqual(deletedProduct, null);
 		});
 

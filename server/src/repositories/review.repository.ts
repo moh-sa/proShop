@@ -16,7 +16,7 @@ import type {
 	SelectReview,
 } from "../types/index.js";
 
-import Review from "../models/review.model.js";
+import { ReviewModel } from "../models/review.model.js";
 import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IReviewRepository {
@@ -59,11 +59,11 @@ export interface IReviewRepository {
 type ReviewResult<T> = Result<T, DatabaseBaseError>;
 
 export class ReviewRepository implements IReviewRepository {
-	private readonly _db: typeof Review;
+	private readonly _db: typeof ReviewModel;
 	private _paginator: Paginator<SelectReview>;
 
-	constructor(db?: typeof Review) {
-		this._db = db ?? Review;
+	constructor(db?: typeof ReviewModel) {
+		this._db = db ?? ReviewModel;
 		this._paginator = new Paginator(this._db);
 	}
 
