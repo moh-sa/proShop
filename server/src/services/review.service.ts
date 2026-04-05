@@ -2,20 +2,20 @@ import type { Types } from "mongoose";
 
 import type { IReviewRepository } from "../repositories/index.js";
 import type {
+	CreateReview,
 	GetAllReviewsByProductIdServiceParams,
 	GetAllReviewsByUserIdServiceParams,
 	GetAllReviewsServiceParams,
-	InsertReview,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
 	Result,
-	SelectReview,
+	Review,
 } from "../types/index.js";
 
 import { NotFoundError, ValidationError } from "../errors/index.js";
 import { reviewRepository } from "../repositories/index.js";
-import { insertReviewSchema } from "../schemas/index.js";
+import { createReviewSchema } from "../schemas/index.js";
 import {
 	reviewByProductIdPaginationParamsSchema,
 	reviewByUserIdPaginationParamsSchema,
@@ -30,8 +30,8 @@ export interface IReviewService {
 		productId: string;
 	}) => Promise<ReviewResult<number>>;
 	countByUserId: (data: { userId: string }) => Promise<ReviewResult<number>>;
-	create: (data: InsertReview) => Promise<ReviewResult<SelectReview>>;
-	delete: (data: { reviewId: string }) => Promise<ReviewResult<SelectReview>>;
+	create: (data: CreateReview) => Promise<ReviewResult<Review>>;
+	delete: (data: { reviewId: string }) => Promise<ReviewResult<Review>>;
 	existsById: (data: {
 		reviewId: string;
 	}) => Promise<ReviewResult<{ _id: Types.ObjectId }>>;
@@ -41,18 +41,18 @@ export interface IReviewService {
 	}) => Promise<ReviewResult<{ _id: Types.ObjectId }>>;
 	getAll: (
 		args: GetAllReviewsServiceParams,
-	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
+	) => Promise<ReviewResult<PaginatedResponse<Review>>>;
 	getAllByProductId: (
 		args: GetAllReviewsByProductIdServiceParams,
-	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
+	) => Promise<ReviewResult<PaginatedResponse<Review>>>;
 	getAllByUserId: (
 		args: GetAllReviewsByUserIdServiceParams,
-	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
-	getById: (data: { reviewId: string }) => Promise<ReviewResult<SelectReview>>;
+	) => Promise<ReviewResult<PaginatedResponse<Review>>>;
+	getById: (data: { reviewId: string }) => Promise<ReviewResult<Review>>;
 	update: (data: {
-		data: Partial<InsertReview>;
+		data: Partial<CreateReview>;
 		reviewId: string;
-	}) => Promise<ReviewResult<SelectReview>>;
+	}) => Promise<ReviewResult<Review>>;
 }
 
 type ReviewResult<T> = Result<T>;
@@ -612,8 +612,8 @@ export class ReviewService implements IReviewService {
 		return getLoggerFromContext().child({ layer: "review service", ...args });
 	}
 
-	private _validateCreateData(data: InsertReview): ReviewResult<InsertReview> {
-		const result = insertReviewSchema.safeParse(data);
+	private _validateCreateData(data: CreateReview): ReviewResult<CreateReview> {
+		const result = createReviewSchema.safeParse(data);
 		if (!result.success) {
 			return {
 				error: new ValidationError("Invalid review data", {
@@ -640,9 +640,9 @@ export class ReviewService implements IReviewService {
 	}
 
 	private _validateUpdateData(
-		data: Partial<InsertReview>,
-	): ReviewResult<Partial<InsertReview>> {
-		const result = insertReviewSchema.partial().safeParse(data);
+		data: Partial<CreateReview>,
+	): ReviewResult<Partial<CreateReview>> {
+		const result = createReviewSchema.partial().safeParse(data);
 		if (!result.success) {
 			return {
 				error: new ValidationError("Invalid review data", {

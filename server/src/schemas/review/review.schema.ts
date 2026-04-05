@@ -5,7 +5,7 @@ import {
 	objectIdValidator,
 } from "../../validators/index.js";
 
-const baseReviewSchema = z.object({
+const baseSchema = z.object({
 	comment: nonEmptyStringValidator("comment"),
 	name: nonEmptyStringValidator("name"),
 
@@ -19,9 +19,9 @@ const baseReviewSchema = z.object({
 	user: objectIdValidator,
 });
 
-export const insertReviewSchema = baseReviewSchema;
+export const createReviewSchema = baseSchema;
 
-export const selectReviewSchema = baseReviewSchema.extend({
+export const reviewSchema = baseSchema.extend({
 	_id: objectIdValidator,
 	createdAt: z.date(),
 	updatedAt: z.date(),

@@ -3,13 +3,13 @@ import type { Types } from "mongoose";
 import type { IReviewService } from "../services/index.js";
 import type {
 	AsyncHandler,
+	CreateReview,
 	GetAllReviewsByProductIdControllerParams,
 	GetAllReviewsByUserIdControllerParams,
 	GetAllReviewsControllerParams,
-	InsertReview,
 	PaginatedResponse,
+	Review,
 	SafeSelectUser,
-	SelectReview,
 } from "../types/index.js";
 
 import { HTTP_STATUS } from "../constants/index.js";
@@ -30,8 +30,8 @@ export interface IReviewController {
 	}>;
 	create: AsyncHandler<{
 		locals: { user: SafeSelectUser };
-		reqBody: InsertReview;
-		resBody: { data: SelectReview };
+		reqBody: CreateReview;
+		resBody: { data: Review };
 	}>;
 	delete: AsyncHandler<{
 		params: { reviewId: string };
@@ -48,34 +48,34 @@ export interface IReviewController {
 	getAll: AsyncHandler<{
 		query: GetAllReviewsControllerParams;
 		resBody: {
-			data: PaginatedResponse<SelectReview>["items"];
-			meta: PaginatedResponse<SelectReview>["meta"];
+			data: PaginatedResponse<Review>["items"];
+			meta: PaginatedResponse<Review>["meta"];
 		};
 	}>;
 	getAllByProductId: AsyncHandler<{
 		params: { productId: string };
 		query: GetAllReviewsByProductIdControllerParams;
 		resBody: {
-			data: PaginatedResponse<SelectReview>["items"];
-			meta: PaginatedResponse<SelectReview>["meta"];
+			data: PaginatedResponse<Review>["items"];
+			meta: PaginatedResponse<Review>["meta"];
 		};
 	}>;
 	getAllByUserId: AsyncHandler<{
 		params: { userId: string };
 		query: GetAllReviewsByUserIdControllerParams;
 		resBody: {
-			data: PaginatedResponse<SelectReview>["items"];
-			meta: PaginatedResponse<SelectReview>["meta"];
+			data: PaginatedResponse<Review>["items"];
+			meta: PaginatedResponse<Review>["meta"];
 		};
 	}>;
 	getById: AsyncHandler<{
 		params: { reviewId: string };
-		resBody: { data: SelectReview };
+		resBody: { data: Review };
 	}>;
 	update: AsyncHandler<{
 		params: { reviewId: string };
-		reqBody: Partial<InsertReview>;
-		resBody: { data: SelectReview };
+		reqBody: Partial<CreateReview>;
+		resBody: { data: Review };
 	}>;
 }
 export class ReviewController implements IReviewController {
@@ -155,8 +155,8 @@ export class ReviewController implements IReviewController {
 
 	create = asyncHandler<{
 		locals: { user: SafeSelectUser };
-		reqBody: InsertReview;
-		resBody: { data: SelectReview };
+		reqBody: CreateReview;
+		resBody: { data: Review };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "create" });
 
@@ -272,8 +272,8 @@ export class ReviewController implements IReviewController {
 	getAll = asyncHandler<{
 		query: GetAllReviewsControllerParams;
 		resBody: {
-			data: PaginatedResponse<SelectReview>["items"];
-			meta: PaginatedResponse<SelectReview>["meta"];
+			data: PaginatedResponse<Review>["items"];
+			meta: PaginatedResponse<Review>["meta"];
 		};
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "getAll" });
@@ -308,8 +308,8 @@ export class ReviewController implements IReviewController {
 		params: { productId: string };
 		query: GetAllReviewsByProductIdControllerParams;
 		resBody: {
-			data: PaginatedResponse<SelectReview>["items"];
-			meta: PaginatedResponse<SelectReview>["meta"];
+			data: PaginatedResponse<Review>["items"];
+			meta: PaginatedResponse<Review>["meta"];
 		};
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "getAllByProductId" });
@@ -347,8 +347,8 @@ export class ReviewController implements IReviewController {
 		params: { userId: string };
 		query: GetAllReviewsByUserIdControllerParams;
 		resBody: {
-			data: PaginatedResponse<SelectReview>["items"];
-			meta: PaginatedResponse<SelectReview>["meta"];
+			data: PaginatedResponse<Review>["items"];
+			meta: PaginatedResponse<Review>["meta"];
 		};
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "getAllByUserId" });
@@ -384,7 +384,7 @@ export class ReviewController implements IReviewController {
 
 	getById = asyncHandler<{
 		params: { reviewId: string };
-		resBody: { data: SelectReview };
+		resBody: { data: Review };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "getById" });
 		logger.debug({ reviewId: req.params.reviewId }, "Getting review by ID");
@@ -409,8 +409,8 @@ export class ReviewController implements IReviewController {
 
 	update = asyncHandler<{
 		params: { reviewId: string };
-		reqBody: Partial<InsertReview>;
-		resBody: { data: SelectReview };
+		reqBody: Partial<CreateReview>;
+		resBody: { data: Review };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "update" });
 		logger.debug({ reviewId: req.params.reviewId }, "Updating review");

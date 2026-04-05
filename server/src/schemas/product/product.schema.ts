@@ -7,7 +7,7 @@ import {
 } from "../../validators/index.js";
 import { insertImageSchema, selectImageSchema } from "./image.schema.js";
 
-const baseProductSchema = z.object({
+const baseSchema = z.object({
 	brand: nonEmptyStringValidator("brand"),
 
 	category: nonEmptyStringValidator("category"),
@@ -26,11 +26,11 @@ const baseProductSchema = z.object({
 	user: objectIdValidator,
 });
 
-export const insertProductSchema = baseProductSchema.extend({
+export const createProductSchema = baseSchema.extend({
 	[IMAGE_FIELD_NAME]: insertImageSchema.optional(),
 });
 
-export const selectProductSchema = baseProductSchema.extend({
+export const productSchema = baseSchema.extend({
 	_id: objectIdValidator,
 	createdAt: z.date(),
 

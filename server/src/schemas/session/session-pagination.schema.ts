@@ -1,9 +1,9 @@
 import { objectIdStringValidator } from "../../validators/object-id.validator.js";
 import { paginationParamsSchema } from "../pagination/pagination.schema.js";
 import { createPaginationSortSchema } from "../pagination/sort.schema.js";
-import { selectSessionSchema } from "./session.schema.js";
+import { sessionSchema } from "./session.schema.js";
 
-export const sessionPaginationFiltersSchema = selectSessionSchema
+export const sessionPaginationFiltersSchema = sessionSchema
 	.pick({
 		revokedAt: true,
 		tokenId: true,
@@ -11,7 +11,7 @@ export const sessionPaginationFiltersSchema = selectSessionSchema
 	})
 	.partial();
 
-const sessionSortableFields = selectSessionSchema.pick({
+const sessionSortableFields = sessionSchema.pick({
 	createdAt: true,
 	revokedAt: true,
 	updatedAt: true,

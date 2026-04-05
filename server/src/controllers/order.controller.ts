@@ -2,14 +2,14 @@ import type { IOrderManager } from "../managers/index.js";
 import type {
 	AllOrdersResponse,
 	AsyncHandler,
+	CreateOrder,
 	CreateOrderResponse,
 	GetAllOrdersByUserIdControllerParams,
 	GetAllOrdersControllerParams,
 	GetAllOrdersManagerParams,
-	InsertOrder,
+	Order,
 	PaginatedResponse,
 	SafeSelectUser,
-	SelectOrder,
 } from "../types/index.js";
 
 import { ERROR_TYPE } from "../constants/error-type.constants.js";
@@ -27,7 +27,7 @@ import {
 export interface IOrderController {
 	create: AsyncHandler<{
 		locals: { user: SafeSelectUser };
-		reqBody: InsertOrder;
+		reqBody: CreateOrder;
 		resBody: { data: CreateOrderResponse };
 	}>;
 	getAll: AsyncHandler<{
@@ -47,15 +47,15 @@ export interface IOrderController {
 	}>;
 	getById: AsyncHandler<{
 		params: { orderId: string };
-		resBody: { data: SelectOrder };
+		resBody: { data: Order };
 	}>;
 	handleStripeWebhook: AsyncHandler<{
 		resBody: { data: { success: boolean } };
 	}>;
 	updatePayment: AsyncHandler<{
 		params: { orderId: string };
-		reqBody: Partial<SelectOrder["payment"]>;
-		resBody: { data: SelectOrder };
+		reqBody: Partial<Order["payment"]>;
+		resBody: { data: Order };
 	}>;
 }
 export class OrderController implements IOrderController {
@@ -63,7 +63,7 @@ export class OrderController implements IOrderController {
 
 	create = asyncHandler<{
 		locals: { user: SafeSelectUser };
-		reqBody: InsertOrder;
+		reqBody: CreateOrder;
 		resBody: { data: CreateOrderResponse };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "create" });
@@ -195,7 +195,7 @@ export class OrderController implements IOrderController {
 
 	getById = asyncHandler<{
 		params: { orderId: string };
-		resBody: { data: SelectOrder };
+		resBody: { data: Order };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "getById" });
 		logger.debug({ orderId: req.params.orderId }, "Getting order by ID");
@@ -270,8 +270,8 @@ export class OrderController implements IOrderController {
 
 	updatePayment = asyncHandler<{
 		params: { orderId: string };
-		reqBody: Partial<SelectOrder["payment"]>;
-		resBody: { data: SelectOrder };
+		reqBody: Partial<Order["payment"]>;
+		resBody: { data: Order };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "updatePayment" });
 		logger.debug(
@@ -331,7 +331,7 @@ export class OrderController implements IOrderController {
 		}
 	}
 
-	private _convertOrderToCents(order: InsertOrder): InsertOrder {
+	private _convertOrderToCents(order: CreateOrder): CreateOrder {
 		return {
 			...order,
 			itemsPrice: this._toCents(order.itemsPrice),
@@ -345,7 +345,7 @@ export class OrderController implements IOrderController {
 		};
 	}
 
-	private _convertOrderToDollars(order: SelectOrder): SelectOrder {
+	private _convertOrderToDollars(order: Order): Order {
 		return {
 			...order,
 			itemsPrice: this._toDollars(order.itemsPrice),

@@ -1,8 +1,8 @@
 import { paginationParamsSchema } from "../pagination/pagination.schema.js";
 import { createPaginationSortSchema } from "../pagination/sort.schema.js";
-import { selectUserSchema } from "./user.schema.js";
+import { userSchema } from "./user.schema.js";
 
-export const userPaginationFiltersSchema = selectUserSchema
+export const userPaginationFiltersSchema = userSchema
 	.pick({
 		email: true,
 		isAdmin: true,
@@ -10,7 +10,7 @@ export const userPaginationFiltersSchema = selectUserSchema
 	})
 	.partial();
 
-const userSortableFields = selectUserSchema.pick({
+const userSortableFields = userSchema.pick({
 	createdAt: true,
 	updatedAt: true,
 });

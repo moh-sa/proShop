@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { beforeEach, describe, mock, suite, test } from "node:test";
 
 import type {
+	CreateUser,
 	GetAllUsersRepositoryParams,
-	InsertUser,
 } from "../../types/index.js";
 
 import {
@@ -731,7 +731,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser._id;
-			const updateData: Partial<InsertUser> = { name: "Updated Name" };
+			const updateData: Partial<CreateUser> = { name: "Updated Name" };
 			const expectedResult = { ...mockUser, ...updateData };
 			const findByIdAndUpdateMock = t.mock.method(
 				UserModel,
@@ -763,7 +763,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser._id;
-			const updateData: Partial<InsertUser> = { name: "Updated Name" };
+			const updateData: Partial<CreateUser> = { name: "Updated Name" };
 			t.mock.method(UserModel, "findByIdAndUpdate", () => ({
 				lean: async () => null,
 			}));
@@ -780,7 +780,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser._id;
-			const updateData: Partial<InsertUser> = { name: "Updated Name" };
+			const updateData: Partial<CreateUser> = { name: "Updated Name" };
 			const validationError = new mongoose.Error.ValidationError();
 			t.mock.method(UserModel, "findByIdAndUpdate", () => {
 				throw validationError;
@@ -798,7 +798,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser._id;
-			const updateData: Partial<InsertUser> = { name: "Updated Name" };
+			const updateData: Partial<CreateUser> = { name: "Updated Name" };
 			const duplicateKeyError = new mongoose.mongo.MongoServerError({});
 			duplicateKeyError.code = 11000;
 			t.mock.method(UserModel, "findByIdAndUpdate", () => {
@@ -817,7 +817,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser._id;
-			const updateData: Partial<InsertUser> = { name: "Updated Name" };
+			const updateData: Partial<CreateUser> = { name: "Updated Name" };
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
@@ -837,7 +837,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser._id;
-			const updateData: Partial<InsertUser> = { name: "Updated Name" };
+			const updateData: Partial<CreateUser> = { name: "Updated Name" };
 			const queryError = new mongoose.Error("Query failed");
 			t.mock.method(UserModel, "findByIdAndUpdate", () => {
 				throw queryError;
@@ -855,7 +855,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser._id;
-			const updateData: Partial<InsertUser> = { name: "Updated Name" };
+			const updateData: Partial<CreateUser> = { name: "Updated Name" };
 			const networkError = new mongoose.mongo.MongoError("Network error");
 			t.mock.method(UserModel, "findByIdAndUpdate", () => {
 				throw networkError;
@@ -873,7 +873,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser._id;
-			const updateData: Partial<InsertUser> = { name: "Updated Name" };
+			const updateData: Partial<CreateUser> = { name: "Updated Name" };
 			const unknownError = new Error("Something unexpected happened");
 			t.mock.method(UserModel, "findByIdAndUpdate", () => {
 				throw unknownError;

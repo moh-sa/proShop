@@ -4,11 +4,11 @@ import type { IAuthManager } from "../managers/index.js";
 import type { ICookieService } from "../services/index.js";
 import type {
 	AsyncHandler,
+	CreateUser,
 	GetAllSessionsByUserIdControllerParams,
-	InsertUser,
 	PaginatedResponse,
 	SafeSelectUser,
-	SelectSession,
+	Session,
 	TokenPair,
 } from "../types/index.js";
 
@@ -27,7 +27,7 @@ export interface IAuthController {
 	 * POST /auth/signup
 	 */
 	signUp: AsyncHandler<{
-		reqBody: InsertUser;
+		reqBody: CreateUser;
 		resBody: { data: { user: SafeSelectUser } };
 	}>;
 
@@ -35,7 +35,7 @@ export interface IAuthController {
 	 * POST /auth/signin
 	 */
 	signIn: AsyncHandler<{
-		reqBody: Pick<InsertUser, "email" | "password">;
+		reqBody: Pick<CreateUser, "email" | "password">;
 		resBody: { data: { user: SafeSelectUser } };
 	}>;
 
@@ -69,8 +69,8 @@ export interface IAuthController {
 	getUserSessions: AsyncHandler<{
 		query: GetAllSessionsByUserIdControllerParams;
 		resBody: {
-			data: PaginatedResponse<SelectSession>["items"];
-			meta: PaginatedResponse<SelectSession>["meta"];
+			data: PaginatedResponse<Session>["items"];
+			meta: PaginatedResponse<Session>["meta"];
 		};
 	}>;
 
@@ -104,7 +104,7 @@ export class AuthController implements IAuthController {
 	 * POST /auth/signin
 	 */
 	signIn = asyncHandler<{
-		reqBody: Pick<InsertUser, "email" | "password">;
+		reqBody: Pick<CreateUser, "email" | "password">;
 		resBody: { data: { user: SafeSelectUser } };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "signIn" });
@@ -139,7 +139,7 @@ export class AuthController implements IAuthController {
 	 * POST /auth/signup
 	 */
 	signUp = asyncHandler<{
-		reqBody: InsertUser;
+		reqBody: CreateUser;
 		resBody: { data: { user: SafeSelectUser } };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "signUp" });
@@ -297,8 +297,8 @@ export class AuthController implements IAuthController {
 	getUserSessions = asyncHandler<{
 		query: GetAllSessionsByUserIdControllerParams;
 		resBody: {
-			data: PaginatedResponse<SelectSession>["items"];
-			meta: PaginatedResponse<SelectSession>["meta"];
+			data: PaginatedResponse<Session>["items"];
+			meta: PaginatedResponse<Session>["meta"];
 		};
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "getUserSessions" });

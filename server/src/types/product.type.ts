@@ -1,10 +1,10 @@
 import type { z } from "zod";
 
 import type {
-	insertProductSchema,
+	createProductSchema,
 	productPaginationFiltersSchema,
 	productPaginationSortSchema,
-	selectProductSchema,
+	productSchema,
 } from "../schemas/index.js";
 import type {
 	PaginationFilter,
@@ -15,29 +15,26 @@ import type {
 import type { Stringify } from "./stringify.type.js";
 
 export type AllProducts = Pick<
-	SelectProduct,
+	Product,
 	"_id" | "brand" | "category" | "image" | "name" | "price" | "rating"
 >;
-export type InsertProduct = z.infer<typeof insertProductSchema>;
-export type InsertProductWithStringImage = Omit<InsertProduct, "image"> & {
+export type CreateProduct = z.infer<typeof createProductSchema>;
+export type CreateProductWithStringImage = Omit<CreateProduct, "image"> & {
 	image: string;
 };
 
-export type ProductSchema = SelectProduct;
+export type Product = z.infer<typeof productSchema>;
 
-export type SelectProduct = z.infer<typeof selectProductSchema>;
+export type ProductSchema = Product;
 
-export type TopRatedProduct = Pick<
-	SelectProduct,
-	"_id" | "image" | "name" | "price"
->;
+export type TopRatedProduct = Pick<Product, "_id" | "image" | "name" | "price">;
 
 // Pagination
 export type ProductFilter = PaginationFilter<
 	z.infer<typeof productPaginationFiltersSchema>
 >;
 
-export type ProductSelect = PaginationSelect<SelectProduct>;
+export type ProductSelect = PaginationSelect<Product>;
 
 export type ProductSort = z.infer<typeof productPaginationSortSchema>;
 

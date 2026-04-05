@@ -2,16 +2,16 @@ import type { Types } from "mongoose";
 
 import type {
 	AllOrdersResponse,
+	CreateOrder,
 	GetAllOrdersServiceParams,
-	InsertOrder,
 	MarkAsCancelledParams,
 	MarkAsProcessingParams,
 	MethodParams,
 	MethodReturn,
+	Order,
 	OrderSelect,
 	PaginatedResponse,
 	Result,
-	SelectOrder,
 } from "../types/index.js";
 
 import { NotFoundError, ValidationError } from "../errors/index.js";
@@ -20,7 +20,7 @@ import {
 	orderRepository,
 } from "../repositories/index.js";
 import {
-	insertOrderSchema,
+	createOrderSchema,
 	markAsCancelledParamsSchema,
 	markAsProcessingParamsSchema,
 	orderPaginationParamsSchema,
@@ -30,20 +30,16 @@ import { getLoggerFromContext } from "../utils/index.js";
 import { objectIdValidator } from "../validators/object-id.validator.js";
 
 export interface IOrderService {
-	create(data: InsertOrder): Promise<OrderResult<SelectOrder>>;
+	create(data: CreateOrder): Promise<OrderResult<Order>>;
 	getAll(
 		args: GetAllOrdersServiceParams,
 	): Promise<OrderResult<PaginatedResponse<AllOrdersResponse>>>;
-	getById(data: { orderId: string }): Promise<OrderResult<SelectOrder>>;
-	markAsCancelled(
-		params: MarkAsCancelledParams,
-	): Promise<OrderResult<SelectOrder>>;
-	markAsProcessing(
-		params: MarkAsProcessingParams,
-	): Promise<OrderResult<SelectOrder>>;
+	getById(data: { orderId: string }): Promise<OrderResult<Order>>;
+	markAsCancelled(params: MarkAsCancelledParams): Promise<OrderResult<Order>>;
+	markAsProcessing(params: MarkAsProcessingParams): Promise<OrderResult<Order>>;
 	updatePayment(
-		params: Partial<SelectOrder["payment"]> & { orderId: string },
-	): Promise<OrderResult<SelectOrder>>;
+		params: Partial<Order["payment"]> & { orderId: string },
+	): Promise<OrderResult<Order>>;
 }
 
 type OrderResult<T> = Result<T>;
@@ -319,8 +315,8 @@ export class OrderService implements IOrderService {
 	}
 
 	public async updatePayment(
-		params: Partial<SelectOrder["payment"]> & { orderId: string },
-	): Promise<OrderResult<SelectOrder>> {
+		params: Partial<Order["payment"]> & { orderId: string },
+	): Promise<OrderResult<Order>> {
 		const logger = this._getLogger({ method: "updatePayment" });
 		logger.debug({ params }, "Updating payment");
 
@@ -385,8 +381,8 @@ export class OrderService implements IOrderService {
 		return getLoggerFromContext().child({ layer: "order service", ...args });
 	}
 
-	private _validateCreateData(data: InsertOrder): OrderResult<InsertOrder> {
-		const result = insertOrderSchema.safeParse(data);
+	private _validateCreateData(data: CreateOrder): OrderResult<CreateOrder> {
+		const result = createOrderSchema.safeParse(data);
 		if (!result.success) {
 			return {
 				error: new ValidationError("Invalid order data", {

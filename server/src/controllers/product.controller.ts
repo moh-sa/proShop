@@ -2,11 +2,11 @@ import type { IProductManager } from "../managers/index.js";
 import type {
 	AllProducts,
 	AsyncHandler,
+	CreateProduct,
 	GetAllProductsControllerParams,
-	InsertProduct,
 	PaginatedResponse,
+	Product,
 	SafeSelectUser,
-	SelectProduct,
 	TopRatedProduct,
 } from "../types/index.js";
 
@@ -22,8 +22,8 @@ import {
 export interface IProductController {
 	create: AsyncHandler<{
 		locals: { user: SafeSelectUser };
-		reqBody: InsertProduct;
-		resBody: { data: SelectProduct };
+		reqBody: CreateProduct;
+		resBody: { data: Product };
 	}>;
 	delete: AsyncHandler<{
 		params: { productId: string };
@@ -38,15 +38,15 @@ export interface IProductController {
 	}>;
 	getById: AsyncHandler<{
 		params: { productId: string };
-		resBody: { data: SelectProduct };
+		resBody: { data: Product };
 	}>;
 	getTopRated: AsyncHandler<{
 		resBody: { data: Array<TopRatedProduct> };
 	}>;
 	update: AsyncHandler<{
 		params: { productId: string };
-		reqBody: Partial<InsertProduct>;
-		resBody: { data: SelectProduct };
+		reqBody: Partial<CreateProduct>;
+		resBody: { data: Product };
 	}>;
 }
 export class ProductController implements IProductController {
@@ -54,8 +54,8 @@ export class ProductController implements IProductController {
 
 	create = asyncHandler<{
 		locals: { user: SafeSelectUser };
-		reqBody: InsertProduct;
-		resBody: { data: SelectProduct };
+		reqBody: CreateProduct;
+		resBody: { data: Product };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "create" });
 
@@ -155,7 +155,7 @@ export class ProductController implements IProductController {
 
 	getById = asyncHandler<{
 		params: { productId: string };
-		resBody: { data: SelectProduct };
+		resBody: { data: Product };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "getById" });
 		logger.debug({ productId: req.params.productId }, "Getting product by ID");
@@ -210,8 +210,8 @@ export class ProductController implements IProductController {
 
 	update = asyncHandler<{
 		params: { productId: string };
-		reqBody: Partial<InsertProduct>;
-		resBody: { data: SelectProduct };
+		reqBody: Partial<CreateProduct>;
+		resBody: { data: Product };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "update" });
 

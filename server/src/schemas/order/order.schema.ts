@@ -7,8 +7,8 @@ import {
 } from "../../validators/index.js";
 import { paymentProviderSchema } from "../payment/payment.schema.js";
 import { shippingAddressSchema } from "../shipping/shipping-address.schema.js";
-import { selectUserSchema } from "../user/user.schema.js";
-import { insertOrderItemSchema } from "./order-item.schema.js";
+import { userSchema } from "../user/user.schema.js";
+import { createOrderItemSchema } from "./order-item.schema.js";
 
 export const orderStatusSchema = z.enum([
 	"pending",
@@ -24,11 +24,11 @@ export const paymentSchema = z.object({
 	sessionURL: urlValidator,
 });
 
-const baseOrderSchema = z.object({
+const baseSchema = z.object({
 	deliveredAt: z.date().optional(),
 
 	itemsPrice: z.number().min(0, { error: "Items price is required." }),
-	orderItems: z.array(insertOrderItemSchema).min(1, {
+	orderItems: z.array(createOrderItemSchema).min(1, {
 		error: "Order items are required.",
 	}),
 
@@ -40,18 +40,18 @@ const baseOrderSchema = z.object({
 	taxPrice: z.number().min(0, { error: "Tax price is required." }),
 
 	totalPrice: z.number().min(0, { error: "Total price is required." }),
-	user: selectUserSchema.pick({ _id: true, email: true, name: true }),
+	user: userSchema.pick({ _id: true, email: true, name: true }),
 });
 
-export const insertOrderSchema = baseOrderSchema;
+export const createOrderSchema = baseSchema;
 
-export const selectOrderSchema = baseOrderSchema.extend({
+export const orderSchema = baseSchema.extend({
 	_id: objectIdValidator,
 	createdAt: z.date(),
 	updatedAt: z.date(),
 });
 
-export const allOrdersResponseSchema = selectOrderSchema.pick({
+export const allOrdersResponseSchema = orderSchema.pick({
 	_id: true,
 	createdAt: true,
 	deliveredAt: true,

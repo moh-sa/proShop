@@ -1,9 +1,9 @@
 import type { IUserService } from "../services/index.js";
 import type {
 	AsyncHandler,
+	CreateUser,
 	GetAllUsersControllerParams,
 	GetAllUsersServiceParams,
-	InsertUser,
 	PaginatedResponse,
 	SafeSelectUser,
 } from "../types/index.js";
@@ -32,7 +32,7 @@ export interface IUserController {
 	update: AsyncHandler<{
 		locals: { user: SafeSelectUser };
 		params: { userId: string };
-		reqBody: Partial<InsertUser>;
+		reqBody: Partial<CreateUser>;
 		resBody: { data: SafeSelectUser };
 	}>;
 }
@@ -127,7 +127,7 @@ export class UserController implements IUserController {
 	update = asyncHandler<{
 		locals: { user: SafeSelectUser };
 		params: { userId: string };
-		reqBody: Partial<InsertUser>;
+		reqBody: Partial<CreateUser>;
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "update" });

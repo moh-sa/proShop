@@ -5,13 +5,13 @@ import { z } from "zod";
 import type { SessionBaseError } from "../errors/index.js";
 import type { ISessionRepository } from "../repositories/session.repository.js";
 import type {
+	CreateSession,
 	GetAllSessionsByUserIdServiceParams,
-	InsertSession,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
 	Result,
-	SelectSession,
+	Session,
 } from "../types/index.js";
 
 import {
@@ -24,37 +24,37 @@ import {
 } from "../errors/index.js";
 import { sessionRepository } from "../repositories/index.js";
 import {
-	insertSessionSchema,
+	createSessionSchema,
 	sessionByUserIdPaginationParamsSchema,
 } from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 import { objectIdValidator, uuidValidator } from "../validators/index.js";
 
 export interface ISessionService {
-	create(args: InsertSession): Promise<SessionResult<SelectSession>>;
+	create(args: CreateSession): Promise<SessionResult<Session>>;
 
 	deleteAllByUserId(args: { userId: string }): Promise<SessionResult<number>>;
 
 	deleteByTokenIdAndUserId(args: {
 		tokenId: string;
 		userId: string;
-	}): Promise<SessionResult<SelectSession>>;
+	}): Promise<SessionResult<Session>>;
 
 	getActiveByUserId(
 		args: GetAllSessionsByUserIdServiceParams,
-	): Promise<SessionResult<PaginatedResponse<SelectSession>>>;
+	): Promise<SessionResult<PaginatedResponse<Session>>>;
 
 	getByTokenIdAndUserId(args: {
 		tokenId: string;
 		userId: string;
-	}): Promise<SessionResult<SelectSession>>;
+	}): Promise<SessionResult<Session>>;
 
 	revokeAllByUserId(args: { userId: string }): Promise<SessionResult<number>>;
 
 	revokeByTokenIdAndUserId(args: {
 		tokenId: string;
 		userId: string;
-	}): Promise<SessionResult<SelectSession>>;
+	}): Promise<SessionResult<Session>>;
 
 	/**
 	 * Validates a session by checking if it exists, is not revoked, and is not expired.
@@ -62,7 +62,7 @@ export interface ISessionService {
 	validate(args: {
 		tokenId: string;
 		userId: string;
-	}): Promise<SessionResult<SelectSession>>;
+	}): Promise<SessionResult<Session>>;
 }
 
 type SessionResult<T> = Result<T, SessionBaseError>;
@@ -537,8 +537,8 @@ export class SessionService implements ISessionService {
 		return getLoggerFromContext().child({ layer: "session service", ...args });
 	}
 
-	private _validateCreateArgs(args: InsertSession): SessionResult<undefined> {
-		const argsValidationResult = insertSessionSchema.safeParse(args);
+	private _validateCreateArgs(args: CreateSession): SessionResult<undefined> {
+		const argsValidationResult = createSessionSchema.safeParse(args);
 		if (!argsValidationResult.success) {
 			return {
 				error: new SessionValidationError({

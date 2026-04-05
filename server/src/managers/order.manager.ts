@@ -1,16 +1,16 @@
 import type { IOrderService, IPaymentService } from "../services/index.js";
 import type {
 	AllOrdersResponse,
+	CreateOrder,
 	CreateOrderResponse,
 	GetAllOrdersManagerParams,
-	InsertOrder,
 	LineItem,
 	MethodParams,
 	MethodReturn,
+	Order,
+	OrderItem,
 	PaginatedResponse,
 	Result,
-	SelectOrder,
-	SelectOrderItem,
 	VerifyWebhookParams,
 } from "../types/index.js";
 
@@ -23,7 +23,7 @@ export interface IOrderManager {
 	 *
 	 * @returns The created order and checkout URL for redirecting the user
 	 */
-	create(params: InsertOrder): Promise<OrderManagerResult<CreateOrderResponse>>;
+	create(params: CreateOrder): Promise<OrderManagerResult<CreateOrderResponse>>;
 
 	/**
 	 * Gets all orders with pagination and filtering
@@ -35,9 +35,7 @@ export interface IOrderManager {
 	/**
 	 * Gets an order by its ID
 	 */
-	getById(params: {
-		orderId: string;
-	}): Promise<OrderManagerResult<SelectOrder>>;
+	getById(params: { orderId: string }): Promise<OrderManagerResult<Order>>;
 
 	/**
 	 * Processes Stripe webhook events for checkout sessions.
@@ -54,8 +52,8 @@ export interface IOrderManager {
 	 * Updates the payment of an order
 	 */
 	updatePayment(
-		params: Partial<SelectOrder["payment"]> & { orderId: string },
-	): Promise<OrderManagerResult<SelectOrder>>;
+		params: Partial<Order["payment"]> & { orderId: string },
+	): Promise<OrderManagerResult<Order>>;
 }
 
 type OrderManagerResult<T> = Result<T>;
@@ -246,9 +244,7 @@ export class OrderManager implements IOrderManager {
 	/**
 	 * Transforms order items to Stripe checkout line items format
 	 */
-	private _transformToLineItems(
-		orderItems: Array<SelectOrderItem>,
-	): Array<LineItem> {
+	private _transformToLineItems(orderItems: Array<OrderItem>): Array<LineItem> {
 		return orderItems.map((item) => ({
 			name: item.name,
 			quantity: item.qty,

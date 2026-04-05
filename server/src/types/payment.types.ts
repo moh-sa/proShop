@@ -2,7 +2,7 @@ import type Stripe from "stripe";
 import type { z } from "zod";
 
 import type {
-	createCheckoutSessionItem,
+	createCheckoutSessionItemSchema,
 	createCheckoutSessionParamsSchema,
 	paymentProviderSchema,
 } from "../schemas/index.js";
@@ -16,7 +16,7 @@ export interface CreateCheckoutSessionResponse {
 	url: string;
 }
 
-export type LineItem = z.infer<typeof createCheckoutSessionItem>;
+export type LineItem = z.infer<typeof createCheckoutSessionItemSchema>;
 
 export type LineItems = Array<LineItem>;
 

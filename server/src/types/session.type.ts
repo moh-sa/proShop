@@ -1,11 +1,11 @@
 import type { z } from "zod";
 
 import type {
-	insertSessionSchema,
-	selectSessionSchema,
+	createSessionSchema,
 	sessionPaginationFiltersSchema,
 	sessionPaginationParamsSchema,
 	sessionPaginationSortSchema,
+	sessionSchema,
 } from "../schemas/index.js";
 import type {
 	PaginationFilter,
@@ -13,16 +13,16 @@ import type {
 	PaginationSelect,
 } from "./pagination.type.js";
 
-export type InsertSession = z.infer<typeof insertSessionSchema>;
-export type SelectSession = z.infer<typeof selectSessionSchema>;
-export type SessionSchema = SelectSession;
+export type CreateSession = z.infer<typeof createSessionSchema>;
+export type Session = z.infer<typeof sessionSchema>;
+export type SessionSchema = Session;
 
 // Pagination
 export type SessionFilter = PaginationFilter<
 	z.infer<typeof sessionPaginationFiltersSchema>
 >;
 
-export type SessionSelect = PaginationSelect<SelectSession>;
+export type SessionSelect = PaginationSelect<Session>;
 
 export type SessionSort = z.infer<typeof sessionPaginationSortSchema>;
 

@@ -7,7 +7,7 @@ import {
 	passwordValidator,
 } from "../../validators/index.js";
 
-const baseUserSchema = z.object({
+const baseSchema = z.object({
 	email: emailValidator,
 	isAdmin: z.coerce.boolean(),
 	name: z
@@ -23,8 +23,8 @@ const baseUserSchema = z.object({
 	password: passwordValidator,
 });
 
-export const insertUserSchema = baseUserSchema;
-export const selectUserSchema = baseUserSchema.extend({
+export const createUserSchema = baseSchema;
+export const userSchema = baseSchema.extend({
 	_id: objectIdValidator,
 	createdAt: z.date(),
 	updatedAt: z.date(),

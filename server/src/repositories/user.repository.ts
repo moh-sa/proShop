@@ -2,15 +2,15 @@ import type { Types } from "mongoose";
 
 import type { DatabaseBaseError } from "../errors/index.js";
 import type {
+	CreateUser,
 	FailureResult,
 	GetAllUsersRepositoryParams,
-	InsertUser,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
 	PaginationQuery,
 	Result,
-	SelectUser,
+	User,
 	UserFilter,
 } from "../types/index.js";
 
@@ -18,31 +18,27 @@ import { UserModel } from "../models/user.model.js";
 import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IUserRepository {
-	create(data: InsertUser): Promise<UserResult<SelectUser>>;
-	delete(data: {
-		userId: Types.ObjectId;
-	}): Promise<UserResult<null | SelectUser>>;
+	create(data: CreateUser): Promise<UserResult<User>>;
+	delete(data: { userId: Types.ObjectId }): Promise<UserResult<null | User>>;
 	existsByEmail(data: {
 		email: string;
 	}): Promise<UserResult<null | { _id: Types.ObjectId }>>;
 	getAll(
 		args: GetAllUsersRepositoryParams,
-	): Promise<UserResult<PaginatedResponse<SelectUser>>>;
-	getByEmail(data: { email: string }): Promise<UserResult<null | SelectUser>>;
-	getById(data: {
-		userId: Types.ObjectId;
-	}): Promise<UserResult<null | SelectUser>>;
+	): Promise<UserResult<PaginatedResponse<User>>>;
+	getByEmail(data: { email: string }): Promise<UserResult<null | User>>;
+	getById(data: { userId: Types.ObjectId }): Promise<UserResult<null | User>>;
 	update(data: {
-		data: Partial<InsertUser>;
+		data: Partial<CreateUser>;
 		userId: Types.ObjectId;
-	}): Promise<UserResult<null | SelectUser>>;
+	}): Promise<UserResult<null | User>>;
 }
 
 type UserResult<T> = Result<T, DatabaseBaseError>;
 
 export class UserRepository implements IUserRepository {
 	private readonly _db: typeof UserModel;
-	private _paginator: Paginator<SelectUser>;
+	private _paginator: Paginator<User>;
 
 	constructor(db?: typeof UserModel) {
 		this._db = db ?? UserModel;
@@ -104,7 +100,7 @@ export class UserRepository implements IUserRepository {
 		args: MethodParams<IUserRepository, "getAll">,
 	): MethodReturn<IUserRepository, "getAll"> {
 		try {
-			const result = await this._paginator.paginate<SelectUser>({
+			const result = await this._paginator.paginate<User>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: args.filters && this._prepareFilters(args.filters),
@@ -184,12 +180,12 @@ export class UserRepository implements IUserRepository {
 
 	private _prepareFilters(
 		filters?: UserFilter,
-	): Partial<PaginationQuery<SelectUser>> {
+	): Partial<PaginationQuery<User>> {
 		if (!filters) {
 			return {};
 		}
 
-		const newFilter: Partial<PaginationQuery<SelectUser>> = {};
+		const newFilter: Partial<PaginationQuery<User>> = {};
 
 		if (filters.name) {
 			newFilter.name = { $options: "i", $regex: filters.name };

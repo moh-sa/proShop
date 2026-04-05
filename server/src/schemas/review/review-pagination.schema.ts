@@ -3,7 +3,7 @@ import z from "zod";
 
 import { paginationParamsSchema } from "../pagination/pagination.schema.js";
 import { createPaginationSortSchema } from "../pagination/sort.schema.js";
-import { selectReviewSchema } from "./review.schema.js";
+import { reviewSchema } from "./review.schema.js";
 
 // Filters
 const baseFiltersSchema = z.object({
@@ -36,7 +36,7 @@ export const reviewByUserIdPaginationFiltersSchema = baseFiltersSchema
 	.partial();
 
 // Sort
-const reviewSortableFields = selectReviewSchema.pick({
+const reviewSortableFields = reviewSchema.pick({
 	createdAt: true,
 	rating: true,
 	updatedAt: true,

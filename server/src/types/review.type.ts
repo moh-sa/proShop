@@ -1,9 +1,6 @@
 import type { z } from "zod";
 
-import type {
-	insertReviewSchema,
-	selectReviewSchema,
-} from "../schemas/index.js";
+import type { createReviewSchema, reviewSchema } from "../schemas/index.js";
 import type {
 	reviewByProductIdPaginationFiltersSchema,
 	reviewByProductIdPaginationParamsSchema,
@@ -20,9 +17,9 @@ import type {
 } from "./pagination.type.js";
 import type { Stringify } from "./stringify.type.js";
 
-export type InsertReview = z.infer<typeof insertReviewSchema>;
-export type ReviewSchema = SelectReview;
-export type SelectReview = z.infer<typeof selectReviewSchema>;
+export type CreateReview = z.infer<typeof createReviewSchema>;
+export type Review = z.infer<typeof reviewSchema>;
+export type ReviewSchema = Review;
 
 // Pagination
 export type ReviewByProductIdFilter = PaginationFilter<
@@ -37,7 +34,7 @@ export type ReviewFilter = PaginationFilter<
 	z.infer<typeof reviewPaginationFiltersSchema>
 >;
 
-export type ReviewSelect = PaginationSelect<SelectReview>;
+export type ReviewSelect = PaginationSelect<Review>;
 
 export type ReviewSort = z.infer<typeof reviewPaginationSortSchema>;
 

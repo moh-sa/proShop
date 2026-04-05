@@ -3,16 +3,16 @@ import type { Types } from "mongoose";
 import type { DatabaseBaseError } from "../errors/index.js";
 import type {
 	AllProducts,
+	CreateProductWithStringImage,
 	FailureResult,
 	GetAllProductsRepositoryParams,
-	InsertProductWithStringImage,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
 	PaginationQuery,
+	Product,
 	ProductFilter,
 	Result,
-	SelectProduct,
 	TopRatedProduct,
 } from "../types/index.js";
 
@@ -22,25 +22,23 @@ import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IProductRepository {
 	count(query: Record<string, unknown>): Promise<ProductResult<number>>;
-	create(
-		data: InsertProductWithStringImage,
-	): Promise<ProductResult<SelectProduct>>;
+	create(data: CreateProductWithStringImage): Promise<ProductResult<Product>>;
 	delete(data: {
 		productId: Types.ObjectId;
-	}): Promise<ProductResult<null | SelectProduct>>;
+	}): Promise<ProductResult<null | Product>>;
 	getAll(
 		args: GetAllProductsRepositoryParams,
 	): Promise<ProductResult<PaginatedResponse<AllProducts>>>;
 	getById(data: {
 		productId: Types.ObjectId;
-	}): Promise<ProductResult<null | SelectProduct>>;
+	}): Promise<ProductResult<null | Product>>;
 	getTopRated(data: {
 		limit: number;
 	}): Promise<ProductResult<Array<TopRatedProduct>>>;
 	update(data: {
-		data: Partial<InsertProductWithStringImage>;
+		data: Partial<CreateProductWithStringImage>;
 		productId: Types.ObjectId;
-	}): Promise<ProductResult<null | SelectProduct>>;
+	}): Promise<ProductResult<null | Product>>;
 }
 
 type ProductResult<T> = Result<T, DatabaseBaseError>;
@@ -48,7 +46,7 @@ type ProductResult<T> = Result<T, DatabaseBaseError>;
 export class ProductRepository implements IProductRepository {
 	private _cache: CacheService;
 	private readonly _db: typeof ProductModel;
-	private _paginator: Paginator<SelectProduct>;
+	private _paginator: Paginator<Product>;
 
 	// Cache keys
 	private readonly _getTopRatedCacheKey = "top-rated";
@@ -141,7 +139,7 @@ export class ProductRepository implements IProductRepository {
 		"getById"
 	> {
 		const cacheId = productId.toString();
-		const getCachedResult = this._cache.get<SelectProduct>({
+		const getCachedResult = this._cache.get<Product>({
 			key: cacheId,
 		});
 		if (!getCachedResult.success) {
@@ -265,12 +263,12 @@ export class ProductRepository implements IProductRepository {
 
 	private _prepareFilter(
 		filters?: ProductFilter,
-	): Partial<PaginationQuery<SelectProduct>> {
+	): Partial<PaginationQuery<Product>> {
 		if (!filters) {
 			return {};
 		}
 
-		const newFilter: Partial<PaginationQuery<SelectProduct>> = {};
+		const newFilter: Partial<PaginationQuery<Product>> = {};
 
 		if (filters.keyword) {
 			newFilter.$text = { $search: filters.keyword };

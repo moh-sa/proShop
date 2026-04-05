@@ -2,18 +2,18 @@ import { Types } from "mongoose";
 
 import type { DatabaseBaseError } from "../errors/index.js";
 import type {
+	CreateReview,
 	FailureResult,
 	GetAllReviewsByProductIdRepositoryParams,
 	GetAllReviewsByUserIdRepositoryParams,
 	GetAllReviewsRepositoryParams,
-	InsertReview,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
 	PaginationQuery,
 	Result,
+	Review,
 	ReviewFilter,
-	SelectReview,
 } from "../types/index.js";
 
 import { ReviewModel } from "../models/review.model.js";
@@ -27,10 +27,10 @@ export interface IReviewRepository {
 	countByUserId: (data: {
 		userId: Types.ObjectId;
 	}) => Promise<ReviewResult<number>>;
-	create: (data: InsertReview) => Promise<ReviewResult<SelectReview>>;
+	create: (data: CreateReview) => Promise<ReviewResult<Review>>;
 	delete: (data: {
 		reviewId: Types.ObjectId;
-	}) => Promise<ReviewResult<null | SelectReview>>;
+	}) => Promise<ReviewResult<null | Review>>;
 	existsById: (data: {
 		reviewId: Types.ObjectId;
 	}) => Promise<ReviewResult<null | { _id: Types.ObjectId }>>;
@@ -40,27 +40,27 @@ export interface IReviewRepository {
 	}) => Promise<ReviewResult<null | { _id: Types.ObjectId }>>;
 	getAll: (
 		args: GetAllReviewsRepositoryParams,
-	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
+	) => Promise<ReviewResult<PaginatedResponse<Review>>>;
 	getAllByProductId: (
 		data: GetAllReviewsByProductIdRepositoryParams,
-	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
+	) => Promise<ReviewResult<PaginatedResponse<Review>>>;
 	getAllByUserId: (
 		data: GetAllReviewsByUserIdRepositoryParams,
-	) => Promise<ReviewResult<PaginatedResponse<SelectReview>>>;
+	) => Promise<ReviewResult<PaginatedResponse<Review>>>;
 	getById: (data: {
 		reviewId: Types.ObjectId;
-	}) => Promise<ReviewResult<null | SelectReview>>;
+	}) => Promise<ReviewResult<null | Review>>;
 	update: (data: {
-		data: Partial<InsertReview>;
+		data: Partial<CreateReview>;
 		reviewId: Types.ObjectId;
-	}) => Promise<ReviewResult<null | SelectReview>>;
+	}) => Promise<ReviewResult<null | Review>>;
 }
 
 type ReviewResult<T> = Result<T, DatabaseBaseError>;
 
 export class ReviewRepository implements IReviewRepository {
 	private readonly _db: typeof ReviewModel;
-	private _paginator: Paginator<SelectReview>;
+	private _paginator: Paginator<Review>;
 
 	constructor(db?: typeof ReviewModel) {
 		this._db = db ?? ReviewModel;
@@ -201,7 +201,7 @@ export class ReviewRepository implements IReviewRepository {
 		args: MethodParams<IReviewRepository, "getAll">,
 	): MethodReturn<IReviewRepository, "getAll"> {
 		try {
-			const result = await this._paginator.paginate<SelectReview>({
+			const result = await this._paginator.paginate<Review>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: args.filters && this._prepareFilters(args.filters),
@@ -222,7 +222,7 @@ export class ReviewRepository implements IReviewRepository {
 		args: MethodParams<IReviewRepository, "getAllByProductId">,
 	): MethodReturn<IReviewRepository, "getAllByProductId"> {
 		try {
-			const result = await this._paginator.paginate<SelectReview>({
+			const result = await this._paginator.paginate<Review>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: {
@@ -246,7 +246,7 @@ export class ReviewRepository implements IReviewRepository {
 		args: MethodParams<IReviewRepository, "getAllByUserId">,
 	): MethodReturn<IReviewRepository, "getAllByUserId"> {
 		try {
-			const result = await this._paginator.paginate<SelectReview>({
+			const result = await this._paginator.paginate<Review>({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: {
@@ -311,12 +311,12 @@ export class ReviewRepository implements IReviewRepository {
 
 	private _prepareFilters(
 		filters?: ReviewFilter,
-	): Partial<PaginationQuery<SelectReview>> {
+	): Partial<PaginationQuery<Review>> {
 		if (!filters) {
 			return {};
 		}
 
-		const newFilter: Partial<PaginationQuery<SelectReview>> = {};
+		const newFilter: Partial<PaginationQuery<Review>> = {};
 
 		if (filters.productId) {
 			newFilter.product = new Types.ObjectId(filters.productId);

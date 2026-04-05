@@ -6,7 +6,7 @@ import {
 	createPaginationSortSchema,
 	paginationParamsSchema,
 } from "../pagination/index.js";
-import { orderStatusSchema, selectOrderSchema } from "./order.schema.js";
+import { orderSchema, orderStatusSchema } from "./order.schema.js";
 
 export const orderPaginationFiltersSchema = z
 	.object({
@@ -17,7 +17,7 @@ export const orderPaginationFiltersSchema = z
 	})
 	.partial();
 
-const orderSortableFields = selectOrderSchema.pick({
+const orderSortableFields = orderSchema.pick({
 	createdAt: true,
 	deliveredAt: true,
 	updatedAt: true,

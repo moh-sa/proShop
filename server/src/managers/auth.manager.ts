@@ -5,14 +5,14 @@ import type {
 	IUserService,
 } from "../services/index.js";
 import type {
+	CreateUser,
 	GetAllSessionsByUserIdManagerParams,
-	InsertUser,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
 	Result,
 	SafeSelectUser,
-	SelectSession,
+	Session,
 	TokenPair,
 	UnSafeSelectUser,
 } from "../types/index.js";
@@ -38,7 +38,7 @@ type AuthResult<T> = Result<T>;
 export interface IAuthManager {
 	getUserSessions(
 		args: GetAllSessionsByUserIdManagerParams,
-	): Promise<AuthResult<PaginatedResponse<SelectSession>>>;
+	): Promise<AuthResult<PaginatedResponse<Session>>>;
 
 	refreshAccessToken(args: { refreshToken: string }): Promise<
 		AuthResult<{
@@ -53,7 +53,7 @@ export interface IAuthManager {
 
 	revokeSession(args: { refreshToken: string }): Promise<AuthResult<undefined>>;
 
-	signIn(args: Pick<InsertUser, "email" | "password">): Promise<
+	signIn(args: Pick<CreateUser, "email" | "password">): Promise<
 		AuthResult<{
 			sessionId: string;
 			tokens: TokenPair;
@@ -65,7 +65,7 @@ export interface IAuthManager {
 
 	signOutAll(args: { refreshToken: string }): Promise<AuthResult<number>>;
 
-	signUp(args: InsertUser): Promise<
+	signUp(args: CreateUser): Promise<
 		AuthResult<{
 			sessionId: string;
 			tokens: TokenPair;

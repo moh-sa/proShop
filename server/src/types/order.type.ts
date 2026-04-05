@@ -2,18 +2,18 @@ import type { z } from "zod";
 
 import type {
 	allOrdersResponseSchema,
-	insertOrderSchema,
+	createOrderSchema,
 	markAsBaseParamsSchema,
 	markAsCancelledParamsSchema,
 	markAsProcessingParamsSchema,
 	orderPaginationFiltersSchema,
 	orderPaginationSortSchema,
+	orderSchema,
 	orderStatusSchema,
-	selectOrderSchema,
 } from "../schemas/index.js";
 import type {
-	insertOrderItemSchema,
-	selectOrderItemSchema,
+	createOrderItemSchema,
+	orderItemSchema,
 } from "../schemas/order/order-item.schema.js";
 import type {
 	PaginationFilter,
@@ -23,19 +23,19 @@ import type {
 } from "./pagination.type.js";
 import type { Stringify } from "./stringify.type.js";
 
-export type InsertOrder = z.infer<typeof insertOrderSchema>;
-export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
-export type OrderSchema = SelectOrder;
+export type CreateOrder = z.infer<typeof createOrderSchema>;
+export type CreateOrderItem = z.infer<typeof createOrderItemSchema>;
+export type Order = z.infer<typeof orderSchema>;
+export type OrderItem = z.infer<typeof orderItemSchema>;
+export type OrderSchema = Order;
 export type OrderStatus = z.infer<typeof orderStatusSchema>;
-export type SelectOrder = z.infer<typeof selectOrderSchema>;
-export type SelectOrderItem = z.infer<typeof selectOrderItemSchema>;
 
 // Pagination
 export type OrderFilter = PaginationFilter<
 	z.infer<typeof orderPaginationFiltersSchema>
 >;
 
-export type OrderSelect = PaginationSelect<SelectOrder>;
+export type OrderSelect = PaginationSelect<Order>;
 
 export type OrderSort = z.infer<typeof orderPaginationSortSchema>;
 
@@ -76,7 +76,7 @@ export type MarkAsProcessingParams = z.infer<
 export type AllOrdersResponse = z.infer<typeof allOrdersResponseSchema>;
 
 export type CreateOrderResponse = {
-	order: SelectOrder;
+	order: Order;
 	session: {
 		url: string;
 	};

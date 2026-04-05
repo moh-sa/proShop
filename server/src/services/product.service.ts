@@ -1,14 +1,14 @@
 import type { IProductRepository } from "../repositories/index.js";
 import type {
 	AllProducts,
+	CreateProductWithStringImage,
 	GetAllProductsServiceParams,
-	InsertProductWithStringImage,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
+	Product,
 	ProductSelect,
 	Result,
-	SelectProduct,
 	TopRatedProduct,
 } from "../types/index.js";
 
@@ -19,7 +19,7 @@ import {
 import { NotFoundError, ValidationError } from "../errors/index.js";
 import { productRepository } from "../repositories/index.js";
 import {
-	insertProductSchema,
+	createProductSchema,
 	productPaginationParamsSchema,
 	selectImageSchema,
 } from "../schemas/index.js";
@@ -27,19 +27,17 @@ import { getLoggerFromContext } from "../utils/index.js";
 import { objectIdValidator } from "../validators/index.js";
 
 export interface IProductService {
-	create(
-		data: InsertProductWithStringImage,
-	): Promise<ProductResult<SelectProduct>>;
+	create(data: CreateProductWithStringImage): Promise<ProductResult<Product>>;
 	delete(data: { productId: string }): Promise<ProductResult<void>>;
 	getAll(
 		args: GetAllProductsServiceParams,
 	): Promise<ProductResult<PaginatedResponse<AllProducts>>>;
-	getById(data: { productId: string }): Promise<ProductResult<SelectProduct>>;
+	getById(data: { productId: string }): Promise<ProductResult<Product>>;
 	getTopRated(): Promise<ProductResult<Array<TopRatedProduct>>>;
 	update(data: {
-		data: Partial<InsertProductWithStringImage>;
+		data: Partial<CreateProductWithStringImage>;
 		productId: string;
-	}): Promise<ProductResult<SelectProduct>>;
+	}): Promise<ProductResult<Product>>;
 }
 type ProductResult<T> = Result<T>;
 
@@ -326,7 +324,7 @@ export class ProductService implements IProductService {
 	}
 
 	private _dataSchema() {
-		return insertProductSchema.omit({ [IMAGE_FIELD_NAME]: true }).extend({
+		return createProductSchema.omit({ [IMAGE_FIELD_NAME]: true }).extend({
 			[IMAGE_FIELD_NAME]: selectImageSchema,
 		});
 	}

@@ -2,9 +2,9 @@ import z from "zod";
 
 import { paginationParamsSchema } from "../pagination/pagination.schema.js";
 import { createPaginationSortSchema } from "../pagination/sort.schema.js";
-import { selectProductSchema } from "./product.schema.js";
+import { productSchema } from "./product.schema.js";
 
-export const productPaginationFiltersSchema = selectProductSchema
+export const productPaginationFiltersSchema = productSchema
 	.pick({
 		brand: true,
 		category: true,
@@ -14,7 +14,7 @@ export const productPaginationFiltersSchema = selectProductSchema
 	})
 	.partial();
 
-const productSortableFields = selectProductSchema.pick({
+const productSortableFields = productSchema.pick({
 	countInStock: true,
 	createdAt: true,
 	numReviews: true,

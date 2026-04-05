@@ -2,15 +2,15 @@ import type { Types } from "mongoose";
 
 import type { IUserRepository } from "../repositories/index.js";
 import type {
+	CreateUser,
 	GetAllUsersServiceParams,
-	InsertUser,
 	MethodParams,
 	MethodReturn,
 	PaginatedResponse,
 	Result,
 	SafeSelectUser,
-	SelectUser,
 	UnSafeSelectUser,
+	User,
 	UserSelect,
 } from "../types/index.js";
 
@@ -21,15 +21,15 @@ import {
 } from "../errors/index.js";
 import { userRepository } from "../repositories/index.js";
 import {
-	insertUserSchema,
-	selectUserSchema,
+	createUserSchema,
 	userPaginationParamsSchema,
+	userSchema,
 } from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 import { emailValidator, objectIdValidator } from "../validators/index.js";
 
 export interface IUserService {
-	create: (data: InsertUser) => Promise<UserResult<SafeSelectUser>>;
+	create: (data: CreateUser) => Promise<UserResult<SafeSelectUser>>;
 	delete: (data: { userId: string }) => Promise<UserResult<SafeSelectUser>>;
 	existsByEmail: (data: {
 		email: string;
@@ -39,15 +39,15 @@ export interface IUserService {
 	) => Promise<UserResult<PaginatedResponse<SafeSelectUser>>>;
 	getByEmail: (data: { email: string }) => Promise<UserResult<SafeSelectUser>>;
 	getById: (data: { userId: string }) => Promise<UserResult<SafeSelectUser>>;
-	sanitizeUser: (user: SelectUser) => UserResult<SafeSelectUser>;
+	sanitizeUser: (user: User) => UserResult<SafeSelectUser>;
 	updateById: (data: {
-		data: Partial<InsertUser>;
+		data: Partial<CreateUser>;
 		userId: string;
 	}) => Promise<UserResult<SafeSelectUser>>;
 
 	// UNSAFE METHODS - returns full user object
 	/****ONLY FOR INTERNAL USE***/
-	create_UNSAFE: (data: InsertUser) => Promise<UserResult<UnSafeSelectUser>>;
+	create_UNSAFE: (data: CreateUser) => Promise<UserResult<UnSafeSelectUser>>;
 	/****ONLY FOR INTERNAL USE***/
 	getByEmail_UNSAFE: (data: {
 		email: string;
@@ -594,7 +594,7 @@ export class UserService implements IUserService {
 	public sanitizeUser(
 		user: MethodParams<IUserService, "sanitizeUser">,
 	): MethodReturn<IUserService, "sanitizeUser"> {
-		const result = selectUserSchema.omit({ password: true }).safeParse(user);
+		const result = userSchema.omit({ password: true }).safeParse(user);
 		if (!result.success) {
 			return {
 				error: new InternalError("Invalid user data", { cause: result.error }),
@@ -613,8 +613,8 @@ export class UserService implements IUserService {
 	}
 
 	// Validation Methods
-	private _validateCreateData(data: InsertUser): UserResult<InsertUser> {
-		const result = insertUserSchema.safeParse(data);
+	private _validateCreateData(data: CreateUser): UserResult<CreateUser> {
+		const result = createUserSchema.safeParse(data);
 		if (!result.success) {
 			return {
 				error: new ValidationError("Invalid user data", {
@@ -646,9 +646,9 @@ export class UserService implements IUserService {
 	}
 
 	private _validateUpdateData(
-		data: Partial<InsertUser>,
-	): UserResult<Partial<InsertUser>> {
-		const result = insertUserSchema.partial().safeParse(data);
+		data: Partial<CreateUser>,
+	): UserResult<Partial<CreateUser>> {
+		const result = createUserSchema.partial().safeParse(data);
 		if (!result.success) {
 			return {
 				error: new ValidationError("Invalid update data", {

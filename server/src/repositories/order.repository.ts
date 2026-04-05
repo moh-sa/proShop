@@ -3,25 +3,25 @@ import { Types } from "mongoose";
 import type { DatabaseBaseError } from "../errors/index.js";
 import type {
 	AllOrdersResponse,
+	CreateOrder,
 	FailureResult,
 	GetAllOrdersRepositoryParams,
-	InsertOrder,
 	MarkAsCancelledParams,
 	MarkAsProcessingParams,
 	MethodParams,
 	MethodReturn,
+	Order,
 	OrderFilter,
 	PaginatedResponse,
 	PaginationQuery,
 	Result,
-	SelectOrder,
 } from "../types/index.js";
 
 import { OrderModel } from "../models/order.model.js";
 import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
 
 export interface IOrderRepository {
-	create(data: InsertOrder): Promise<OrderResult<SelectOrder>>;
+	create(data: CreateOrder): Promise<OrderResult<Order>>;
 	getAll(
 		args: GetAllOrdersRepositoryParams,
 	): Promise<OrderResult<PaginatedResponse<AllOrdersResponse>>>;
@@ -29,23 +29,23 @@ export interface IOrderRepository {
 		orderId,
 	}: {
 		orderId: Types.ObjectId;
-	}): Promise<OrderResult<null | SelectOrder>>;
+	}): Promise<OrderResult<null | Order>>;
 	markAsCancelled(
 		params: MarkAsCancelledParams,
-	): Promise<OrderResult<null | SelectOrder>>;
+	): Promise<OrderResult<null | Order>>;
 	markAsProcessing(
 		params: MarkAsProcessingParams,
-	): Promise<OrderResult<null | SelectOrder>>;
+	): Promise<OrderResult<null | Order>>;
 	updatePayment(
-		params: Partial<SelectOrder["payment"]> & { orderId: Types.ObjectId },
-	): Promise<OrderResult<null | SelectOrder>>;
+		params: Partial<Order["payment"]> & { orderId: Types.ObjectId },
+	): Promise<OrderResult<null | Order>>;
 }
 
 type OrderResult<T> = Result<T, DatabaseBaseError>;
 
 export class OrderRepository implements IOrderRepository {
 	private readonly _db: typeof OrderModel;
-	private _paginator: Paginator<SelectOrder>;
+	private _paginator: Paginator<Order>;
 
 	constructor(db?: typeof OrderModel) {
 		this._db = db ?? OrderModel;
@@ -192,12 +192,12 @@ export class OrderRepository implements IOrderRepository {
 
 	private _prepareFilter(
 		filters?: OrderFilter,
-	): Partial<PaginationQuery<SelectOrder>> {
+	): Partial<PaginationQuery<Order>> {
 		if (!filters) {
 			return {};
 		}
 
-		const newFilter: Partial<PaginationQuery<SelectOrder>> = {};
+		const newFilter: Partial<PaginationQuery<Order>> = {};
 
 		if (filters.userId) {
 			// mongo doesn't cast in aggregate queries

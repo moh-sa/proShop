@@ -1,12 +1,12 @@
 import type { z } from "zod";
 
-import type UserModel from "../models/user.model.js";
+import type { UserModel } from "../models/user.model.js";
 import type {
-	insertUserSchema,
-	selectUserSchema,
+	createUserSchema,
 	userPaginationFiltersSchema,
 	userPaginationParamsSchema,
 	userPaginationSortSchema,
+	userSchema,
 } from "../schemas/index.js";
 import type {
 	PaginationFilter,
@@ -15,21 +15,21 @@ import type {
 } from "./pagination.type.js";
 import type { Stringify } from "./stringify.type.js";
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type SelectUser = z.infer<typeof selectUserSchema>;
+export type CreateUser = z.infer<typeof createUserSchema>;
+export type User = z.infer<typeof userSchema>;
 export type UserDocument = ReturnType<(typeof UserModel)["hydrate"]>;
-export type UserSchema = SelectUser;
+export type UserSchema = User;
 
 // SAFE/UNSAFE user types
-export type SafeSelectUser = Omit<SelectUser, "password">;
-export type UnSafeSelectUser = SelectUser;
+export type SafeSelectUser = Omit<User, "password">;
+export type UnSafeSelectUser = User;
 
 // Pagination
 export type UserFilter = PaginationFilter<
 	z.infer<typeof userPaginationFiltersSchema>
 >;
 
-export type UserSelect = PaginationSelect<SelectUser>;
+export type UserSelect = PaginationSelect<User>;
 
 export type UserSort = z.infer<typeof userPaginationSortSchema>;
 
