@@ -243,49 +243,39 @@ export class Paginator<TDocument extends Record<string, unknown>> {
 
 	/** Build and run aggregation for items and total count. */
 	private async _query<TResult>(args: {
-		additionalAggregate?: PaginatorPipeline;
+		additionalAggregate?: Array<PipelineStage>;
 		limit: number;
 		query: PaginatorQuery<TDocument>;
 		skip: number;
 		sort: ProjectionSort<TDocument>;
-	}): Promise<{
-		items: Array<TResult>;
-		totalItems: number;
-	}> {
+	}): Promise<{ items: Array<TResult>; totalItems: number }> {
 		const hasSort = args.sort && Object.keys(args.sort).length > 0;
-		// Fallback to sort by `createdAt` if sort is not provided
 		const sort = hasSort
 			? (args.sort as Record<string, -1 | 1>)
 			: ({ createdAt: -1 } as Record<string, -1 | 1>);
 
-		// used `aggregate` to combine find and count in one operation
-		const [result = { items: [], meta: [] }] = await this._model.aggregate<{
+		type AggregateResult = {
 			items: Array<TResult>;
 			meta: Array<{ totalItems: number }>;
-		}>([
-			{
-				// `PipelineStage.Match["$match"]` is QueryFilter<any> internally
-				$match: args.query as PipelineStage.Match["$match"],
-			},
-			...(args.additionalAggregate ?? []),
-			{
-				$facet: {
-					items: [
-						{ $sort: sort },
-						{ $skip: args.skip },
-						{ $limit: args.limit },
-					],
-					meta: [{ $count: "totalItems" }],
-				},
-			},
-		]);
+		};
 
-		const items = result.items ?? [];
-		const totalItems = result.meta?.[0]?.totalItems ?? 0;
+		let aggregate = this._model
+			.aggregate<AggregateResult>()
+			.match(args.query as PipelineStage.Match["$match"]);
+
+		// additional stages have to run *BEFORE* the facet stage
+		if (args.additionalAggregate?.length) {
+			aggregate = aggregate.append(...args.additionalAggregate);
+		}
+
+		const [result = { items: [], meta: [] }] = await aggregate.facet({
+			items: [{ $sort: sort }, { $skip: args.skip }, { $limit: args.limit }],
+			meta: [{ $count: "totalItems" }],
+		});
 
 		return {
-			items,
-			totalItems,
+			items: result.items ?? [],
+			totalItems: result.meta?.[0]?.totalItems ?? 0,
 		};
 	}
 }
