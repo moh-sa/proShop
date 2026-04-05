@@ -503,7 +503,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 				},
 			});
 			assert.deepStrictEqual(findByIdAndUpdateMock.mock.calls[0].arguments[2], {
-				new: true,
+				returnDocument: "after",
 			});
 		});
 
@@ -649,7 +649,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 				},
 			});
 			assert.deepStrictEqual(findByIdAndUpdateMock.mock.calls[0].arguments[2], {
-				new: true,
+				returnDocument: "after",
 			});
 		});
 

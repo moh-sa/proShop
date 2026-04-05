@@ -117,7 +117,7 @@ export class OrderRepository implements IOrderRepository {
 							status: "cancelled",
 						},
 					},
-					{ new: true },
+					{ returnDocument: "after" },
 				)
 				.lean();
 
@@ -143,7 +143,7 @@ export class OrderRepository implements IOrderRepository {
 							status: "processing",
 						},
 					},
-					{ new: true },
+					{ returnDocument: "after" },
 				)
 				.lean();
 
@@ -170,7 +170,11 @@ export class OrderRepository implements IOrderRepository {
 
 		try {
 			const result = await this._db
-				.findByIdAndUpdate(orderId, { $set: updateFields }, { new: true })
+				.findByIdAndUpdate(
+					orderId,
+					{ $set: updateFields },
+					{ returnDocument: "after" },
+				)
 				.lean();
 
 			return {

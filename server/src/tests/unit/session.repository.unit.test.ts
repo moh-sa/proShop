@@ -1537,7 +1537,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 				updateData,
 			);
 			assert.deepStrictEqual(findOneAndUpdateMock.mock.calls[0].arguments[2], {
-				new: true,
+				returnDocument: "after",
 			});
 		});
 

@@ -293,7 +293,7 @@ export class ReviewRepository implements IReviewRepository {
 	> {
 		try {
 			const result = await this._db
-				.findByIdAndUpdate(reviewId, data, { new: true })
+				.findByIdAndUpdate(reviewId, data, { returnDocument: "after" })
 				.lean();
 
 			return {

@@ -349,7 +349,7 @@ export class SessionRepository implements ISessionRepository {
 				.findOneAndUpdate(
 					{ tokenId: args.tokenId, userId: args.userId },
 					args.data,
-					{ new: true },
+					{ returnDocument: "after" },
 				)
 				.lean();
 

@@ -225,7 +225,7 @@ export class ProductRepository implements IProductRepository {
 		try {
 			const product = await this._db
 				.findByIdAndUpdate(productId, data, {
-					new: true,
+					returnDocument: "after",
 				})
 				.lean();
 

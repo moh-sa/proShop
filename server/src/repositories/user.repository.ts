@@ -166,7 +166,7 @@ export class UserRepository implements IUserRepository {
 	> {
 		try {
 			const result = await this._db
-				.findByIdAndUpdate(userId, data, { new: true })
+				.findByIdAndUpdate(userId, data, { returnDocument: "after" })
 				.lean();
 
 			return {
