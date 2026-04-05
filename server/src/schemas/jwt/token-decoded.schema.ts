@@ -11,5 +11,5 @@ export const tokenDecodedSchema = z.object({
 	iat: z.number().int().positive(),
 	tokenId: uuidValidator("Token ID"),
 	type: tokenTypeSchema,
-	userId: objectIdStringValidator("User ID"),
+	userId: objectIdStringValidator,
 });

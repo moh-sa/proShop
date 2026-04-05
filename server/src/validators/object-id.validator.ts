@@ -1,8 +1,6 @@
 import { Types } from "mongoose";
 import { z } from "zod";
 
-import { nonEmptyStringValidator } from "./non-empty-string.validator.js";
-
 export const objectIdValidator = z.preprocess(
 	(val) => {
 		if (val instanceof Types.ObjectId) {
@@ -22,10 +20,7 @@ export const objectIdValidator = z.preprocess(
 	z.instanceof(Types.ObjectId, { error: "Invalid ObjectId format." }),
 );
 
-export const objectIdStringValidator = (fieldName: string) =>
-	nonEmptyStringValidator(fieldName).refine(
-		(val) => Types.ObjectId.isValid(val),
-		{
-			error: `Invalid ${fieldName} format.`,
-		},
-	);
+export const objectIdStringValidator = z
+	.hex({ error: "invalid id." })
+	.trim()
+	.length(24, { error: "invalid id." });

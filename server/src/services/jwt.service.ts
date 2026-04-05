@@ -367,7 +367,7 @@ export class JwtService implements IJwtService {
 	}
 
 	private _validateUserId(userId: string): JwtResult<string> {
-		const result = objectIdStringValidator("User ID").safeParse(userId);
+		const result = objectIdStringValidator.safeParse(userId);
 		if (!result.success) {
 			return {
 				error: new JwtInvalidPayloadError({ cause: result.error }),

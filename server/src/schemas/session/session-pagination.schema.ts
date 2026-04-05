@@ -28,5 +28,5 @@ export const sessionPaginationParamsSchema = paginationParamsSchema.extend({
 
 export const sessionByUserIdPaginationParamsSchema =
 	sessionPaginationParamsSchema.extend({
-		userId: objectIdStringValidator("User ID"),
+		userId: objectIdStringValidator,
 	});

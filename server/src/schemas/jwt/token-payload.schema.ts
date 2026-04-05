@@ -5,5 +5,5 @@ import { tokenTypeSchema } from "./token-type.schema.js";
 
 export const tokenPayloadSchema = z.object({
 	type: tokenTypeSchema,
-	userId: objectIdStringValidator("User ID"),
+	userId: objectIdStringValidator,
 });
