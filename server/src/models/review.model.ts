@@ -4,7 +4,7 @@ import { model, Schema } from "mongoose";
 
 import type { ReviewSchema } from "../types/index.js";
 
-import { ProductModel } from "./product.model.js";
+import { productRepository } from "../repositories/product.repository.js";
 
 const reviewSchema = new Schema<ReviewSchema>(
 	{
@@ -52,9 +52,13 @@ async function updateProductRating(productId: Types.ObjectId) {
 		},
 	]);
 
-	await ProductModel.findByIdAndUpdate(productId, {
-		numReviews: newStats.length > 0 ? newStats[0].numReviews : 0,
-		rating: newStats.length > 0 ? newStats[0].rating.toFixed(1) : 0,
+	await productRepository.update({
+		data: {
+			// @ts-expect-error - TODO: need specific update type instead of `CreateProduct`
+			numReviews: newStats.length > 0 ? newStats[0].numReviews : 0,
+			rating: newStats.length > 0 ? newStats[0].rating.toFixed(1) : 0,
+		},
+		productId: productId.toString(),
 	});
 }
 
