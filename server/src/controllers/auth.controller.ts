@@ -122,10 +122,7 @@ export class AuthController implements IAuthController {
 		this._setAuthCookies(result.data.tokens, res);
 		logger.debug("Set access and refresh tokens in cookies successfully");
 
-		logger.info(
-			{ userId: result.data.user._id },
-			"User signed in successfully",
-		);
+		logger.info({ userId: result.data.user.id }, "User signed in successfully");
 
 		res.status(HTTP_STATUS.OK).json({
 			data: {
@@ -157,10 +154,7 @@ export class AuthController implements IAuthController {
 		this._setAuthCookies(result.data.tokens, res);
 		logger.debug("Set access and refresh tokens in cookies successfully");
 
-		logger.info(
-			{ userId: result.data.user._id },
-			"User signed up successfully",
-		);
+		logger.info({ userId: result.data.user.id }, "User signed up successfully");
 
 		res.status(HTTP_STATUS.CREATED).json({
 			data: {

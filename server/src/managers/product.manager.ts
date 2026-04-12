@@ -76,7 +76,7 @@ export class ProductManager implements IProductManager {
 		}
 
 		logger.info(
-			{ name: result.data.name, productId: result.data._id },
+			{ name: result.data.name, productId: result.data.id },
 			"Product created successfully",
 		);
 		return result;

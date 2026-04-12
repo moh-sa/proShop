@@ -63,7 +63,7 @@ export class ProductController implements IProductController {
 			...req.body,
 			image: req.file,
 			price: this._toCents(req.body.price),
-			user: res.locals.user._id,
+			user: res.locals.user.id,
 		};
 
 		logger.debug({ data: dataToCreate }, "Creating product");
@@ -74,7 +74,7 @@ export class ProductController implements IProductController {
 		}
 
 		logger.info(
-			{ name: result.data.name, productId: result.data._id },
+			{ name: result.data.name, productId: result.data.id },
 			"Product created successfully",
 		);
 
@@ -168,7 +168,7 @@ export class ProductController implements IProductController {
 		}
 
 		logger.info(
-			{ productId: result.data._id },
+			{ productId: result.data.id },
 			"Product retrieved by ID successfully",
 		);
 
@@ -235,7 +235,7 @@ export class ProductController implements IProductController {
 		}
 
 		logger.info(
-			{ name: result.data.name, productId: result.data._id },
+			{ name: result.data.name, productId: result.data.id },
 			"Product updated successfully",
 		);
 

@@ -1,5 +1,3 @@
-import type { Types } from "mongoose";
-
 import type { IReviewService } from "../services/index.js";
 import type {
 	AsyncHandler,
@@ -39,11 +37,11 @@ export interface IReviewController {
 	}>;
 	existsById: AsyncHandler<{
 		params: { reviewId: string };
-		resBody: { data: { _id: Types.ObjectId } };
+		resBody: { data: { id: string } };
 	}>;
 	existsByUserIdAndProductId: AsyncHandler<{
 		params: { productId: string; userId: string };
-		resBody: { data: { _id: Types.ObjectId } };
+		resBody: { data: { id: string } };
 	}>;
 	getAll: AsyncHandler<{
 		query: GetAllReviewsControllerParams;
@@ -163,7 +161,7 @@ export class ReviewController implements IReviewController {
 		const data = {
 			...req.body,
 			name: res.locals.user.name,
-			user: res.locals.user._id,
+			user: res.locals.user.id,
 		};
 		logger.debug({ data }, "Creating review");
 
@@ -175,8 +173,8 @@ export class ReviewController implements IReviewController {
 		logger.info(
 			{
 				productId: newReview.data.product,
-				reviewId: newReview.data._id,
-				userId: res.locals.user._id,
+				reviewId: newReview.data.id,
+				userId: res.locals.user.id,
 			},
 			"Review created successfully",
 		);
@@ -214,7 +212,7 @@ export class ReviewController implements IReviewController {
 
 	existsById = asyncHandler<{
 		params: { reviewId: string };
-		resBody: { data: { _id: Types.ObjectId } };
+		resBody: { data: { id: string } };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "existsById" });
 		logger.debug(
@@ -230,7 +228,7 @@ export class ReviewController implements IReviewController {
 		}
 
 		logger.info(
-			{ reviewId: exists.data._id },
+			{ reviewId: exists.data.id },
 			"Review exists by ID successfully",
 		);
 
@@ -242,7 +240,7 @@ export class ReviewController implements IReviewController {
 
 	existsByUserIdAndProductId = asyncHandler<{
 		params: { productId: string; userId: string };
-		resBody: { data: { _id: Types.ObjectId } };
+		resBody: { data: { id: string } };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "existsByUserIdAndProductId" });
 		logger.debug(
@@ -259,7 +257,7 @@ export class ReviewController implements IReviewController {
 		}
 
 		logger.info(
-			{ productId: exists.data._id },
+			{ productId: exists.data.id },
 			"Review exists by user ID and product ID successfully",
 		);
 
@@ -397,7 +395,7 @@ export class ReviewController implements IReviewController {
 		}
 
 		logger.info(
-			{ reviewId: review.data._id },
+			{ reviewId: review.data.id },
 			"Review retrieved by ID successfully",
 		);
 
@@ -426,7 +424,7 @@ export class ReviewController implements IReviewController {
 		logger.info(
 			{
 				productId: updatedReview.data.product,
-				reviewId: updatedReview.data._id,
+				reviewId: updatedReview.data.id,
 				updateData: req.body,
 			},
 			"Review updated successfully",

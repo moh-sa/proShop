@@ -5,7 +5,7 @@ import {
 } from "../errors/index.js";
 import { reviewService } from "../services/review.service.js";
 import { asyncHandler } from "../utils/async-handler.util.js";
-import { objectIdValidator } from "../validators/object-id.validator.js";
+import { objectIdStringValidator } from "../validators/object-id.validator.js";
 
 /**
  * Verify Review Ownership Middleware
@@ -21,11 +21,11 @@ export const verifyReviewOwnership = asyncHandler(async (req, res, next) => {
 		return next(new InternalError("User not found in res.locals."));
 	}
 
-	const userId = user._id.toString();
+	const userId = user.id;
 
 	// Get and verify reviewId from params
 	const reviewId = req.params.reviewId;
-	const verifyReviewIdResult = objectIdValidator.safeParse(reviewId);
+	const verifyReviewIdResult = objectIdStringValidator.safeParse(reviewId);
 	if (!verifyReviewIdResult.success) {
 		return next(
 			new ValidationError("Missing or invalid review id.", {
@@ -37,14 +37,14 @@ export const verifyReviewOwnership = asyncHandler(async (req, res, next) => {
 
 	// Verify review ownership
 	const reviewExistsResult = await reviewService.getById({
-		reviewId: verifyReviewIdResult.data.toString(),
+		reviewId: verifyReviewIdResult.data,
 	});
 	if (!reviewExistsResult.success) {
 		return next(reviewExistsResult.error);
 	}
 
 	const isAdmin = user.isAdmin;
-	const isUserIdMatch = userId === reviewExistsResult.data.user._id.toString();
+	const isUserIdMatch = userId === reviewExistsResult.data.user;
 
 	if (!isUserIdMatch && !isAdmin) {
 		return next(

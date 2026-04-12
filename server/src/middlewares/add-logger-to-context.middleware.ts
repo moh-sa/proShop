@@ -10,7 +10,7 @@ import { logger } from "../utils/logger.util.js";
 export const addLoggerToContext = asyncHandler(async (req, _res, next) => {
 	asyncContext.run(
 		{
-			logger: logger.child({ requestId: req.id.toString() }),
+			logger: logger.child({ requestId: req.id }),
 		},
 		next,
 	);

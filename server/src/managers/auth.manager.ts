@@ -285,7 +285,7 @@ export class AuthManager implements IAuthManager {
 		}
 
 		logger.info(
-			{ email: args.email, userId: sanitizeResult.data._id },
+			{ email: args.email, userId: sanitizeResult.data.id },
 			"User signed in successfully",
 		);
 		return authSessionResult;
@@ -430,7 +430,7 @@ export class AuthManager implements IAuthManager {
 		}
 
 		logger.info(
-			{ email: args.email, userId: createUserResult.data._id },
+			{ email: args.email, userId: createUserResult.data.id },
 			"User signed up successfully",
 		);
 		return authSessionResult;
@@ -448,7 +448,7 @@ export class AuthManager implements IAuthManager {
 		const logger = this.getLogger({ method: "_createAuthSession" });
 
 		const tokensResult = this._jwt.generateTokenPair({
-			userId: user._id.toString(),
+			userId: user.id,
 		});
 		if (!tokensResult.success) {
 			// Error already logged in JWT service
@@ -458,7 +458,7 @@ export class AuthManager implements IAuthManager {
 		const sessionResult = await this._session.create({
 			expiresAt: tokensResult.data.refresh.expiresAt,
 			tokenId: tokensResult.data.refresh.tokenId,
-			userId: user._id,
+			userId: user.id,
 		});
 		if (!sessionResult.success) {
 			// Error already logged in session service
@@ -466,12 +466,12 @@ export class AuthManager implements IAuthManager {
 		}
 
 		logger.debug(
-			{ sessionId: sessionResult.data.id, userId: user._id },
+			{ sessionId: sessionResult.data.id, userId: user.id },
 			"Auth session created",
 		);
 		return {
 			data: {
-				sessionId: sessionResult.data.id.toString(),
+				sessionId: sessionResult.data.id,
 				tokens: tokensResult.data,
 				user,
 			},

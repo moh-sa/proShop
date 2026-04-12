@@ -79,14 +79,14 @@ export class OrderManager implements IOrderManager {
 			return orderResult;
 		}
 
-		const orderId = orderResult.data._id.toString();
+		const orderId = orderResult.data.id;
 
 		logger.info(
 			{
 				orderId,
 				totalPrice: orderResult.data.totalPrice,
 				userEmail: orderResult.data.user.email,
-				userId: orderResult.data.user._id,
+				userId: orderResult.data.user.id,
 			},
 			"Order created successfully",
 		);

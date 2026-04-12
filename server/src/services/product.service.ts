@@ -24,7 +24,7 @@ import {
 	selectImageSchema,
 } from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
-import { objectIdValidator } from "../validators/index.js";
+import { objectIdStringValidator } from "../validators/index.js";
 
 export interface IProductService {
 	create(data: CreateProductWithStringImage): Promise<ProductResult<Product>>;
@@ -90,7 +90,7 @@ export class ProductService implements IProductService {
 		const logger = this._getLogger({ method: "delete" });
 		logger.debug({ productId }, "Deleting product");
 
-		const validationResult = objectIdValidator.safeParse(productId);
+		const validationResult = objectIdStringValidator.safeParse(productId);
 		if (!validationResult.success) {
 			logger.warn(
 				{ error: validationResult.error, productId },
@@ -151,9 +151,9 @@ export class ProductService implements IProductService {
 
 		// call repository
 		const selectedFields: ProductSelect = {
-			_id: true,
 			brand: true,
 			category: true,
+			id: true,
 			image: true,
 			name: true,
 			price: true,
@@ -195,7 +195,7 @@ export class ProductService implements IProductService {
 		const logger = this._getLogger({ method: "getById" });
 		logger.debug({ productId }, "Getting product by ID");
 
-		const validationResult = objectIdValidator.safeParse(productId);
+		const validationResult = objectIdStringValidator.safeParse(productId);
 		if (!validationResult.success) {
 			logger.warn(
 				{ error: validationResult.error, productId },
@@ -285,7 +285,7 @@ export class ProductService implements IProductService {
 			"Validated update data",
 		);
 
-		const productIdValidationResult = objectIdValidator.safeParse(
+		const productIdValidationResult = objectIdStringValidator.safeParse(
 			args.productId,
 		);
 		if (!productIdValidationResult.success) {

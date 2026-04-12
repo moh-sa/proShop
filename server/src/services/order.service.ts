@@ -1,5 +1,3 @@
-import type { Types } from "mongoose";
-
 import type {
 	AllOrdersResponse,
 	CreateOrder,
@@ -27,7 +25,7 @@ import {
 	paymentSchema,
 } from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
-import { objectIdValidator } from "../validators/object-id.validator.js";
+import { objectIdStringValidator } from "../validators/object-id.validator.js";
 
 export interface IOrderService {
 	create(data: CreateOrder): Promise<OrderResult<Order>>;
@@ -75,9 +73,9 @@ export class OrderService implements IOrderService {
 
 		logger.info(
 			{
-				orderId: result.data._id,
+				orderId: result.data.id,
 				totalPrice: result.data.totalPrice,
-				userId: result.data.user._id,
+				userId: result.data.user.id,
 			},
 			"Order created successfully",
 		);
@@ -112,14 +110,14 @@ export class OrderService implements IOrderService {
 
 		// repository options
 		const select: OrderSelect = {
-			_id: true,
 			createdAt: true,
 			deliveredAt: true,
+			id: true,
 			"payment.paidAt": true,
 			status: true,
 			totalPrice: true,
-			"user._id": true,
 			"user.email": true,
+			"user.id": true,
 			"user.name": true,
 		};
 
@@ -398,11 +396,8 @@ export class OrderService implements IOrderService {
 		};
 	}
 
-	private _validateObjectId(
-		field: string,
-		id: string,
-	): OrderResult<Types.ObjectId> {
-		const result = objectIdValidator.safeParse(id);
+	private _validateObjectId(field: string, id: string): OrderResult<string> {
+		const result = objectIdStringValidator.safeParse(id);
 		if (!result.success) {
 			return {
 				error: new ValidationError(`Invalid ${field}`, { cause: result.error }),

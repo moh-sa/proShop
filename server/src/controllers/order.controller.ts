@@ -68,7 +68,7 @@ export class OrderController implements IOrderController {
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "create" });
 		logger.debug(
-			{ data: req.body, userId: res.locals.user._id },
+			{ data: req.body, userId: res.locals.user.id },
 			"Creating order with checkout session",
 		);
 
@@ -85,9 +85,9 @@ export class OrderController implements IOrderController {
 
 		logger.info(
 			{
-				orderId: result.data.order._id,
+				orderId: result.data.order.id,
 				sessionUrl: result.data.session.url,
-				userId: res.locals.user._id,
+				userId: res.locals.user.id,
 			},
 			"Order and checkout session created successfully",
 		);
@@ -209,11 +209,11 @@ export class OrderController implements IOrderController {
 		this._authorizeResourceAccess({
 			localUser: res.locals.user,
 			logger,
-			userId: result.data.user._id.toString(),
+			userId: result.data.user.id,
 		});
 
 		logger.info(
-			{ orderId: result.data._id },
+			{ orderId: result.data.id },
 			"Order retrieved by ID successfully",
 		);
 
@@ -288,7 +288,7 @@ export class OrderController implements IOrderController {
 		}
 
 		logger.info(
-			{ orderId: result.data._id, payment: result.data.payment },
+			{ orderId: result.data.id, payment: result.data.payment },
 			"Payment updated successfully",
 		);
 
@@ -311,12 +311,12 @@ export class OrderController implements IOrderController {
 	}) {
 		params.logger.debug(params, "Authorizing access to resource");
 
-		const isSameUser = params.userId === params.localUser?._id.toString();
+		const isSameUser = params.userId === params.localUser?.id;
 		const isAdmin = params.localUser?.isAdmin;
 		if (!isSameUser && !isAdmin) {
 			params.logger.warn(
 				{
-					localUserId: params.localUser?._id.toString(),
+					localUserId: params.localUser?.id,
 					userId: params.userId,
 				},
 				"User is not authorized to access this resource",
@@ -324,7 +324,7 @@ export class OrderController implements IOrderController {
 			throw new ForbiddenError(
 				"You are not authorized to access this resource.",
 				{
-					localUserId: params.localUser?._id.toString(),
+					localUserId: params.localUser?.id,
 					userId: params.userId,
 				},
 			);

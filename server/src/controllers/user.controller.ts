@@ -52,7 +52,7 @@ export class UserController implements IUserController {
 			throw result.error;
 		}
 
-		logger.info({ userId: result.data._id }, "User deleted successfully");
+		logger.info({ userId: result.data.id }, "User deleted successfully");
 
 		res.status(HTTP_STATUS.NO_CONTENT).json({
 			data: null,
@@ -107,14 +107,14 @@ export class UserController implements IUserController {
 		logger.debug({ userId: req.params.userId }, "Getting user by ID");
 
 		const result = await this._service.getById({
-			userId: req.params.userId || res.locals.user._id.toString(),
+			userId: req.params.userId || res.locals.user.id,
 		});
 		if (!result.success) {
 			throw result.error;
 		}
 
 		logger.info(
-			{ userId: result.data._id },
+			{ userId: result.data.id },
 			"User retrieved by ID successfully",
 		);
 
@@ -135,14 +135,14 @@ export class UserController implements IUserController {
 
 		const result = await this._service.updateById({
 			data: req.body,
-			userId: req.params.userId || res.locals.user._id.toString(),
+			userId: req.params.userId || res.locals.user.id,
 		});
 		if (!result.success) {
 			throw result.error;
 		}
 
 		logger.info(
-			{ updateData: req.body, userId: result.data._id },
+			{ updateData: req.body, userId: result.data.id },
 			"User updated successfully",
 		);
 

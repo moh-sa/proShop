@@ -1,5 +1,3 @@
-import type { Types } from "mongoose";
-
 import { z } from "zod";
 
 import type { SessionBaseError } from "../errors/index.js";
@@ -28,7 +26,7 @@ import {
 	sessionByUserIdPaginationParamsSchema,
 } from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
-import { objectIdValidator, uuidValidator } from "../validators/index.js";
+import { objectIdStringValidator, uuidValidator } from "../validators/index.js";
 
 export interface ISessionService {
 	create(args: CreateSession): Promise<SessionResult<Session>>;
@@ -553,11 +551,11 @@ export class SessionService implements ISessionService {
 	private _validateTokenIdAndUserId(
 		tokenId: string,
 		userId: string,
-	): SessionResult<{ tokenId: string; userId: Types.ObjectId }> {
+	): SessionResult<{ tokenId: string; userId: string }> {
 		const argsValidationResult = z
 			.object({
 				tokenId: uuidValidator("tokenId"),
-				userId: objectIdValidator,
+				userId: objectIdStringValidator,
 			})
 			.safeParse({ tokenId, userId });
 		if (!argsValidationResult.success) {
@@ -572,8 +570,8 @@ export class SessionService implements ISessionService {
 		return { data: argsValidationResult.data, success: true };
 	}
 
-	private _validateUserId(userId: string): SessionResult<Types.ObjectId> {
-		const userIdValidationResult = objectIdValidator.safeParse(userId);
+	private _validateUserId(userId: string): SessionResult<string> {
+		const userIdValidationResult = objectIdStringValidator.safeParse(userId);
 		if (!userIdValidationResult.success) {
 			return {
 				error: new SessionValidationError({

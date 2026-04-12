@@ -1,5 +1,3 @@
-import type { Types } from "mongoose";
-
 import type { IReviewRepository } from "../repositories/index.js";
 import type {
 	CreateReview,
@@ -22,7 +20,7 @@ import {
 	reviewPaginationParamsSchema,
 } from "../schemas/review/review-pagination.schema.js";
 import { getLoggerFromContext } from "../utils/index.js";
-import { objectIdValidator } from "../validators/index.js";
+import { objectIdStringValidator } from "../validators/index.js";
 
 export interface IReviewService {
 	count: () => Promise<ReviewResult<number>>;
@@ -34,11 +32,11 @@ export interface IReviewService {
 	delete: (data: { reviewId: string }) => Promise<ReviewResult<Review>>;
 	existsById: (data: {
 		reviewId: string;
-	}) => Promise<ReviewResult<{ _id: Types.ObjectId }>>;
+	}) => Promise<ReviewResult<{ id: string }>>;
 	existsByUserIdAndProductId: (data: {
 		productId: string;
 		userId: string;
-	}) => Promise<ReviewResult<{ _id: Types.ObjectId }>>;
+	}) => Promise<ReviewResult<{ id: string }>>;
 	getAll: (
 		args: GetAllReviewsServiceParams,
 	) => Promise<ReviewResult<PaginatedResponse<Review>>>;
@@ -200,7 +198,7 @@ export class ReviewService implements IReviewService {
 		logger.info(
 			{
 				productId: result.data.product,
-				reviewId: result.data._id,
+				reviewId: result.data.id,
 				userId: result.data.user,
 			},
 			"Review created successfully",
@@ -625,11 +623,8 @@ export class ReviewService implements IReviewService {
 		return { data: result.data, success: true };
 	}
 
-	private _validateObjectId(
-		field: string,
-		id: string,
-	): ReviewResult<Types.ObjectId> {
-		const result = objectIdValidator.safeParse(id);
+	private _validateObjectId(field: string, id: string): ReviewResult<string> {
+		const result = objectIdStringValidator.safeParse(id);
 		if (!result.success) {
 			return {
 				error: new ValidationError(`Invalid ${field}`, { cause: result.error }),

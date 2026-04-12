@@ -1,5 +1,3 @@
-import type { Types } from "mongoose";
-
 import type { IUserRepository } from "../repositories/index.js";
 import type {
 	CreateUser,
@@ -26,14 +24,17 @@ import {
 	userSchema,
 } from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
-import { emailValidator, objectIdValidator } from "../validators/index.js";
+import {
+	emailValidator,
+	objectIdStringValidator,
+} from "../validators/index.js";
 
 export interface IUserService {
 	create: (data: CreateUser) => Promise<UserResult<SafeSelectUser>>;
 	delete: (data: { userId: string }) => Promise<UserResult<SafeSelectUser>>;
 	existsByEmail: (data: {
 		email: string;
-	}) => Promise<UserResult<null | { _id: Types.ObjectId }>>;
+	}) => Promise<UserResult<null | { id: string }>>;
 	getAll: (
 		args: GetAllUsersServiceParams,
 	) => Promise<UserResult<PaginatedResponse<SafeSelectUser>>>;
@@ -96,14 +97,14 @@ export class UserService implements IUserService {
 		const sanitizeResult = this.sanitizeUser(createdResult.data);
 		if (!sanitizeResult.success) {
 			logger.warn(
-				{ error: sanitizeResult.error, userId: createdResult.data._id },
+				{ error: sanitizeResult.error, userId: createdResult.data.id },
 				"Failed to sanitize user",
 			);
 			return sanitizeResult;
 		}
 
 		logger.info(
-			{ userId: sanitizeResult.data._id },
+			{ userId: sanitizeResult.data.id },
 			"User created successfully",
 		);
 		return {
@@ -205,7 +206,7 @@ export class UserService implements IUserService {
 		}
 
 		logger.info(
-			{ userId: existsResult.data._id },
+			{ userId: existsResult.data.id },
 			"User exists by email successfully",
 		);
 
@@ -240,9 +241,9 @@ export class UserService implements IUserService {
 
 		// repository options
 		const select: UserSelect = {
-			_id: true,
 			createdAt: true,
 			email: true,
+			id: true,
 			isAdmin: true,
 			name: true,
 			updatedAt: true,
@@ -331,7 +332,7 @@ export class UserService implements IUserService {
 		}
 
 		logger.info(
-			{ userId: sanitizeResult.data._id },
+			{ userId: sanitizeResult.data.id },
 			"User retrieved by email successfully",
 		);
 
@@ -460,7 +461,7 @@ export class UserService implements IUserService {
 		}
 
 		logger.info(
-			{ userId: sanitizeResult.data._id },
+			{ userId: sanitizeResult.data.id },
 			"User updated by ID successfully",
 		);
 		return {
@@ -495,7 +496,7 @@ export class UserService implements IUserService {
 		}
 
 		logger.info(
-			{ userId: createResult.data._id },
+			{ userId: createResult.data.id },
 			"User created (unsafe) successfully",
 		);
 
@@ -538,7 +539,7 @@ export class UserService implements IUserService {
 		}
 
 		logger.info(
-			{ userId: getByEmailResult.data._id },
+			{ userId: getByEmailResult.data.id },
 			"User retrieved by email (unsafe) successfully",
 		);
 
@@ -581,7 +582,7 @@ export class UserService implements IUserService {
 		}
 
 		logger.info(
-			{ userId: getByIdResult.data._id },
+			{ userId: getByIdResult.data.id },
 			"User retrieved by ID (unsafe) successfully",
 		);
 
@@ -664,8 +665,8 @@ export class UserService implements IUserService {
 		};
 	}
 
-	private _validateUserId(userId: string): UserResult<Types.ObjectId> {
-		const result = objectIdValidator.safeParse(userId);
+	private _validateUserId(userId: string): UserResult<string> {
+		const result = objectIdStringValidator.safeParse(userId);
 		if (!result.success) {
 			return {
 				error: new ValidationError("Invalid user id", { cause: result.error }),

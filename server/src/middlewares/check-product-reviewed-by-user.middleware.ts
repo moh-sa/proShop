@@ -5,7 +5,7 @@ import {
 } from "../errors/index.js";
 import { reviewService } from "../services/review.service.js";
 import { asyncHandler } from "../utils/async-handler.util.js";
-import { objectIdValidator } from "../validators/object-id.validator.js";
+import { objectIdStringValidator } from "../validators/object-id.validator.js";
 
 /**
  * Check Product Reviewed By User Middleware
@@ -22,12 +22,12 @@ export const checkProductReviewedByUser = asyncHandler(
 			return next(new InternalError("User not found in res.locals."));
 		}
 
-		const userId = user._id.toString();
+		const userId = user.id;
 
 		// Get and verify productId from params
 		const productId = req.params.productId;
 
-		const verifyProductIdResult = objectIdValidator.safeParse(productId);
+		const verifyProductIdResult = objectIdStringValidator.safeParse(productId);
 		if (!verifyProductIdResult.success) {
 			return next(
 				new ValidationError("Missing or invalid product id.", {
@@ -39,7 +39,7 @@ export const checkProductReviewedByUser = asyncHandler(
 
 		// Verify product is reviewed by user
 		const reviewExistsResult = await reviewService.existsByUserIdAndProductId({
-			productId: verifyProductIdResult.data.toString(),
+			productId: verifyProductIdResult.data,
 			userId,
 		});
 
