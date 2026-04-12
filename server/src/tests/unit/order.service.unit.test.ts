@@ -75,13 +75,13 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 	describe("getAll", () => {
 		const orderServiceGetAllSelect = {
-			_id: true,
+			id: true,
 			createdAt: true,
 			deliveredAt: true,
 			"payment.paidAt": true,
 			status: true,
 			totalPrice: true,
-			"user._id": true,
+			"user.id": true,
 			"user.email": true,
 			"user.name": true,
 		} as const;
@@ -219,7 +219,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			mockRepo.getAll.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockPaginatedResponse, success: true }),
 			);
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const pageNumber = "2";
 			const pageSize = "5";
 			const sort = "createdAt:desc";
@@ -257,7 +257,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 				"pending",
 			);
 			assert.strictEqual(
-				mockRepo.getAll.mock.calls[0].arguments[0].filters.userId?.toString(),
+				mockRepo.getAll.mock.calls[0].arguments[0].filters.userId,
 				userId,
 			);
 			assert.deepStrictEqual(
@@ -289,7 +289,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 	describe("getById", () => {
 		const mockOrder = generateMockSelectOrder();
-		const orderId = mockOrder._id.toString();
+		const orderId = mockOrder.id;
 
 		test("Should return order object when 'repo.getById' is called once with 'orderId'", async () => {
 			// Arrange
@@ -306,7 +306,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockRepo.getById.mock.calls[0].arguments[0].orderId.toString(),
+				mockRepo.getById.mock.calls[0].arguments[0].orderId,
 				orderId,
 			);
 		});
@@ -342,7 +342,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 	describe("markAsProcessing", () => {
 		const validParams = {
-			orderId: generateMockObjectId().toString(),
+			orderId: generateMockObjectId(),
 			paidAt: new Date(),
 		};
 
@@ -475,7 +475,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 
 	describe("markAsCancelled", () => {
 		const validParams = {
-			orderId: generateMockObjectId().toString(),
+			orderId: generateMockObjectId(),
 		};
 		const invalidParams = {
 			orderId: "invalid-id",
@@ -571,7 +571,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			status: "processing",
 			payment: undefined,
 		});
-		const orderId = mockOrder._id.toString();
+		const orderId = mockOrder.id;
 		const paymentId = "cs_123";
 		const provider = "stripe" as const;
 		const sessionURL = "https://checkout.stripe.com/c/pay/cs_test_123";
@@ -617,7 +617,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockRepo.updatePayment.mock.callCount(), 1);
 
 			const args = mockRepo.updatePayment.mock.calls[0].arguments[0];
-			assert.strictEqual(args.orderId.toString(), orderId);
+			assert.strictEqual(args.orderId, orderId);
 			assert.strictEqual(args.id, paymentId);
 			assert.strictEqual(args.provider, undefined);
 		});
@@ -639,7 +639,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockRepo.updatePayment.mock.callCount(), 1);
 
 			const args = mockRepo.updatePayment.mock.calls[0].arguments[0];
-			assert.strictEqual(args.orderId.toString(), orderId);
+			assert.strictEqual(args.orderId, orderId);
 			assert.strictEqual(args.provider, provider);
 			assert.strictEqual(args.id, undefined);
 		});
@@ -666,7 +666,7 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockRepo.updatePayment.mock.callCount(), 1);
 
 			const args = mockRepo.updatePayment.mock.calls[0].arguments[0];
-			assert.strictEqual(args.orderId.toString(), orderId);
+			assert.strictEqual(args.orderId, orderId);
 			assert.strictEqual(args.id, paymentId);
 			assert.strictEqual(args.provider, provider);
 			assert.strictEqual(args.sessionURL, sessionURL);

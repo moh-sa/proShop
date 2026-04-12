@@ -462,7 +462,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 
 	describe("getAllActiveByUserId", () => {
 		const userId = generateMockObjectId();
-		const userIdString = userId.toString();
+		const userIdString = userId;
 		const mockSessions = generateMockSelectSessions({
 			count: 2,
 			options: { userId: userId },
@@ -731,7 +731,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 
 	describe("getAllByUserId", () => {
 		const userId = generateMockObjectId();
-		const userIdString = userId.toString();
+		const userIdString = userId;
 		const mockSessions = generateMockSelectSessions({
 			count: 3,
 			options: { userId: userId },
@@ -1156,7 +1156,6 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 
 	describe("getAllRevokedByUserId", () => {
 		const userId = generateMockObjectId();
-		const userIdString = userId.toString();
 		const mockSessions = generateMockSelectSessions({
 			count: 2,
 			options: { revokedAt: new Date(), userId: userId },
@@ -1186,7 +1185,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllRevokedByUserId({
 				pageNumber,
 				pageSize,
-				userId: userIdString,
+				userId,
 			});
 
 			// Assert
@@ -1231,7 +1230,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllRevokedByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId: userIdString,
+				userId,
 			});
 
 			// Assert
@@ -1252,7 +1251,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllRevokedByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId: userIdString,
+				userId,
 			});
 
 			// Assert
@@ -1274,7 +1273,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllRevokedByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId: userIdString,
+				userId,
 			});
 
 			// Assert
@@ -1294,7 +1293,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllRevokedByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId: userIdString,
+				userId,
 			});
 
 			// Assert
@@ -1314,7 +1313,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllRevokedByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId: userIdString,
+				userId,
 			});
 
 			// Assert
@@ -1334,7 +1333,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const result = await repo.getAllRevokedByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId: userIdString,
+				userId,
 			});
 
 			// Assert
@@ -1352,7 +1351,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 			const args: GetAllSessionsByUserIdRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-				userId: userIdString,
+				userId,
 				filters: { tokenId },
 			};
 
@@ -2281,7 +2280,7 @@ suite("Session Repository〖 Unit Tests 〗", () => {
 	describe("existsByTokenIdAndUserId", () => {
 		const userId = generateMockObjectId();
 		const tokenId = "jwt-token-id";
-		const expectedResult = { _id: generateMockObjectId() };
+		const expectedResult = { id: generateMockObjectId() };
 
 		test("Should return 'document id' when 'db.exists' is called once with 'tokenId+userId'", async (t) => {
 			// Arrange

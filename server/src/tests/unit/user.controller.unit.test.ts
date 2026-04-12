@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import type { InsertUser } from "../../types/index.js";
+import type { CreateUser } from "../../types/index.js";
 
 import { UserController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
@@ -25,7 +25,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 
 	describe("getById", () => {
 		const mockUser = generateMockSelectUser();
-		const userId = mockUser._id.toString();
+		const userId = mockUser.id;
 
 		test("Should call 'service.getById' once with the correct 'userId'", async (t) => {
 			// Arrange
@@ -308,11 +308,11 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 
 	describe("update", () => {
 		const mockUser = generateMockSelectUser();
-		const userId = mockUser._id.toString();
+		const userId = mockUser.id;
 
 		test("Should call 'service.updateById' once with the correct 'userId'", async (t) => {
 			// Arrange
-			const updateData: Partial<InsertUser> = { name: "new-name" };
+			const updateData: Partial<CreateUser> = { name: "new-name" };
 
 			const { next, req, res } = mockExpressCall({
 				req: {
@@ -397,7 +397,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 
 	describe("delete", () => {
 		const mockUser = generateMockSelectUser();
-		const userId = mockUser._id.toString();
+		const userId = mockUser.id;
 
 		test("Should call 'service.delete' once with the correct 'userId'", async (t) => {
 			// Arrange

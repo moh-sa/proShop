@@ -25,14 +25,18 @@ import { JwtService } from "../../services/index.js";
 import {
 	generateMockInsertProductWithStringImage,
 	generateMockInsertReview,
+	generateMockInsertSession,
 	generateMockInsertUser,
 	generateMockObjectId,
-	generateMockSelectReview,
 	generateMockSelectUser,
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
 	createMockExpressContext,
+	createProduct,
+	createReview,
+	createSession,
+	createUser,
 	disconnectTestDatabase,
 } from "../utils/index.js";
 
@@ -43,25 +47,29 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		await UserModel.deleteMany({});
 		await SessionModel.deleteMany({});
 		await ReviewModel.deleteMany({});
+		await ProductModel.deleteMany({});
 	});
 
 	describe("checkProductReviewedByUser", () => {
 		test("Should throw ConflictError when review exists for user and product", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const user = await UserModel.create(generateMockInsertUser());
-			const product = await ProductModel.create({
+			const user = await createUser(generateMockInsertUser());
+
+			const product = await createProduct({
 				...generateMockInsertProductWithStringImage(),
-				user: user._id,
-			});
-			await ReviewModel.create({
-				...generateMockInsertReview(),
-				product: product._id,
-				user: user._id,
+				user: user.id,
 			});
 
+			await createReview(
+				generateMockInsertReview({
+					product: product.id,
+					user: user.id,
+				}),
+			);
+
 			res.locals.user = user;
-			req.params.productId = product._id.toString();
+			req.params.productId = product.id;
 
 			// Act & Assert
 			await assert.rejects(
@@ -73,15 +81,15 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		test("Should not throw when review does not exist", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const user = await UserModel.create(generateMockInsertUser());
-			const productData = generateMockInsertProductWithStringImage();
-			const product = await ProductModel.create({
-				...productData,
-				user: user._id,
+			const user = await createUser(generateMockInsertUser());
+
+			const product = await createProduct({
+				...generateMockInsertProductWithStringImage(),
+				user: user.id,
 			});
 
 			res.locals.user = user;
-			req.params.productId = product._id.toString();
+			req.params.productId = product.id;
 
 			// Act & Assert
 			await assert.doesNotReject(async () =>
@@ -92,7 +100,8 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		test("Should throw ValidationError when productId is invalid", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const user = await UserModel.create(generateMockInsertUser());
+
+			const user = await createUser(generateMockInsertUser());
 
 			res.locals.user = user;
 			req.params.productId = "invalid";
@@ -107,7 +116,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		test("Should throw InternalError when res.locals.user is missing", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			req.params.productId = generateMockObjectId().toString();
+			req.params.productId = generateMockObjectId();
 
 			// Act & Assert
 			await assert.rejects(
@@ -121,10 +130,10 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		test("Should set res.locals.user when user exists for res.locals.userId", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockInsertUser();
-			const user = await UserModel.create(mockUser);
 
-			res.locals.userId = user._id.toString();
+			const user = await createUser(generateMockInsertUser());
+
+			res.locals.userId = user.id;
 
 			// Act
 			await checkUserExists(req, res, next);
@@ -136,24 +145,26 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		test("Should set the correct user in res.locals.user", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockUser = generateMockInsertUser();
-			const user = await UserModel.create(mockUser);
 
-			res.locals.userId = user._id.toString();
+			const user = await createUser(generateMockInsertUser());
+
+			const userId = user.id;
+
+			res.locals.userId = userId;
 
 			// Act
 			await checkUserExists(req, res, next);
 
 			// Assert
-			assert.equal(res.locals.user?._id.toString(), user._id.toString());
+			assert.equal(res.locals.user?.id, userId);
 		});
 
 		test("Should throw NotFoundError when user does not exist", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockId = generateMockObjectId();
 
-			res.locals.userId = mockId.toString();
+			const mockId = generateMockObjectId();
+			res.locals.userId = mockId;
 
 			// Act & Assert
 			await assert.rejects(
@@ -178,6 +189,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		test("Should not throw when user is admin", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
+
 			const mockUser = generateMockSelectUser({ isAdmin: true });
 
 			res.locals.user = mockUser;
@@ -189,6 +201,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		test("Should throw 'ForbiddenError' if user is not admin", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
+
 			const mockUser = generateMockSelectUser({ isAdmin: false });
 			res.locals.user = mockUser;
 
@@ -215,15 +228,17 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		test("Should not throw when user owns the review", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
+
 			const mockUser = generateMockSelectUser({ isAdmin: false });
 			res.locals.user = mockUser;
 
-			const mockReview = generateMockSelectReview();
-			const created = await ReviewModel.create({
-				...mockReview,
-				user: mockUser._id,
-			});
-			req.params.reviewId = created._id.toString();
+			const created = await createReview(
+				generateMockInsertReview({
+					user: mockUser.id,
+				}),
+			);
+
+			req.params.reviewId = created.id;
 
 			// Act & Assert
 			await assert.doesNotReject(async () =>
@@ -234,12 +249,17 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		test("Should not throw when user is admin and not owner", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
+
 			const mockUser = generateMockSelectUser({ isAdmin: true });
 			res.locals.user = mockUser;
 
-			const mockReview = generateMockSelectReview();
-			const created = await ReviewModel.create({ ...mockReview });
-			req.params.reviewId = created._id.toString();
+			const created = await createReview(
+				generateMockInsertReview({
+					user: mockUser.id,
+				}),
+			);
+
+			req.params.reviewId = created.id;
 
 			// Act & Assert
 			await assert.doesNotReject(async () =>
@@ -250,12 +270,13 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		test("Should throw ForbiddenError when user is not owner and not admin", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
+
 			const mockUser = generateMockSelectUser({ isAdmin: false });
 			res.locals.user = mockUser;
 
-			const mockReview = generateMockSelectReview();
-			const created = await ReviewModel.create({ ...mockReview });
-			req.params.reviewId = created._id.toString();
+			const created = await createReview(generateMockInsertReview());
+
+			req.params.reviewId = created.id;
 
 			// Act & Assert
 			await assert.rejects(
@@ -267,6 +288,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		test("Should throw ValidationError when reviewId is invalid", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
+
 			const mockUser = generateMockSelectUser({ isAdmin: false });
 			res.locals.user = mockUser;
 			req.params.reviewId = "invalid";
@@ -281,7 +303,8 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		test("Should throw InternalError when res.locals.user is missing", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			req.params.reviewId = generateMockObjectId().toString();
+
+			req.params.reviewId = generateMockObjectId();
 
 			// Act & Assert
 			await assert.rejects(
@@ -293,9 +316,10 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		test("Should throw NotFoundError when review does not exist", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
+
 			const mockUser = generateMockSelectUser({ isAdmin: false });
 			res.locals.user = mockUser;
-			req.params.reviewId = generateMockObjectId().toString();
+			req.params.reviewId = generateMockObjectId();
 
 			// Act & Assert
 			await assert.rejects(
@@ -306,6 +330,8 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 	});
 
 	describe("authenticateRefreshSession", () => {
+		const jwtService = new JwtService();
+
 		test("Should throw AuthenticationError when refresh token cookie is missing", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
@@ -336,8 +362,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw AuthenticationError when session does not exist", async () => {
 			// Arrange
-			const jwtService = new JwtService();
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const refresh = jwtService.generateRefreshToken({ userId });
 			assert.ok(refresh.success);
 
@@ -356,15 +381,16 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should set res.locals.userId when refresh token and session are valid", async () => {
 			// Arrange
-			const jwtService = new JwtService();
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const refresh = jwtService.generateRefreshToken({ userId });
 			assert.ok(refresh.success);
-			await SessionModel.create({
-				expiresAt: new Date(Date.now() + 60_000),
-				tokenId: refresh.data.tokenId,
-				userId,
-			});
+
+			await createSession(
+				generateMockInsertSession({
+					tokenId: refresh.data.tokenId,
+					userId,
+				}),
+			);
 
 			const { next, req, res } = createMockExpressContext();
 			req.cookies = {};
@@ -381,6 +407,8 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 	});
 
 	describe("authenticateAccessToken", () => {
+		const jwtService = new JwtService();
+
 		test("Should throw InternalError when res.locals.userId is missing", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
@@ -397,7 +425,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		test("Should throw AuthenticationError when access token cookie is missing", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			res.locals.userId = generateMockObjectId().toString();
+			res.locals.userId = generateMockObjectId();
 			req.cookies = {};
 			req.signedCookies = {};
 
@@ -410,13 +438,12 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw ValidationError when token pair userIds mismatch", async () => {
 			// Arrange
-			const jwtService = new JwtService();
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const access = jwtService.generateAccessToken({ userId });
 			assert.ok(access.success);
 
 			const { next, req, res } = createMockExpressContext();
-			res.locals.userId = generateMockObjectId().toString();
+			res.locals.userId = generateMockObjectId();
 			req.cookies = {};
 			req.signedCookies = {
 				accessToken: JSON.stringify(access.data.token),
@@ -431,8 +458,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should not throw when access token matches res.locals.userId", async () => {
 			// Arrange
-			const jwtService = new JwtService();
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const access = jwtService.generateAccessToken({ userId });
 			assert.ok(access.success);
 

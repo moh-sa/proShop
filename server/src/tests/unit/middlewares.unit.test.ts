@@ -416,7 +416,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 				UserService.prototype,
 				"getById",
 				async () => ({
-					data: { _id: userId, email: "a@b.com", isAdmin: false, name: "A" },
+					data: { id: userId, email: "a@b.com", isAdmin: false, name: "A" },
 					success: true,
 				}),
 			);
@@ -460,7 +460,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			});
 			const userId = "507f1f77bcf86cd799439011";
 			const user = {
-				_id: userId,
+				id: userId,
 				email: "a@b.com",
 				isAdmin: false,
 				name: "A",
@@ -490,7 +490,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			res.locals.userId = userId;
 
 			t.mock.method(UserService.prototype, "getById", async () => ({
-				data: { _id: userId, email: "a@b.com", isAdmin: false, name: "A" },
+				data: { id: userId, email: "a@b.com", isAdmin: false, name: "A" },
 				success: true,
 			}));
 
@@ -509,7 +509,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 				req: { cookies: {}, signedCookies: {} },
 				testContext: t,
 			});
-			res.locals.user = { _id: "507f1f77bcf86cd799439011", isAdmin: true };
+			res.locals.user = { id: "507f1f77bcf86cd799439011", isAdmin: true };
 
 			// Act
 			await authorizeAdmin(req as any, res as any, next);
@@ -538,7 +538,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 				req: { cookies: {}, signedCookies: {} },
 				testContext: t,
 			});
-			res.locals.user = { _id: "507f1f77bcf86cd799439011", isAdmin: false };
+			res.locals.user = { id: "507f1f77bcf86cd799439011", isAdmin: false };
 
 			// Act & Assert
 			await assert.rejects(
@@ -567,7 +567,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { productId: "invalid" } },
-				res: { locals: { user: { _id: "507f1f77bcf86cd799439011" } } },
+				res: { locals: { user: { id: "507f1f77bcf86cd799439011" } } },
 				testContext: t,
 			});
 
@@ -584,7 +584,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			const userId = "507f1f77bcf86cd799439012";
 			const { next, req, res } = mockExpressCall({
 				req: { params: { productId } },
-				res: { locals: { user: { _id: userId } } },
+				res: { locals: { user: { id: userId } } },
 				testContext: t,
 			});
 
@@ -610,7 +610,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			const userId = "507f1f77bcf86cd799439012";
 			const { next, req, res } = mockExpressCall({
 				req: { params: { productId } },
-				res: { locals: { user: { _id: userId } } },
+				res: { locals: { user: { id: userId } } },
 				testContext: t,
 			});
 
@@ -633,7 +633,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			const userId = "507f1f77bcf86cd799439012";
 			const { next, req, res } = mockExpressCall({
 				req: { params: { productId } },
-				res: { locals: { user: { _id: userId } } },
+				res: { locals: { user: { id: userId } } },
 				testContext: t,
 			});
 
@@ -655,7 +655,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			const userId = "507f1f77bcf86cd799439012";
 			const { next, req, res } = mockExpressCall({
 				req: { params: { productId } },
-				res: { locals: { user: { _id: userId } } },
+				res: { locals: { user: { id: userId } } },
 				testContext: t,
 			});
 
@@ -678,14 +678,14 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			const userId = "507f1f77bcf86cd799439012";
 			const { next, req, res } = mockExpressCall({
 				req: { params: { productId } },
-				res: { locals: { user: { _id: userId } } },
+				res: { locals: { user: { id: userId } } },
 				testContext: t,
 			});
 
 			t.mock.method(
 				ReviewService.prototype,
 				"existsByUserIdAndProductId",
-				async () => ({ data: { _id: productId }, success: true }),
+				async () => ({ data: { id: productId }, success: true }),
 			);
 
 			// Act & Assert
@@ -717,7 +717,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 				req: { params: { reviewId: "invalid" } },
 				res: {
 					locals: {
-						user: { _id: "507f1f77bcf86cd799439011", isAdmin: false },
+						user: { id: "507f1f77bcf86cd799439011", isAdmin: false },
 					},
 				},
 				testContext: t,
@@ -736,7 +736,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			const userId = "507f1f77bcf86cd799439012";
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId } },
-				res: { locals: { user: { _id: userId, isAdmin: false } } },
+				res: { locals: { user: { id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -744,7 +744,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 				ReviewService.prototype,
 				"getById",
 				async () => ({
-					data: { user: { _id: userId } },
+					data: { user: userId },
 					success: true,
 				}),
 			);
@@ -765,12 +765,12 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			const userId = "507f1f77bcf86cd799439012";
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId } },
-				res: { locals: { user: { _id: userId, isAdmin: false } } },
+				res: { locals: { user: { id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 
 			t.mock.method(ReviewService.prototype, "getById", async () => ({
-				data: { user: { _id: userId } },
+				data: { user: userId },
 				success: true,
 			}));
 
@@ -788,12 +788,12 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			const otherUserId = "507f1f77bcf86cd799439013";
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId } },
-				res: { locals: { user: { _id: userId, isAdmin: true } } },
+				res: { locals: { user: { id: userId, isAdmin: true } } },
 				testContext: t,
 			});
 
 			t.mock.method(ReviewService.prototype, "getById", async () => ({
-				data: { user: { _id: otherUserId } },
+				data: { user: { id: otherUserId } },
 				success: true,
 			}));
 
@@ -811,12 +811,12 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			const otherUserId = "507f1f77bcf86cd799439013";
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId } },
-				res: { locals: { user: { _id: userId, isAdmin: false } } },
+				res: { locals: { user: { id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 
 			t.mock.method(ReviewService.prototype, "getById", async () => ({
-				data: { user: { _id: otherUserId } },
+				data: { user: { id: otherUserId } },
 				success: true,
 			}));
 
@@ -833,7 +833,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			const userId = "507f1f77bcf86cd799439012";
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId } },
-				res: { locals: { user: { _id: userId, isAdmin: false } } },
+				res: { locals: { user: { id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 

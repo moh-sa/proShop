@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 
-import type { InsertReview } from "../../types/index.js";
+import type { CreateReview } from "../../types/index.js";
 
 import {
 	DatabaseDuplicateKeyError,
@@ -11,23 +11,27 @@ import {
 import { ProductModel } from "../../models/product.model.js";
 import { ReviewModel } from "../../models/review.model.js";
 import { UserModel } from "../../models/user.model.js";
+import { productRepository } from "../../repositories/product.repository.js";
+import { reviewRepository } from "../../repositories/review.repository.js";
 import { ReviewService } from "../../services/review.service.js";
 import {
 	generateMockInsertProductWithStringImage,
 	generateMockInsertReview,
 	generateMockInsertReviews,
 	generateMockObjectId,
-	generateMockSelectProduct,
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
+	createProduct,
+	createReview,
+	createReviews,
 	disconnectTestDatabase,
-} from "../utils/database-connection.utils.js";
+} from "../utils/index.js";
 
 suite("Review Service 〖 Integration Tests 〗", () => {
 	const reviewService = new ReviewService();
 
-	function calculateAvgRating(reviews: Array<InsertReview>): number {
+	function calculateAvgRating(reviews: Array<CreateReview>): number {
 		const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
 		const avg = sum / reviews.length;
 		const float = parseFloat(avg.toFixed(1));
@@ -55,21 +59,18 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.data.name, mockReview.name);
 			assert.strictEqual(result.data.rating, mockReview.rating);
 			assert.strictEqual(result.data.comment, mockReview.comment);
-			assert.strictEqual(
-				result.data.user.toString(),
-				mockReview.user.toString(),
-			);
-			assert.strictEqual(
-				result.data.product.toString(),
-				mockReview.product.toString(),
-			);
+			assert.strictEqual(result.data.user, mockReview.user);
+			assert.strictEqual(result.data.product, mockReview.product);
 		});
 
 		test("Should update product 'rating' and 'numReviews' when 'repo.create' is called with valid review data", async () => {
 			// Arrange
-			const mockProduct = generateMockInsertProductWithStringImage();
-			const product = await ProductModel.create(mockProduct);
-			const mockReview = generateMockInsertReview({ product: product._id });
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
+			const productId = createdProduct.id;
+
+			const mockReview = generateMockInsertReview({ product: productId });
 
 			// Act
 			const result = await reviewService.create(mockReview);
@@ -77,20 +78,24 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 
-			const updatedProduct = await ProductModel.findById(product._id);
-			assert.ok(updatedProduct);
-			assert.strictEqual(updatedProduct.rating, mockReview.rating);
-			assert.strictEqual(updatedProduct.numReviews, 1);
+			const updatedProduct = await productRepository.getById({ productId });
+			assert.ok(updatedProduct.success);
+			assert.ok(updatedProduct.data);
+			assert.strictEqual(updatedProduct.data.rating, mockReview.rating);
+			assert.strictEqual(updatedProduct.data.numReviews, 1);
 		});
 
 		test("Should update the product 'rating' and 'numReviews' when 'repo.create' is called multiple times with valid review data", async () => {
 			// Arrange
-			const mockProduct = generateMockSelectProduct();
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
+			const productId = createdProduct.id;
+
 			const mockReviews = generateMockInsertReviews({
 				count: 3,
-				options: { product: mockProduct._id },
+				options: { product: productId },
 			});
-			await ProductModel.create(mockProduct);
 
 			// Act
 			const results = await Promise.all(
@@ -100,11 +105,13 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Assert
 			results.forEach((result) => assert.strictEqual(result.success, true));
 
-			const updatedProduct = await ProductModel.findById(mockProduct._id);
-			assert.ok(updatedProduct);
-			assert.strictEqual(updatedProduct.numReviews, mockReviews.length);
+			const updatedProduct = await productRepository.getById({ productId });
+			assert.ok(updatedProduct.success);
+			assert.ok(updatedProduct.data);
+
+			assert.strictEqual(updatedProduct.data.numReviews, mockReviews.length);
 			assert.strictEqual(
-				updatedProduct.rating,
+				updatedProduct.data.rating,
 				calculateAvgRating(mockReviews),
 			);
 		});
@@ -112,8 +119,8 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return 'DatabaseDuplicateKeyError' when 'repo.create' is called with duplicate user-product review", async () => {
 			// Arrange
 			const mockReview = generateMockInsertReview();
-			const firstResult = await reviewService.create(mockReview);
-			assert.ok(firstResult.success);
+
+			await createReview(mockReview);
 
 			// Act
 			const result = await reviewService.create(mockReview);
@@ -179,7 +186,6 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return 'ValidationError' when 'repo.create' is called with 'product' being invalid objectId", async () => {
 			// Arrange
 			const mockInsertReview = generateMockInsertReview({
-				// @ts-expect-error - test case
 				product: "invalid-product-id",
 			});
 
@@ -195,22 +201,20 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 	describe("getById", () => {
 		test("Should return review when 'repo.getById' is called with valid review ID", async () => {
 			// Arrange
-			const mockReview = generateMockInsertReview();
-			const createdResult = await reviewService.create(mockReview);
-			assert.ok(createdResult.success);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			// Act
 			const result = await reviewService.getById({
-				reviewId: createdResult.data._id.toString(),
+				reviewId: createdReview.id,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.name, mockReview.name);
-			assert.strictEqual(result.data.rating, mockReview.rating);
-			assert.strictEqual(result.data.comment, mockReview.comment);
-			assert.deepStrictEqual(result.data.user, mockReview.user);
-			assert.deepStrictEqual(result.data.product, mockReview.product);
+			assert.strictEqual(result.data.name, createdReview.name);
+			assert.strictEqual(result.data.rating, createdReview.rating);
+			assert.strictEqual(result.data.comment, createdReview.comment);
+			assert.deepStrictEqual(result.data.user, createdReview.user);
+			assert.deepStrictEqual(result.data.product, createdReview.product);
 		});
 
 		test("Should return 'NotFoundError' when 'repo.getById' is called with non-existent review ID", async () => {
@@ -219,7 +223,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 			// Act
 			const result = await reviewService.getById({
-				reviewId: nonExistentId.toString(),
+				reviewId: nonExistentId,
 			});
 
 			// Assert
@@ -243,8 +247,9 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 	describe("getAll", () => {
 		test("Should return paginated reviews when 'repo.getAll' is called with multiple reviews in database", async () => {
 			// Arrange
-			const mockReviews = generateMockInsertReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 3 }),
+			);
 
 			// Act
 			const result = await reviewService.getAll({
@@ -256,26 +261,21 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.success, true);
 
 			assert.ok(Array.isArray(result.data.items));
-			assert.strictEqual(result.data.items.length, mockReviews.length);
+			assert.strictEqual(result.data.items.length, createdReviews.length);
 
-			assert.strictEqual(result.data.meta.totalItems, mockReviews.length);
+			assert.strictEqual(result.data.meta.totalItems, createdReviews.length);
 			assert.strictEqual(result.data.meta.currentPage, 1);
 			assert.strictEqual(result.data.meta.totalPages, 1);
 
 			result.data.items.forEach((review) => {
-				const mockReview = mockReviews.find(
-					(r) => r.user.toString() === review.user.toString(),
-				);
+				const mockReview = createdReviews.find((r) => r.user === review.user);
 				assert.ok(mockReview);
 
-				assert.ok(review._id);
+				assert.ok(review.id);
 				assert.ok(review.createdAt);
 				assert.ok(review.updatedAt);
-				assert.strictEqual(review.user.toString(), mockReview.user.toString());
-				assert.strictEqual(
-					review.product.toString(),
-					mockReview.product.toString(),
-				);
+				assert.strictEqual(review.user, mockReview.user);
+				assert.strictEqual(review.product, mockReview.product);
 				assert.strictEqual(review.name, mockReview.name);
 				assert.strictEqual(review.rating, mockReview.rating);
 				assert.strictEqual(review.comment, mockReview.comment);
@@ -302,8 +302,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 		test("Should return paginated reviews with correct pagination when 'repo.getAll' is called with pageSize", async () => {
 			// Arrange
-			const mockReviews = generateMockInsertReviews({ count: 15 });
-			await ReviewModel.insertMany(mockReviews);
+			await createReviews(generateMockInsertReviews({ count: 15 }));
 
 			// Act
 			const result = await reviewService.getAll({
@@ -327,8 +326,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 		test("Should return second page of reviews when 'repo.getAll' is called with pageNumber 2", async () => {
 			// Arrange
-			const mockReviews = generateMockInsertReviews({ count: 15 });
-			await ReviewModel.insertMany(mockReviews);
+			await createReviews(generateMockInsertReviews({ count: 15 }));
 
 			// Act
 			const result = await reviewService.getAll({
@@ -366,21 +364,20 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Arrange
 			const productId = generateMockObjectId();
 
-			const reviews = generateMockInsertReviews({
-				count: 3,
-				options: { product: productId },
-			}).map((review, index) => ({ ...review, rating: index + 2 }));
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({
+					count: 3,
+					options: { product: productId },
+				}),
+			);
 
-			const expectedSortedRatings = reviews
-				.slice()
+			const expectedSortedRatings = createdReviews
 				.sort((a, b) => b.rating - a.rating)
 				.map((review) => review.rating);
 
-			await ReviewModel.insertMany(reviews);
-
 			// Act
 			const result = await reviewService.getAll({
-				filters: { productId: productId.toString() },
+				filters: { productId: productId },
 				pageNumber: "1",
 				pageSize: "10",
 				sort: "rating:desc",
@@ -413,36 +410,37 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return paginated user reviews when 'repo.getAllByUserId' is called with user having multiple reviews", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
-			const mockReviews = generateMockInsertReviews({
+			const targetReviews = generateMockInsertReviews({
 				count: 3,
 				options: { user: userId },
 			});
-			const otherReviews = generateMockInsertReviews({
-				count: 3,
-			});
-			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
+
+			await createReviews([
+				...targetReviews,
+				...generateMockInsertReviews({
+					count: 3,
+				}),
+			]);
 
 			// Act
 			const result = await reviewService.getAllByUserId({
 				pageNumber: "1",
 				pageSize: "10",
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
 
 			assert.ok(Array.isArray(result.data.items));
-			assert.strictEqual(result.data.items.length, mockReviews.length);
+			assert.strictEqual(result.data.items.length, targetReviews.length);
 
-			assert.strictEqual(result.data.meta.totalItems, mockReviews.length);
+			assert.strictEqual(result.data.meta.totalItems, targetReviews.length);
 			assert.strictEqual(result.data.meta.currentPage, 1);
 			assert.strictEqual(result.data.meta.totalPages, 1);
 
 			assert.strictEqual(
-				result.data.items.every(
-					(review) => review.user.toString() === userId.toString(),
-				),
+				result.data.items.every((review) => review.user === userId),
 				true,
 			);
 		});
@@ -455,7 +453,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			const result = await reviewService.getAllByUserId({
 				pageNumber: "1",
 				pageSize: "10",
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
@@ -472,20 +470,23 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return paginated user reviews with correct pagination when 'repo.getAllByUserId' is called with pageSize", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
-			const mockReviews = generateMockInsertReviews({
+			const targetReviews = generateMockInsertReviews({
 				count: 8,
 				options: { user: userId },
 			});
-			const otherReviews = generateMockInsertReviews({
-				count: 5,
-			});
-			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
+
+			await createReviews([
+				...targetReviews,
+				...generateMockInsertReviews({
+					count: 5,
+				}),
+			]);
 
 			// Act
 			const result = await reviewService.getAllByUserId({
 				pageNumber: "1",
 				pageSize: "3",
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
@@ -494,7 +495,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			assert.ok(Array.isArray(result.data.items));
 			assert.strictEqual(result.data.items.length, 3);
 
-			assert.strictEqual(result.data.meta.totalItems, mockReviews.length);
+			assert.strictEqual(result.data.meta.totalItems, targetReviews.length);
 			assert.strictEqual(result.data.meta.currentPage, 1);
 			assert.strictEqual(result.data.meta.pageSize, 3);
 			assert.strictEqual(result.data.meta.totalPages, 3);
@@ -502,9 +503,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.data.meta.hasPreviousPage, false);
 
 			assert.strictEqual(
-				result.data.items.every(
-					(review) => review.user.toString() === userId.toString(),
-				),
+				result.data.items.every((review) => review.user === userId),
 				true,
 			);
 		});
@@ -533,7 +532,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			const result = await reviewService.getAllByUserId({
 				pageNumber: "invalid",
 				pageSize: "10",
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
@@ -542,15 +541,18 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		});
 
 		test("Should return 'ValidationError' when 'sort' is invalid", async () => {
+			// Arrange
 			const userId = generateMockObjectId();
 
+			// Act
 			const result = await reviewService.getAllByUserId({
 				pageNumber: "1",
 				pageSize: "10",
 				sort: "bad-sort",
-				userId: userId.toString(),
+				userId: userId,
 			});
 
+			// Assert
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof ValidationError);
 		});
@@ -560,34 +562,35 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return paginated product reviews when 'repo.getAllByProductId' is called with product having multiple reviews", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
-			const mockReviews = generateMockInsertReviews({
+			const targetReviews = generateMockInsertReviews({
 				count: 3,
 				options: { product: productId },
 			});
-			const otherReviews = generateMockInsertReviews({ count: 3 });
-			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
+
+			await createReviews([
+				...targetReviews,
+				...generateMockInsertReviews({ count: 3 }),
+			]);
 
 			// Act
 			const result = await reviewService.getAllByProductId({
 				pageNumber: "1",
 				pageSize: "10",
-				productId: productId.toString(),
+				productId: productId,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
 
 			assert.ok(Array.isArray(result.data.items));
-			assert.strictEqual(result.data.items.length, mockReviews.length);
+			assert.strictEqual(result.data.items.length, targetReviews.length);
 
-			assert.strictEqual(result.data.meta.totalItems, mockReviews.length);
+			assert.strictEqual(result.data.meta.totalItems, targetReviews.length);
 			assert.strictEqual(result.data.meta.currentPage, 1);
 			assert.strictEqual(result.data.meta.totalPages, 1);
 
 			assert.strictEqual(
-				result.data.items.every(
-					(review) => review.product.toString() === productId.toString(),
-				),
+				result.data.items.every((review) => review.product === productId),
 				true,
 			);
 		});
@@ -595,14 +598,14 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return empty paginated result when 'repo.getAllByProductId' is called with product having no reviews", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
-			const mockReviews = generateMockInsertReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+
+			await createReviews(generateMockInsertReviews({ count: 3 }));
 
 			// Act
 			const result = await reviewService.getAllByProductId({
 				pageNumber: "1",
 				pageSize: "10",
-				productId: productId.toString(),
+				productId: productId,
 			});
 
 			// Assert
@@ -619,18 +622,21 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return paginated product reviews with correct pagination when 'repo.getAllByProductId' is called with pageSize", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
-			const mockReviews = generateMockInsertReviews({
+			const targetReviews = generateMockInsertReviews({
 				count: 7,
 				options: { product: productId },
 			});
-			const otherReviews = generateMockInsertReviews({ count: 4 });
-			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
+
+			await createReviews([
+				...targetReviews,
+				...generateMockInsertReviews({ count: 4 }),
+			]);
 
 			// Act
 			const result = await reviewService.getAllByProductId({
 				pageNumber: "1",
 				pageSize: "3",
-				productId: productId.toString(),
+				productId: productId,
 			});
 
 			// Assert
@@ -639,7 +645,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			assert.ok(Array.isArray(result.data.items));
 			assert.strictEqual(result.data.items.length, 3);
 
-			assert.strictEqual(result.data.meta.totalItems, mockReviews.length);
+			assert.strictEqual(result.data.meta.totalItems, targetReviews.length);
 			assert.strictEqual(result.data.meta.currentPage, 1);
 			assert.strictEqual(result.data.meta.pageSize, 3);
 			assert.strictEqual(result.data.meta.totalPages, 3);
@@ -647,9 +653,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.data.meta.hasPreviousPage, false);
 
 			assert.strictEqual(
-				result.data.items.every(
-					(review) => review.product.toString() === productId.toString(),
-				),
+				result.data.items.every((review) => review.product === productId),
 				true,
 			);
 		});
@@ -678,7 +682,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			const result = await reviewService.getAllByProductId({
 				pageNumber: "invalid",
 				pageSize: "10",
-				productId: productId.toString(),
+				productId: productId,
 			});
 
 			// Assert
@@ -694,7 +698,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			const result = await reviewService.getAllByProductId({
 				pageNumber: "1",
 				pageSize: "10",
-				productId: productId.toString(),
+				productId: productId,
 				sort: "bad-sort",
 			});
 
@@ -707,9 +711,9 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 	describe("update", () => {
 		test("Should update review when 'repo.update' is called with valid review ID and data", async () => {
 			// Arrange
-			const mockReview = generateMockInsertReview();
-			const createdReview = await ReviewModel.create(mockReview);
-			const updateData: Partial<InsertReview> = {
+			const createdReview = await createReview(generateMockInsertReview());
+
+			const updateData: Partial<CreateReview> = {
 				comment: "Updated Comment",
 				name: "Updated Name",
 			};
@@ -717,52 +721,52 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Act
 			const result = await reviewService.update({
 				data: updateData,
-				reviewId: createdReview._id.toString(),
+				reviewId: createdReview.id,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.name, updateData.name);
 			assert.strictEqual(result.data.comment, updateData.comment);
-			assert.strictEqual(result.data.rating, mockReview.rating);
-			assert.strictEqual(
-				result.data.user.toString(),
-				mockReview.user.toString(),
-			);
-			assert.strictEqual(
-				result.data.product.toString(),
-				mockReview.product.toString(),
-			);
+			assert.strictEqual(result.data.rating, createdReview.rating);
+			assert.strictEqual(result.data.user, createdReview.user);
+			assert.strictEqual(result.data.product, createdReview.product);
 		});
 
 		test("Should update product 'rating' when 'repo.update' is called with new rating value", async () => {
 			// Arrange
-			const mockProduct = generateMockSelectProduct();
-			await ProductModel.create(mockProduct);
-			const mockReview = generateMockInsertReview({
-				product: mockProduct._id,
-				rating: 3,
-			});
-			const createdResult = await reviewService.create(mockReview);
-			assert.ok(createdResult.success);
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
+
+			const createdReview = await reviewService.create(
+				generateMockInsertReview({
+					product: createdProduct.id,
+					rating: 3,
+				}),
+			);
+			assert.ok(createdReview.success);
 
 			const updateData = { rating: 5 };
-			const updatedMock = { ...mockReview, ...updateData };
+			const updatedMock = { ...createdReview.data, ...updateData };
 			const updatedRating = calculateAvgRating([updatedMock]);
 
 			// Act
 			const result = await reviewService.update({
 				data: updateData,
-				reviewId: createdResult.data._id.toString(),
+				reviewId: createdReview.data.id,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
 
-			const updatedProduct = await ProductModel.findById(mockReview.product);
-			assert.ok(updatedProduct);
-			assert.strictEqual(updatedProduct.numReviews, 1);
-			assert.strictEqual(updatedProduct.rating, updatedRating);
+			const updatedProduct = await productRepository.getById({
+				productId: createdReview.data.product,
+			});
+			(createdReview.data.product, assert.ok(updatedProduct.success));
+			assert.ok(updatedProduct.data);
+			assert.strictEqual(updatedProduct.data.numReviews, 1);
+			assert.strictEqual(updatedProduct.data.rating, updatedRating);
 		});
 
 		test("Should return 'NotFoundError' when 'repo.update' is called with non-existent review ID", async () => {
@@ -773,7 +777,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Act
 			const result = await reviewService.update({
 				data: updateData,
-				reviewId: nonExistentId.toString(),
+				reviewId: nonExistentId,
 			});
 
 			// Assert
@@ -797,7 +801,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return 'ValidationError' when 'repo.update' is called with 'rating' being out of range 0-5", async () => {
 			// Arrange
 			const updateData = { rating: 6 };
-			const reviewId = generateMockObjectId().toString();
+			const reviewId = generateMockObjectId();
 
 			// Act
 			const result = await reviewService.update({ data: updateData, reviewId });
@@ -811,46 +815,55 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 	describe("delete", () => {
 		test("Should delete review when 'repo.delete' is called with valid review ID", async () => {
 			// Arrange
-			const mockReview = generateMockInsertReview();
-			const createdReview = await ReviewModel.create(mockReview);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			// Act
 			const result = await reviewService.delete({
-				reviewId: createdReview._id.toString(),
+				reviewId: createdReview.id,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.name, mockReview.name);
-			assert.strictEqual(result.data.rating, mockReview.rating);
-			assert.strictEqual(result.data.comment, mockReview.comment);
-			assert.deepStrictEqual(result.data.user, mockReview.user);
-			assert.deepStrictEqual(result.data.product, mockReview.product);
-			const deletedReview = await ReviewModel.findById(createdReview._id);
-			assert.strictEqual(deletedReview, null);
+			assert.strictEqual(result.data.name, createdReview.name);
+			assert.strictEqual(result.data.rating, createdReview.rating);
+			assert.strictEqual(result.data.comment, createdReview.comment);
+			assert.deepStrictEqual(result.data.user, createdReview.user);
+			assert.deepStrictEqual(result.data.product, createdReview.product);
+
+			const deletedReview = await reviewRepository.getById({
+				reviewId: createdReview.id,
+			});
+			assert.strictEqual(deletedReview.success, true);
+			assert.strictEqual(deletedReview.data, null);
 		});
 
 		test("Should update product 'rating' and 'numReviews' when 'repo.delete' is called with valid review ID", async () => {
 			// Arrange
-			const mockProduct = generateMockSelectProduct();
-			await ProductModel.create(mockProduct);
-			const mockReview = generateMockInsertReview({
-				product: mockProduct._id,
-			});
-			const createdResult = await reviewService.create(mockReview);
-			assert.ok(createdResult.success);
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
+
+			const createdReview = await createReview(
+				generateMockInsertReview({
+					product: createdProduct.id,
+				}),
+			);
 
 			// Act
 			const result = await reviewService.delete({
-				reviewId: createdResult.data._id.toString(),
+				reviewId: createdReview.id,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			const updatedProduct = await ProductModel.findById(mockReview.product);
-			assert.ok(updatedProduct);
-			assert.strictEqual(updatedProduct.rating, 0);
-			assert.strictEqual(updatedProduct.numReviews, 0);
+
+			const updatedProduct = await productRepository.getById({
+				productId: createdReview.product,
+			});
+			assert.ok(updatedProduct.success);
+			assert.ok(updatedProduct.data);
+			assert.strictEqual(updatedProduct.data.rating, 0);
+			assert.strictEqual(updatedProduct.data.numReviews, 0);
 		});
 
 		test("Should return 'NotFoundError' when 'repo.delete' is called with non-existent review ID", async () => {
@@ -859,7 +872,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 			// Act
 			const result = await reviewService.delete({
-				reviewId: nonExistentId.toString(),
+				reviewId: nonExistentId,
 			});
 
 			// Assert
@@ -883,15 +896,16 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 	describe("count", () => {
 		test("Should return correct count when 'repo.count' is called with multiple reviews in database", async () => {
 			// Arrange
-			const mockReviews = generateMockInsertReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 3 }),
+			);
 
 			// Act
 			const result = await reviewService.count();
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data, mockReviews.length);
+			assert.strictEqual(result.data, createdReviews.length);
 		});
 
 		test("Should return 0 when 'repo.count' is called with no reviews in database", async () => {
@@ -908,32 +922,34 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return correct count when 'repo.countByUserId' is called with user having multiple reviews", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
-			const mockReviews = generateMockInsertReviews({
+			const targetReviews = generateMockInsertReviews({
 				count: 3,
 				options: { user: userId },
 			});
-			const otherReviews = generateMockInsertReviews({ count: 3 });
-			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
+
+			await createReviews([
+				...targetReviews,
+				...generateMockInsertReviews({ count: 3 }),
+			]);
 
 			// Act
 			const result = await reviewService.countByUserId({
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data, mockReviews.length);
+			assert.strictEqual(result.data, targetReviews.length);
 		});
 
 		test("Should return 0 when 'repo.countByUserId' is called with user having no reviews", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
-			const mockReviews = generateMockInsertReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			await createReviews(generateMockInsertReviews({ count: 3 }));
 
 			// Act
 			const result = await reviewService.countByUserId({
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
@@ -958,32 +974,35 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return correct count when 'repo.countByProductId' is called with product having multiple reviews", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
-			const mockReviews = generateMockInsertReviews({
+			const targetReviews = generateMockInsertReviews({
 				count: 3,
 				options: { product: productId },
 			});
-			const otherReviews = generateMockInsertReviews({ count: 3 });
-			await ReviewModel.insertMany([...mockReviews, ...otherReviews]);
+
+			await createReviews([
+				...targetReviews,
+				...generateMockInsertReviews({ count: 3 }),
+			]);
 
 			// Act
 			const result = await reviewService.countByProductId({
-				productId: productId.toString(),
+				productId: productId,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data, mockReviews.length);
+			assert.strictEqual(result.data, targetReviews.length);
 		});
 
 		test("Should return 0 when 'repo.countByProductId' is called with product having no reviews", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
-			const mockReviews = generateMockInsertReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+
+			await createReviews(generateMockInsertReviews({ count: 3 }));
 
 			// Act
 			const result = await reviewService.countByProductId({
-				productId: productId.toString(),
+				productId,
 			});
 
 			// Assert
@@ -1007,18 +1026,17 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 	describe("existsById", () => {
 		test("Should return review ID when 'repo.existsById' is called with existing review ID", async () => {
 			// Arrange
-			const mockReview = generateMockInsertReview();
-			const createdReview = await ReviewModel.create(mockReview);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			// Act
 			const result = await reviewService.existsById({
-				reviewId: createdReview._id.toString(),
+				reviewId: createdReview.id,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.ok(result.data._id);
-			assert.deepStrictEqual(result.data._id, createdReview._id);
+			assert.ok(result.data.id);
+			assert.strictEqual(result.data.id, createdReview.id);
 		});
 
 		test("Should return 'NotFoundError' when 'repo.existsById' is called with non-existent review ID", async () => {
@@ -1027,7 +1045,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 			// Act
 			const result = await reviewService.existsById({
-				reviewId: nonExistentId.toString(),
+				reviewId: nonExistentId,
 			});
 
 			// Assert
@@ -1051,22 +1069,21 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 	describe("existsByUserIdAndProductId", () => {
 		test("Should return review ID when 'repo.existsByUserIdAndProductId' is called with existing user-product review", async () => {
 			// Arrange
-			const mockReviews = generateMockInsertReviews({ count: 3 });
-			const createdReview = await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 3 }),
+			);
+			const targetReview = createdReviews[0];
 
 			// Act
 			const result = await reviewService.existsByUserIdAndProductId({
-				productId: mockReviews[0].product.toString(),
-				userId: mockReviews[0].user.toString(),
+				productId: targetReview.product,
+				userId: targetReview.user,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.ok(result.data._id);
-			assert.strictEqual(
-				result.data._id.toString(),
-				createdReview[0]._id.toString(),
-			);
+			assert.ok(result.data.id);
+			assert.strictEqual(result.data.id, targetReview.id);
 		});
 
 		test("Should return 'NotFoundError' when 'repo.existsByUserIdAndProductId' is called with non-existent user-product review", async () => {
@@ -1076,8 +1093,8 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 			// Act
 			const result = await reviewService.existsByUserIdAndProductId({
-				productId: productId.toString(),
-				userId: userId.toString(),
+				productId,
+				userId,
 			});
 
 			// Assert
@@ -1087,7 +1104,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 		test("Should return 'ValidationError' when 'repo.existsByUserIdAndProductId' is called with 'userId' being invalid ObjectId", async () => {
 			// Arrange
-			const productId = generateMockObjectId().toString();
+			const productId = generateMockObjectId();
 			const userId = "invalid-user-id";
 
 			// Act
@@ -1103,7 +1120,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 		test("Should return 'ValidationError' when 'repo.existsByUserIdAndProductId' is called with 'productId' being invalid ObjectId", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const productId = "invalid-product-id";
 
 			// Act

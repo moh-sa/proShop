@@ -1,5 +1,3 @@
-import type { Types } from "mongoose";
-
 import assert from "node:assert/strict";
 import test, { beforeEach, describe, suite } from "node:test";
 
@@ -37,7 +35,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 		const expectedResult = {
 			...mockInsertProduct,
-			_id: mockSelectProduct._id,
+			id: mockSelectProduct.id,
 			createdAt: mockSelectProduct.createdAt,
 			image: mockSelectProduct.image,
 			numReviews: mockSelectProduct.numReviews,
@@ -71,7 +69,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			const invalidProduct = {
 				...mockProductWithFile,
 				image: "https://example.com/image.jpg", // Use string URL
-				user: "invalid-user-id" as unknown as Types.ObjectId,
+				user: "invalid-user-id",
 			};
 
 			// Act
@@ -353,7 +351,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(
 				mockRepo.getAll.mock.calls[0].arguments[0].select,
 				{
-					_id: true,
+					id: true,
 					brand: true,
 					category: true,
 					image: true,
@@ -511,7 +509,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 	describe("getById", () => {
 		const expectedResult = generateMockSelectProduct();
-		const productId = expectedResult._id.toString();
+		const productId = expectedResult.id;
 
 		test("Should return product object when 'repo.getById' is called once with 'productId'", async () => {
 			// Arrange
@@ -530,7 +528,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockRepo.getById.mock.calls[0].arguments[0].productId.toString(),
+				mockRepo.getById.mock.calls[0].arguments[0].productId,
 				productId,
 			);
 		});
@@ -566,7 +564,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 	describe("update", () => {
 		const mockProduct = generateMockSelectProduct();
-		const productId = mockProduct._id.toString();
+		const productId = mockProduct.id;
 
 		test("Should return product object when 'repo.update' is called once with 'productId' and 'data'", async () => {
 			// Arrange
@@ -590,7 +588,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockRepo.update.mock.callCount(), 1);
 
 			assert.deepStrictEqual(
-				mockRepo.update.mock.calls[0].arguments[0].productId.toString(),
+				mockRepo.update.mock.calls[0].arguments[0].productId,
 				productId,
 			);
 			assert.deepStrictEqual(
@@ -640,7 +638,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 	describe("delete", () => {
 		const expectedResult = generateMockSelectProduct();
-		const productId = expectedResult._id.toString();
+		const productId = expectedResult.id;
 
 		test("Should return 'undefined' when 'repo.delete' is called once with 'productId'", async () => {
 			// Arrange
@@ -659,7 +657,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockRepo.delete.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockRepo.delete.mock.calls[0].arguments[0].productId.toString(),
+				mockRepo.delete.mock.calls[0].arguments[0].productId,
 				productId,
 			);
 		});

@@ -668,7 +668,7 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 			const session = generateMockSelectSession({
 				expiresAt: mockTokenPair.refresh.expiresAt,
 				tokenId: mockTokenPair.refresh.tokenId,
-				userId: mockSelectUser._id,
+				userId: mockSelectUser.id,
 			});
 
 			mockUser.getByEmail_UNSAFE.mock.mockImplementation(async () => ({
@@ -704,14 +704,14 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.sessionId, session.id.toString());
+			assert.strictEqual(result.data.sessionId, session.id);
 			assert.deepStrictEqual(result.data.tokens, mockTokenPair);
 			assert.deepStrictEqual(result.data.user, mockSelectUser);
 
 			assert.strictEqual(mockJwt.generateTokenPair.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockJwt.generateTokenPair.mock.calls[0].arguments[0].userId,
-				mockSelectUser._id.toString(),
+				mockSelectUser.id,
 			);
 
 			assert.strictEqual(mockSession.create.mock.callCount(), 1);
@@ -721,7 +721,7 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 			);
 			assert.deepStrictEqual(
 				mockSession.create.mock.calls[0].arguments[0].userId,
-				mockSelectUser._id,
+				mockSelectUser.id,
 			);
 		});
 	});
@@ -982,7 +982,7 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 			const session = generateMockSelectSession({
 				expiresAt: mockTokenPair.refresh.expiresAt,
 				tokenId: mockTokenPair.refresh.tokenId,
-				userId: mockSelectUser._id,
+				userId: mockSelectUser.id,
 			});
 
 			mockUser.existsByEmail.mock.mockImplementation(() =>
@@ -1022,7 +1022,7 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.sessionId, session.id.toString());
+			assert.strictEqual(result.data.sessionId, session.id);
 			assert.deepStrictEqual(result.data.tokens, mockTokenPair);
 			assert.deepStrictEqual(result.data.user, mockSelectUser);
 
@@ -1086,7 +1086,7 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 			const session = generateMockSelectSession({
 				expiresAt: mockTokenPair.refresh.expiresAt,
 				tokenId: mockTokenPair.refresh.tokenId,
-				userId: mockSelectUser._id,
+				userId: mockSelectUser.id,
 			});
 
 			mockUser.existsByEmail.mock.mockImplementation(() =>
@@ -1126,7 +1126,7 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.sessionId, session.id.toString());
+			assert.strictEqual(result.data.sessionId, session.id);
 			assert.deepStrictEqual(result.data.tokens, mockTokenPair);
 			assert.deepStrictEqual(result.data.user, mockSelectUser);
 
@@ -1139,7 +1139,7 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockJwt.generateTokenPair.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockJwt.generateTokenPair.mock.calls[0].arguments[0].userId,
-				mockSelectUser._id.toString(),
+				mockSelectUser.id,
 			);
 
 			assert.strictEqual(mockSession.create.mock.callCount(), 1);

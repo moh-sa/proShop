@@ -280,7 +280,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 				pageNumber: 1,
 				pageSize: 10,
 				filters: {
-					userId: userId.toString(),
+					userId,
 					status: "processing",
 				},
 			};
@@ -293,10 +293,10 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 				query?: Record<string, unknown>;
 			};
 			assert.ok(callArgs?.query);
-			assert.ok(callArgs.query["user._id"] instanceof mongoose.Types.ObjectId);
+			assert.ok(callArgs.query["user.id"] instanceof mongoose.Types.ObjectId);
 			assert.strictEqual(
-				(callArgs.query["user._id"] as mongoose.Types.ObjectId).toString(),
-				userId.toString(),
+				(callArgs.query["user.id"] as mongoose.Types.ObjectId).toString(),
+				userId,
 			);
 			assert.strictEqual(callArgs.query.status, "processing");
 		});
@@ -310,7 +310,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			const paginationArgs: GetAllOrdersRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-				select: { _id: true, status: true },
+				select: { id: true, status: true },
 			};
 
 			// Act
@@ -320,7 +320,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 			const callArgs = paginateMock.mock.calls[0]?.arguments[0] as {
 				select?: Record<string, boolean>;
 			};
-			assert.deepStrictEqual(callArgs?.select, { _id: true, status: true });
+			assert.deepStrictEqual(callArgs?.select, { id: true, status: true });
 		});
 
 		test("Should pass sort through to paginator", async (t) => {
@@ -348,7 +348,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 
 	describe("getById", () => {
 		const mockOrder = generateMockSelectOrder();
-		const orderId = mockOrder._id;
+		const orderId = mockOrder.id;
 
 		test("Should return the order object when 'db.findById' is called once with 'orderId'", async (t) => {
 			// Arrange
@@ -468,7 +468,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 
 	describe("markAsProcessing", () => {
 		const mockOrder = generateMockSelectOrder();
-		const orderId = mockOrder._id.toString();
+		const orderId = mockOrder.id;
 		const paidAt = new Date();
 
 		test("Should return the updated order when 'db.findByIdAndUpdate' is called once with correct params", async (t) => {
@@ -619,7 +619,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 
 	describe("markAsCancelled", () => {
 		const mockOrder = generateMockSelectOrder();
-		const orderId = mockOrder._id.toString();
+		const orderId = mockOrder.id;
 
 		test("Should return the updated order when 'db.findByIdAndUpdate' is called once with correct params", async (t) => {
 			// Arrange
@@ -747,7 +747,7 @@ suite("Order Repository 〖 Unit Tests 〗", () => {
 
 	describe("updatePayment", () => {
 		const mockOrder = generateMockSelectOrder();
-		const orderId = mockOrder._id;
+		const orderId = mockOrder.id;
 		const mockPaymentParams = {
 			id: "pay_123",
 			orderId,

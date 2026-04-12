@@ -17,7 +17,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 	const mockJWT = mockJwt();
 	const service = new JwtService(DEFAULT_JWT_CONFIG, mockJWT as any);
 
-	const userId = generateMockObjectId().toString();
+	const userId = generateMockObjectId();
 	const tokenId = crypto.randomUUID();
 	const expiresAt = new Date(2025, 9, 20); // the date of the tokens creation
 	const invalidAccessToken = "invalid-access-token";

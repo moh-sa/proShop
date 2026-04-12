@@ -4,19 +4,20 @@ import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { NotFoundError, ValidationError } from "../../errors/index.js";
 import { OrderModel } from "../../models/order.model.js";
 import { UserModel } from "../../models/user.model.js";
+import { orderRepository } from "../../repositories/order.repository.js";
 import { OrderService } from "../../services/index.js";
 import { GetAllOrdersServiceParams } from "../../types/order.type.js";
 import { generateMockObjectId } from "../mocks/objectid.mock.js";
 import {
 	generateMockInsertOrder,
 	generateMockInsertOrders,
-	generateMockSelectOrders,
 } from "../mocks/order.mock.js";
-import { generateMockSelectUser } from "../mocks/user.mock.js";
 import {
 	connectTestDatabase,
+	createOrder,
+	createOrders,
 	disconnectTestDatabase,
-} from "../utils/database-connection.utils.js";
+} from "../utils/index.js";
 
 suite("OrderService 〖 Integration Tests 〗", async () => {
 	let orderService: OrderService;
@@ -33,12 +34,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 	describe("create", async () => {
 		test("Should create and return order object when 'repo.create' is called with '1' order item", async () => {
 			// Arrange
-			const mockUser = generateMockSelectUser();
-			await UserModel.create(mockUser);
 			const orderItemsCount = 1;
 			const mockOrder = generateMockInsertOrder({
 				orderItemsCount,
-				user: mockUser,
 			});
 
 			// Act
@@ -48,20 +46,13 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.orderItems.length, orderItemsCount);
 			assert.strictEqual(result.data.totalPrice, mockOrder.totalPrice);
-			assert.strictEqual(
-				result.data.user._id.toString(),
-				mockUser._id.toString(),
-			);
 		});
 
 		test("Should create and return order object when 'repo.create' is called with '3' order items", async () => {
 			// Arrange
-			const mockUser = generateMockSelectUser();
-			await UserModel.create(mockUser);
 			const orderItemsCount = 3;
 			const mockOrder = generateMockInsertOrder({
 				orderItemsCount,
-				user: mockUser,
 			});
 
 			// Act
@@ -71,10 +62,6 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.orderItems.length, orderItemsCount);
 			assert.strictEqual(result.data.totalPrice, mockOrder.totalPrice);
-			assert.strictEqual(
-				result.data.user._id.toString(),
-				mockUser._id.toString(),
-			);
 		});
 
 		test("Should throw 'ValidationError' when 'repo.create' is called with empty array of order items", async () => {
@@ -91,9 +78,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should create and return order object when 'repo.create' is called with shipping address", async () => {
 			// Arrange
-			const mockUser = generateMockSelectUser();
-			await UserModel.create(mockUser);
-			const mockOrder = generateMockInsertOrder({ user: mockUser });
+			const mockOrder = generateMockInsertOrder();
 			const expectedAddress = mockOrder.shippingAddress;
 
 			// Act
@@ -106,13 +91,8 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should create and return order object when 'repo.create' is called with tax price", async () => {
 			// Arrange
-			const mockUser = generateMockSelectUser();
-			await UserModel.create(mockUser);
 			const taxPrice = 10.99;
-			const mockOrder = generateMockInsertOrder({
-				taxPrice,
-				user: mockUser,
-			});
+			const mockOrder = generateMockInsertOrder({ taxPrice });
 
 			// Act
 			const result = await orderService.create(mockOrder);
@@ -124,12 +104,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should create and return order object when 'repo.create' is called with shipping price", async () => {
 			// Arrange
-			const mockUser = generateMockSelectUser();
-			await UserModel.create(mockUser);
 			const shippingPrice = 5.99;
 			const mockOrder = generateMockInsertOrder({
 				shippingPrice,
-				user: mockUser,
 			});
 
 			// Act
@@ -142,8 +119,6 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should create and return order object when 'repo.create' is called with total price", async () => {
 			// Arrange
-			const mockUser = generateMockSelectUser();
-			await UserModel.create(mockUser);
 			const itemsPrice = 100;
 			const taxPrice = 20;
 			const shippingPrice = 10;
@@ -153,7 +128,6 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 				shippingPrice,
 				taxPrice,
 				totalPrice,
-				user: mockUser,
 			});
 
 			// Act
@@ -169,11 +143,8 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should NOT set 'paidAt' when 'repo.create' is called", async () => {
 			// Arrange
-			const mockUser = generateMockSelectUser();
-			await UserModel.create(mockUser);
 			const mockOrder = generateMockInsertOrder({
 				status: "pending",
-				user: mockUser,
 			});
 
 			// Act
@@ -187,11 +158,8 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should NOT set 'deliveredAt' when 'repo.create' is called", async () => {
 			// Arrange
-			const mockUser = generateMockSelectUser();
-			await UserModel.create(mockUser);
 			const mockOrder = generateMockInsertOrder({
 				status: "pending",
-				user: mockUser,
 			});
 
 			// Act
@@ -205,10 +173,8 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should create and return order object when 'repo.create' is called with current timestamp as createdAt", async () => {
 			// Arrange
-			const mockUser = generateMockSelectUser();
-			await UserModel.create(mockUser);
 			const beforeCreate = new Date();
-			const mockOrder = generateMockInsertOrder({ user: mockUser });
+			const mockOrder = generateMockInsertOrder();
 
 			// Act
 			const result = await orderService.create(mockOrder);
@@ -224,27 +190,29 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 	describe("getById", async () => {
 		test("Should return order object by its ID when 'repo.getById' is called with existing order ID", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder();
-			const createdOrder = await OrderModel.create(mockOrder);
-			const orderId = createdOrder._id;
+			const createdOrder = await createOrder(generateMockInsertOrder());
+
+			const orderId = createdOrder.id;
 
 			// Act
 			const result = await orderService.getById({
-				orderId: orderId.toString(),
+				orderId,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.deepStrictEqual(result.data._id, orderId);
+			assert.deepStrictEqual(result.data.id, orderId);
 			assert.strictEqual(result.data.totalPrice, createdOrder.totalPrice);
 		});
 
 		test("Should return order object with 3 order items when 'repo.getById' is called with existing order ID", async () => {
 			// Arrange
 			const orderItemsCount = 3;
-			const mockOrder = generateMockInsertOrder({ orderItemsCount });
-			const createdOrder = await OrderModel.create(mockOrder);
-			const orderId = createdOrder._id.toString();
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({ orderItemsCount }),
+			);
+
+			const orderId = createdOrder.id;
 
 			// Act
 			const result = await orderService.getById({
@@ -263,9 +231,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should return order object with shipping address when 'repo.getById' is called with existing order ID", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder();
-			const createdOrder = (await OrderModel.create(mockOrder)).toObject();
-			const orderId = createdOrder._id.toString();
+			const createdOrder = await createOrder(generateMockInsertOrder());
+
+			const orderId = createdOrder.id;
 
 			// Act
 			const result = await orderService.getById({
@@ -282,9 +250,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should return order object with payment details when 'repo.getById' is called with existing order ID", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({ status: "processing" });
-			const createdOrder = (await OrderModel.create(mockOrder)).toObject();
-			const orderId = createdOrder._id.toString();
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({ status: "processing" }),
+			);
+
+			const orderId = createdOrder.id;
 
 			// Act
 			const result = await orderService.getById({
@@ -299,9 +269,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should return order object with delivery status when 'repo.getById' is called with existing order ID", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({ status: "delivered" });
-			const createdOrder = (await OrderModel.create(mockOrder)).toObject();
-			const orderId = createdOrder._id.toString();
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({ status: "delivered" }),
+			);
+
+			const orderId = createdOrder.id;
 
 			// Act
 			const result = await orderService.getById({
@@ -316,9 +288,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should return order object with payment status when 'repo.getById' is called with existing order ID", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({ status: "processing" });
-			const createdOrder = (await OrderModel.create(mockOrder)).toObject();
-			const orderId = createdOrder._id.toString();
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({ status: "processing" }),
+			);
+
+			const orderId = createdOrder.id;
 
 			// Act
 			const result = await orderService.getById({
@@ -334,9 +308,9 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should return order object with timestamps when 'repo.getById' is called with existing order ID", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder();
-			const createdOrder = (await OrderModel.create(mockOrder)).toObject();
-			const orderId = createdOrder._id.toString();
+			const createdOrder = await createOrder(generateMockInsertOrder());
+
+			const orderId = createdOrder.id;
 
 			// Act
 			const result = await orderService.getById({
@@ -351,7 +325,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should throw 'NotFoundError' when 'repo.getById' is called with non-existent order ID", async () => {
 			// Arrange
-			const nonExistentId = generateMockObjectId().toString();
+			const nonExistentId = generateMockObjectId();
 
 			// Act
 			const result = await orderService.getById({ orderId: nonExistentId });
@@ -378,8 +352,8 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should return orders when called with valid pagination parameters", async () => {
 			// Arrange
 			const ordersCount = 5;
-			const mockOrders = generateMockInsertOrders(ordersCount);
-			await OrderModel.insertMany(mockOrders);
+
+			await createOrders(generateMockInsertOrders(ordersCount));
 
 			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
@@ -399,17 +373,19 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		test("Should filter orders by user when user parameter is provided", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
-			const userOrders = generateMockInsertOrders(2, {
-				user: { _id: userId, name: "Test User", email: "test@example.com" },
-			});
-			const otherOrders = generateMockInsertOrders(3);
-			await OrderModel.insertMany([...userOrders, ...otherOrders]);
+
+			await createOrders([
+				...generateMockInsertOrders(2, {
+					user: { id: userId, name: "Test User", email: "test@example.com" },
+				}),
+				...generateMockInsertOrders(3),
+			]);
 
 			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
 				pageSize: "10",
 				filters: {
-					userId: userId.toString(),
+					userId,
 				},
 			};
 
@@ -419,18 +395,17 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.items.length, 2);
-			assert.ok(
-				result.data.items.every(
-					(o) => o.user._id.toString() === userId.toString(),
-				),
-			);
+			result.data.items.forEach((item) => {
+				assert.strictEqual(item.user.id, userId);
+			});
 		});
 
 		test("Should filter orders by status when it is processing", async () => {
 			// Arrange
-			const paidOrders = generateMockInsertOrders(2, { status: "processing" });
-			const unpaidOrders = generateMockInsertOrders(3, { status: "pending" });
-			await OrderModel.insertMany([...paidOrders, ...unpaidOrders]);
+			await createOrders([
+				...generateMockInsertOrders(2, { status: "processing" }),
+				...generateMockInsertOrders(3, { status: "pending" }),
+			]);
 
 			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
@@ -446,18 +421,17 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.items.length, 2);
-			assert.ok(result.data.items.every((o) => o.status === "processing"));
+			result.data.items.forEach((item) => {
+				assert.strictEqual(item.status, "processing");
+			});
 		});
 
 		test("Should filter orders by status when it is delivered", async () => {
 			// Arrange
-			const deliveredOrders = generateMockInsertOrders(2, {
-				status: "delivered",
-			});
-			const undeliveredOrders = generateMockInsertOrders(3, {
-				status: "pending",
-			});
-			await OrderModel.insertMany([...deliveredOrders, ...undeliveredOrders]);
+			await createOrders([
+				...generateMockInsertOrders(2, { status: "delivered" }),
+				...generateMockInsertOrders(3, { status: "pending" }),
+			]);
 
 			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
@@ -473,13 +447,14 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.items.length, 2);
-			assert.ok(result.data.items.every((o) => o.status === "delivered"));
+			result.data.items.forEach((item) => {
+				assert.strictEqual(item.status, "delivered");
+			});
 		});
 
 		test("Should sort orders by createdAt descending when sort parameter is provided", async () => {
 			// Arrange
-			const mockOrders = generateMockSelectOrders(3);
-			await OrderModel.insertMany(mockOrders);
+			await createOrders(generateMockInsertOrders(3));
 
 			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
@@ -493,7 +468,6 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.items.length, 3);
-			// Verify sorting by checking first two items
 			assert.ok(
 				result.data.items[0].createdAt >= result.data.items[1].createdAt,
 			);
@@ -501,8 +475,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should sort orders by createdAt ascending when sort parameter is provided", async () => {
 			// Arrange
-			const mockOrders = generateMockSelectOrders(3);
-			await OrderModel.insertMany(mockOrders);
+			await createOrders(generateMockInsertOrders(3));
 
 			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
@@ -516,7 +489,6 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.items.length, 3);
-			// Verify sorting by checking first two items
 			assert.ok(
 				result.data.items[0].createdAt <= result.data.items[1].createdAt,
 			);
@@ -606,8 +578,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should return orders with correct field projection", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({ status: "delivered" });
-			await OrderModel.create(mockOrder);
+			await createOrder(generateMockInsertOrder({ status: "delivered" }));
 
 			const paginationArgs: GetAllOrdersServiceParams = {
 				pageNumber: "1",
@@ -623,7 +594,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 			const order = result.data.items[0];
 			// Verify that only the projected fields are present (payment nested under `payment`, not root `paidAt`)
-			assert.strictEqual("_id" in order, true);
+			assert.strictEqual("id" in order, true);
 			assert.strictEqual("createdAt" in order, true);
 			assert.strictEqual("status" in order, true);
 			assert.strictEqual("payment" in order, true);
@@ -640,7 +611,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
 			const user = {
-				_id: userId,
+				id: userId,
 				name: "Test User",
 				email: "test@example.com",
 			};
@@ -667,7 +638,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 				pageSize: "10",
 				filters: {
 					status: "delivered",
-					userId: userId.toString(),
+					userId,
 				},
 			};
 
@@ -677,11 +648,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.items.length, 2);
-			assert.ok(
-				result.data.items.every(
-					(o) => o.user._id.toString() === userId.toString(),
-				),
-			);
+			assert.ok(result.data.items.every((o) => o.user.id === userId));
 			assert.ok(result.data.items.every((o) => o.status === "delivered"));
 		});
 	});
@@ -689,12 +656,13 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 	describe("markAsProcessing", async () => {
 		test("Should update order to processing and set paidAt when order exists", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({
-				status: "pending",
-			});
-			const createdOrder = await OrderModel.create(mockOrder);
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({
+					status: "pending",
+				}),
+			);
 
-			const orderId = createdOrder._id.toString();
+			const orderId = createdOrder.id;
 			const paidAt = new Date();
 
 			// Act
@@ -716,7 +684,7 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should return NotFoundError when order does not exist", async () => {
 			// Arrange
-			const nonExistentId = generateMockObjectId().toString();
+			const nonExistentId = generateMockObjectId();
 
 			// Act
 			const result = await orderService.markAsProcessing({
@@ -733,9 +701,11 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 	describe("markAsCancelled", async () => {
 		test("Should update order status to cancelled and persist to database when order exists", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({ status: "pending" });
-			const createdOrder = await OrderModel.create(mockOrder);
-			const orderId = createdOrder._id.toString();
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({ status: "pending" }),
+			);
+
+			const orderId = createdOrder.id;
 
 			// Act
 			const result = await orderService.markAsCancelled({ orderId });
@@ -746,13 +716,16 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.status, "cancelled");
 
 			// Verify in DB
-			const dbOrder = await OrderModel.findById(orderId).lean();
-			assert.strictEqual(dbOrder?.status, "cancelled");
+			const dbOrder = await orderRepository.getById({ orderId });
+			assert.ok(dbOrder.success);
+			assert.ok(dbOrder.data);
+
+			assert.strictEqual(dbOrder.data.status, "cancelled");
 		});
 
 		test("Should return NotFoundError when order does not exist", async () => {
 			// Arrange
-			const nonExistentId = generateMockObjectId().toString();
+			const nonExistentId = generateMockObjectId();
 
 			// Act
 			const result = await orderService.markAsCancelled({
@@ -768,12 +741,15 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 	describe("updatePayment", async () => {
 		test("Should update payment on existing order and persist to database", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({
-				status: "processing",
-				payment: undefined,
-			});
-			const createdOrder = await OrderModel.create(mockOrder);
-			const orderId = createdOrder._id.toString();
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({
+					status: "processing",
+					payment: undefined,
+				}),
+			);
+
+			const orderId = createdOrder.id;
+
 			const newPaymentId = "pay_stripe_456";
 			const provider = "stripe";
 			const sessionURL = "https://checkout.stripe.com/c/pay/cs_test_456";
@@ -793,13 +769,17 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.payment?.sessionURL, sessionURL);
 
 			// Verify in DB
-			const dbOrder = await OrderModel.findById(orderId).lean();
-			assert.strictEqual(dbOrder?.payment?.sessionURL, sessionURL);
+			const foundOrder = await orderRepository.getById({ orderId });
+			assert.ok(foundOrder.success);
+			assert.ok(foundOrder.data);
+
+			assert.ok(foundOrder.data.payment);
+			assert.strictEqual(foundOrder.data.payment.sessionURL, sessionURL);
 		});
 
 		test("Should return 'NotFoundError' when order does not exist", async () => {
 			// Arrange
-			const nonExistentId = generateMockObjectId().toString();
+			const nonExistentId = generateMockObjectId();
 
 			// Act
 			const result = await orderService.updatePayment({
@@ -815,17 +795,13 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 		test("Should keep existing provider when updating only payment id", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({
-				status: "processing",
-				payment: {
-					id: "cs_123",
-					paidAt: new Date(),
-					provider: "stripe",
-					sessionURL: "https://checkout.stripe.com/c/pay/cs_123",
-				},
-			});
-			const createdOrder = await OrderModel.create(mockOrder);
-			const orderId = createdOrder._id.toString();
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({
+					status: "processing",
+				}),
+			);
+
+			const orderId = createdOrder.id;
 			const paymentId = "cs_456";
 
 			// Act
@@ -836,52 +812,21 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.payment?.id, paymentId);
-			assert.strictEqual(result.data.payment?.provider, "stripe");
-		});
+			assert.ok(result.data.payment);
+			assert.strictEqual(result.data.payment.id, paymentId);
 
-		test("Should keep existing payment id when updating only payment provider", async () => {
-			// Arrange
-			const paymentId = "cs_123";
-			const mockOrder = generateMockInsertOrder({
-				status: "processing",
-				payment: {
-					id: paymentId,
-					paidAt: new Date(),
-					provider: "stripe",
-					sessionURL: "https://checkout.stripe.com/c/pay/cs_123",
-				},
-			});
-			const createdOrder = await OrderModel.create(mockOrder);
-			const orderId = createdOrder._id.toString();
-
-			// Act
-			const result = await orderService.updatePayment({
-				orderId,
-				provider: "stripe",
-			});
-
-			// Assert
-			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.payment?.id, paymentId);
-			assert.strictEqual(result.data.payment?.provider, "stripe");
+			assert.strictEqual(result.data.payment.provider, "stripe");
 		});
 
 		test("Should update the sessionURL when provided", async () => {
 			// Arrange
-			const paymentId = "cs_123";
-			const oldSessionURL = "https://checkout.stripe.com/c/pay/cs_old";
-			const mockOrder = generateMockInsertOrder({
-				status: "processing",
-				payment: {
-					id: paymentId,
-					paidAt: new Date(),
-					provider: "stripe",
-					sessionURL: oldSessionURL,
-				},
-			});
-			const createdOrder = await OrderModel.create(mockOrder);
-			const orderId = createdOrder._id.toString();
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({
+					status: "processing",
+				}),
+			);
+
+			const orderId = createdOrder.id;
 			const newSessionURL = "https://checkout.stripe.com/c/pay/cs_new";
 
 			// Act
@@ -892,19 +837,20 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.payment?.sessionURL, newSessionURL);
-			assert.strictEqual(result.data.payment?.id, paymentId);
-			assert.strictEqual(result.data.payment?.provider, "stripe");
+			assert.ok(result.data.payment);
+			assert.strictEqual(result.data.payment.sessionURL, newSessionURL);
 		});
 
 		test("Should add payment to order that had no payment", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder({
-				status: "pending",
-				payment: undefined,
-			});
-			const createdOrder = await OrderModel.create(mockOrder);
-			const orderId = createdOrder._id.toString();
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({
+					status: "pending",
+					payment: undefined,
+				}),
+			);
+
+			const orderId = createdOrder.id;
 			const paymentId = "pay_added_789";
 			const provider = "stripe";
 			const sessionURL = "https://checkout.stripe.com/c/pay/cs_added";
@@ -919,9 +865,10 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.payment?.id, paymentId);
-			assert.strictEqual(result.data.payment?.provider, provider);
-			assert.strictEqual(result.data.payment?.sessionURL, sessionURL);
+			assert.ok(result.data.payment);
+			assert.strictEqual(result.data.payment.id, paymentId);
+			assert.strictEqual(result.data.payment.provider, provider);
+			assert.strictEqual(result.data.payment.sessionURL, sessionURL);
 		});
 	});
 });

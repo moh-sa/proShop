@@ -2,7 +2,7 @@ import mongoose, { Types } from "mongoose";
 import assert from "node:assert/strict";
 import { beforeEach, describe, mock, suite, test } from "node:test";
 
-import type { InsertReview } from "../../types/index.js";
+import type { CreateReview } from "../../types/index.js";
 
 import {
 	DatabaseNetworkError,
@@ -196,16 +196,19 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				pageNumber: 1,
 				pageSize: 10,
 				filters: {
-					productId: productId.toString(),
-					userId: userId.toString(),
+					productId: productId,
+					userId: userId,
 				},
 			});
 
 			// Assert
-			assert.deepStrictEqual(mockPaginate.mock.calls[0].arguments[0]?.query, {
-				product: productId,
-				user: userId,
-			});
+			const paginateArgs = mockPaginate.mock.calls[0].arguments[0];
+			assert.ok(paginateArgs);
+			assert.ok(paginateArgs.query);
+			assert.ok(paginateArgs.query.product instanceof mongoose.Types.ObjectId);
+			assert.ok(paginateArgs.query.user instanceof mongoose.Types.ObjectId);
+			assert.strictEqual(paginateArgs.query.product.toString(), productId);
+			assert.strictEqual(paginateArgs.query.user.toString(), userId);
 		});
 
 		test("Should call 'paginator.paginate' with sort parameters", async (t) => {
@@ -367,7 +370,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 	describe("getById", () => {
 		const mockReview = generateMockSelectReview();
-		const reviewId = mockReview._id;
+		const reviewId = mockReview.id;
 
 		test("Should return review object when 'db.findById' is called once with 'reviewId'", async (t) => {
 			// Arrange
@@ -508,7 +511,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const reviews = await repo.getAllByUserId({
 				pageNumber,
 				pageSize,
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
@@ -534,7 +537,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				pageSize,
 			);
 			assert.deepStrictEqual(paginateMock.mock.calls[0].arguments[0].query, {
-				user: new Types.ObjectId(userId.toString()),
+				user: new Types.ObjectId(userId),
 			});
 		});
 
@@ -552,16 +555,16 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			await repo.getAllByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId: userId.toString(),
-				filters: { productId: productId.toString() },
+				userId: userId,
+				filters: { productId: productId },
 			});
 
 			// Assert
 			const firstCall = paginateMock.mock.calls[0]?.arguments[0];
 			assert.ok(firstCall);
 			assert.deepStrictEqual(firstCall.query, {
-				product: new Types.ObjectId(productId.toString()),
-				user: new Types.ObjectId(userId.toString()),
+				product: new Types.ObjectId(productId),
+				user: new Types.ObjectId(userId),
 			});
 		});
 
@@ -587,7 +590,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const reviews = await repo.getAllByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
@@ -609,7 +612,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
@@ -631,7 +634,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
@@ -651,7 +654,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
@@ -671,7 +674,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
@@ -691,7 +694,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByUserId({
 				pageNumber: 1,
 				pageSize: 10,
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
@@ -727,7 +730,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const reviews = await repo.getAllByProductId({
 				pageNumber,
 				pageSize,
-				productId: productId.toString(),
+				productId: productId,
 			});
 
 			// Assert
@@ -752,7 +755,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				pageSize,
 			);
 			assert.deepStrictEqual(paginateMock.mock.calls[0].arguments[0].query, {
-				product: new Types.ObjectId(productId.toString()),
+				product: new Types.ObjectId(productId),
 			});
 		});
 
@@ -770,16 +773,16 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			await repo.getAllByProductId({
 				pageNumber: 1,
 				pageSize: 10,
-				productId: productId.toString(),
-				filters: { userId: userId.toString() },
+				productId: productId,
+				filters: { userId: userId },
 			});
 
 			// Assert
 			const mergeCall = paginateMock.mock.calls[0]?.arguments[0];
 			assert.ok(mergeCall);
 			assert.deepStrictEqual(mergeCall.query, {
-				product: new Types.ObjectId(productId.toString()),
-				user: new Types.ObjectId(userId.toString()),
+				product: new Types.ObjectId(productId),
+				user: new Types.ObjectId(userId),
 			});
 		});
 
@@ -805,7 +808,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const reviews = await repo.getAllByProductId({
 				pageNumber: 1,
 				pageSize: 10,
-				productId: productId.toString(),
+				productId: productId,
 			});
 
 			// Assert
@@ -827,7 +830,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByProductId({
 				pageNumber: 1,
 				pageSize: 10,
-				productId: productId.toString(),
+				productId: productId,
 			});
 
 			// Assert
@@ -849,7 +852,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByProductId({
 				pageNumber: 1,
 				pageSize: 10,
-				productId: productId.toString(),
+				productId: productId,
 			});
 
 			// Assert
@@ -869,7 +872,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByProductId({
 				pageNumber: 1,
 				pageSize: 10,
-				productId: productId.toString(),
+				productId: productId,
 			});
 
 			// Assert
@@ -889,7 +892,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByProductId({
 				pageNumber: 1,
 				pageSize: 10,
-				productId: productId.toString(),
+				productId: productId,
 			});
 
 			// Assert
@@ -909,7 +912,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const result = await repo.getAllByProductId({
 				pageNumber: 1,
 				pageSize: 10,
-				productId: productId.toString(),
+				productId: productId,
 			});
 
 			// Assert
@@ -920,8 +923,8 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 	describe("update", () => {
 		const mockReview = generateMockSelectReview();
-		const reviewId = mockReview._id;
-		const updateData: Partial<InsertReview> = { comment: "new-comment" };
+		const reviewId = mockReview.id;
+		const updateData: Partial<CreateReview> = { comment: "new-comment" };
 		const expectedResult = { ...mockReview, ...updateData };
 
 		test("Should return review object when 'db.findByIdAndUpdate' is called once with 'reviewId' and 'updateData'", async (t) => {
@@ -1052,7 +1055,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 	describe("delete", () => {
 		const mockReview = generateMockSelectReview();
-		const reviewId = mockReview._id;
+		const reviewId = mockReview.id;
 
 		test("Should return review object when 'db.findByIdAndDelete' is called once with'reviewId'", async (t) => {
 			// Arrange
@@ -1552,7 +1555,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 	describe("existsById", () => {
 		const reviewId = generateMockObjectId();
-		const expectedResult = { _id: reviewId };
+		const expectedResult = { id: reviewId };
 
 		test("Should return the 'reviewId' when 'db.exists' is called once with 'reviewId'", async (t) => {
 			// Arrange
@@ -1675,7 +1678,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 		const userId = generateMockObjectId();
 		const productId = generateMockObjectId();
 		const reviewId = generateMockObjectId();
-		const expectedResult = { _id: reviewId };
+		const expectedResult = { id: reviewId };
 
 		test("Should return 'reviewId' when 'db.exists' is called once with 'userId' and 'productId'", async (t) => {
 			// Arrange

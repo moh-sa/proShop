@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import type { InsertProduct, SuccessResponse } from "../../types/index.js";
+import type { CreateProduct, SuccessResponse } from "../../types/index.js";
 
 import { ProductController } from "../../controllers/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
@@ -29,7 +29,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 		const mockInsertProduct = generateMockInsertProductWithMulterImage();
 		const mockSelectProduct = generateMockSelectProduct();
 
-		const userId = mockInsertProduct.user.toString();
+		const userId = mockInsertProduct.user;
 		const priceInCents = toCents(mockInsertProduct.price);
 		const priceInDollars = mockInsertProduct.price;
 
@@ -42,7 +42,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 					file: mockInsertProduct.image,
 				},
 				res: {
-					locals: { user: { _id: userId } },
+					locals: { user: { id: userId } },
 				},
 				testContext: t,
 			});
@@ -79,7 +79,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 					file: mockInsertProduct.image,
 				},
 				res: {
-					locals: { user: { _id: userId } },
+					locals: { user: { id: userId } },
 				},
 				testContext: t,
 			});
@@ -112,7 +112,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 					file: mockInsertProduct.image,
 				},
 				res: {
-					locals: { user: { _id: userId } },
+					locals: { user: { id: userId } },
 				},
 				testContext: t,
 			});
@@ -136,7 +136,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(args.brand, mockInsertProduct.brand);
 			assert.strictEqual(args.countInStock, mockInsertProduct.countInStock);
 			assert.strictEqual(args.image, mockInsertProduct.image);
-			assert.strictEqual(args.user.toString(), userId);
+			assert.strictEqual(args.user, userId);
 		});
 
 		test("Should call 'res.status' once with '201' after successfully creating product data", async (t) => {
@@ -148,7 +148,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 					file: mockInsertProduct.image,
 				},
 				res: {
-					locals: { user: { _id: userId } },
+					locals: { user: { id: userId } },
 				},
 				testContext: t,
 			});
@@ -178,7 +178,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 					file: mockInsertProduct.image,
 				},
 				res: {
-					locals: { user: { _id: userId } },
+					locals: { user: { id: userId } },
 				},
 				testContext: t,
 			});
@@ -202,7 +202,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			}>;
 
 			assert.strictEqual(args.success, true);
-			assert.strictEqual(args.data._id, mockSelectProduct._id);
+			assert.strictEqual(args.data.id, mockSelectProduct.id);
 		});
 	});
 
@@ -256,7 +256,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 			response.data.forEach((product) => {
 				const originalProduct = productsWithPriceInDollars.find(
-					(p) => p._id.toString() === product._id.toString(),
+					(p) => p.id === product.id,
 				);
 
 				assert.strictEqual(product.price, originalProduct?.price);
@@ -725,7 +725,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 
 	describe("getById", () => {
 		const mockProduct = generateMockSelectProduct();
-		const productId = mockProduct._id.toString();
+		const productId = mockProduct.id;
 
 		const productWithPriceInCents = {
 			...mockProduct,
@@ -833,14 +833,14 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 				data: typeof mockProduct;
 			}>;
 			assert.strictEqual(response.success, true);
-			assert.strictEqual(response.data._id, mockProduct._id);
+			assert.strictEqual(response.data.id, mockProduct.id);
 		});
 	});
 
 	describe("update", () => {
 		const mockProduct = generateMockSelectProduct();
-		const productId = mockProduct._id.toString();
-		const updateData: Partial<InsertProduct> = {
+		const productId = mockProduct.id;
+		const updateData: Partial<CreateProduct> = {
 			image: undefined,
 			name: "new-name",
 		};
@@ -1009,12 +1009,12 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			}>;
 
 			assert.strictEqual(response.success, true);
-			assert.strictEqual(response.data._id, mockProduct._id);
+			assert.strictEqual(response.data.id, mockProduct.id);
 		});
 	});
 
 	describe("delete", () => {
-		const productId = generateMockObjectId().toString();
+		const productId = generateMockObjectId();
 
 		test("Should parse 'productId' from 'req.params'", async (t) => {
 			// Arrange

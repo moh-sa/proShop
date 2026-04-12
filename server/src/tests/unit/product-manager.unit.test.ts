@@ -117,7 +117,7 @@ suite("Product Manager 〖 Unit Tests 〗", () => {
 
 	describe("delete", () => {
 		const mockProduct = generateMockSelectProduct();
-		const productId = mockProduct._id.toString();
+		const productId = mockProduct.id;
 
 		test("should return success when product and image are deleted successfully", async () => {
 			// Arrange
@@ -225,7 +225,7 @@ suite("Product Manager 〖 Unit Tests 〗", () => {
 
 	describe("update", () => {
 		const mockProduct = generateMockSelectProduct();
-		const productId = mockProduct._id.toString();
+		const productId = mockProduct.id;
 		const mockUpdatedProduct = { ...mockProduct, name: "Updated Product" };
 
 		test("should return success when updating product without image", async () => {
@@ -445,7 +445,7 @@ suite("Product Manager 〖 Unit Tests 〗", () => {
 
 	describe("getById", () => {
 		const mockProduct = generateMockSelectProduct();
-		const productId = mockProduct._id.toString();
+		const productId = mockProduct.id;
 
 		test("should return product when product service succeeds", async () => {
 			// Arrange

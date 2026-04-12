@@ -136,7 +136,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 	describe("deleteAllByUserId", () => {
 		it("Should return success with deleted count when repository resolves", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const expected = 3;
 
 			mockRepo.deleteAllByUserId.mock.mockImplementation(async () => ({
@@ -153,7 +153,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockRepo.deleteAllByUserId.mock.callCount(), 1);
 			assert.strictEqual(
-				mockRepo.deleteAllByUserId.mock.calls[0].arguments[0].userId.toString(),
+				mockRepo.deleteAllByUserId.mock.calls[0].arguments[0].userId,
 				userId,
 			);
 		});
@@ -174,7 +174,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 		it("Should pass through BaseError from repository", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 
 			mockRepo.deleteAllByUserId.mock.mockImplementationOnce(() =>
 				Promise.resolve({
@@ -196,7 +196,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 			{ skip: true, todo: "IMPLEMENT" },
 			async () => {
 				// Arrange
-				const userId = generateMockObjectId().toString();
+				const userId = generateMockObjectId();
 				mockRepo.deleteAllByUserId.mock.mockImplementationOnce(() =>
 					Promise.resolve({
 						error: new GenericDatabaseError(),
@@ -217,7 +217,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 	describe("getActiveByUserId", () => {
 		it("Should return success with paginated active sessions when repository resolves", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const expectedSessions = generateMockSelectSessions({ count: 2 });
 			const expectedPaginationMeta = {
 				currentPage: 1,
@@ -288,7 +288,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 		it("Should return SessionValidationError for invalid pagination parameters", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 
 			// Act
 			const result = await service.getActiveByUserId({
@@ -306,7 +306,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 		it("Should parse sort string and pass sort object to repository when valid", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const sessions = generateMockSelectSessions({ count: 1 });
 			const paginationMeta = {
 				currentPage: 1,
@@ -345,7 +345,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 		it("Should return SessionValidationError for invalid sort string", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 
 			// Act
 			const result = await service.getActiveByUserId({
@@ -364,7 +364,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 		it("Should return success with empty paginated result when no active sessions exist", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const emptyPaginationMeta = {
 				currentPage: 1,
 				hasNextPage: false,
@@ -401,7 +401,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 		it("Should pass through BaseError from repository", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 
 			mockRepo.getAllActiveByUserId.mock.mockImplementationOnce(() =>
 				Promise.resolve({
@@ -427,7 +427,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 			{ skip: true, todo: "IMPLEMENT" },
 			async () => {
 				// Arrange
-				const userId = generateMockObjectId().toString();
+				const userId = generateMockObjectId();
 				mockRepo.getAllActiveByUserId.mock.mockImplementationOnce(() =>
 					Promise.resolve({
 						error: new GenericDatabaseError(),
@@ -453,7 +453,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 		it("Should return success with session when repository resolves", async () => {
 			// Arrange
 			const expected = generateMockSelectSession();
-			const userId = expected.userId.toString();
+			const userId = expected.userId;
 			const tokenId = expected.tokenId;
 
 			mockRepo.getByTokenIdAndUserId.mock.mockImplementation(async () => ({
@@ -474,7 +474,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 				tokenId,
 			);
 			assert.strictEqual(
-				mockRepo.getByTokenIdAndUserId.mock.calls[0].arguments[0].userId.toString(),
+				mockRepo.getByTokenIdAndUserId.mock.calls[0].arguments[0].userId,
 				userId,
 			);
 		});
@@ -496,7 +496,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 		it("Should return SessionNotFoundError when repository returns null", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
 
 			mockRepo.getByTokenIdAndUserId.mock.mockImplementation(async () => ({
@@ -514,7 +514,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 		it("Should pass through BaseError from repository", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
 
 			mockRepo.getByTokenIdAndUserId.mock.mockImplementationOnce(() =>
@@ -537,7 +537,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 			{ skip: true, todo: "IMPLEMENT" },
 			async () => {
 				// Arrange
-				const userId = generateMockObjectId().toString();
+				const userId = generateMockObjectId();
 				const tokenId = "123e4567-e89b-12d3-a456-426614174000";
 
 				mockRepo.getByTokenIdAndUserId.mock.mockImplementationOnce(() =>
@@ -560,7 +560,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 	describe("revokeAllByUserId", () => {
 		it("Should return success with revoked count when repository resolves", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const expected = 5;
 
 			mockRepo.revokeAllByUserId.mock.mockImplementation(async () => ({
@@ -577,7 +577,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockRepo.revokeAllByUserId.mock.callCount(), 1);
 			assert.strictEqual(
-				mockRepo.revokeAllByUserId.mock.calls[0].arguments[0].userId.toString(),
+				mockRepo.revokeAllByUserId.mock.calls[0].arguments[0].userId,
 				userId,
 			);
 		});
@@ -598,7 +598,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 		it("Should pass through BaseError from repository", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			mockRepo.revokeAllByUserId.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					error: new GenericDatabaseError(),
@@ -619,7 +619,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 			{ skip: true, todo: "IMPLEMENT" },
 			async () => {
 				// Arrange
-				const userId = generateMockObjectId().toString();
+				const userId = generateMockObjectId();
 
 				mockRepo.revokeAllByUserId.mock.mockImplementationOnce(() =>
 					Promise.resolve({
@@ -641,7 +641,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 	describe("revokeByTokenIdAndUserId", () => {
 		it("Should return success with revoked session when repository resolves", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
 
 			const expected = generateMockSelectSession({ revokedAt: new Date() });
@@ -667,7 +667,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 				tokenId,
 			);
 			assert.strictEqual(
-				mockRepo.revokeByTokenIdAndUserId.mock.calls[0].arguments[0].userId.toString(),
+				mockRepo.revokeByTokenIdAndUserId.mock.calls[0].arguments[0].userId,
 				userId,
 			);
 		});
@@ -692,7 +692,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 		it("Should return SessionNotFoundError when repository returns null", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
 
 			mockRepo.revokeByTokenIdAndUserId.mock.mockImplementation(async () => ({
@@ -713,7 +713,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 		it("Should pass through BaseError from repository", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
 
 			mockRepo.revokeByTokenIdAndUserId.mock.mockImplementationOnce(() =>
@@ -739,7 +739,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 			{ skip: true, todo: "IMPLEMENT" },
 			async () => {
 				// Arrange
-				const userId = generateMockObjectId().toString();
+				const userId = generateMockObjectId();
 				const tokenId = "123e4567-e89b-12d3-a456-426614174000";
 
 				mockRepo.revokeByTokenIdAndUserId.mock.mockImplementationOnce(() =>
@@ -765,7 +765,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 	describe("validate", () => {
 		it("Should return success with session when not revoked and not expired", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
 
 			const expected = generateMockSelectSession({
@@ -791,7 +791,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 				tokenId,
 			);
 			assert.strictEqual(
-				mockRepo.getByTokenIdAndUserId.mock.calls[0].arguments[0].userId.toString(),
+				mockRepo.getByTokenIdAndUserId.mock.calls[0].arguments[0].userId,
 				userId,
 			);
 		});
@@ -813,7 +813,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 		it("Should return SessionNotFoundError when repository returns null", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
 
 			mockRepo.getByTokenIdAndUserId.mock.mockImplementation(async () => ({
@@ -831,7 +831,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 		it("Should return SessionAlreadyRevokedError when session is revoked", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
 
 			const revoked = generateMockSelectSession({ revokedAt: new Date() });
@@ -850,7 +850,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 		it("Should return SessionExpiredError when session is expired", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
 
 			const expired = generateMockSelectSession({
@@ -872,7 +872,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 
 		it("Should pass through BaseError from repository", async () => {
 			// Arrange
-			const userId = generateMockObjectId().toString();
+			const userId = generateMockObjectId();
 			const tokenId = "123e4567-e89b-12d3-a456-426614174000";
 
 			mockRepo.getByTokenIdAndUserId.mock.mockImplementationOnce(() =>
@@ -895,7 +895,7 @@ suite("Session Service〖 Unit Tests 〗", () => {
 			{ skip: true, todo: "IMPLEMENT" },
 			async () => {
 				// Arrange
-				const userId = generateMockObjectId().toString();
+				const userId = generateMockObjectId();
 				const tokenId = "123e4567-e89b-12d3-a456-426614174000";
 
 				mockRepo.getByTokenIdAndUserId.mock.mockImplementation(() =>

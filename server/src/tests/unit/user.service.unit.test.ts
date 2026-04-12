@@ -2,9 +2,9 @@ import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
 import type {
+	CreateUser,
 	GetAllUsersServiceParams,
-	InsertUser,
-	UserSelect,
+	User,
 } from "../../types/index.js";
 
 import {
@@ -90,8 +90,8 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			const userServiceGetAllSelect: UserSelect = {
-				_id: true,
+			const userServiceGetAllSelect: User = {
+				id: true,
 				createdAt: true,
 				email: true,
 				isAdmin: true,
@@ -177,7 +177,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 	describe("getById", () => {
 		const mockUser = generateMockSelectUser();
-		const userId = mockUser._id;
+		const userId = mockUser.id;
 		const { password: _, ...expectedUser } = mockUser;
 
 		test("Should return 'user object' when 'repo.getById' is called once with 'userId'", async () => {
@@ -190,7 +190,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const result = await service.getById({ userId: mockUser._id.toString() });
+			const result = await service.getById({ userId: mockUser.id });
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -199,7 +199,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			assert.strictEqual(mockRepo.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockRepo.getById.mock.calls[0].arguments[0].userId,
-				expectedUser._id,
+				expectedUser.id,
 			);
 		});
 
@@ -213,7 +213,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const result = await service.getById({ userId: userId.toString() });
+			const result = await service.getById({ userId: userId });
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -295,9 +295,9 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 	describe("updateById", () => {
 		const mockUser = generateMockSelectUser();
-		const userId = mockUser._id;
+		const userId = mockUser.id;
 
-		const updateData: Partial<InsertUser> = { name: "new-name" };
+		const updateData: Partial<CreateUser> = { name: "new-name" };
 		const updatedData = { ...mockUser, ...updateData };
 		const { password: _, ...expectedUpdatedData } = updatedData;
 
@@ -313,7 +313,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.updateById({
 				data: updateData,
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
@@ -343,7 +343,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.updateById({
 				data: updateData,
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
@@ -378,7 +378,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			// Act
 			const result = await service.updateById({
 				data: invalidUpdateData,
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
@@ -392,7 +392,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 	describe("delete", () => {
 		const mockUser = generateMockSelectUser();
 		const { password: _, ...expectedUser } = mockUser;
-		const userId = mockUser._id;
+		const userId = mockUser.id;
 
 		test("Should return 'user object' when 'repo.delete' is called once with 'userId'", async () => {
 			// Arrange
@@ -404,7 +404,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const result = await service.delete({ userId: userId.toString() });
+			const result = await service.delete({ userId: userId });
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -427,7 +427,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const result = await service.delete({ userId: userId.toString() });
+			const result = await service.delete({ userId: userId });
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -452,8 +452,8 @@ suite("User Service 〖 Unit Tests 〗", () => {
 	describe("existsByEmail", () => {
 		test("Should return 'user id object' when user exists", async () => {
 			// Arrange
-			const { _id: userId, email } = generateMockSelectUser();
-			const expectedResult = { _id: userId };
+			const { id: userId, email } = generateMockSelectUser();
+			const expectedResult = { id: userId };
 
 			mockRepo.existsByEmail.mock.mockImplementationOnce(() =>
 				Promise.resolve({
@@ -645,7 +645,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 		test("Should return 'full user object' including password when user exists", async () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 
 			mockRepo.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({
@@ -656,7 +656,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = await service.getById_UNSAFE({
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert
@@ -673,7 +673,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'NotFoundError' when user does not exist", async () => {
 			// Arrange
-			const { _id: userId } = generateMockSelectUser();
+			const { id: userId } = generateMockSelectUser();
 
 			mockRepo.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({
@@ -684,7 +684,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = await service.getById_UNSAFE({
-				userId: userId.toString(),
+				userId: userId,
 			});
 
 			// Assert

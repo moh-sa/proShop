@@ -419,7 +419,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			const args: GetAllUsersRepositoryParams = {
 				pageNumber: 1,
 				pageSize: 10,
-				select: { _id: true, email: true },
+				select: { id: true, email: true },
 			};
 
 			// Act
@@ -427,7 +427,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 
 			// Assert
 			const callArgs = paginateMock.mock.calls[0]?.arguments[0];
-			assert.deepStrictEqual(callArgs?.select, { _id: true, email: true });
+			assert.deepStrictEqual(callArgs?.select, { id: true, email: true });
 		});
 
 		test("Should pass sort through to paginator", async (t) => {
@@ -466,7 +466,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 				pageNumber: 1,
 				pageSize: 5,
 				filters: { isAdmin: true },
-				select: { _id: true, email: true },
+				select: { id: true, email: true },
 				sort: { createdAt: "desc" },
 			};
 
@@ -475,7 +475,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 
 			const callArgs = paginateMock.mock.calls[0]?.arguments[0];
 			assert.deepStrictEqual(callArgs?.query, { isAdmin: true });
-			assert.deepStrictEqual(callArgs?.select, { _id: true, email: true });
+			assert.deepStrictEqual(callArgs?.select, { id: true, email: true });
 			assert.deepStrictEqual(callArgs?.sort, args.sort);
 		});
 	});
@@ -484,7 +484,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'success result' with 'user object' when 'db.findById' succeeds", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const findByIdMock = t.mock.method(UserModel, "findById", () => ({
 				lean: async () => mockUser,
 			}));
@@ -502,7 +502,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'success result' with 'null' when 'db.findById' returns 'null'", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			t.mock.method(UserModel, "findById", () => ({
 				lean: async () => null,
 			}));
@@ -518,7 +518,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'DatabaseValidationError' when 'db.findById' throws 'ValidationError'", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const validationError = new mongoose.Error.ValidationError();
 			t.mock.method(UserModel, "findById", () => {
 				throw validationError;
@@ -535,7 +535,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'DatabaseTimeoutError' when 'db.findById' throws 'MongoNetworkTimeoutError'", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
@@ -554,7 +554,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'DatabaseQueryError' when 'db.findById' throws 'MongooseError'", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const queryError = new mongoose.Error("Query failed");
 			t.mock.method(UserModel, "findById", () => {
 				throw queryError;
@@ -571,7 +571,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'DatabaseNetworkError' when 'db.findById' throws 'MongoError'", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const networkError = new mongoose.mongo.MongoError("Network error");
 			t.mock.method(UserModel, "findById", () => {
 				throw networkError;
@@ -588,7 +588,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'GenericDatabaseError' when 'db.findById' throws unknown error", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const unknownError = new Error("Something unexpected happened");
 			t.mock.method(UserModel, "findById", () => {
 				throw unknownError;
@@ -730,7 +730,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'success result' with 'updated user object' when 'db.findByIdAndUpdate' succeeds", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const updateData: Partial<CreateUser> = { name: "Updated Name" };
 			const expectedResult = { ...mockUser, ...updateData };
 			const findByIdAndUpdateMock = t.mock.method(
@@ -762,7 +762,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'success result' with 'null' when 'db.findByIdAndUpdate' returns 'null'", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const updateData: Partial<CreateUser> = { name: "Updated Name" };
 			t.mock.method(UserModel, "findByIdAndUpdate", () => ({
 				lean: async () => null,
@@ -779,7 +779,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'DatabaseValidationError' when 'db.findByIdAndUpdate' throws 'ValidationError'", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const updateData: Partial<CreateUser> = { name: "Updated Name" };
 			const validationError = new mongoose.Error.ValidationError();
 			t.mock.method(UserModel, "findByIdAndUpdate", () => {
@@ -797,7 +797,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'DatabaseDuplicateKeyError' when 'db.findByIdAndUpdate' throws 'MongoServerError' with code '11000'", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const updateData: Partial<CreateUser> = { name: "Updated Name" };
 			const duplicateKeyError = new mongoose.mongo.MongoServerError({});
 			duplicateKeyError.code = 11000;
@@ -816,7 +816,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'DatabaseTimeoutError' when 'db.findByIdAndUpdate' throws 'MongoNetworkTimeoutError'", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const updateData: Partial<CreateUser> = { name: "Updated Name" };
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
@@ -836,7 +836,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'DatabaseQueryError' when 'db.findByIdAndUpdate' throws 'MongooseError'", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const updateData: Partial<CreateUser> = { name: "Updated Name" };
 			const queryError = new mongoose.Error("Query failed");
 			t.mock.method(UserModel, "findByIdAndUpdate", () => {
@@ -854,7 +854,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'DatabaseNetworkError' when 'db.findByIdAndUpdate' throws 'MongoError'", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const updateData: Partial<CreateUser> = { name: "Updated Name" };
 			const networkError = new mongoose.mongo.MongoError("Network error");
 			t.mock.method(UserModel, "findByIdAndUpdate", () => {
@@ -872,7 +872,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'GenericDatabaseError' when 'db.findByIdAndUpdate' throws unknown error", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const updateData: Partial<CreateUser> = { name: "Updated Name" };
 			const unknownError = new Error("Something unexpected happened");
 			t.mock.method(UserModel, "findByIdAndUpdate", () => {
@@ -892,7 +892,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'success result' with 'deleted user object' when 'db.findByIdAndDelete' succeeds", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const findByIdAndDeleteMock = t.mock.method(
 				UserModel,
 				"findByIdAndDelete",
@@ -918,7 +918,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'success result' with 'null' when 'db.findByIdAndDelete' returns 'null'", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			t.mock.method(UserModel, "findByIdAndDelete", () => ({
 				lean: async () => null,
 			}));
@@ -934,7 +934,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'DatabaseValidationError' when 'db.findByIdAndDelete' throws 'ValidationError'", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const validationError = new mongoose.Error.ValidationError();
 			t.mock.method(UserModel, "findByIdAndDelete", () => {
 				throw validationError;
@@ -951,7 +951,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'DatabaseTimeoutError' when 'db.findByIdAndDelete' throws 'MongoNetworkTimeoutError'", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
@@ -970,7 +970,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'DatabaseQueryError' when 'db.findByIdAndDelete' throws 'MongooseError'", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const queryError = new mongoose.Error("Query failed");
 			t.mock.method(UserModel, "findByIdAndDelete", () => {
 				throw queryError;
@@ -987,7 +987,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'DatabaseNetworkError' when 'db.findByIdAndDelete' throws 'MongoError'", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const networkError = new mongoose.mongo.MongoError("Network error");
 			t.mock.method(UserModel, "findByIdAndDelete", () => {
 				throw networkError;
@@ -1004,7 +1004,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'failure result' with 'GenericDatabaseError' when 'db.findByIdAndDelete' throws unknown error", async (t) => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
-			const userId = mockUser._id;
+			const userId = mockUser.id;
 			const unknownError = new Error("Something unexpected happened");
 			t.mock.method(UserModel, "findByIdAndDelete", () => {
 				throw unknownError;
@@ -1023,7 +1023,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 		test("Should return 'success result' with 'userId' when 'db.exists' succeeds", async (t) => {
 			// Arrange
 			const email = "exists@example.com";
-			const expectedResult = { _id: generateMockObjectId() };
+			const expectedResult = { id: generateMockObjectId() };
 			const existsMock = t.mock.method(UserModel, "exists", () => ({
 				lean: async () => expectedResult,
 			}));

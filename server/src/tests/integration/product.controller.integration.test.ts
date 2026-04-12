@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 
-import type { AllProducts, InsertProduct } from "../../types/index.js";
+import type { AllProducts, CreateProduct } from "../../types/index.js";
 
 import { ProductController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
@@ -10,18 +10,22 @@ import { ProductModel } from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { CacheService, ProductService } from "../../services/index.js";
 import {
+	generateMockInsertProductsWithStringImage,
 	generateMockInsertProductWithMulterImage,
+	generateMockInsertProductWithStringImage,
 	generateMockObjectId,
-	generateMockSelectProduct,
-	generateMockSelectProducts,
 	generateMockSelectUser,
 	mockImageStorage,
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
+	createMockExpressContext,
+	createProduct,
+	createProducts,
 	disconnectTestDatabase,
-} from "../utils/database-connection.utils.js";
-import { createMockExpressContext, toCents } from "../utils/index.js";
+	toCents,
+	toDollars,
+} from "../utils/index.js";
 
 suite("Product Controller 〖 Integration Tests 〗", () => {
 	const cache = new CacheService("product");
@@ -116,8 +120,8 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			const response = res._getJSONData();
 			assert.ok(response);
 			assert.ok(response.data);
-			assert.ok(response.data._id);
-			assert.strictEqual(response.data.user, mockUser._id.toString());
+			assert.ok(response.data.id);
+			assert.strictEqual(response.data.user, mockUser.id);
 			assert.strictEqual(response.data.name, mockProduct.name);
 			assert.strictEqual(response.data.brand, mockProduct.brand);
 			assert.strictEqual(response.data.category, mockProduct.category);
@@ -130,13 +134,11 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 	describe("getAll", () => {
 		test("Should return success response when 'service.getAll' is called with valid data", async () => {
 			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 3 });
-			const mockProductsInCents = mockProducts.map((product) => ({
-				...product,
-				price: toCents(product.price),
-			}));
-
-			await ProductModel.insertMany(mockProductsInCents);
+			const createdProducts = await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 3,
+				}),
+			);
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -148,7 +150,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.ok(response.meta);
-			assert.strictEqual(response.data.length, mockProducts.length);
+			assert.strictEqual(response.data.length, createdProducts.length);
 		});
 
 		test("Should return '200' status code when 'service.getAll' is called with valid data", async () => {
@@ -185,13 +187,12 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should return array of products when 'service.getAll' is called with existing products", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProducts = generateMockSelectProducts({ count: 3 });
-			const mockProductsInCents = mockProducts.map((product) => ({
-				...product,
-				price: toCents(product.price),
-			}));
 
-			await ProductModel.insertMany(mockProductsInCents);
+			const createdProducts = await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 3,
+				}),
+			);
 
 			// Act
 			await controller.getAll(req, res, next);
@@ -201,22 +202,22 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.ok(Array.isArray(response.data));
-			assert.strictEqual(response.data.length, mockProducts.length);
+			assert.strictEqual(response.data.length, createdProducts.length);
 		});
 
 		test("Should return filtered products when 'service.getAll' is called with keyword", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProducts = generateMockSelectProducts({ count: 20 });
-			const targetProduct = mockProducts[0];
-			const keyword = targetProduct.name;
 
-			const mockProductsInCents = mockProducts.map((product) => ({
-				...product,
-				price: toCents(product.price),
-			}));
+			const createdProducts = await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 20,
+				}),
+			);
 
-			await ProductModel.insertMany(mockProductsInCents);
+			const targetProduct = createdProducts[0];
+			const keyword = targetProduct.name.split(" ")[0];
+
 			req.query = { keyword };
 
 			// Act
@@ -227,23 +228,20 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.ok(response.data.length > 0);
-			assert.strictEqual(
-				response.data.some((p: AllProducts) => p.name === keyword),
-				true,
-			);
+
+			assert.ok(response.data.some((p) => p.id === targetProduct.id));
 		});
 
 		test("Should return '10' products in 'page 1' when 'service.getAll' is called with 13 products in database", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProducts = generateMockSelectProducts({ count: 13 });
 
-			const mockProductsInCents = mockProducts.map((product) => ({
-				...product,
-				price: toCents(product.price),
-			}));
+			await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 13,
+				}),
+			);
 
-			await ProductModel.insertMany(mockProductsInCents);
 			req.query = { pageNumber: "1" };
 
 			// Act
@@ -263,14 +261,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should return '3' products in 'page 2' when 'service.getAll' is called with 13 products in database", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProducts = generateMockSelectProducts({ count: 13 });
 
-			const mockProductsInCents = mockProducts.map((product) => ({
-				...product,
-				price: toCents(product.price),
-			}));
+			await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 13,
+				}),
+			);
 
-			await ProductModel.insertMany(mockProductsInCents);
 			req.query = { pageNumber: "2" };
 
 			// Act
@@ -304,14 +301,13 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should return products with custom page size when 'service.getAll' is called with pageSize parameter", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProducts = generateMockSelectProducts({ count: 15 });
 
-			const mockProductsInCents = mockProducts.map((product) => ({
-				...product,
-				price: toCents(product.price),
-			}));
+			await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 15,
+				}),
+			);
 
-			await ProductModel.insertMany(mockProductsInCents);
 			req.query = { pageSize: "5" };
 
 			// Act
@@ -329,17 +325,23 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should return products sorted by price when 'service.getAll' is called with sort parameter", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProducts = generateMockSelectProducts({ count: 3 });
-			mockProducts[0].price = 99;
-			mockProducts[1].price = 10;
-			mockProducts[2].price = 50;
 
-			const mockProductsInCents = mockProducts.map((product) => ({
-				...product,
-				price: toCents(product.price),
-			}));
+			const createdProducts = await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 3,
+				}).map((p) => ({
+					...p,
+					price: toCents(p.price),
+				})),
+			);
 
-			await ProductModel.insertMany(mockProductsInCents);
+			const expectedSortedProducts = createdProducts
+				.map((p) => ({
+					...p,
+					price: toDollars(p.price),
+				}))
+				.sort((a, b) => a.price - b.price);
+
 			req.query = { sort: "price:asc" };
 
 			// Act
@@ -350,27 +352,23 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.strictEqual(response.data.length, 3);
-			assert.strictEqual(response.data[0].price, 10);
-			assert.strictEqual(response.data[1].price, 50);
-			assert.strictEqual(response.data[2].price, 99);
+			response.data.forEach((p: AllProducts, index: number) => {
+				assert.strictEqual(p.price, expectedSortedProducts[index].price);
+			});
 		});
 
 		test("Should return products filtered by brand when 'service.getAll' is called with brand query", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProducts = generateMockSelectProducts({ count: 4 });
-			const targetBrand = "UniqueBrandFilter";
-			mockProducts[0].brand = targetBrand;
-			mockProducts[1].brand = "OtherBrand";
-			mockProducts[2].brand = "OtherBrand";
-			mockProducts[3].brand = "OtherBrand";
 
-			const mockProductsInCents = mockProducts.map((product) => ({
-				...product,
-				price: toCents(product.price),
-			}));
+			const createdProducts = await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 4,
+				}),
+			);
 
-			await ProductModel.insertMany(mockProductsInCents);
+			const targetBrand = createdProducts[0].brand;
+
 			req.query = { brand: targetBrand };
 
 			// Act
@@ -380,26 +378,23 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			const response = res._getJSONData();
 			assert.ok(response.success);
 			assert.ok(response.data);
-			assert.strictEqual(response.data.length, 1);
-			assert.strictEqual(response.data[0].brand, targetBrand);
+			response.data.forEach((p: AllProducts) => {
+				assert.strictEqual(p.brand, targetBrand);
+			});
 		});
 
 		test("Should return products filtered by category when 'service.getAll' is called with category query", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProducts = generateMockSelectProducts({ count: 4 });
-			const targetCategory = "UniqueCategoryFilter";
-			mockProducts[0].category = targetCategory;
-			mockProducts[1].category = "OtherCategory";
-			mockProducts[2].category = "OtherCategory";
-			mockProducts[3].category = "OtherCategory";
 
-			const mockProductsInCents = mockProducts.map((product) => ({
-				...product,
-				price: toCents(product.price),
-			}));
+			const createdProducts = await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 4,
+				}),
+			);
 
-			await ProductModel.insertMany(mockProductsInCents);
+			const targetCategory = createdProducts[0].category;
+
 			req.query = { category: targetCategory };
 
 			// Act
@@ -409,8 +404,10 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			const response = res._getJSONData();
 			assert.ok(response.success);
 			assert.ok(response.data);
-			assert.strictEqual(response.data.length, 1);
-			assert.strictEqual(response.data[0].category, targetCategory);
+
+			response.data.forEach((p: AllProducts) => {
+				assert.strictEqual(p.category, targetCategory);
+			});
 		});
 	});
 
@@ -418,14 +415,12 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when 'service.getTopRated' is called with valid data", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProducts = generateMockSelectProducts({ count: 3 });
 
-			const mockProductsInCents = mockProducts.map((product) => ({
-				...product,
-				price: toCents(product.price),
-			}));
-
-			await ProductModel.insertMany(mockProductsInCents);
+			const createdProducts = await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 3,
+				}),
+			);
 
 			// Act
 			await controller.getTopRated(req, res, next);
@@ -435,20 +430,18 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response);
 			assert.ok(response.success);
 			assert.ok(response.data);
-			assert.strictEqual(response.data.length, mockProducts.length);
+			assert.strictEqual(response.data.length, createdProducts.length);
 		});
 
 		test("Should return '200' status code when 'service.getTopRated' is called with valid data", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProducts = generateMockSelectProducts({ count: 3 });
 
-			const mockProductsInCents = mockProducts.map((product) => ({
-				...product,
-				price: toCents(product.price),
-			}));
-
-			await ProductModel.insertMany(mockProductsInCents);
+			await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 3,
+				}),
+			);
 
 			// Act
 			await controller.getTopRated(req, res, next);
@@ -461,14 +454,12 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should return array of top rated products when 'service.getTopRated' is called with valid data", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProducts = generateMockSelectProducts({ count: 3 });
 
-			const mockProductsInCents = mockProducts.map((product) => ({
-				...product,
-				price: toCents(product.price),
-			}));
-
-			await ProductModel.insertMany(mockProductsInCents);
+			const createdProducts = await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 3,
+				}),
+			);
 
 			// Act
 			await controller.getTopRated(req, res, next);
@@ -478,7 +469,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response);
 			assert.ok(response.data);
 			assert.ok(Array.isArray(response.data));
-			assert.strictEqual(response.data.length, mockProducts.length);
+			assert.strictEqual(response.data.length, createdProducts.length);
 		});
 
 		test("Should return 'empty array' when 'service.getTopRated' is called with no products in database", async () => {
@@ -499,16 +490,12 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when 'service.getById' is called with valid data", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProduct = generateMockSelectProduct();
 
-			const mockProductInCents = {
-				...mockProduct,
-				price: toCents(mockProduct.price),
-			};
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
 
-			await ProductModel.insertMany([mockProductInCents]);
-
-			req.params = { productId: mockProduct._id.toString() };
+			req.params = { productId: createdProduct.id };
 
 			// Act
 			await controller.getById(req, res, next);
@@ -523,15 +510,12 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should return '200' status code when 'service.getById' is called with valid data", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProduct = generateMockSelectProduct();
 
-			const mockProductInCents = {
-				...mockProduct,
-				price: toCents(mockProduct.price),
-			};
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
 
-			await ProductModel.insertMany([mockProductInCents]);
-			req.params = { productId: mockProduct._id.toString() };
+			req.params = { productId: createdProduct.id };
 
 			// Act
 			await controller.getById(req, res, next);
@@ -544,15 +528,12 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should return product object when 'service.getById' is called with existing product", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProduct = generateMockSelectProduct();
 
-			const mockProductInCents = {
-				...mockProduct,
-				price: toCents(mockProduct.price),
-			};
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
 
-			await ProductModel.insertMany([mockProductInCents]);
-			req.params = { productId: mockProduct._id.toString() };
+			req.params = { productId: createdProduct.id };
 
 			// Act
 			await controller.getById(req, res, next);
@@ -561,22 +542,33 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			const response = res._getJSONData();
 			assert.ok(response);
 			assert.ok(response.data);
-			assert.strictEqual(response.data.name, mockProduct.name);
-			assert.strictEqual(response.data.brand, mockProduct.brand);
-			assert.strictEqual(response.data.category, mockProduct.category);
-			assert.strictEqual(response.data.description, mockProduct.description);
-			assert.strictEqual(response.data.price, mockProduct.price);
-			assert.strictEqual(response.data.countInStock, mockProduct.countInStock);
-			assert.strictEqual(response.data.image, mockProduct.image);
-			assert.strictEqual(response.data.rating, mockProduct.rating);
-			assert.strictEqual(response.data.numReviews, mockProduct.numReviews);
+
+			const createdInDollars = {
+				...createdProduct,
+				price: toDollars(createdProduct.price),
+			};
+			assert.strictEqual(response.data.name, createdInDollars.name);
+			assert.strictEqual(response.data.brand, createdInDollars.brand);
+			assert.strictEqual(response.data.category, createdInDollars.category);
+			assert.strictEqual(
+				response.data.description,
+				createdInDollars.description,
+			);
+			assert.strictEqual(response.data.price, createdInDollars.price);
+			assert.strictEqual(
+				response.data.countInStock,
+				createdInDollars.countInStock,
+			);
+			assert.strictEqual(response.data.image, createdInDollars.image);
+			assert.strictEqual(response.data.rating, createdInDollars.rating);
+			assert.strictEqual(response.data.numReviews, createdInDollars.numReviews);
 		});
 
 		test("Should throw 'NotFoundError' when 'service.getById' is called with non-existent product id", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
 			const productId = generateMockObjectId();
-			req.params = { productId: productId.toString() };
+			req.params = { productId: productId };
 
 			// Act & Assert
 			await assert.rejects(
@@ -590,16 +582,14 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when 'service.update' is called with valid data", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProduct = generateMockSelectProduct();
-			req.params = { productId: mockProduct._id.toString() };
 
-			const mockProductInCents = {
-				...mockProduct,
-				price: toCents(mockProduct.price),
-			};
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
 
-			await ProductModel.insertMany([mockProductInCents]);
-			cache.set({ key: mockProduct._id.toString(), value: mockProductInCents });
+			req.params = { productId: createdProduct.id };
+
+			cache.set({ key: createdProduct.id, value: createdProduct });
 
 			// Act
 			await controller.update(req, res, next);
@@ -614,18 +604,16 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should return '200' status code when 'service.update' is called with valid data", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProduct = generateMockSelectProduct();
-			const productId = mockProduct._id.toString();
+
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
+
+			const productId = createdProduct.id;
 
 			req.params = { productId };
 
-			const mockProductInCents = {
-				...mockProduct,
-				price: toCents(mockProduct.price),
-			};
-
-			await ProductModel.insertMany([mockProductInCents]);
-			cache.set({ key: productId, value: mockProductInCents });
+			cache.set({ key: productId, value: createdProduct });
 
 			// Act
 			await controller.update(req, res, next);
@@ -638,21 +626,19 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should return updated product when 'service.update' is called with valid update data", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProduct = generateMockSelectProduct();
-			const productId = mockProduct._id.toString();
 
-			const updateData: Partial<InsertProduct> = { name: "UPDATED NAME" };
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
+
+			const productId = createdProduct.id;
+
+			const updateData: Partial<CreateProduct> = { name: "UPDATED NAME" };
 
 			req.params = { productId };
 			req.body = updateData;
 
-			const mockProductInCents = {
-				...mockProduct,
-				price: toCents(mockProduct.price),
-			};
-
-			await ProductModel.insertMany([mockProductInCents]);
-			cache.set({ key: productId, value: mockProductInCents });
+			cache.set({ key: productId, value: createdProduct });
 
 			// Act
 			await controller.update(req, res, next);
@@ -666,7 +652,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should throw 'NotFoundError' when 'service.update' is called with non-existent product id", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const productId = generateMockObjectId().toString();
+			const productId = generateMockObjectId();
 			req.params = { productId };
 
 			// Act & Assert
@@ -681,18 +667,16 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when 'service.delete' is called with valid data", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProduct = generateMockSelectProduct();
-			const productId = mockProduct._id.toString();
+
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
+
+			const productId = createdProduct.id;
 
 			req.params = { productId };
 
-			const mockProductInCents = {
-				...mockProduct,
-				price: toCents(mockProduct.price),
-			};
-
-			await ProductModel.insertMany([mockProductInCents]);
-			cache.set({ key: productId, value: mockProductInCents });
+			cache.set({ key: productId, value: createdProduct });
 
 			storage.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: undefined, success: true }),
@@ -710,18 +694,14 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should return '204' status code when 'service.delete' is called with valid data", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProduct = generateMockSelectProduct();
-			const productId = mockProduct._id.toString();
+
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
+
+			const productId = createdProduct.id;
 
 			req.params = { productId };
-
-			const mockProductInCents = {
-				...mockProduct,
-				price: toCents(mockProduct.price),
-			};
-
-			await ProductModel.insertMany([mockProductInCents]);
-			cache.set({ key: productId, value: mockProductInCents });
 
 			storage.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: undefined, success: true }),
@@ -738,18 +718,14 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should return 'data' equals to 'null' 'service.delete' is called with valid data", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const mockProduct = generateMockSelectProduct();
-			const productId = mockProduct._id.toString();
+
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
+
+			const productId = createdProduct.id;
 
 			req.params = { productId };
-
-			const mockProductInCents = {
-				...mockProduct,
-				price: toCents(mockProduct.price),
-			};
-
-			await ProductModel.insertMany([mockProductInCents]);
-			cache.set({ key: productId, value: mockProductInCents });
 
 			storage.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: undefined, success: true }),
@@ -767,7 +743,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 		test("Should throw 'NotFoundError' when 'service.delete' is called with non-existent product id", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContext();
-			const productId = generateMockObjectId().toString();
+			const productId = generateMockObjectId();
 			req.params = { productId };
 
 			// Act & Assert

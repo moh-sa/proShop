@@ -38,13 +38,13 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 		const mockSession = generateMockCheckoutSessionResponse();
 
-		const userId = mockInsertOrderInCents.user.toString();
+		const userId = mockInsertOrderInCents.user.id;
 
 		test("Should parse 'order data' from 'req.body' and 'userId' from 'res.locals'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
-				res: { locals: { user: { _id: userId } } },
+				res: { locals: { user: { id: userId } } },
 				testContext: t,
 			});
 
@@ -106,7 +106,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
-				res: { locals: { user: { _id: userId } } },
+				res: { locals: { user: { id: userId } } },
 				testContext: t,
 			});
 
@@ -155,7 +155,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
-				res: { locals: { user: { _id: userId } } },
+				res: { locals: { user: { id: userId } } },
 				testContext: t,
 			});
 
@@ -186,7 +186,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
-				res: { locals: { user: { _id: userId } } },
+				res: { locals: { user: { id: userId } } },
 				testContext: t,
 			});
 
@@ -213,7 +213,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockInsertOrder },
-				res: { locals: { user: { _id: userId } } },
+				res: { locals: { user: { id: userId } } },
 				testContext: t,
 			});
 
@@ -468,7 +468,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 		const mockOrdersInCents = mockOrdersInDollars.map((order) =>
 			convertOrderToCents(order),
 		);
-		const userId = mockOrdersInDollars[0].user._id.toString();
+		const userId = mockOrdersInDollars[0].user.id;
 
 		const mockMeta = {
 			currentPage: 1,
@@ -490,7 +490,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 					params: { userId },
 					query: { pageNumber: "1" },
 				},
-				res: { locals: { user: { _id: userId, isAdmin: false } } },
+				res: { locals: { user: { id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -526,7 +526,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 					params: { userId },
 					query: queryParams,
 				},
-				res: { locals: { user: { _id: userId, isAdmin: false } } },
+				res: { locals: { user: { id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -569,7 +569,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 					params: { userId },
 					query: { pageNumber: "1" },
 				},
-				res: { locals: { user: { _id: userId, isAdmin: false } } },
+				res: { locals: { user: { id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -604,7 +604,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 					params: { userId },
 					query: { pageNumber: "1" },
 				},
-				res: { locals: { user: { _id: userId, isAdmin: false } } },
+				res: { locals: { user: { id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -631,7 +631,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 					params: { userId },
 					query: { pageNumber: "1" },
 				},
-				res: { locals: { user: { _id: userId, isAdmin: false } } },
+				res: { locals: { user: { id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -666,7 +666,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 					params: { userId },
 					query: {},
 				},
-				res: { locals: { user: { _id: userId, isAdmin: false } } },
+				res: { locals: { user: { id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -718,13 +718,13 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 		test("Should throw ForbiddenError when localUser does not match userId and is not admin", async (t) => {
 			// Arrange
-			const differentUserId = generateMockObjectId().toString();
+			const differentUserId = generateMockObjectId();
 			const { next, req, res } = mockExpressCall({
 				req: {
 					params: { userId },
 					query: { pageNumber: "1" },
 				},
-				res: { locals: { user: { _id: differentUserId, isAdmin: false } } },
+				res: { locals: { user: { id: differentUserId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -746,13 +746,13 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 		test("Should allow access when localUser is admin even if userId doesn't match", async (t) => {
 			// Arrange
-			const adminUserId = generateMockObjectId().toString();
+			const adminUserId = generateMockObjectId();
 			const { next, req, res } = mockExpressCall({
 				req: {
 					params: { userId },
 					query: { pageNumber: "1" },
 				},
-				res: { locals: { user: { _id: adminUserId, isAdmin: true } } },
+				res: { locals: { user: { id: adminUserId, isAdmin: true } } },
 				testContext: t,
 			});
 
@@ -779,7 +779,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 					params: { userId },
 					query: { pageNumber: "1" },
 				},
-				res: { locals: { user: { _id: userId, isAdmin: false } } },
+				res: { locals: { user: { id: userId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -805,14 +805,14 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 		const mockOrderInCents = convertOrderToCents(mockSelectOrder);
 		const mockOrderInDollars = convertOrderToDollars(mockOrderInCents);
-		const orderId = mockOrderInCents._id.toString();
-		const orderOwnerId = mockOrderInCents.user._id.toString();
+		const orderId = mockOrderInCents.id;
+		const orderOwnerId = mockOrderInCents.user.id;
 
 		test("Should call 'service.getById' once with the correct 'orderId'", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId } },
-				res: { locals: { user: { _id: orderOwnerId, isAdmin: false } } },
+				res: { locals: { user: { id: orderOwnerId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -830,7 +830,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(mockManager.getById.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockManager.getById.mock.calls[0].arguments[0].orderId.toString(),
+				mockManager.getById.mock.calls[0].arguments[0].orderId,
 				orderId,
 			);
 		});
@@ -839,7 +839,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId } },
-				res: { locals: { user: { _id: orderOwnerId, isAdmin: false } } },
+				res: { locals: { user: { id: orderOwnerId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -863,7 +863,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId } },
-				res: { locals: { user: { _id: orderOwnerId, isAdmin: false } } },
+				res: { locals: { user: { id: orderOwnerId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -906,7 +906,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId } },
-				res: { locals: { user: { _id: orderOwnerId, isAdmin: false } } },
+				res: { locals: { user: { id: orderOwnerId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -955,10 +955,10 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 		test("Should throw ForbiddenError when localUser does not match order owner and is not admin", async (t) => {
 			// Arrange
-			const differentUserId = generateMockObjectId().toString();
+			const differentUserId = generateMockObjectId();
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId } },
-				res: { locals: { user: { _id: differentUserId, isAdmin: false } } },
+				res: { locals: { user: { id: differentUserId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -980,10 +980,10 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 		test("Should allow access when localUser is admin even if order belongs to different user", async (t) => {
 			// Arrange
-			const adminUserId = generateMockObjectId().toString();
+			const adminUserId = generateMockObjectId();
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId } },
-				res: { locals: { user: { _id: adminUserId, isAdmin: true } } },
+				res: { locals: { user: { id: adminUserId, isAdmin: true } } },
 				testContext: t,
 			});
 
@@ -1008,7 +1008,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { orderId } },
-				res: { locals: { user: { _id: orderOwnerId, isAdmin: false } } },
+				res: { locals: { user: { id: orderOwnerId, isAdmin: false } } },
 				testContext: t,
 			});
 
@@ -1037,7 +1037,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 
 		const mockOrderInCents = convertOrderToCents(mockSelectOrder);
 		const mockOrderInDollars = convertOrderToDollars(mockOrderInCents);
-		const orderId = mockOrderInCents._id.toString();
+		const orderId = mockOrderInCents.id;
 		const paymentBody = mockSelectOrder.payment;
 
 		test("Should parse 'orderId' from 'req.params' and payment from 'req.body'", async (t) => {
@@ -1092,7 +1092,7 @@ suite("Order Controller 〖 Unit Tests 〗", () => {
 			assert.ok(paymentBody);
 
 			const args = mockManager.updatePayment.mock.calls[0].arguments[0];
-			assert.strictEqual(args.orderId.toString(), orderId);
+			assert.strictEqual(args.orderId, orderId);
 			assert.strictEqual(args.id, paymentBody.id);
 			assert.strictEqual(args.provider, paymentBody.provider);
 			assert.strictEqual(args.sessionURL, paymentBody.sessionURL);

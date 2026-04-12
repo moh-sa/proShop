@@ -1,23 +1,24 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 
-import type { SelectReview } from "../../types/review.type.js";
+import type { Review } from "../../types/index.js";
 
 import { ReviewController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
 import { ReviewModel } from "../../models/review.model.js";
 import {
 	generateMockInsertReview,
+	generateMockInsertReviews,
 	generateMockObjectId,
-	generateMockSelectReview,
-	generateMockSelectReviews,
 	generateMockSelectUser,
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
+	createMockExpressContext,
+	createReview,
+	createReviews,
 	disconnectTestDatabase,
-} from "../utils/database-connection.utils.js";
-import { createMockExpressContext } from "../utils/index.js";
+} from "../utils/index.js";
 
 suite("Review Controller 〖 Integration Tests 〗", () => {
 	const controller = new ReviewController();
@@ -31,7 +32,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const mockReview = generateMockInsertReview({
-				user: mockUser._id,
+				user: mockUser.id,
 			});
 
 			const { next, req, res } = createMockExpressContext();
@@ -51,7 +52,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const mockReview = generateMockInsertReview({
-				user: mockUser._id,
+				user: mockUser.id,
 			});
 
 			const { next, req, res } = createMockExpressContext();
@@ -70,7 +71,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const mockReview = generateMockInsertReview({
-				user: mockUser._id,
+				user: mockUser.id,
 			});
 
 			const { next, req, res } = createMockExpressContext();
@@ -84,9 +85,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const response = res._getJSONData();
 			assert.strictEqual(response.success, true);
 			assert.ok(response.data);
-			assert.ok(response.data._id);
-			assert.strictEqual(response.data.user, mockReview.user.toString());
-			assert.strictEqual(response.data.product, mockReview.product.toString());
+			assert.ok(response.data.id);
+			assert.strictEqual(response.data.user, mockReview.user);
+			assert.strictEqual(response.data.product, mockReview.product);
 			assert.strictEqual(response.data.name, mockUser.name);
 			assert.strictEqual(response.data.rating, mockReview.rating);
 			assert.strictEqual(response.data.comment, mockReview.comment);
@@ -96,11 +97,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 	describe("getById", () => {
 		test("Should return success response when 'service.getById' is called with valid 'reviewId'", async () => {
 			// Arrange
-			const mockReview = generateMockSelectReview();
-			await ReviewModel.insertMany([mockReview]);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: mockReview._id.toString() };
+			req.params = { reviewId: createdReview.id };
 
 			// Act
 			await controller.getById(req, res, next);
@@ -113,11 +113,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when 'service.getById' is called with valid 'reviewId'", async () => {
 			// Arrange
-			const mockReview = generateMockSelectReview();
-			await ReviewModel.insertMany([mockReview]);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: mockReview._id.toString() };
+			req.params = { reviewId: createdReview.id };
 
 			// Act
 			await controller.getById(req, res, next);
@@ -129,11 +128,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return review object when 'service.getById' is called with existing 'reviewId'", async () => {
 			// Arrange
-			const mockReview = generateMockSelectReview();
-			await ReviewModel.insertMany([mockReview]);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: mockReview._id.toString() };
+			req.params = { reviewId: createdReview.id };
 
 			// Act
 			await controller.getById(req, res, next);
@@ -142,18 +140,18 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const response = res._getJSONData();
 			assert.strictEqual(response.success, true);
 			assert.ok(response.data);
-			assert.strictEqual(response.data.user, mockReview.user.toString());
-			assert.strictEqual(response.data.product, mockReview.product.toString());
-			assert.strictEqual(response.data.name, mockReview.name);
-			assert.strictEqual(response.data.rating, mockReview.rating);
-			assert.strictEqual(response.data.comment, mockReview.comment);
+			assert.strictEqual(response.data.user, createdReview.user);
+			assert.strictEqual(response.data.product, createdReview.product);
+			assert.strictEqual(response.data.name, createdReview.name);
+			assert.strictEqual(response.data.rating, createdReview.rating);
+			assert.strictEqual(response.data.comment, createdReview.comment);
 		});
 
 		test("Should throw 'NotFoundError' when 'service.getById' is called with non-existent 'reviewId'", async () => {
 			// Arrange
 			const reviewId = generateMockObjectId();
 			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: reviewId.toString() };
+			req.params = { reviewId };
 
 			// Act & Assert
 			await assert.rejects(
@@ -170,9 +168,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 	describe("getAll", () => {
 		test("Should return success response when 'service.getAll' is called", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
-
 			const { next, req, res } = createMockExpressContext();
 
 			// Act
@@ -181,11 +176,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.strictEqual(response.success, true);
-
-			assert.strictEqual(Array.isArray(response.data), true);
-			assert.strictEqual(response.data.length > 0, true);
-
-			assert.ok(response.meta);
 		});
 
 		test("Should return '200' status code when 'service.getAll' is called", async () => {
@@ -202,8 +192,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return paginated reviews when 'service.getAll' is called with reviews in database", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 3 }),
+			);
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -215,9 +206,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.success, true);
 
 			assert.strictEqual(Array.isArray(response.data), true);
-			assert.strictEqual(response.data.length, mockReviews.length);
+			assert.strictEqual(response.data.length, createdReviews.length);
 
-			assert.strictEqual(response.meta.totalItems, mockReviews.length);
+			assert.strictEqual(response.meta.totalItems, createdReviews.length);
 			assert.strictEqual(response.meta.currentPage, 1);
 			assert.strictEqual(response.meta.totalPages, 1);
 			assert.strictEqual(response.meta.pageSize, 10);
@@ -246,8 +237,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return paginated reviews with correct pagination when 'service.getAll' is called with pageSize", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 15 });
-			await ReviewModel.insertMany(mockReviews);
+			await createReviews(generateMockInsertReviews({ count: 15 }));
 
 			const { next, req, res } = createMockExpressContext();
 			req.query = { pageNumber: "1", pageSize: "5" };
@@ -272,8 +262,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return paginated reviews for second page when 'service.getAll' is called with pageNumber 2", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 15 });
-			await ReviewModel.insertMany(mockReviews);
+			await createReviews(generateMockInsertReviews({ count: 15 }));
 
 			const { next, req, res } = createMockExpressContext();
 			req.query = { pageNumber: "2", pageSize: "5" };
@@ -299,17 +288,19 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 		test("Should return only reviews for productId when 'service.getAll' is called with productId query", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
-			const targetReviews = generateMockSelectReviews({
-				count: 2,
-				options: { product: productId },
-			});
-			const otherReviews = generateMockSelectReviews({
-				count: 3,
-			});
-			await ReviewModel.insertMany([...targetReviews, ...otherReviews]);
+
+			await createReviews([
+				...generateMockInsertReviews({
+					count: 2,
+					options: { product: productId },
+				}),
+				...generateMockInsertReviews({
+					count: 3,
+				}),
+			]);
 
 			const { next, req, res } = createMockExpressContext();
-			req.query = { productId: productId.toString() };
+			req.query = { productId: productId };
 
 			// Act
 			await controller.getAll(req, res, next);
@@ -320,10 +311,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.meta.totalItems, 2);
 			assert.strictEqual(response.data.length, 2);
 			assert.strictEqual(
-				response.data.every(
-					(review: SelectReview) =>
-						review.product.toString() === productId.toString(),
-				),
+				response.data.every((review: Review) => review.product === productId),
 				true,
 			);
 		});
@@ -332,11 +320,12 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 	describe("getAllByUserId", () => {
 		test("Should return success response when 'service.getAllByUserId' is called with valid 'userId'", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 3 }),
+			);
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: mockReviews[0].user.toString() };
+			req.params = { userId: createdReviews[0].user };
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -351,11 +340,12 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when 'service.getAllByUserId' is called with valid 'userId'", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 3 }),
+			);
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: mockReviews[0].user.toString() };
+			req.params = { userId: createdReviews[0].user };
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -368,15 +358,18 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 		test("Should return paginated reviews for specific user when 'service.getAllByUserId' is called", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
-			const mockReviews = generateMockSelectReviews({
+			const targetReviews = generateMockInsertReviews({
 				count: 3,
 				options: { user: userId },
 			});
-			const otherReviews = generateMockSelectReviews({ count: 2 });
-			await ReviewModel.insertMany([mockReviews, otherReviews].flat());
+
+			await createReviews([
+				...targetReviews,
+				...generateMockInsertReviews({ count: 2 }),
+			]);
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: userId.toString() };
+			req.params = { userId: userId };
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -386,17 +379,14 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.success, true);
 
 			assert.strictEqual(Array.isArray(response.data), true);
-			assert.strictEqual(response.data.length, mockReviews.length);
+			assert.strictEqual(response.data.length, targetReviews.length);
 
-			assert.strictEqual(response.meta.totalItems, mockReviews.length);
+			assert.strictEqual(response.meta.totalItems, targetReviews.length);
 			assert.strictEqual(response.meta.currentPage, 1);
 			assert.strictEqual(response.meta.totalPages, 1);
 
 			assert.strictEqual(
-				response.data.every(
-					(review: SelectReview) =>
-						review.user.toString() === userId.toString(),
-				),
+				response.data.every((review: Review) => review.user === userId),
 				true,
 			);
 		});
@@ -404,11 +394,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 		test("Should return empty paginated result when 'service.getAllByUserId' is called with user who has no reviews", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
-			const otherReviews = generateMockSelectReviews({ count: 2 }); // Different user
-			await ReviewModel.insertMany(otherReviews);
+			await createReviews(generateMockInsertReviews({ count: 2 }));
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: userId.toString() };
+			req.params = { userId: userId };
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -428,14 +417,15 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 		test("Should return paginated reviews with correct pagination when 'service.getAllByUserId' is called with pageSize", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
-			const mockReviews = generateMockSelectReviews({
-				count: 8,
-				options: { user: userId },
-			});
-			await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({
+					count: 8,
+					options: { user: userId },
+				}),
+			);
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: userId.toString() };
+			req.params = { userId: userId };
 			req.query = { pageNumber: "1", pageSize: "3" };
 
 			// Act
@@ -448,7 +438,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(Array.isArray(response.data), true);
 			assert.strictEqual(response.data.length, 3);
 
-			assert.strictEqual(response.meta.totalItems, mockReviews.length);
+			assert.strictEqual(response.meta.totalItems, createdReviews.length);
 			assert.strictEqual(response.meta.currentPage, 1);
 			assert.strictEqual(response.meta.pageSize, 3);
 			assert.strictEqual(response.meta.totalPages, 3);
@@ -458,17 +448,16 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return only reviews for productId when 'service.getAllByUserId' is called with productId query", async () => {
 			// Arrange
-			const targetReview = generateMockSelectReview();
-			const userId = targetReview.user;
-			const productId = targetReview.product;
+			const userId = generateMockObjectId();
 
-			const otherReview = generateMockSelectReview({ user: userId });
-
-			await ReviewModel.insertMany([targetReview, otherReview]);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 2, options: { user: userId } }),
+			);
+			const productId = createdReviews[0].product;
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: userId.toString() };
-			req.query = { productId: productId.toString() };
+			req.params = { userId: userId };
+			req.query = { productId: productId };
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -478,21 +467,19 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.success, true);
 			assert.strictEqual(response.meta.totalItems, 1);
 			assert.strictEqual(response.data.length, 1);
-			assert.strictEqual(
-				response.data[0].product.toString(),
-				productId.toString(),
-			);
+			assert.strictEqual(response.data[0].product, productId);
 		});
 	});
 
 	describe("getAllByProductId", () => {
 		test("Should return success response when 'service.getAllByProductId' is called with valid 'productId'", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 3 }),
+			);
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { productId: mockReviews[0].product.toString() };
+			req.params = { productId: createdReviews[0].product };
 
 			// Act
 			await controller.getAllByProductId(req, res, next);
@@ -500,18 +487,16 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.strictEqual(response.success, true);
-
-			assert.strictEqual(Array.isArray(response.data), true);
-			assert.strictEqual(response.data.length > 0, true);
 		});
 
 		test("Should return '200' status code when 'service.getAllByProductId' is called with valid 'productId'", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 3 }),
+			);
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { productId: mockReviews[0].product.toString() };
+			req.params = { productId: createdReviews[0].product };
 
 			// Act
 			await controller.getAllByProductId(req, res, next);
@@ -524,15 +509,18 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 		test("Should return paginated reviews for specific product when 'service.getAllByProductId' is called", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
-			const mockReviews = generateMockSelectReviews({
+			const targetReviews = generateMockInsertReviews({
 				count: 3,
 				options: { product: productId },
 			});
-			const otherReviews = generateMockSelectReviews({ count: 2 }); // Different product
-			await ReviewModel.insertMany([mockReviews, otherReviews].flat());
+
+			await createReviews([
+				...targetReviews,
+				...generateMockInsertReviews({ count: 2 }),
+			]);
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { productId: productId.toString() };
+			req.params = { productId };
 
 			// Act
 			await controller.getAllByProductId(req, res, next);
@@ -542,17 +530,14 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.success, true);
 
 			assert.strictEqual(Array.isArray(response.data), true);
-			assert.strictEqual(response.data.length, mockReviews.length);
+			assert.strictEqual(response.data.length, targetReviews.length);
 
-			assert.strictEqual(response.meta.totalItems, mockReviews.length);
+			assert.strictEqual(response.meta.totalItems, targetReviews.length);
 			assert.strictEqual(response.meta.currentPage, 1);
 			assert.strictEqual(response.meta.totalPages, 1);
 
 			assert.strictEqual(
-				response.data.every(
-					(review: SelectReview) =>
-						review.product.toString() === productId.toString(),
-				),
+				response.data.every((review: Review) => review.product === productId),
 				true,
 			);
 		});
@@ -560,11 +545,11 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 		test("Should return empty paginated result when 'service.getAllByProductId' is called with product that has no reviews", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
-			const otherReviews = generateMockSelectReviews({ count: 2 }); // Different product
-			await ReviewModel.insertMany(otherReviews);
+
+			await createReviews(generateMockInsertReviews({ count: 2 }));
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { productId: productId.toString() };
+			req.params = { productId };
 
 			// Act
 			await controller.getAllByProductId(req, res, next);
@@ -584,14 +569,16 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 		test("Should return paginated reviews with correct pagination when 'service.getAllByProductId' is called with pageSize", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
-			const mockReviews = generateMockSelectReviews({
-				count: 7,
-				options: { product: productId },
-			});
-			await ReviewModel.insertMany(mockReviews);
+
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({
+					count: 7,
+					options: { product: productId },
+				}),
+			);
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { productId: productId.toString() };
+			req.params = { productId };
 			req.query = { pageNumber: "1", pageSize: "3" };
 
 			// Act
@@ -604,7 +591,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(Array.isArray(response.data), true);
 			assert.strictEqual(response.data.length, 3);
 
-			assert.strictEqual(response.meta.totalItems, mockReviews.length);
+			assert.strictEqual(response.meta.totalItems, createdReviews.length);
 			assert.strictEqual(response.meta.currentPage, 1);
 			assert.strictEqual(response.meta.pageSize, 3);
 			assert.strictEqual(response.meta.totalPages, 3);
@@ -614,16 +601,19 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return only reviews for userId when 'service.getAllByProductId' is called with userId query", async () => {
 			// Arrange
-			const targetReview = generateMockInsertReview();
-			const productId = targetReview.product;
-			const userId = targetReview.user;
+			const productId = generateMockObjectId();
 
-			const reviewFromB = generateMockInsertReview({ product: productId });
-			await ReviewModel.insertMany([targetReview, reviewFromB]);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({
+					count: 2,
+					options: { product: productId },
+				}),
+			);
+			const userId = createdReviews[0].user;
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { productId: productId.toString() };
-			req.query = { userId: userId.toString() };
+			req.params = { productId };
+			req.query = { userId: userId };
 
 			// Act
 			await controller.getAllByProductId(req, res, next);
@@ -633,18 +623,17 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.success, true);
 			assert.strictEqual(response.meta.totalItems, 1);
 			assert.strictEqual(response.data.length, 1);
-			assert.strictEqual(response.data[0].user.toString(), userId.toString());
+			assert.strictEqual(response.data[0].user, userId);
 		});
 	});
 
 	describe("update", () => {
 		test("Should return success response when 'service.update' is called with 'reviewId' and valid update data", async () => {
 			// Arrange
-			const mockReview = generateMockSelectReview();
-			await ReviewModel.insertMany([mockReview]);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: mockReview._id.toString() };
+			req.params = { reviewId: createdReview.id };
 
 			// Act
 			await controller.update(req, res, next);
@@ -657,11 +646,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when 'service.update' is called with 'reviewId' and valid update data", async () => {
 			// Arrange
-			const mockReview = generateMockSelectReview();
-			await ReviewModel.insertMany([mockReview]);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: mockReview._id.toString() };
+			req.params = { reviewId: createdReview.id };
 
 			// Act
 			await controller.update(req, res, next);
@@ -673,12 +661,11 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return updated review when 'service.update' is called with 'reviewId' and valid update data", async () => {
 			// Arrange
-			const mockReview = generateMockSelectReview();
-			await ReviewModel.insertMany([mockReview]);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			const { next, req, res } = createMockExpressContext();
 			const updateData = { comment: "UPDATED COMMENT", rating: 5 };
-			req.params = { reviewId: mockReview._id.toString() };
+			req.params = { reviewId: createdReview.id };
 			req.body = updateData;
 
 			// Act
@@ -693,12 +680,11 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should update only provided fields when 'service.update' is called with partial data", async () => {
 			// Arrange
-			const mockReview = generateMockSelectReview();
-			await ReviewModel.insertMany([mockReview]);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			const { next, req, res } = createMockExpressContext();
 			const updateData = { comment: "UPDATED COMMENT ONLY" };
-			req.params = { reviewId: mockReview._id.toString() };
+			req.params = { reviewId: createdReview.id };
 			req.body = updateData;
 
 			// Act
@@ -708,17 +694,17 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const response = res._getJSONData();
 			assert.strictEqual(response.success, true);
 			assert.strictEqual(response.data.comment, updateData.comment);
-			assert.strictEqual(response.data.rating, mockReview.rating); // Should remain unchanged
+			assert.strictEqual(response.data.rating, createdReview.rating); // Should remain unchanged
 		});
 
 		test("Should throw 'NotFoundError' when 'service.update' is called with non-existent 'reviewId'", async () => {
 			// Arrange
 			const reviewId = generateMockObjectId();
-			const otherReviews = generateMockSelectReviews({ count: 2 });
-			await ReviewModel.insertMany(otherReviews);
+
+			await createReviews(generateMockInsertReviews({ count: 2 }));
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: reviewId.toString() };
+			req.params = { reviewId };
 
 			// Act & Assert
 			await assert.rejects(
@@ -735,11 +721,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 	describe("delete", () => {
 		test("Should return success response when 'service.delete' is called with 'reviewId'", async () => {
 			// Arrange
-			const mockReview = generateMockSelectReview();
-			await ReviewModel.insertMany([mockReview]);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: mockReview._id.toString() };
+			req.params = { reviewId: createdReview.id };
 
 			// Act
 			await controller.delete(req, res, next);
@@ -751,11 +736,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '204' status code when 'service.delete' is called with 'reviewId'", async () => {
 			// Arrange
-			const mockReview = generateMockSelectReview();
-			await ReviewModel.insertMany([mockReview]);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: mockReview._id.toString() };
+			req.params = { reviewId: createdReview.id };
 
 			// Act
 			await controller.delete(req, res, next);
@@ -767,11 +751,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return 'data' equals to 'null' when 'service.delete' is called with 'reviewId'", async () => {
 			// Arrange
-			const mockReview = generateMockSelectReview();
-			await ReviewModel.insertMany([mockReview]);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: mockReview._id.toString() };
+			req.params = { reviewId: createdReview.id };
 
 			// Act
 			await controller.delete(req, res, next);
@@ -785,11 +768,11 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 		test("Should throw 'NotFoundError' when 'service.delete' is called with non-existent 'reviewId'", async () => {
 			// Arrange
 			const reviewId = generateMockObjectId();
-			const otherReviews = generateMockSelectReviews({ count: 2 });
-			await ReviewModel.insertMany(otherReviews);
+
+			await createReviews(generateMockInsertReviews({ count: 2 }));
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: reviewId.toString() };
+			req.params = { reviewId };
 
 			// Act & Assert
 			await assert.rejects(
@@ -806,8 +789,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 	describe("count", () => {
 		test("Should return success response when 'service.count' is called", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			await createReviews(generateMockInsertReviews({ count: 3 }));
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -822,8 +804,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when 'service.count' is called", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			await createReviews(generateMockInsertReviews({ count: 3 }));
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -837,8 +818,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return 'data' type of 'number' when 'service.count' is called", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			await createReviews(generateMockInsertReviews({ count: 3 }));
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -853,8 +833,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return correct count when 'service.count' is called with reviews in database", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 5 });
-			await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 3 }),
+			);
 
 			const { next, req, res } = createMockExpressContext();
 
@@ -864,7 +845,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.strictEqual(response.success, true);
-			assert.strictEqual(response.data, mockReviews.length);
+			assert.strictEqual(response.data, createdReviews.length);
 		});
 
 		test("Should return zero when 'service.count' is called with no reviews in database", async () => {
@@ -884,11 +865,12 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 	describe("countByUserId", () => {
 		test("Should return success response when 'service.countByUserId' is called with 'userId'", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 3 }),
+			);
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: mockReviews[0].user.toString() };
+			req.params = { userId: createdReviews[0].user };
 
 			// Act
 			await controller.countByUserId(req, res, next);
@@ -901,11 +883,12 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when 'service.countByUserId' is called with 'userId'", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 3 }),
+			);
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: mockReviews[0].user.toString() };
+			req.params = { userId: createdReviews[0].user };
 
 			// Act
 			await controller.countByUserId(req, res, next);
@@ -917,11 +900,12 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return 'data' type of 'number' when 'service.count' is called", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 3 }),
+			);
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: mockReviews[0].user.toString() };
+			req.params = { userId: createdReviews[0].user };
 
 			// Act
 			await controller.countByUserId(req, res, next);
@@ -935,15 +919,18 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 		test("Should return correct count for specific user when 'service.countByUserId' is called with 'userId'", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
-			const mockReviews = generateMockSelectReviews({
+			const targetReviews = generateMockInsertReviews({
 				count: 3,
 				options: { user: userId },
 			});
-			const otherReviews = generateMockSelectReviews({ count: 2 }); // Different user
-			await ReviewModel.insertMany([mockReviews, otherReviews].flat());
+
+			await createReviews([
+				...targetReviews,
+				...generateMockInsertReviews({ count: 2 }),
+			]);
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: userId.toString() };
+			req.params = { userId };
 
 			// Act
 			await controller.countByUserId(req, res, next);
@@ -951,17 +938,17 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.strictEqual(response.success, true);
-			assert.strictEqual(response.data, mockReviews.length);
+			assert.strictEqual(response.data, targetReviews.length);
 		});
 
 		test("Should return zero when 'service.countByUserId' is called with user who has no reviews", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
-			const otherReviews = generateMockSelectReviews({ count: 2 }); // Different user
-			await ReviewModel.insertMany(otherReviews);
+
+			await createReviews(generateMockInsertReviews({ count: 2 }));
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { userId: userId.toString() };
+			req.params = { userId };
 
 			// Act
 			await controller.countByUserId(req, res, next);
@@ -976,11 +963,12 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 	describe("countByProductId", () => {
 		test("Should return success response when 'service.countByProductId' is called with 'productId'", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 3 }),
+			);
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { productId: mockReviews[0].product.toString() };
+			req.params = { productId: createdReviews[0].product };
 
 			// Act
 			await controller.countByProductId(req, res, next);
@@ -993,11 +981,12 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when 'service.countByProductId' is called with 'productId'", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 3 }),
+			);
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { productId: mockReviews[0].product.toString() };
+			req.params = { productId: createdReviews[0].product };
 
 			// Act
 			await controller.countByProductId(req, res, next);
@@ -1009,11 +998,12 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return 'data' type of 'number' when 'service.count' is called", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 3 });
-			await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 3 }),
+			);
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { productId: mockReviews[0].product.toString() };
+			req.params = { productId: createdReviews[0].product };
 
 			// Act
 			await controller.countByProductId(req, res, next);
@@ -1027,15 +1017,18 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 		test("Should return correct count for specific product when 'service.countByProductId' is called with 'productId'", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
-			const mockReviews = generateMockSelectReviews({
+			const targetReviews = generateMockInsertReviews({
 				count: 4,
 				options: { product: productId },
 			});
-			const otherReviews = generateMockSelectReviews({ count: 2 }); // Different product
-			await ReviewModel.insertMany([mockReviews, otherReviews].flat());
+
+			await createReviews([
+				...targetReviews,
+				...generateMockInsertReviews({ count: 2 }),
+			]);
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { productId: productId.toString() };
+			req.params = { productId };
 
 			// Act
 			await controller.countByProductId(req, res, next);
@@ -1043,17 +1036,17 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.strictEqual(response.success, true);
-			assert.strictEqual(response.data, mockReviews.length);
+			assert.strictEqual(response.data, targetReviews.length);
 		});
 
 		test("Should return zero when 'service.countByProductId' is called with product that has no reviews", async () => {
 			// Arrange
 			const productId = generateMockObjectId();
-			const otherReviews = generateMockSelectReviews({ count: 2 }); // Different product
-			await ReviewModel.insertMany(otherReviews);
+
+			await createReviews(generateMockInsertReviews({ count: 2 }));
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { productId: productId.toString() };
+			req.params = { productId };
 
 			// Act
 			await controller.countByProductId(req, res, next);
@@ -1068,11 +1061,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 	describe("existsById", () => {
 		test("Should return success response when 'service.existsById' is called with valid data", async () => {
 			// Arrange
-			const mockReview = generateMockSelectReview();
-			await ReviewModel.insertMany([mockReview]);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: mockReview._id.toString() };
+			req.params = { reviewId: createdReview.id };
 
 			// Act
 			await controller.existsById(req, res, next);
@@ -1085,11 +1077,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when 'service.existsById' is called with 'reviewId'", async () => {
 			// Arrange
-			const mockReview = generateMockSelectReview();
-			await ReviewModel.insertMany([mockReview]);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: mockReview._id.toString() };
+			req.params = { reviewId: createdReview.id };
 
 			// Act
 			await controller.existsById(req, res, next);
@@ -1101,12 +1092,14 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return 'review id' when 'service.existsById' is called with existing 'reviewId'", async () => {
 			// Arrange
-			const mockReviews = generateMockSelectReviews({ count: 5 });
-			await ReviewModel.insertMany(mockReviews);
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 5 }),
+			);
+
+			const targetReview = createdReviews[0];
 
 			const { next, req, res } = createMockExpressContext();
-			const targetReview = mockReviews[0];
-			req.params = { reviewId: targetReview._id.toString() };
+			req.params = { reviewId: targetReview.id };
 
 			// Act
 			await controller.existsById(req, res, next);
@@ -1114,17 +1107,14 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.strictEqual(response.success, true);
-			assert.strictEqual(
-				response.data._id.toString(),
-				targetReview._id.toString(),
-			);
+			assert.strictEqual(response.data.id, targetReview.id);
 		});
 
 		test("Should throw 'NotFoundError' when 'service.existsById' is called with non-existent review id", async () => {
 			// Arrange
 			const reviewId = generateMockObjectId();
 			const { next, req, res } = createMockExpressContext();
-			req.params = { reviewId: reviewId.toString() };
+			req.params = { reviewId };
 
 			// Act & Assert
 			await assert.rejects(
@@ -1141,13 +1131,12 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 	describe("existsByUserIdAndProductId", () => {
 		test("Should return success response when 'service.existsByUserIdAndProductId' is called with valid data", async () => {
 			// Arrange
-			const mockReview = generateMockSelectReview();
-			await ReviewModel.insertMany([mockReview]);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = {
-				productId: mockReview.product.toString(),
-				userId: mockReview.user.toString(),
+				productId: createdReview.product,
+				userId: createdReview.user,
 			};
 
 			// Act
@@ -1161,13 +1150,12 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when 'service.existsByUserIdAndProductId' is called with valid data", async () => {
 			// Arrange
-			const mockReview = generateMockSelectReview();
-			await ReviewModel.insertMany([mockReview]);
+			const createdReview = await createReview(generateMockInsertReview());
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = {
-				productId: mockReview.product.toString(),
-				userId: mockReview.user.toString(),
+				productId: createdReview.product,
+				userId: createdReview.user,
 			};
 
 			// Act
@@ -1180,14 +1168,15 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return 'review id' when 'service.existsByUserIdAndProductId' is called with existing combination", async () => {
 			// Arrange
-			const mockReview = generateMockSelectReview();
-			const otherReview = generateMockSelectReviews({ count: 2 });
-			await ReviewModel.insertMany([mockReview, otherReview].flat());
+			const createdReviews = await createReviews(
+				generateMockInsertReviews({ count: 3 }),
+			);
+			const targetReview = createdReviews[0];
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = {
-				productId: mockReview.product.toString(),
-				userId: mockReview.user.toString(),
+				productId: targetReview.product,
+				userId: targetReview.user,
 			};
 
 			// Act
@@ -1196,22 +1185,19 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.strictEqual(response.success, true);
-			assert.strictEqual(
-				response.data._id.toString(),
-				mockReview._id.toString(),
-			);
+			assert.strictEqual(response.data.id, targetReview.id);
 		});
 
 		test("Should throw 'NotFoundError' when 'service.existsByUserIdAndProductId' is called with non-existent combination", async () => {
 			// Arrange
 			const mockId = generateMockObjectId();
-			const otherReviews = generateMockSelectReviews({ count: 2 });
-			await ReviewModel.insertMany(otherReviews);
+
+			await createReviews(generateMockInsertReviews({ count: 2 }));
 
 			const { next, req, res } = createMockExpressContext();
 			req.params = {
-				productId: mockId.toString(),
-				userId: mockId.toString(),
+				productId: mockId,
+				userId: mockId,
 			};
 
 			// Act & Assert

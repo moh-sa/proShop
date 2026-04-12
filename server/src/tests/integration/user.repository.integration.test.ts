@@ -15,12 +15,13 @@ import {
 	generateMockInsertUser,
 	generateMockInsertUsers,
 	generateMockObjectId,
-	generateMockSelectUsers,
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
+	createUser,
+	createUsers,
 	disconnectTestDatabase,
-} from "../utils/database-connection.utils.js";
+} from "../utils/index.js";
 
 suite("UserRepository 〖 Integration Tests 〗", async () => {
 	const repo = new UserRepository();
@@ -39,9 +40,9 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.ok(result.data._id);
+			assert.ok(result.data.id);
 			assert.equal(result.data.name, mockUser.name);
-			assert.equal(result.data.email, mockUser.email.toLowerCase());
+			assert.equal(result.data.email, mockUser.email);
 			assert.equal(result.data.isAdmin, mockUser.isAdmin);
 			assert.ok(result.data.createdAt);
 			assert.ok(result.data.updatedAt);
@@ -160,11 +161,16 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 	describe("getAll", () => {
 		test("Should return paginated items and meta for given page", async () => {
 			// Arrange
-			const mockUsers = generateMockSelectUsers({ count: 4 });
-			const expectedResult = mockUsers
+			const createdUsers = await createUsers(
+				generateMockInsertUsers({ count: 4 }).map((u, i) => ({
+					...u,
+					createdAt: new Date(2026, 0, i + 1),
+				})),
+			);
+
+			const expectedResult = createdUsers
 				.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
 				.slice(2, 4);
-			await UserModel.insertMany(mockUsers);
 
 			// Act
 			const result = await repo.getAll({
@@ -174,11 +180,11 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.items.length, 2);
+			assert.strictEqual(result.data.items.length, expectedResult.length);
 			assert.strictEqual(result.data.items[0].email, expectedResult[0].email);
 			assert.strictEqual(result.data.items[1].email, expectedResult[1].email);
 			assert.strictEqual(result.data.meta.currentPage, 2);
-			assert.strictEqual(result.data.meta.totalItems, mockUsers.length);
+			assert.strictEqual(result.data.meta.totalItems, createdUsers.length);
 		});
 
 		test("Should return empty items array and meta when no users exist", async () => {
@@ -197,11 +203,14 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 				count: 3,
 				options: { isAdmin: true },
 			});
-			const regularUsers = generateMockInsertUsers({
-				count: 2,
-				options: { isAdmin: false },
-			});
-			await UserModel.insertMany([...adminUsers, ...regularUsers]);
+
+			await createUsers([
+				...adminUsers,
+				...generateMockInsertUsers({
+					count: 2,
+					options: { isAdmin: false },
+				}),
+			]);
 
 			// Act
 			const result = await repo.getAll({
@@ -218,10 +227,16 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should order items by sort when sort is provided", async () => {
 			// Arrange
-			const users = generateMockSelectUsers({ count: 10 }).map(
-				(user, index) => ({ ...user, createdAt: new Date(2026, 0, index + 1) }),
+			const createdUsers = await createUsers(
+				generateMockInsertUsers({ count: 10 }).map((u, i) => ({
+					...u,
+					createdAt: new Date(2026, 0, i + 1),
+				})),
 			);
-			await UserModel.insertMany(users);
+
+			const expectedResult = createdUsers.sort(
+				(a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+			);
 
 			// Act
 			const result = await repo.getAll({
@@ -234,69 +249,60 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.items.length, 10);
 
-			const sortedItems = users.sort(
-				(a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
-			);
 			result.data.items.map((item, index) => {
-				assert.strictEqual(
-					item._id.toString(),
-					sortedItems[index]._id.toString(),
-				);
+				assert.strictEqual(item.id, expectedResult[index].id);
 			});
 		});
 
 		test("Should filter by exact email", async () => {
 			// Arrange
-			const target = generateMockInsertUser({
-				email: "filterme@example.com",
-			});
-			const other = generateMockInsertUsers({ count: 5 });
-			await UserModel.insertMany([target, ...other]);
+			const createdUsers = await createUsers(
+				generateMockInsertUsers({ count: 5 }),
+			);
+			const targetEmail = createdUsers[0].email;
 
 			// Act
 			const result = await repo.getAll({
 				pageNumber: 1,
 				pageSize: 10,
-				filters: { email: target.email.toLowerCase() },
+				filters: { email: targetEmail },
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.items.length, 1);
-			assert.strictEqual(
-				result.data.items[0].email,
-				target.email.toLowerCase(),
-			);
+			assert.strictEqual(result.data.items[0].email, targetEmail);
 		});
 
 		test("Should filter by name using case-insensitive partial match", async () => {
 			// Arrange
-			const target = generateMockInsertUser();
-			const other = generateMockInsertUsers({ count: 5 });
-			await UserModel.insertMany([target, ...other]);
+			const createdUsers = await createUsers(
+				generateMockInsertUsers({ count: 5 }),
+			);
+			const targetName = createdUsers[0].name;
 
 			// Act
 			const result = await repo.getAll({
 				pageNumber: 1,
 				pageSize: 10,
-				filters: { name: target.name.toUpperCase() },
+				filters: { name: targetName.toUpperCase() },
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.strictEqual(result.data.items.length, 1);
-			assert.strictEqual(result.data.items[0].name, target.name);
+			assert.strictEqual(result.data.items[0].name, targetName);
 		});
 
 		test("Should return only selected fields when select is provided", async () => {
 			// Arrange
-			await UserModel.create(generateMockInsertUser());
+			await createUser(generateMockInsertUser());
 
 			// Act
 			const result = await repo.getAll({
 				pageNumber: 1,
 				pageSize: 10,
-				select: { _id: true, email: true },
+				select: { id: true, email: true },
 			});
 
 			// Assert
@@ -304,7 +310,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.items.length, 1);
 
 			const item = result.data.items[0];
-			assert.ok("_id" in item);
+			assert.ok("id" in item);
 			assert.ok("email" in item);
 			assert.strictEqual(item.password, undefined);
 			assert.strictEqual(item.name, undefined);
@@ -314,17 +320,16 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 	describe("getById", () => {
 		test("Should return 'success result' with 'user object' when user is found by ID", async () => {
 			// Arrange
-			const mockUser = generateMockInsertUser();
-			const user = await UserModel.create(mockUser);
+			const createdUser = await createUser(generateMockInsertUser());
 
 			// Act
-			const result = await repo.getById({ userId: user._id });
+			const result = await repo.getById({ userId: createdUser.id });
 
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.ok(result.data);
-			assert.equal(result.data.name, mockUser.name);
-			assert.equal(result.data.email, mockUser.email.toLowerCase());
+			assert.equal(result.data.name, createdUser.name);
+			assert.equal(result.data.email, createdUser.email);
 		});
 
 		test("Should return 'success result' with 'null' when user ID does not exist", async () => {
@@ -356,7 +361,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 		test("Should return 'success result' with 'user object' when user is found by email", async () => {
 			// Arrange
 			const mockUser = generateMockInsertUser();
-			await UserModel.create(mockUser);
+			await createUser(mockUser);
 
 			// Act
 			const result = await repo.getByEmail({
@@ -367,7 +372,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.success, true);
 			assert.ok(result.data);
 			assert.equal(result.data.name, mockUser.name);
-			assert.equal(result.data.email, mockUser.email.toLowerCase());
+			assert.equal(result.data.email, mockUser.email);
 		});
 
 		test("Should return 'success result' with 'null' when email does not exist", async () => {
@@ -386,28 +391,30 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should return 'success result' when email contains special characters", async () => {
 			// Arrange
-			const mockUser = generateMockInsertUser({
-				email: "test+label@example.com",
-			});
-			await UserModel.create(mockUser);
+			const createdUser = await createUser(
+				generateMockInsertUser({
+					email: "test+label@example.com",
+				}),
+			);
+			const targetEmail = createdUser.email;
 
 			// Act
 			const result = await repo.getByEmail({
-				email: mockUser.email,
+				email: targetEmail,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.ok(result.data);
-			assert.equal(result.data.email, mockUser.email);
+			assert.equal(result.data.email, targetEmail);
 		});
 	});
 
 	describe("update", () => {
 		test("Should return 'success result' with 'updated user' when user data is updated", async () => {
 			// Arrange
-			const mockUser = generateMockInsertUser();
-			const user = await UserModel.create(mockUser);
+			const createdUser = await createUser(generateMockInsertUser());
+
 			const updateData = {
 				email: "updated@example.com",
 				name: "Updated Name",
@@ -416,7 +423,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			// Act
 			const result = await repo.update({
 				data: updateData,
-				userId: user._id,
+				userId: createdUser.id,
 			});
 
 			// Assert
@@ -428,36 +435,36 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should return 'success result' with 'partially updated user' when only some fields are updated", async () => {
 			// Arrange
-			const mockUser = generateMockInsertUser();
-			const user = await UserModel.create(mockUser);
+			const createdUser = await createUser(generateMockInsertUser());
 			const updateData = { name: "Updated Name" };
 
 			// Act
 			const result = await repo.update({
 				data: updateData,
-				userId: user._id,
+				userId: createdUser.id,
 			});
 
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.ok(result.data);
 			assert.equal(result.data.name, updateData.name);
-			assert.equal(result.data.email, mockUser.email.toLowerCase()); // Email should remain unchanged
+
+			assert.equal(result.data.email, createdUser.email); // Email should remain unchanged
 		});
 
 		test("Should return 'success result' with 'updated timestamps' when user is updated", async (t) => {
 			// Arrange
 			t.mock.timers.enable({ apis: ["Date"], now: new Date() });
-			const mockUser = generateMockInsertUser();
-			const user = await UserModel.create(mockUser);
-			const originalUpdatedAt = user.updatedAt;
+
+			const createdUser = await createUser(generateMockInsertUser());
+			const originalUpdatedAt = createdUser.updatedAt;
 
 			t.mock.timers.tick(100);
 
 			// Act
 			const result = await repo.update({
 				data: { name: "Updated Name" },
-				userId: user._id,
+				userId: createdUser.id,
 			});
 
 			// Assert
@@ -484,17 +491,14 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should return 'failure result' with 'DatabaseDuplicateKeyError' when updating with existing email", async () => {
 			// Arrange
-			const mockUsers = generateMockInsertUsers({ count: 2 });
-			const result1 = await repo.create(mockUsers[0]);
-			const result2 = await repo.create(mockUsers[1]);
-
-			assert.strictEqual(result1.success, true);
-			assert.strictEqual(result2.success, true);
+			const [user1, user2] = await createUsers(
+				generateMockInsertUsers({ count: 2 }),
+			);
 
 			// Act
 			const result = await repo.update({
-				data: { email: result1.data.email },
-				userId: result2.data._id,
+				data: { email: user1.email },
+				userId: user2.id,
 			});
 
 			// Assert
@@ -506,18 +510,21 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 	describe("delete", () => {
 		test("Should return 'success result' with 'deleted user' when user is deleted successfully", async () => {
 			// Arrange
-			const mockUser = generateMockInsertUser();
-			const user = await UserModel.create(mockUser);
+			const createdUser = await createUser(generateMockInsertUser());
+			const userId = createdUser.id;
 
 			// Act
-			const result = await repo.delete({ userId: user._id });
-			const foundUser = await UserModel.findById(user._id);
+			const result = await repo.delete({ userId });
 
 			// Assert
 			assert.strictEqual(result.success, true);
 			assert.ok(result.data);
-			assert.equal(result.data.email, mockUser.email.toLowerCase());
-			assert.equal(foundUser, null);
+			assert.strictEqual(result.data.email, createdUser.email);
+
+			// Verify user is actually deleted
+			const foundUser = await repo.getById({ userId });
+			assert.strictEqual(foundUser.success, true);
+			assert.strictEqual(foundUser.data, null);
 		});
 
 		test("Should return 'success result' with 'null' when user ID does not exist", async () => {
@@ -548,12 +555,11 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 	describe("existsByEmail", () => {
 		test("Should return 'success result' with 'userId' when user exists by email", async () => {
 			// Arrange
-			const mockUser = generateMockInsertUser();
-			await UserModel.create(mockUser);
+			const createdUser = await createUser(generateMockInsertUser());
 
 			// Act
 			const result = await repo.existsByEmail({
-				email: mockUser.email,
+				email: createdUser.email,
 			});
 
 			// Assert
@@ -574,14 +580,16 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should return 'success result' when email contains special characters", async () => {
 			// Arrange
-			const mockUser = generateMockInsertUser({
-				email: "test+label@example.com",
-			});
-			await UserModel.create(mockUser);
+			const createdUser = await createUser(
+				generateMockInsertUser({
+					email: "test+label@example.com",
+				}),
+			);
+			const targetEmail = createdUser.email;
 
 			// Act
 			const result = await repo.existsByEmail({
-				email: mockUser.email,
+				email: targetEmail,
 			});
 
 			// Assert

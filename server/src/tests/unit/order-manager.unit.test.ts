@@ -67,7 +67,7 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 
 		test("should call updatePayment with checkout session id, orderId, provider, and sessionURL after checkout session is created", async () => {
 			// Arrange
-			const orderId = mockSelectOrder._id.toString();
+			const orderId = mockSelectOrder.id;
 			mockOrderSvc.create.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSelectOrder, success: true }),
 			);
@@ -274,7 +274,7 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 
 	describe("getById", () => {
 		const mockOrder = generateMockSelectOrder();
-		const orderId = mockOrder._id.toString();
+		const orderId = mockOrder.id;
 
 		test("should return order when order service succeeds", async () => {
 			// Arrange
@@ -497,7 +497,7 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			status: "processing",
 			payment: undefined,
 		});
-		const orderId = mockOrder._id.toString();
+		const orderId = mockOrder.id;
 
 		test("should return updated order when order service succeeds", async () => {
 			// Arrange

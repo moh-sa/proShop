@@ -8,28 +8,23 @@ import { ProductRepository } from "../../repositories/index.js";
 import { CacheService, ProductService } from "../../services/index.js";
 import { generateMockObjectId } from "../mocks/index.js";
 import {
+	generateMockInsertProductsWithStringImage,
 	generateMockInsertProductWithStringImage,
-	generateMockSelectProduct,
-	generateMockSelectProducts,
 } from "../mocks/product.mock.js";
-import { connectTestDatabase, disconnectTestDatabase } from "../utils/index.js";
+import {
+	connectTestDatabase,
+	createProduct,
+	createProducts,
+	disconnectTestDatabase,
+} from "../utils/index.js";
 
 suite("Product Service 〖 Integration Tests 〗", async () => {
-	let productService: ProductService;
-	let productRepository: ProductRepository;
-	let cacheService: CacheService;
+	const cacheService = new CacheService("product");
+	const productRepository = new ProductRepository(ProductModel, cacheService);
+	const productService = new ProductService(productRepository);
 
-	before(async () => {
-		await connectTestDatabase();
-		cacheService = new CacheService("product");
-		productRepository = new ProductRepository(ProductModel, cacheService);
-		productService = new ProductService(productRepository);
-	});
-
-	after(async () => {
-		await ProductModel.deleteMany({});
-		await disconnectTestDatabase();
-	});
+	before(async () => await connectTestDatabase());
+	after(async () => await disconnectTestDatabase());
 
 	beforeEach(async () => {
 		await ProductModel.deleteMany({});
@@ -47,7 +42,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(result.success, true);
 
-			assert.ok(result.data._id);
+			assert.ok(result.data.id);
 			assert.strictEqual(result.data.name, mockProduct.name);
 			assert.strictEqual(result.data.brand, mockProduct.brand);
 			assert.strictEqual(result.data.category, mockProduct.category);
@@ -92,8 +87,11 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 	describe("getAll", () => {
 		test("should return paginated response with items and meta when 'getAll' is called with valid parameters", async () => {
 			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 5 });
-			await ProductModel.insertMany(mockProducts);
+			const createdProducts = await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 5,
+				}),
+			);
 
 			// Act
 			const result = await productService.getAll({
@@ -106,13 +104,16 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			assert.ok(result.data);
 			assert.ok(result.data.meta);
 			assert.ok(Array.isArray(result.data.items));
-			assert.strictEqual(result.data.items.length, mockProducts.length);
+			assert.strictEqual(result.data.items.length, createdProducts.length);
 		});
 
 		test("should return correct pagination meta when 'getAll' is called", async () => {
 			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 5 });
-			await ProductModel.insertMany(mockProducts);
+			await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 5,
+				}),
+			);
 
 			// Act
 			const result = await productService.getAll({
@@ -132,9 +133,13 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 		test("should return correct number of items per page when 'getAll' is called with specific pageSize", async () => {
 			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 5 });
+			await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 5,
+				}),
+			);
+
 			const pageSize = "2";
-			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productService.getAll({
@@ -150,10 +155,14 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 		test("should return correct page of items when 'getAll' is called with specific pageNumber", async () => {
 			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 5 });
+			await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 5,
+				}),
+			);
+
 			const pageSize = "2";
 			const pageNumber = "2";
-			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productService.getAll({
@@ -169,10 +178,14 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 		test("should return correct pagination meta for multiple pages when 'getAll' is called", async () => {
 			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 5 });
+			await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 5,
+				}),
+			);
+
 			const pageSize = "2";
 			const pageNumber = "2";
-			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productService.getAll({
@@ -192,9 +205,13 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 		test("should return filtered items when 'getAll' is called with search keyword", async () => {
 			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 5 });
-			const keyword = mockProducts[0].name;
-			await ProductModel.insertMany(mockProducts);
+			const createdProducts = await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 5,
+				}),
+			);
+
+			const keyword = createdProducts[0].name;
 
 			// Act
 			const result = await productService.getAll({
@@ -211,9 +228,13 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 		test("should return empty items array when 'getAll' is called with non-existent keyword", async () => {
 			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 5 });
+			await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 5,
+				}),
+			);
+
 			const keyword = "nonexistentproduct";
-			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productService.getAll({
@@ -230,9 +251,13 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 		test("should return correct pagination meta when no products match keyword", async () => {
 			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 5 });
+			await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 5,
+				}),
+			);
+
 			const keyword = "nonexistentproduct";
-			await ProductModel.insertMany(mockProducts);
 
 			// Act
 			const result = await productService.getAll({
@@ -253,8 +278,11 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 		test("should return items with correct structure when 'getAll' is called", async () => {
 			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 1 });
-			await ProductModel.insertMany(mockProducts);
+			await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 5,
+				}),
+			);
 
 			// Act
 			const result = await productService.getAll({
@@ -264,15 +292,16 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.items.length, 1);
+			assert.strictEqual(result.data.items.length, 5);
 
-			const product = result.data.items[0];
-			assert.ok(product._id);
-			assert.ok(typeof product.name === "string");
-			assert.ok(typeof product.brand === "string");
-			assert.ok(typeof product.category === "string");
-			assert.ok(typeof product.price === "number");
-			assert.ok(typeof product.rating === "number");
+			result.data.items.forEach((product) => {
+				assert.ok(product.id);
+				assert.ok(typeof product.name === "string");
+				assert.ok(typeof product.brand === "string");
+				assert.ok(typeof product.category === "string");
+				assert.ok(typeof product.price === "number");
+				assert.ok(typeof product.rating === "number");
+			});
 		});
 
 		test("should return validation error when 'pageNumber' is invalid", async () => {
@@ -351,10 +380,16 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 	describe("getTopRated", () => {
 		test("should return top rated products sorted by rating when 'repo.getTopRated' is called", async () => {
 			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 5 });
-			const expectedResult = (await ProductModel.insertMany(mockProducts))
+			const createdProducts = await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 5,
+				}),
+			);
+
+			const expectedResult = createdProducts
+				.sort((a, b) => b.rating - a.rating)
 				.map((p) => ({
-					_id: p._id.toString(),
+					id: p.id,
 					image: p.image,
 					name: p.name,
 					price: p.price,
@@ -366,19 +401,17 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.ok(result.data.length > 0);
-
-			const resultWithStringId = result.data.map((product) => ({
-				...product,
-				_id: product._id.toString(),
-			}));
-			assert.deepStrictEqual(resultWithStringId, expectedResult);
+			assert.strictEqual(result.data.length, expectedResult.length);
+			assert.deepStrictEqual(result.data, expectedResult);
 		});
 
 		test("should return at most MAX_TOP_RATED_PRODUCTS products when 'repo.getTopRated' is called", async () => {
 			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 10 });
-			await ProductModel.insertMany(mockProducts);
+			await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 10,
+				}),
+			);
 
 			// Act
 			const result = await productService.getTopRated();
@@ -390,8 +423,11 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 		test("should return only id, name, price and image fields for each product", async () => {
 			// Arrange
-			const mockProducts = generateMockSelectProducts({ count: 3 });
-			await ProductModel.insertMany(mockProducts);
+			await createProducts(
+				generateMockInsertProductsWithStringImage({
+					count: 3,
+				}),
+			);
 
 			// Act
 			const result = await productService.getTopRated();
@@ -400,7 +436,7 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.success, true);
 			result.data.forEach((product) => {
 				const keys = Object.keys(product);
-				assert.ok(keys.includes("_id"));
+				assert.ok(keys.includes("id"));
 				assert.ok(keys.includes("name"));
 				assert.ok(keys.includes("price"));
 				assert.ok(keys.includes("image"));
@@ -409,8 +445,6 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 		});
 
 		test("should return empty array when 'repo.getTopRated' is called and no products exist", async () => {
-			// Arrange - database is already empty from beforeEach
-
 			// Act
 			const result = await productService.getTopRated();
 
@@ -423,9 +457,11 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 	describe("getById", () => {
 		test("should return product when 'repo.getById' is called with valid ID", async () => {
 			// Arrange
-			const mockProduct = generateMockSelectProduct();
-			const productId = mockProduct._id.toString();
-			await ProductModel.create(mockProduct);
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
+
+			const productId = createdProduct.id;
 
 			// Act
 			const result = await productService.getById({
@@ -434,19 +470,25 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data._id.toString(), productId);
-			assert.strictEqual(result.data.name, mockProduct.name);
-			assert.strictEqual(result.data.brand, mockProduct.brand);
-			assert.strictEqual(result.data.category, mockProduct.category);
-			assert.strictEqual(result.data.description, mockProduct.description);
-			assert.strictEqual(result.data.price, mockProduct.price);
-			assert.strictEqual(result.data.countInStock, mockProduct.countInStock);
-			assert.strictEqual(result.data.image, mockProduct.image);
+			assert.strictEqual(result.data.id, productId);
+			assert.strictEqual(result.data.name, createdProduct.name);
+			assert.strictEqual(result.data.brand, createdProduct.brand);
+			assert.strictEqual(result.data.category, createdProduct.category);
+			assert.strictEqual(
+				result.data.description,
+				createdProduct.description,
+			);
+			assert.strictEqual(result.data.price, createdProduct.price);
+			assert.strictEqual(
+				result.data.countInStock,
+				createdProduct.countInStock,
+			);
+			assert.strictEqual(result.data.image, createdProduct.image);
 		});
 
 		test("should return not found error when 'repo.getById' is called with non-existent ID", async () => {
 			// Arrange
-			const nonExistentId = generateMockObjectId().toString();
+			const nonExistentId = generateMockObjectId();
 
 			// Act
 			const result = await productService.getById({ productId: nonExistentId });
@@ -472,9 +514,11 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 	describe("update", () => {
 		test("should update and persist product when 'repo.update' is called with valid data", async () => {
 			// Arrange
-			const mockProduct = generateMockSelectProduct();
-			const productId = mockProduct._id.toString();
-			await productRepository.create(mockProduct);
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
+
+			const productId = createdProduct.id;
 			const updateData = {
 				name: "Updated Product Name",
 				price: 999,
@@ -492,16 +536,18 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.price, updateData.price);
 
 			// Verify other fields remain unchanged
-			assert.strictEqual(result.data.brand, mockProduct.brand);
-			assert.strictEqual(result.data.category, mockProduct.category);
-			assert.strictEqual(result.data.image, mockProduct.image);
+			assert.strictEqual(result.data.brand, createdProduct.brand);
+			assert.strictEqual(result.data.category, createdProduct.category);
+			assert.strictEqual(result.data.image, createdProduct.image);
 		});
 
 		test("should keep existing image when 'repo.update' is called without new image", async () => {
 			// Arrange
-			const mockProduct = generateMockSelectProduct();
-			const productId = mockProduct._id.toString();
-			await productRepository.create(mockProduct);
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
+
+			const productId = createdProduct.id;
 			const updateData = {
 				name: "Updated Product Name",
 			};
@@ -514,12 +560,12 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.image, mockProduct.image);
+			assert.strictEqual(result.data.image, createdProduct.image);
 		});
 
 		test("should return not found error when 'repo.update' is called with non-existent ID", async () => {
 			// Arrange
-			const nonExistentId = generateMockObjectId().toString();
+			const nonExistentId = generateMockObjectId();
 			const updateData = { name: "Updated Product Name" };
 
 			// Act
@@ -535,9 +581,11 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 
 		test("should return validation error when 'repo.update' is called with invalid data", async () => {
 			// Arrange
-			const mockProduct = generateMockSelectProduct();
-			const productId = mockProduct._id.toString();
-			await ProductModel.create(mockProduct);
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
+
+			const productId = createdProduct.id;
 			const invalidData = { price: "invalid-price" as unknown as number };
 
 			// Act
@@ -571,22 +619,28 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 	describe("delete", () => {
 		test("should delete product when 'repo.delete' is called with valid ID", async () => {
 			// Arrange
-			const mockProduct = generateMockSelectProduct();
-			const productId = mockProduct._id.toString();
-			await productRepository.create(mockProduct);
+			const createdProduct = await createProduct(
+				generateMockInsertProductWithStringImage(),
+			);
+
+			const productId = createdProduct.id;
 
 			// Act
 			const result = await productService.delete({ productId });
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			const deletedProduct = await ProductModel.findById(mockProduct._id);
-			assert.strictEqual(deletedProduct, null);
+
+			const deletedProduct = await productRepository.getById({
+				productId,
+			});
+			assert.strictEqual(deletedProduct.success, true);
+			assert.strictEqual(deletedProduct.data, null);
 		});
 
 		test("should return not found error when 'repo.delete' is called with non-existent ID", async () => {
 			// Arrange
-			const nonExistentId = generateMockObjectId().toString();
+			const nonExistentId = generateMockObjectId();
 
 			// Act
 			const result = await productService.delete({ productId: nonExistentId });

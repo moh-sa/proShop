@@ -10,6 +10,7 @@ import {
 	objectIdValidator,
 	passwordValidator,
 } from "../../validators/index.js";
+import { generateMockObjectId } from "../mocks/index.js";
 
 suite("Zod Schemas 〖 Unit Tests 〗", () => {
 	describe("emailValidator", () => {
@@ -304,7 +305,7 @@ suite("Zod Schemas 〖 Unit Tests 〗", () => {
 
 		test("Should return 'Types.ObjectId' when a ObjectId string is given", () => {
 			// Arrange
-			const id = new Types.ObjectId().toString();
+			const id = generateMockObjectId();
 
 			// Act
 			const result = objectIdValidator.parse(id);
@@ -316,7 +317,7 @@ suite("Zod Schemas 〖 Unit Tests 〗", () => {
 
 		test("Should return 'Types.ObjectId' when a ObjectId string with whitespace is given", () => {
 			// Arrange
-			const id = `   ${new Types.ObjectId().toString()}   `;
+			const id = `   ${generateMockObjectId()}   `;
 
 			// Act
 			const result = objectIdValidator.parse(id);
@@ -360,10 +361,8 @@ suite("Zod Schemas 〖 Unit Tests 〗", () => {
 
 		test("Should throw 'ZodError' when 'invalid ObjectId' is given", () => {
 			// Arrange
-			const ogId = new Types.ObjectId();
-			const id = `${ogId.toString().slice(0, 10)}#$%${ogId
-				.toString()
-				.slice(10)}`;
+			const ogId = generateMockObjectId();
+			const id = `${ogId.slice(0, 10)}#$%${ogId.slice(10)}`;
 
 			// Act & Assert
 			assert.throws(
