@@ -20,6 +20,17 @@ export function generateMockInsertProducts({
 	);
 }
 
+export function generateMockInsertProductsWithStringImage({
+	count,
+}: {
+	count: number;
+}): Array<CreateProductWithStringImage> {
+	return faker.helpers.uniqueArray(
+		() => generateMockInsertProductWithStringImage(),
+		count,
+	);
+}
+
 export function generateMockInsertProductWithMulterImage(): CreateProduct {
 	const mockProduct = generateMockInsertProduct();
 	const mockMulterImage = mockMulterImageFile();
