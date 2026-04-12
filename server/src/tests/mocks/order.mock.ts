@@ -105,15 +105,11 @@ function generateMockUser(): CreateOrder["user"] {
 export function generateMockInsertOrder(
 	options: Partial<GenerateInsertOrderOptions> = {},
 ): CreateOrder {
-	const orderItems = options.orderItems
-		? options.orderItems.map((item) => generateMockOrderItem(item))
-		: generateMockOrderItems(
-				options.orderItemsCount ??
-					faker.number.int({
-						max: MOCK_DATA_CONSTANTS.ORDER_ITEMS.MAX_COUNT,
-						min: MOCK_DATA_CONSTANTS.ORDER_ITEMS.MIN_COUNT,
-					}),
-			);
+	const orderItems =
+		options.orderItems ??
+		generateMockOrderItems(
+			options.orderItemsCount ?? faker.number.int({ max: 5, min: 1 }),
+		);
 
 	const itemsPrice =
 		options.itemsPrice ??
