@@ -14,6 +14,7 @@ import type {
 	Result,
 	Review,
 	ReviewFilter,
+	ReviewSchema,
 } from "../types/index.js";
 
 import { ReviewModel } from "../models/review.model.js";
@@ -60,7 +61,7 @@ type ReviewResult<T> = Result<T, DatabaseBaseError>;
 
 export class ReviewRepository implements IReviewRepository {
 	private readonly _db: typeof ReviewModel;
-	private _paginator: Paginator<Review>;
+	private _paginator: Paginator<ReviewSchema, Review>;
 
 	constructor(db?: typeof ReviewModel) {
 		this._db = db ?? ReviewModel;
@@ -201,7 +202,7 @@ export class ReviewRepository implements IReviewRepository {
 		args: MethodParams<IReviewRepository, "getAll">,
 	): MethodReturn<IReviewRepository, "getAll"> {
 		try {
-			const result = await this._paginator.paginate<Review>({
+			const result = await this._paginator.paginate({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: args.filters && this._prepareFilters(args.filters),
@@ -222,7 +223,7 @@ export class ReviewRepository implements IReviewRepository {
 		args: MethodParams<IReviewRepository, "getAllByProductId">,
 	): MethodReturn<IReviewRepository, "getAllByProductId"> {
 		try {
-			const result = await this._paginator.paginate<Review>({
+			const result = await this._paginator.paginate({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: {
@@ -246,7 +247,7 @@ export class ReviewRepository implements IReviewRepository {
 		args: MethodParams<IReviewRepository, "getAllByUserId">,
 	): MethodReturn<IReviewRepository, "getAllByUserId"> {
 		try {
-			const result = await this._paginator.paginate<Review>({
+			const result = await this._paginator.paginate({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: {

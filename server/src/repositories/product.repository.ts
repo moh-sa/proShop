@@ -12,6 +12,7 @@ import type {
 	PaginationQuery,
 	Product,
 	ProductFilter,
+	ProductSchema,
 	Result,
 	TopRatedProduct,
 } from "../types/index.js";
@@ -46,7 +47,7 @@ type ProductResult<T> = Result<T, DatabaseBaseError>;
 export class ProductRepository implements IProductRepository {
 	private _cache: CacheService;
 	private readonly _db: typeof ProductModel;
-	private _paginator: Paginator<Product>;
+	private _paginator: Paginator<ProductSchema, Product>;
 
 	// Cache keys
 	private readonly _getTopRatedCacheKey = "top-rated";

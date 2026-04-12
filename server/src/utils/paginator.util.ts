@@ -39,10 +39,14 @@ type ProjectionSort<T extends Record<string, unknown>> = Partial<
 /**
  * Generic Mongoose paginator. TResult allows projected shapes.
  * @generic `TDocument` - The type of the document to paginate.
+ * @generic `TDefaultResult` - The type of the default result to paginate.
  * @example
  * type ProductPaginator = Paginator<SelectProduct>
  *  */
-export class Paginator<TDocument extends Record<string, unknown>> {
+export class Paginator<
+	TDocument extends Record<string, unknown>,
+	TDefaultResult extends Record<string, unknown>,
+> {
 	private readonly _defaultPageSize: number;
 	private readonly _maxPageSize: number;
 
@@ -73,7 +77,7 @@ export class Paginator<TDocument extends Record<string, unknown>> {
 	 *   ],
 	 * });
 	 */
-	public async paginate<TResult>(
+	public async paginate<TResult = TDefaultResult>(
 		args: PaginatorParams<TDocument>,
 	): Promise<PaginatedResponse<TResult>> {
 		const { pageNumber, pageSize, skip } = this._preparePaginationParams(args);

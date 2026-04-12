@@ -12,6 +12,7 @@ import type {
 	MethodReturn,
 	Order,
 	OrderFilter,
+	OrderSchema,
 	PaginatedResponse,
 	PaginationQuery,
 	Result,
@@ -45,7 +46,7 @@ type OrderResult<T> = Result<T, DatabaseBaseError>;
 
 export class OrderRepository implements IOrderRepository {
 	private readonly _db: typeof OrderModel;
-	private _paginator: Paginator<Order>;
+	private _paginator: Paginator<OrderSchema, Order>;
 
 	constructor(db?: typeof OrderModel) {
 		this._db = db ?? OrderModel;

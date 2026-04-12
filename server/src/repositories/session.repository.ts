@@ -13,6 +13,7 @@ import type {
 	Result,
 	Session,
 	SessionFilter,
+	SessionSchema,
 } from "../types/index.js";
 
 import { SessionModel } from "../models/session.model.js";
@@ -71,7 +72,7 @@ type SessionResult<T> = Result<T, DatabaseBaseError>;
 
 export class SessionRepository implements ISessionRepository {
 	private readonly _db: typeof SessionModel;
-	private _paginator: Paginator<Session>;
+	private _paginator: Paginator<SessionSchema, Session>;
 
 	constructor(db?: typeof SessionModel) {
 		this._db = db ?? SessionModel;
@@ -165,7 +166,7 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "getAll">,
 	): MethodReturn<ISessionRepository, "getAll"> {
 		try {
-			const result = await this._paginator.paginate<Session>({
+			const result = await this._paginator.paginate({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: args.filters && this._prepareFilters(args.filters),
@@ -188,7 +189,7 @@ export class SessionRepository implements ISessionRepository {
 		try {
 			const parsedUserId = new Types.ObjectId(args.userId);
 
-			const result = await this._paginator.paginate<Session>({
+			const result = await this._paginator.paginate({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: {
@@ -216,7 +217,7 @@ export class SessionRepository implements ISessionRepository {
 		try {
 			const parsedUserId = new Types.ObjectId(args.userId);
 
-			const result = await this._paginator.paginate<Session>({
+			const result = await this._paginator.paginate({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: {
@@ -240,7 +241,7 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "getAllRevoked">,
 	): MethodReturn<ISessionRepository, "getAllRevoked"> {
 		try {
-			const result = await this._paginator.paginate<Session>({
+			const result = await this._paginator.paginate({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: {
@@ -266,7 +267,7 @@ export class SessionRepository implements ISessionRepository {
 		try {
 			const parsedUserId = new Types.ObjectId(args.userId);
 
-			const result = await this._paginator.paginate<Session>({
+			const result = await this._paginator.paginate({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: {

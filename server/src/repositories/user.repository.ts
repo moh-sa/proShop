@@ -12,6 +12,7 @@ import type {
 	Result,
 	User,
 	UserFilter,
+	UserSchema,
 } from "../types/index.js";
 
 import { UserModel } from "../models/user.model.js";
@@ -38,7 +39,7 @@ type UserResult<T> = Result<T, DatabaseBaseError>;
 
 export class UserRepository implements IUserRepository {
 	private readonly _db: typeof UserModel;
-	private _paginator: Paginator<User>;
+	private _paginator: Paginator<UserSchema, User>;
 
 	constructor(db?: typeof UserModel) {
 		this._db = db ?? UserModel;
@@ -100,7 +101,7 @@ export class UserRepository implements IUserRepository {
 		args: MethodParams<IUserRepository, "getAll">,
 	): MethodReturn<IUserRepository, "getAll"> {
 		try {
-			const result = await this._paginator.paginate<User>({
+			const result = await this._paginator.paginate({
 				pageNumber: args.pageNumber,
 				pageSize: args.pageSize,
 				query: args.filters && this._prepareFilters(args.filters),
