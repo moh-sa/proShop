@@ -50,7 +50,7 @@ function generateMockOrderItem(
 		image: options.image ?? mockProduct.image,
 		name: options.name ?? mockProduct.name,
 		price: options.price ?? mockProduct.price,
-		product: options.product ?? mockProduct._id,
+		product: options.product ?? mockProduct.id,
 		qty:
 			options.qty ??
 			faker.number.int({
@@ -95,8 +95,8 @@ function generateMockShippingAddress(
 
 function generateMockUser(): CreateOrder["user"] {
 	return {
-		_id: generateMockObjectId(),
 		email: faker.internet.exampleEmail().toLowerCase(),
+		id: generateMockObjectId(),
 		name: faker.person.fullName(),
 	};
 }
@@ -185,8 +185,8 @@ export function generateMockSelectOrder(
 
 	return {
 		...baseOrder,
-		_id: options._id ?? new Types.ObjectId(),
 		createdAt: options.createdAt ?? faker.date.recent(),
+		id: options.id ?? generateMockObjectId(),
 		updatedAt: options.updatedAt ?? faker.date.recent(),
 	};
 }

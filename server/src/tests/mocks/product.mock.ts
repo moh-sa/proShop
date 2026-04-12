@@ -42,8 +42,8 @@ export function generateMockSelectProduct(): Product {
 	const mockProduct = baseMockProduct();
 	return {
 		...mockProduct,
-		_id: generateMockObjectId(),
 		createdAt: new Date(),
+		id: generateMockObjectId(),
 		image: faker.image.url(),
 		numReviews: 0,
 		rating: 0,

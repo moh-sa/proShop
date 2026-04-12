@@ -31,7 +31,7 @@ export function generateMockInsertUsers({
 
 export function generateMockSelectUser(options: Partial<User> = {}): User {
 	return {
-		_id: generateMockObjectId(),
+		id: generateMockObjectId(),
 		createdAt: faker.date.recent(),
 		email: faker.internet.exampleEmail().toLowerCase(),
 		isAdmin: faker.datatype.boolean(),

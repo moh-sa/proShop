@@ -42,7 +42,7 @@ export function generateMockJwtPayload(
 ) {
 	const now = new Date();
 	const tokenId = faker.string.uuid();
-	const userId = generateMockObjectId().toString();
+	const userId = generateMockObjectId();
 
 	const issuedAt = now.getTime() / 1000;
 

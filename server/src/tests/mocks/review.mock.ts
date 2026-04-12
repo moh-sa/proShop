@@ -34,7 +34,7 @@ export function generateMockSelectReview(
 	options: Partial<Review> = {},
 ): Review {
 	return {
-		_id: generateMockObjectId(),
+		id: generateMockObjectId(),
 		comment: faker.lorem.sentence(),
 		createdAt: new Date(),
 		name: faker.internet.username(),
