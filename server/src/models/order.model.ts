@@ -62,14 +62,14 @@ const orderSchema = new Schema<OrderSchema>(
 			type: Number,
 		},
 		user: {
-			_id: {
-				ref: "User",
-				required: true,
-				type: mongoose.Schema.Types.ObjectId,
-			},
 			email: {
 				required: true,
 				type: String,
+			},
+			id: {
+				ref: "User",
+				required: true,
+				type: mongoose.Schema.Types.ObjectId,
 			},
 			name: {
 				required: true,

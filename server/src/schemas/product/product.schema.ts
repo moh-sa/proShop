@@ -3,6 +3,7 @@ import { z } from "zod";
 import { IMAGE_FIELD_NAME } from "../../constants/index.js";
 import {
 	nonEmptyStringValidator,
+	objectIdStringValidator,
 	objectIdValidator,
 } from "../../validators/index.js";
 import { insertImageSchema, selectImageSchema } from "./image.schema.js";
@@ -23,7 +24,7 @@ const baseSchema = z.object({
 
 	price: z.coerce.number().min(0, { error: "Price is required." }),
 
-	user: objectIdValidator,
+	user: objectIdStringValidator,
 });
 
 export const createProductSchema = baseSchema.extend({
@@ -31,8 +32,8 @@ export const createProductSchema = baseSchema.extend({
 });
 
 export const productSchema = baseSchema.extend({
-	_id: objectIdValidator,
 	createdAt: z.date(),
+	id: objectIdStringValidator,
 
 	[IMAGE_FIELD_NAME]: selectImageSchema,
 	numReviews: z
@@ -47,6 +48,6 @@ export const productSchema = baseSchema.extend({
 });
 
 export const productModelSchema = productSchema.extend({
-	_id: objectIdValidator,
+	id: objectIdValidator,
 	user: objectIdValidator,
 });

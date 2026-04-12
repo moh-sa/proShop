@@ -17,7 +17,7 @@ import type { Stringify } from "./stringify.type.js";
 
 export type AllProducts = Pick<
 	Product,
-	"_id" | "brand" | "category" | "image" | "name" | "price" | "rating"
+	"brand" | "category" | "id" | "image" | "name" | "price" | "rating"
 >;
 export type CreateProduct = z.infer<typeof createProductSchema>;
 export type CreateProductWithStringImage = Omit<CreateProduct, "image"> & {
@@ -28,7 +28,7 @@ export type Product = z.infer<typeof productSchema>;
 
 export type ProductSchema = z.infer<typeof productModelSchema>;
 
-export type TopRatedProduct = Pick<Product, "_id" | "image" | "name" | "price">;
+export type TopRatedProduct = Pick<Product, "id" | "image" | "name" | "price">;
 
 // Pagination
 export type ProductFilter = PaginationFilter<

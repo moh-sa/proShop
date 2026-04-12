@@ -1,12 +1,16 @@
 import { z } from "zod";
 
-import { objectIdValidator, uuidValidator } from "../../validators/index.js";
+import {
+	objectIdStringValidator,
+	objectIdValidator,
+	uuidValidator,
+} from "../../validators/index.js";
 
 const baseSchema = z.object({
 	expiresAt: z.date(),
 	revokedAt: z.date().nullable(),
 	tokenId: uuidValidator("Token ID"),
-	userId: objectIdValidator,
+	userId: objectIdStringValidator,
 });
 
 export const createSessionSchema = baseSchema.partial({
@@ -15,11 +19,11 @@ export const createSessionSchema = baseSchema.partial({
 
 export const sessionSchema = baseSchema.extend({
 	createdAt: z.date(),
-	id: objectIdValidator,
+	id: objectIdStringValidator,
 	updatedAt: z.date(),
 });
 
 export const sessionModelSchema = sessionSchema.extend({
-	_id: objectIdValidator,
+	id: objectIdValidator,
 	userId: objectIdValidator,
 });

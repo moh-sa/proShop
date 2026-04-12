@@ -2,12 +2,13 @@ import { z } from "zod";
 
 import {
 	nonEmptyStringValidator,
+	objectIdStringValidator,
 	objectIdValidator,
 	urlValidator,
 } from "../../validators/index.js";
 import { paymentProviderSchema } from "../payment/payment.schema.js";
 import { shippingAddressSchema } from "../shipping/shipping-address.schema.js";
-import { userSchema } from "../user/user.schema.js";
+import { userModelSchema, userSchema } from "../user/user.schema.js";
 import { createOrderItemSchema } from "./order-item.schema.js";
 
 export const orderStatusSchema = z.enum([
@@ -40,26 +41,26 @@ const baseSchema = z.object({
 	taxPrice: z.number().min(0, { error: "Tax price is required." }),
 
 	totalPrice: z.number().min(0, { error: "Total price is required." }),
-	user: userSchema.pick({ _id: true, email: true, name: true }),
+	user: userSchema.pick({ email: true, id: true, name: true }),
 });
 
 export const createOrderSchema = baseSchema;
 
 export const orderSchema = baseSchema.extend({
-	_id: objectIdValidator,
 	createdAt: z.date(),
+	id: objectIdStringValidator,
 	updatedAt: z.date(),
 });
 
 export const orderModelSchema = orderSchema.extend({
 	_id: objectIdValidator,
-	user: userModelSchema.pick({ _id: true, email: true, name: true }),
+	user: userModelSchema.pick({ email: true, id: true, name: true }),
 });
 
 export const allOrdersResponseSchema = orderSchema.pick({
-	_id: true,
 	createdAt: true,
 	deliveredAt: true,
+	id: true,
 	payment: true,
 	status: true,
 	totalPrice: true,
@@ -67,7 +68,7 @@ export const allOrdersResponseSchema = orderSchema.pick({
 });
 
 export const markAsBaseParamsSchema = z.object({
-	orderId: objectIdValidator.transform((id) => id.toString()),
+	orderId: objectIdStringValidator,
 });
 
 export const markAsProcessingParamsSchema = markAsBaseParamsSchema.extend({

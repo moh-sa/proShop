@@ -3,6 +3,7 @@ import { z } from "zod";
 import { MAX_NAME_LENGTH, MIN_NAME_LENGTH } from "../../constants/index.js";
 import {
 	emailValidator,
+	objectIdStringValidator,
 	objectIdValidator,
 	passwordValidator,
 } from "../../validators/index.js";
@@ -25,11 +26,11 @@ const baseSchema = z.object({
 
 export const createUserSchema = baseSchema;
 export const userSchema = baseSchema.extend({
-	_id: objectIdValidator,
 	createdAt: z.date(),
+	id: objectIdStringValidator,
 	updatedAt: z.date(),
 });
 
 export const userModelSchema = userSchema.extend({
-	_id: objectIdValidator,
+	id: objectIdValidator,
 });

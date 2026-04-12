@@ -51,24 +51,7 @@ const SessionSchema = new Schema<SessionSchema>(
 		},
 	},
 	{
-		id: true,
 		timestamps: true,
-
-		toJSON: {
-			transform(_, ret) {
-				const { _id, ...rest } = ret;
-				return rest;
-			},
-			virtuals: true,
-		},
-
-		toObject: {
-			transform(_, ret) {
-				const { _id, ...rest } = ret;
-				return rest;
-			},
-			virtuals: true,
-		},
 	},
 );
 
