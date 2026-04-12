@@ -1,5 +1,5 @@
-import { Types } from "mongoose";
+import { faker } from "@faker-js/faker";
 
-export function generateMockObjectId(): Types.ObjectId {
-	return new Types.ObjectId();
+export function generateMockObjectId(): string {
+	return faker.database.mongodbObjectId();
 }
