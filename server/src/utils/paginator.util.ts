@@ -16,12 +16,12 @@ export interface PaginatorConfig {
 	maxPageSize?: number;
 }
 
-export type PaginatorParams<T extends Record<string, unknown>> =
+export type PaginatorParams<TDocument extends Record<string, unknown>> =
 	PaginationParams & {
 		pipeline?: PaginatorPipeline;
-		query?: PaginatorQuery<T>;
-		select?: PaginationSelect<T>;
-		sort?: PaginatorSort<T>;
+		query?: PaginatorQuery<TDocument>;
+		select?: PaginationSelect<TDocument>;
+		sort?: PaginatorSort<TDocument>;
 	};
 
 type PaginatorPipeline = Array<PipelineStage>;
