@@ -19,18 +19,18 @@ import type {
 } from "../types/index.js";
 
 import { OrderModel } from "../models/order.model.js";
-import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
+import {
+	handleDatabaseErrorResult,
+	Paginator,
+	serializeMongoResult,
+} from "../utils/index.js";
 
 export interface IOrderRepository {
 	create(data: CreateOrder): Promise<OrderResult<Order>>;
 	getAll(
 		args: GetAllOrdersRepositoryParams,
 	): Promise<OrderResult<PaginatedResponse<AllOrdersResponse>>>;
-	getById({
-		orderId,
-	}: {
-		orderId: Types.ObjectId;
-	}): Promise<OrderResult<null | Order>>;
+	getById({ orderId }: { orderId: string }): Promise<OrderResult<null | Order>>;
 	markAsCancelled(
 		params: MarkAsCancelledParams,
 	): Promise<OrderResult<null | Order>>;
@@ -38,7 +38,7 @@ export interface IOrderRepository {
 		params: MarkAsProcessingParams,
 	): Promise<OrderResult<null | Order>>;
 	updatePayment(
-		params: Partial<Order["payment"]> & { orderId: Types.ObjectId },
+		params: Partial<Order["payment"]> & { orderId: string },
 	): Promise<OrderResult<null | Order>>;
 }
 
@@ -58,8 +58,9 @@ export class OrderRepository implements IOrderRepository {
 	): MethodReturn<IOrderRepository, "create"> {
 		try {
 			const order = await this._db.create(data);
+
 			return {
-				data: order.toObject(),
+				data: serializeMongoResult(order.toObject()),
 				success: true,
 			};
 		} catch (error) {
@@ -98,7 +99,7 @@ export class OrderRepository implements IOrderRepository {
 			const result = await this._db.findById(orderId).lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {
@@ -123,7 +124,7 @@ export class OrderRepository implements IOrderRepository {
 				.lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {
@@ -149,7 +150,7 @@ export class OrderRepository implements IOrderRepository {
 				.lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {
@@ -179,7 +180,7 @@ export class OrderRepository implements IOrderRepository {
 				.lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {

@@ -17,24 +17,24 @@ import type {
 } from "../types/index.js";
 
 import { SessionModel } from "../models/session.model.js";
-import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
+import {
+	handleDatabaseErrorResult,
+	Paginator,
+	serializeMongoResult,
+} from "../utils/index.js";
 
 export interface ISessionRepository {
-	countActiveByUserId(args: {
-		userId: Types.ObjectId;
-	}): Promise<SessionResult<number>>;
+	countActiveByUserId(args: { userId: string }): Promise<SessionResult<number>>;
 	create(args: CreateSession): Promise<SessionResult<Session>>;
-	deleteAllByUserId(args: {
-		userId: Types.ObjectId;
-	}): Promise<SessionResult<number>>;
+	deleteAllByUserId(args: { userId: string }): Promise<SessionResult<number>>;
 	deleteByTokenIdAndUserId(args: {
 		tokenId: string;
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<SessionResult<null | Session>>;
 	existsByTokenIdAndUserId(args: {
 		tokenId: string;
-		userId: Types.ObjectId;
-	}): Promise<SessionResult<null | { _id: Types.ObjectId }>>;
+		userId: string;
+	}): Promise<SessionResult<null | { id: string }>>;
 	getAll(
 		args: GetAllSessionsRepositoryParams,
 	): Promise<SessionResult<PaginatedResponse<Session>>>;
@@ -52,19 +52,17 @@ export interface ISessionRepository {
 	): Promise<SessionResult<PaginatedResponse<Session>>>;
 	getByTokenIdAndUserId(args: {
 		tokenId: string;
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<SessionResult<null | Session>>;
-	revokeAllByUserId(args: {
-		userId: Types.ObjectId;
-	}): Promise<SessionResult<number>>;
+	revokeAllByUserId(args: { userId: string }): Promise<SessionResult<number>>;
 	revokeByTokenIdAndUserId(args: {
 		tokenId: string;
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<SessionResult<null | Session>>;
 	updateByTokenIdAndUserId(args: {
 		data: Partial<CreateSession>;
 		tokenId: string;
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<SessionResult<null | Session>>;
 }
 
@@ -105,7 +103,7 @@ export class SessionRepository implements ISessionRepository {
 			const result = await this._db.create(args);
 
 			return {
-				data: result.toObject(),
+				data: serializeMongoResult(result.toObject()),
 				success: true,
 			};
 		} catch (error) {
@@ -137,7 +135,7 @@ export class SessionRepository implements ISessionRepository {
 				.lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {
@@ -154,7 +152,7 @@ export class SessionRepository implements ISessionRepository {
 				.lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {
@@ -297,7 +295,7 @@ export class SessionRepository implements ISessionRepository {
 				.lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {
@@ -334,7 +332,7 @@ export class SessionRepository implements ISessionRepository {
 				.lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {
@@ -355,7 +353,7 @@ export class SessionRepository implements ISessionRepository {
 				.lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {
@@ -381,7 +379,7 @@ export class SessionRepository implements ISessionRepository {
 		}
 
 		if (filters.userId !== undefined) {
-			newFilter.userId = filters.userId;
+			newFilter.userId = new Types.ObjectId(filters.userId);
 		}
 
 		if (filters.revokedAt !== undefined) {

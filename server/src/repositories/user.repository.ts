@@ -1,5 +1,3 @@
-import type { Types } from "mongoose";
-
 import type { DatabaseBaseError } from "../errors/index.js";
 import type {
 	CreateUser,
@@ -16,22 +14,26 @@ import type {
 } from "../types/index.js";
 
 import { UserModel } from "../models/user.model.js";
-import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
+import {
+	handleDatabaseErrorResult,
+	Paginator,
+	serializeMongoResult,
+} from "../utils/index.js";
 
 export interface IUserRepository {
 	create(data: CreateUser): Promise<UserResult<User>>;
-	delete(data: { userId: Types.ObjectId }): Promise<UserResult<null | User>>;
+	delete(data: { userId: string }): Promise<UserResult<null | User>>;
 	existsByEmail(data: {
 		email: string;
-	}): Promise<UserResult<null | { _id: Types.ObjectId }>>;
+	}): Promise<UserResult<null | { id: string }>>;
 	getAll(
 		args: GetAllUsersRepositoryParams,
 	): Promise<UserResult<PaginatedResponse<User>>>;
 	getByEmail(data: { email: string }): Promise<UserResult<null | User>>;
-	getById(data: { userId: Types.ObjectId }): Promise<UserResult<null | User>>;
+	getById(data: { userId: string }): Promise<UserResult<null | User>>;
 	update(data: {
 		data: Partial<CreateUser>;
-		userId: Types.ObjectId;
+		userId: string;
 	}): Promise<UserResult<null | User>>;
 }
 
@@ -53,7 +55,7 @@ export class UserRepository implements IUserRepository {
 			const result = await this._db.create(data);
 
 			return {
-				data: result.toObject(),
+				data: serializeMongoResult(result.toObject()),
 				success: true,
 			};
 		} catch (error) {
@@ -71,7 +73,7 @@ export class UserRepository implements IUserRepository {
 			const result = await this._db.findByIdAndDelete(userId).lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {
@@ -89,7 +91,7 @@ export class UserRepository implements IUserRepository {
 			const result = await this._db.exists({ email }).lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {
@@ -128,7 +130,7 @@ export class UserRepository implements IUserRepository {
 			const result = await this._db.findOne({ email }).lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {
@@ -146,7 +148,7 @@ export class UserRepository implements IUserRepository {
 			const result = await this._db.findById(userId).lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {
@@ -167,7 +169,7 @@ export class UserRepository implements IUserRepository {
 				.lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {

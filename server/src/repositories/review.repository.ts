@@ -18,27 +18,27 @@ import type {
 } from "../types/index.js";
 
 import { ReviewModel } from "../models/review.model.js";
-import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
+import {
+	handleDatabaseErrorResult,
+	Paginator,
+	serializeMongoResult,
+} from "../utils/index.js";
 
 export interface IReviewRepository {
 	count: () => Promise<ReviewResult<number>>;
 	countByProductId: (data: {
-		productId: Types.ObjectId;
+		productId: string;
 	}) => Promise<ReviewResult<number>>;
-	countByUserId: (data: {
-		userId: Types.ObjectId;
-	}) => Promise<ReviewResult<number>>;
+	countByUserId: (data: { userId: string }) => Promise<ReviewResult<number>>;
 	create: (data: CreateReview) => Promise<ReviewResult<Review>>;
-	delete: (data: {
-		reviewId: Types.ObjectId;
-	}) => Promise<ReviewResult<null | Review>>;
+	delete: (data: { reviewId: string }) => Promise<ReviewResult<null | Review>>;
 	existsById: (data: {
-		reviewId: Types.ObjectId;
-	}) => Promise<ReviewResult<null | { _id: Types.ObjectId }>>;
+		reviewId: string;
+	}) => Promise<ReviewResult<null | { id: string }>>;
 	existsByUserIdAndProductId: (data: {
-		productId: Types.ObjectId;
-		userId: Types.ObjectId;
-	}) => Promise<ReviewResult<null | { _id: Types.ObjectId }>>;
+		productId: string;
+		userId: string;
+	}) => Promise<ReviewResult<null | { id: string }>>;
 	getAll: (
 		args: GetAllReviewsRepositoryParams,
 	) => Promise<ReviewResult<PaginatedResponse<Review>>>;
@@ -48,12 +48,10 @@ export interface IReviewRepository {
 	getAllByUserId: (
 		data: GetAllReviewsByUserIdRepositoryParams,
 	) => Promise<ReviewResult<PaginatedResponse<Review>>>;
-	getById: (data: {
-		reviewId: Types.ObjectId;
-	}) => Promise<ReviewResult<null | Review>>;
+	getById: (data: { reviewId: string }) => Promise<ReviewResult<null | Review>>;
 	update: (data: {
 		data: Partial<CreateReview>;
-		reviewId: Types.ObjectId;
+		reviewId: string;
 	}) => Promise<ReviewResult<null | Review>>;
 }
 
@@ -123,10 +121,10 @@ export class ReviewRepository implements IReviewRepository {
 		data: MethodParams<IReviewRepository, "create">,
 	): MethodReturn<IReviewRepository, "create"> {
 		try {
-			const result = (await this._db.create(data)).toObject();
+			const result = await this._db.create(data);
 
 			return {
-				data: result,
+				data: serializeMongoResult(result.toObject()),
 				success: true,
 			};
 		} catch (error) {
@@ -144,7 +142,7 @@ export class ReviewRepository implements IReviewRepository {
 			const result = await this._db.findByIdAndDelete(reviewId).lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {
@@ -166,7 +164,7 @@ export class ReviewRepository implements IReviewRepository {
 				.lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {
@@ -190,7 +188,7 @@ export class ReviewRepository implements IReviewRepository {
 				.lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {
@@ -277,7 +275,7 @@ export class ReviewRepository implements IReviewRepository {
 			const result = await this._db.findById(reviewId).lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {
@@ -298,7 +296,7 @@ export class ReviewRepository implements IReviewRepository {
 				.lean();
 
 			return {
-				data: result,
+				data: serializeMongoResult(result),
 				success: true,
 			};
 		} catch (error) {

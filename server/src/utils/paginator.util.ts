@@ -10,6 +10,7 @@ import type {
 } from "../types/index.js";
 
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "../constants/index.js";
+import { serializeMongoResult } from "./serialize-mongo-result.util.js";
 
 export interface PaginatorConfig {
 	defaultPageSize?: number;
@@ -278,7 +279,7 @@ export class Paginator<
 		});
 
 		return {
-			items: result.items ?? [],
+			items: serializeMongoResult(result.items ?? []) as Array<TResult>,
 			totalItems: result.meta?.[0]?.totalItems ?? 0,
 		};
 	}

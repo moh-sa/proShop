@@ -1,5 +1,3 @@
-import type { Types } from "mongoose";
-
 import type { DatabaseBaseError } from "../errors/index.js";
 import type {
 	AllProducts,
@@ -19,26 +17,26 @@ import type {
 
 import { ProductModel } from "../models/product.model.js";
 import { CacheService } from "../services/cache.service.js";
-import { handleDatabaseErrorResult, Paginator } from "../utils/index.js";
+import {
+	handleDatabaseErrorResult,
+	Paginator,
+	serializeMongoResult,
+} from "../utils/index.js";
 
 export interface IProductRepository {
 	count(query: Record<string, unknown>): Promise<ProductResult<number>>;
 	create(data: CreateProductWithStringImage): Promise<ProductResult<Product>>;
-	delete(data: {
-		productId: Types.ObjectId;
-	}): Promise<ProductResult<null | Product>>;
+	delete(data: { productId: string }): Promise<ProductResult<null | Product>>;
 	getAll(
 		args: GetAllProductsRepositoryParams,
 	): Promise<ProductResult<PaginatedResponse<AllProducts>>>;
-	getById(data: {
-		productId: Types.ObjectId;
-	}): Promise<ProductResult<null | Product>>;
+	getById(data: { productId: string }): Promise<ProductResult<null | Product>>;
 	getTopRated(data: {
 		limit: number;
 	}): Promise<ProductResult<Array<TopRatedProduct>>>;
 	update(data: {
 		data: Partial<CreateProductWithStringImage>;
-		productId: Types.ObjectId;
+		productId: string;
 	}): Promise<ProductResult<null | Product>>;
 }
 
@@ -76,14 +74,16 @@ export class ProductRepository implements IProductRepository {
 		data: MethodParams<IProductRepository, "create">,
 	): MethodReturn<IProductRepository, "create"> {
 		try {
-			const product = (await this._db.create(data)).toObject();
+			const product = await this._db.create(data);
+			const serializedProduct = serializeMongoResult(product.toObject());
+
 			this._cache.set({
-				key: product._id.toString(),
-				value: product,
+				key: serializedProduct.id,
+				value: serializedProduct,
 			});
 
 			return {
-				data: product,
+				data: serializedProduct,
 				success: true,
 			};
 		} catch (error) {
@@ -99,12 +99,14 @@ export class ProductRepository implements IProductRepository {
 	> {
 		try {
 			const deletedProduct = await this._db.findByIdAndDelete(productId).lean();
-			if (deletedProduct) {
-				this._invalidateProductCache({ id: productId.toString() });
+			const serializedProduct = serializeMongoResult(deletedProduct);
+
+			if (serializedProduct) {
+				this._invalidateProductCache({ id: serializedProduct.id });
 			}
 
 			return {
-				data: deletedProduct,
+				data: serializedProduct,
 				success: true,
 			};
 		} catch (error) {
@@ -139,7 +141,7 @@ export class ProductRepository implements IProductRepository {
 		IProductRepository,
 		"getById"
 	> {
-		const cacheId = productId.toString();
+		const cacheId = productId;
 		const getCachedResult = this._cache.get<Product>({
 			key: cacheId,
 		});
@@ -155,15 +157,17 @@ export class ProductRepository implements IProductRepository {
 
 		try {
 			const product = await this._db.findById(productId).lean();
-			if (product) {
+			const serializedProduct = serializeMongoResult(product);
+
+			if (serializedProduct) {
 				this._cache.set({
 					key: cacheId,
-					value: product,
+					value: serializedProduct,
 				});
 			}
 
 			return {
-				data: product,
+				data: serializedProduct,
 				success: true,
 			};
 		} catch (error) {
@@ -197,16 +201,17 @@ export class ProductRepository implements IProductRepository {
 				.sort({ rating: -1 })
 				.limit(limit)
 				.lean();
+			const serializedProducts = serializeMongoResult(products);
 
-			if (products) {
+			if (serializedProducts) {
 				this._cache.set({
 					key: this._getTopRatedCacheKey,
-					value: products,
+					value: serializedProducts,
 				});
 			}
 
 			return {
-				data: products,
+				data: serializedProducts,
 				success: true,
 			};
 		} catch (error) {
@@ -227,18 +232,19 @@ export class ProductRepository implements IProductRepository {
 					returnDocument: "after",
 				})
 				.lean();
+			const serializedProduct = serializeMongoResult(product);
 
-			if (product) {
-				const cacheKey = productId.toString();
+			if (serializedProduct) {
+				const cacheKey = serializedProduct.id;
 				this._invalidateProductCache({ id: cacheKey });
 				this._cache.set({
 					key: cacheKey,
-					value: product,
+					value: serializedProduct,
 				});
 			}
 
 			return {
-				data: product,
+				data: serializedProduct,
 				success: true,
 			};
 		} catch (error) {
