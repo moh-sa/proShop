@@ -181,12 +181,12 @@ export class UserRepository implements IUserRepository {
 
 	private _prepareFilters(
 		filters?: UserFilter,
-	): Partial<PaginationQuery<User>> {
+	): Partial<PaginationQuery<UserSchema>> {
 		if (!filters) {
 			return {};
 		}
 
-		const newFilter: Partial<PaginationQuery<User>> = {};
+		const newFilter: Partial<PaginationQuery<UserSchema>> = {};
 
 		if (filters.name) {
 			newFilter.name = { $options: "i", $regex: filters.name };

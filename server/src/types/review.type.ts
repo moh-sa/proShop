@@ -1,6 +1,10 @@
 import type { z } from "zod";
 
-import type { createReviewSchema, reviewSchema } from "../schemas/index.js";
+import type {
+	createReviewSchema,
+	reviewModelSchema,
+	reviewSchema,
+} from "../schemas/index.js";
 import type {
 	reviewByProductIdPaginationFiltersSchema,
 	reviewByProductIdPaginationParamsSchema,
@@ -19,7 +23,7 @@ import type { Stringify } from "./stringify.type.js";
 
 export type CreateReview = z.infer<typeof createReviewSchema>;
 export type Review = z.infer<typeof reviewSchema>;
-export type ReviewSchema = Review;
+export type ReviewSchema = z.infer<typeof reviewModelSchema>;
 
 // Pagination
 export type ReviewByProductIdFilter = PaginationFilter<

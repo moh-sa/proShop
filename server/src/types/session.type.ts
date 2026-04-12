@@ -2,6 +2,7 @@ import type { z } from "zod";
 
 import type {
 	createSessionSchema,
+	sessionModelSchema,
 	sessionPaginationFiltersSchema,
 	sessionPaginationParamsSchema,
 	sessionPaginationSortSchema,
@@ -15,7 +16,7 @@ import type {
 
 export type CreateSession = z.infer<typeof createSessionSchema>;
 export type Session = z.infer<typeof sessionSchema>;
-export type SessionSchema = Session;
+export type SessionSchema = z.infer<typeof sessionModelSchema>;
 
 // Pagination
 export type SessionFilter = PaginationFilter<

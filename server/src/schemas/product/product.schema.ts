@@ -45,3 +45,8 @@ export const productSchema = baseSchema.extend({
 		.max(5, { error: "Rating must be between 1 and 5." }),
 	updatedAt: z.date(),
 });
+
+export const productModelSchema = productSchema.extend({
+	_id: objectIdValidator,
+	user: objectIdValidator,
+});

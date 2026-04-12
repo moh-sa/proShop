@@ -51,6 +51,11 @@ export const orderSchema = baseSchema.extend({
 	updatedAt: z.date(),
 });
 
+export const orderModelSchema = orderSchema.extend({
+	_id: objectIdValidator,
+	user: userModelSchema.pick({ _id: true, email: true, name: true }),
+});
+
 export const allOrdersResponseSchema = orderSchema.pick({
 	_id: true,
 	createdAt: true,

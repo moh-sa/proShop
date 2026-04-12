@@ -369,12 +369,12 @@ export class SessionRepository implements ISessionRepository {
 
 	private _prepareFilters(
 		filters?: SessionFilter,
-	): Partial<PaginationQuery<Session>> {
+	): Partial<PaginationQuery<SessionSchema>> {
 		if (!filters) {
 			return {};
 		}
 
-		const newFilter: Partial<PaginationQuery<Session>> = {};
+		const newFilter: Partial<PaginationQuery<SessionSchema>> = {};
 
 		if (filters.tokenId !== undefined) {
 			newFilter.tokenId = filters.tokenId;

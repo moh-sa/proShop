@@ -193,17 +193,16 @@ export class OrderRepository implements IOrderRepository {
 
 	private _prepareFilter(
 		filters?: OrderFilter,
-	): Partial<PaginationQuery<Order>> {
+	): Partial<PaginationQuery<OrderSchema>> {
 		if (!filters) {
 			return {};
 		}
 
-		const newFilter: Partial<PaginationQuery<Order>> = {};
+		const newFilter: Partial<PaginationQuery<OrderSchema>> = {};
 
 		if (filters.userId) {
 			// mongo doesn't cast in aggregate queries
-			const id = new Types.ObjectId(filters.userId);
-			newFilter["user._id"] = id;
+			newFilter["user.id"] = new Types.ObjectId(filters.userId);
 		}
 
 		if (filters.status) {

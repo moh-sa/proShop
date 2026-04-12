@@ -29,3 +29,7 @@ export const userSchema = baseSchema.extend({
 	createdAt: z.date(),
 	updatedAt: z.date(),
 });
+
+export const userModelSchema = userSchema.extend({
+	_id: objectIdValidator,
+});

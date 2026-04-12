@@ -18,3 +18,8 @@ export const sessionSchema = baseSchema.extend({
 	id: objectIdValidator,
 	updatedAt: z.date(),
 });
+
+export const sessionModelSchema = sessionSchema.extend({
+	_id: objectIdValidator,
+	userId: objectIdValidator,
+});

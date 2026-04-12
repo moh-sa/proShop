@@ -264,12 +264,12 @@ export class ProductRepository implements IProductRepository {
 
 	private _prepareFilter(
 		filters?: ProductFilter,
-	): Partial<PaginationQuery<Product>> {
+	): Partial<PaginationQuery<ProductSchema>> {
 		if (!filters) {
 			return {};
 		}
 
-		const newFilter: Partial<PaginationQuery<Product>> = {};
+		const newFilter: Partial<PaginationQuery<ProductSchema>> = {};
 
 		if (filters.keyword) {
 			newFilter.$text = { $search: filters.keyword };

@@ -26,3 +26,9 @@ export const reviewSchema = baseSchema.extend({
 	createdAt: z.date(),
 	updatedAt: z.date(),
 });
+
+export const reviewModelSchema = reviewSchema.extend({
+	_id: objectIdValidator,
+	product: objectIdValidator,
+	user: objectIdValidator,
+});

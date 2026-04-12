@@ -3,6 +3,7 @@ import type { z } from "zod";
 import type { UserModel } from "../models/user.model.js";
 import type {
 	createUserSchema,
+	userModelSchema,
 	userPaginationFiltersSchema,
 	userPaginationParamsSchema,
 	userPaginationSortSchema,
@@ -18,7 +19,7 @@ import type { Stringify } from "./stringify.type.js";
 export type CreateUser = z.infer<typeof createUserSchema>;
 export type User = z.infer<typeof userSchema>;
 export type UserDocument = ReturnType<(typeof UserModel)["hydrate"]>;
-export type UserSchema = User;
+export type UserSchema = z.infer<typeof userModelSchema>;
 
 // SAFE/UNSAFE user types
 export type SafeSelectUser = Omit<User, "password">;

@@ -6,6 +6,7 @@ import type {
 	markAsBaseParamsSchema,
 	markAsCancelledParamsSchema,
 	markAsProcessingParamsSchema,
+	orderModelSchema,
 	orderPaginationFiltersSchema,
 	orderPaginationSortSchema,
 	orderSchema,
@@ -27,7 +28,7 @@ export type CreateOrder = z.infer<typeof createOrderSchema>;
 export type CreateOrderItem = z.infer<typeof createOrderItemSchema>;
 export type Order = z.infer<typeof orderSchema>;
 export type OrderItem = z.infer<typeof orderItemSchema>;
-export type OrderSchema = Order;
+export type OrderSchema = z.infer<typeof orderModelSchema>;
 export type OrderStatus = z.infer<typeof orderStatusSchema>;
 
 // Pagination

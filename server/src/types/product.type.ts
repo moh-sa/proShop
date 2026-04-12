@@ -2,6 +2,7 @@ import type { z } from "zod";
 
 import type {
 	createProductSchema,
+	productModelSchema,
 	productPaginationFiltersSchema,
 	productPaginationSortSchema,
 	productSchema,
@@ -25,7 +26,7 @@ export type CreateProductWithStringImage = Omit<CreateProduct, "image"> & {
 
 export type Product = z.infer<typeof productSchema>;
 
-export type ProductSchema = Product;
+export type ProductSchema = z.infer<typeof productModelSchema>;
 
 export type TopRatedProduct = Pick<Product, "_id" | "image" | "name" | "price">;
 

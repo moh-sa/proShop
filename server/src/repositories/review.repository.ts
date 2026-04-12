@@ -312,12 +312,12 @@ export class ReviewRepository implements IReviewRepository {
 
 	private _prepareFilters(
 		filters?: ReviewFilter,
-	): Partial<PaginationQuery<Review>> {
+	): Partial<PaginationQuery<ReviewSchema>> {
 		if (!filters) {
 			return {};
 		}
 
-		const newFilter: Partial<PaginationQuery<Review>> = {};
+		const newFilter: Partial<PaginationQuery<ReviewSchema>> = {};
 
 		if (filters.productId) {
 			newFilter.product = new Types.ObjectId(filters.productId);
