@@ -1,11 +1,10 @@
 import { faker } from "@faker-js/faker";
-import { Types } from "mongoose";
 
 import type {
-	InsertOrder,
-	InsertOrderItem,
+	CreateOrder,
+	CreateOrderItem,
+	Order,
 	OrderStatus,
-	SelectOrder,
 } from "../../types/index.js";
 
 import { generateMockObjectId } from "./objectid.mock.js";
@@ -31,20 +30,20 @@ const MOCK_DATA_CONSTANTS = {
 
 // Base interfaces for generating mock data
 
-type GenerateOrderItemOptions = Partial<InsertOrderItem>;
+type GenerateOrderItemOptions = Partial<CreateOrderItem>;
 
-type GeneratePaymentResultOptions = Partial<InsertOrder["payment"]>;
+type GeneratePaymentResultOptions = Partial<CreateOrder["payment"]>;
 
-type GenerateShippingAddressOptions = Partial<InsertOrder["shippingAddress"]>;
+type GenerateShippingAddressOptions = Partial<CreateOrder["shippingAddress"]>;
 
 // Specific options for insert and select orders
-type GenerateInsertOrderOptions = InsertOrder & { orderItemsCount?: number };
-type GenerateSelectOrderOptions = SelectOrder & { orderItemsCount?: number };
+type GenerateInsertOrderOptions = CreateOrder & { orderItemsCount?: number };
+type GenerateSelectOrderOptions = Order & { orderItemsCount?: number };
 
 // Helper functions
 function generateMockOrderItem(
 	options: GenerateOrderItemOptions = {},
-): InsertOrder["orderItems"][number] {
+): CreateOrder["orderItems"][number] {
 	const mockProduct = generateMockSelectProduct();
 
 	return {
@@ -64,7 +63,7 @@ function generateMockOrderItem(
 function generateMockOrderItems(
 	count = 1,
 	itemOptions: GenerateOrderItemOptions = {},
-): InsertOrder["orderItems"] {
+): CreateOrder["orderItems"] {
 	return Array.from({ length: count }, () =>
 		generateMockOrderItem(itemOptions),
 	);
@@ -72,7 +71,7 @@ function generateMockOrderItems(
 
 function generateMockPayment(
 	options: GeneratePaymentResultOptions = {},
-): InsertOrder["payment"] {
+): CreateOrder["payment"] {
 	return {
 		id: options.id ?? faker.string.uuid(),
 		paidAt: options.paidAt ?? faker.date.recent(),
@@ -85,7 +84,7 @@ function generateMockPayment(
 
 function generateMockShippingAddress(
 	options: GenerateShippingAddressOptions = {},
-): InsertOrder["shippingAddress"] {
+): CreateOrder["shippingAddress"] {
 	return {
 		address: options.address ?? faker.location.streetAddress(),
 		city: options.city ?? faker.location.city(),
@@ -94,7 +93,7 @@ function generateMockShippingAddress(
 	};
 }
 
-function generateMockUser(): InsertOrder["user"] {
+function generateMockUser(): CreateOrder["user"] {
 	return {
 		_id: generateMockObjectId(),
 		email: faker.internet.exampleEmail().toLowerCase(),
@@ -105,7 +104,7 @@ function generateMockUser(): InsertOrder["user"] {
 // Main generation functions
 export function generateMockInsertOrder(
 	options: Partial<GenerateInsertOrderOptions> = {},
-): InsertOrder {
+): CreateOrder {
 	const orderItems = options.orderItems
 		? options.orderItems.map((item) => generateMockOrderItem(item))
 		: generateMockOrderItems(
@@ -167,7 +166,7 @@ export function generateMockInsertOrder(
 export function generateMockInsertOrders(
 	count: number,
 	options: Partial<GenerateInsertOrderOptions> = {},
-): Array<InsertOrder> {
+): Array<CreateOrder> {
 	return faker.helpers.uniqueArray(
 		() => generateMockInsertOrder(options),
 		count,
@@ -176,7 +175,7 @@ export function generateMockInsertOrders(
 
 export function generateMockSelectOrder(
 	options: Partial<GenerateSelectOrderOptions> = {},
-): SelectOrder {
+): Order {
 	const mockUser = options.user ?? generateMockUser();
 
 	const baseOrder = generateMockInsertOrder({
@@ -195,7 +194,7 @@ export function generateMockSelectOrder(
 export function generateMockSelectOrders(
 	count: number,
 	options: Partial<GenerateSelectOrderOptions> = {},
-): Array<SelectOrder> {
+): Array<Order> {
 	return faker.helpers.uniqueArray(
 		() => generateMockSelectOrder(options),
 		count,

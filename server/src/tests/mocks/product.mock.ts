@@ -1,9 +1,9 @@
 import { faker } from "@faker-js/faker";
 
 import type {
-	InsertProduct,
-	InsertProductWithStringImage,
-	SelectProduct,
+	CreateProduct,
+	CreateProductWithStringImage,
+	Product,
 } from "../../types/index.js";
 
 import { mockMulterImageFile } from "./image.mock.js";
@@ -13,14 +13,14 @@ export function generateMockInsertProducts({
 	count,
 }: {
 	count: number;
-}): Array<InsertProduct> {
+}): Array<CreateProduct> {
 	return faker.helpers.uniqueArray(
 		generateMockInsertProductWithMulterImage,
 		count,
 	);
 }
 
-export function generateMockInsertProductWithMulterImage(): InsertProduct {
+export function generateMockInsertProductWithMulterImage(): CreateProduct {
 	const mockProduct = generateMockInsertProduct();
 	const mockMulterImage = mockMulterImageFile();
 	return {
@@ -29,7 +29,7 @@ export function generateMockInsertProductWithMulterImage(): InsertProduct {
 	};
 }
 
-export function generateMockInsertProductWithStringImage(): InsertProductWithStringImage {
+export function generateMockInsertProductWithStringImage(): CreateProductWithStringImage {
 	const mockProduct = generateMockInsertProduct();
 	const mockStringImage = faker.image.url();
 	return {
@@ -38,7 +38,7 @@ export function generateMockInsertProductWithStringImage(): InsertProductWithStr
 	};
 }
 
-export function generateMockSelectProduct(): SelectProduct {
+export function generateMockSelectProduct(): Product {
 	const mockProduct = baseMockProduct();
 	return {
 		...mockProduct,
@@ -56,7 +56,7 @@ export function generateMockSelectProducts({
 	count,
 }: {
 	count: number;
-}): Array<SelectProduct> {
+}): Array<Product> {
 	return faker.helpers.uniqueArray(generateMockSelectProduct, count);
 }
 
@@ -71,7 +71,7 @@ function baseMockProduct() {
 	};
 }
 
-function generateMockInsertProduct(): Omit<InsertProduct, "image"> {
+function generateMockInsertProduct(): Omit<CreateProduct, "image"> {
 	const mockProduct = baseMockProduct();
 	return {
 		...mockProduct,

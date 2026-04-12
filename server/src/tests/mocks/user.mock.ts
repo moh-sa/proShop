@@ -1,12 +1,12 @@
 import { faker } from "@faker-js/faker";
 
-import type { InsertUser, SelectUser } from "../../types/index.js";
+import type { CreateUser, User } from "../../types/index.js";
 
 import { generateMockObjectId } from "./objectid.mock.js";
 
 export function generateMockInsertUser(
-	options: Partial<InsertUser> = {},
-): InsertUser {
+	options: Partial<CreateUser> = {},
+): CreateUser {
 	return {
 		email: faker.internet.exampleEmail().toLowerCase(),
 		isAdmin: faker.datatype.boolean(),
@@ -21,17 +21,15 @@ export function generateMockInsertUsers({
 	options = {},
 }: {
 	count: number;
-	options?: Partial<InsertUser>;
-}): Array<InsertUser> {
+	options?: Partial<CreateUser>;
+}): Array<CreateUser> {
 	return faker.helpers.uniqueArray(
 		() => generateMockInsertUser(options),
 		count,
 	);
 }
 
-export function generateMockSelectUser(
-	options: Partial<SelectUser> = {},
-): SelectUser {
+export function generateMockSelectUser(options: Partial<User> = {}): User {
 	return {
 		_id: generateMockObjectId(),
 		createdAt: faker.date.recent(),
@@ -49,8 +47,8 @@ export function generateMockSelectUsers({
 	options = {},
 }: {
 	count: number;
-	options?: Partial<SelectUser>;
-}): Array<SelectUser> {
+	options?: Partial<User>;
+}): Array<User> {
 	return faker.helpers.uniqueArray(
 		() => generateMockSelectUser(options),
 		count,

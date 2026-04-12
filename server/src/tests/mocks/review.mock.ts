@@ -1,12 +1,12 @@
 import { faker } from "@faker-js/faker";
 
-import type { InsertReview, SelectReview } from "../../types/index.js";
+import type { CreateReview, Review } from "../../types/index.js";
 
 import { generateMockObjectId } from "./objectid.mock.js";
 
 export function generateMockInsertReview(
-	options: Partial<InsertReview> = {},
-): InsertReview {
+	options: Partial<CreateReview> = {},
+): CreateReview {
 	return {
 		comment: faker.lorem.sentence(),
 		name: faker.internet.username(),
@@ -22,8 +22,8 @@ export function generateMockInsertReviews({
 	options = {},
 }: {
 	count: number;
-	options?: Partial<InsertReview>;
-}): Array<InsertReview> {
+	options?: Partial<CreateReview>;
+}): Array<CreateReview> {
 	return faker.helpers.uniqueArray(
 		() => generateMockInsertReview(options),
 		count,
@@ -31,8 +31,8 @@ export function generateMockInsertReviews({
 }
 
 export function generateMockSelectReview(
-	options: Partial<SelectReview> = {},
-): SelectReview {
+	options: Partial<Review> = {},
+): Review {
 	return {
 		_id: generateMockObjectId(),
 		comment: faker.lorem.sentence(),
@@ -51,8 +51,8 @@ export function generateMockSelectReviews({
 	options = {},
 }: {
 	count?: number;
-	options?: Partial<SelectReview>;
-} = {}): Array<SelectReview> {
+	options?: Partial<Review>;
+} = {}): Array<Review> {
 	return faker.helpers.uniqueArray(
 		() => generateMockSelectReview(options),
 		count,
