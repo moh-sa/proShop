@@ -1,4 +1,15 @@
+import {
+	IMAGE_FIELD_NAME,
+	MAX_TOP_RATED_PRODUCTS,
+} from "../constants/index.js";
+import { NotFoundError, ValidationError } from "../errors/index.js";
 import type { IProductRepository } from "../repositories/index.js";
+import { productRepository } from "../repositories/index.js";
+import {
+	createProductSchema,
+	productPaginationParamsSchema,
+	selectImageSchema,
+} from "../schemas/index.js";
 import type {
 	AllProducts,
 	CreateProductWithStringImage,
@@ -11,18 +22,6 @@ import type {
 	Result,
 	TopRatedProduct,
 } from "../types/index.js";
-
-import {
-	IMAGE_FIELD_NAME,
-	MAX_TOP_RATED_PRODUCTS,
-} from "../constants/index.js";
-import { NotFoundError, ValidationError } from "../errors/index.js";
-import { productRepository } from "../repositories/index.js";
-import {
-	createProductSchema,
-	productPaginationParamsSchema,
-	selectImageSchema,
-} from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 import { objectIdStringValidator } from "../validators/index.js";
 

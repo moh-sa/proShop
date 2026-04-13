@@ -1,5 +1,4 @@
 import type { Types } from "mongoose";
-
 import mongoose from "mongoose";
 
 type NonPlainObject =

@@ -5,7 +5,6 @@ import type {
 	CreateProductWithStringImage,
 	Product,
 } from "../../types/index.js";
-
 import { mockMulterImageFile } from "./image.mock.js";
 import { generateMockObjectId } from "./objectid.mock.js";
 

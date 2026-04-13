@@ -1,10 +1,9 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import type { CreateReview } from "../../types/index.js";
-
 import { NotFoundError, ValidationError } from "../../errors/index.js";
 import { ReviewService } from "../../services/index.js";
+import type { CreateReview } from "../../types/index.js";
 import {
 	generateMockInsertReview,
 	generateMockObjectId,
@@ -855,7 +854,6 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 		const userId = generateMockObjectId();
 		const productId = generateMockObjectId();
 		const id = generateMockObjectId();
-		const reviewId = id;
 		const existsResult = { id };
 
 		test("Should return 'reviewId' when'repo.existsByUserIdAndProductId' is called once with 'userId' and 'productId'", async () => {

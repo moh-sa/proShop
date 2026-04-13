@@ -1,7 +1,6 @@
 import { faker } from "@faker-js/faker";
 
 import type { CreateSession, Session } from "../../types/index.js";
-
 import { generateMockObjectId } from "./objectid.mock.js";
 
 export function generateMockInsertSession(

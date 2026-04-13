@@ -1,8 +1,8 @@
 import assert from "node:assert";
 import { describe, it, suite } from "node:test";
-import { z } from "zod";
 
-import type { CookieItemOptions } from "../../types/index.js";
+import type { Request, Response } from "express";
+import { z } from "zod";
 
 import { DEFAULT_COOKIE_CONFIG } from "../../config/index.js";
 import {
@@ -12,6 +12,7 @@ import {
 	CookieValidationError,
 } from "../../errors/index.js";
 import { CookieService } from "../../services/index.js";
+import type { CookieItemOptions, CookieName } from "../../types/index.js";
 import { createMockExpressContext } from "../utils/index.js";
 
 suite("Cookie Service〖 Unit Tests 〗", () => {
@@ -70,7 +71,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.set({
-				item: { name: "" as any, value: "x" },
+				item: { name: "" as unknown as CookieName, value: "x" },
 				response: res,
 			});
 
@@ -85,7 +86,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.set({
-				item: { name: "refresh" as any, value: "x" },
+				item: { name: "refresh" as unknown as CookieName, value: "x" },
 				response: res,
 			});
 
@@ -96,7 +97,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 		it("should fail when response is invalid", () => {
 			// Arrange
-			const invalidRes = {} as any;
+			const invalidRes = {} as unknown as Response;
 
 			// Act
 			const result = service.set({
@@ -117,7 +118,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 			const result = service.set({
 				item: {
 					name: "accessToken",
-					value: BigInt(1) as any,
+					value: BigInt(1),
 				},
 				response: res,
 			});
@@ -188,7 +189,10 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 			const { req } = createMockExpressContext();
 
 			// Act
-			const result = service.get({ name: "" as any, request: req });
+			const result = service.get({
+				name: "" as unknown as CookieName,
+				request: req,
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -197,7 +201,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 		it("should fail when request is invalid", () => {
 			// Arrange
-			const invalidReq = {} as any;
+			const invalidReq = {} as unknown as Request;
 
 			// Act
 			const result = service.get({
@@ -284,7 +288,10 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 			const { res } = createMockExpressContext();
 
 			// Act
-			const result = service.delete({ name: "" as any, response: res });
+			const result = service.delete({
+				name: "" as unknown as CookieName,
+				response: res,
+			});
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -293,7 +300,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 		it("should fail when response is invalid", () => {
 			// Arrange
-			const invalidRes = {} as any;
+			const invalidRes = {} as unknown as Response;
 
 			// Act
 			const result = service.delete({

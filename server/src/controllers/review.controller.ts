@@ -1,4 +1,6 @@
+import { HTTP_STATUS } from "../constants/index.js";
 import type { IReviewService } from "../services/index.js";
+import { reviewService } from "../services/index.js";
 import type {
 	AsyncHandler,
 	CreateReview,
@@ -9,9 +11,6 @@ import type {
 	Review,
 	SafeSelectUser,
 } from "../types/index.js";
-
-import { HTTP_STATUS } from "../constants/index.js";
-import { reviewService } from "../services/index.js";
 import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
 
 export interface IReviewController {
@@ -81,7 +80,7 @@ export class ReviewController implements IReviewController {
 
 	count = asyncHandler<{
 		resBody: { data: number };
-	}>(async (req, res) => {
+	}>(async (_req, res) => {
 		const logger = this._getLogger({ method: "count" });
 		logger.debug("Counting reviews");
 

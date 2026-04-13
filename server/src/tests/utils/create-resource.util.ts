@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+
 import {
 	orderRepository,
 	productRepository,
@@ -6,7 +7,7 @@ import {
 	sessionRepository,
 	userRepository,
 } from "../../repositories";
-import {
+import type {
 	CreateOrder,
 	CreateProduct,
 	CreateReview,

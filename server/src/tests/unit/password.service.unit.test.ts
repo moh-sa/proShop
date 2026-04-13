@@ -1,6 +1,8 @@
 import assert from "node:assert";
 import { beforeEach, describe, it, suite } from "node:test";
 
+import type * as Argon2 from "argon2";
+
 import {
 	MAX_PASSWORD_LENGTH,
 	MIN_PASSWORD_LENGTH,
@@ -16,7 +18,7 @@ import { mockArgon2 } from "../mocks/index.js";
 
 suite("Password Service 〖 Unit Tests 〗", () => {
 	const mockProvider = mockArgon2();
-	const service = new PasswordService(mockProvider as any);
+	const service = new PasswordService(mockProvider as unknown as typeof Argon2);
 
 	beforeEach(() => mockProvider.reset());
 

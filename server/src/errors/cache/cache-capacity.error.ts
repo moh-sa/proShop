@@ -1,5 +1,5 @@
 import { ERROR_TYPE, HTTP_STATUS } from "../../constants/index.js";
-import { HttpStatus } from "../../types/index.js";
+import type { HttpStatus } from "../../types/index.js";
 import { CacheBaseError } from "./cache-base.error.js";
 
 export class CacheCapacityError extends CacheBaseError {

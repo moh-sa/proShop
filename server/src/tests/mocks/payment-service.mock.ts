@@ -1,7 +1,9 @@
-import { faker } from "@faker-js/faker";
 import { mock } from "node:test";
+
+import { faker } from "@faker-js/faker";
+
 import type { IPaymentService } from "../../services/index.js";
-import {
+import type {
 	CreateCheckoutSessionParams,
 	CreateCheckoutSessionResponse,
 	LineItem,

@@ -1,7 +1,7 @@
 import type { CookieOptions as ExpressCookieOptions } from "express";
+import type z from "zod";
 
-import z from "zod";
-import { cookieNameSchema } from "../schemas/index.js";
+import type { cookieNameSchema } from "../schemas/index.js";
 
 export type CookieName = z.infer<typeof cookieNameSchema>;
 

@@ -1,8 +1,15 @@
 import type { Logger } from "pino";
+import Stripe from "stripe";
 import type { z } from "zod";
 
-import Stripe from "stripe";
-
+import { env, stripeClient } from "../config/index.js";
+import { PAYMENT_MIN_USD_CHARGE } from "../constants/payment.constants.js";
+import {
+	InternalError,
+	RateLimitError,
+	ValidationError,
+} from "../errors/index.js";
+import { createCheckoutSessionParamsSchema } from "../schemas/index.js";
 import type {
 	CreateCheckoutSessionParams,
 	CreateCheckoutSessionResponse,
@@ -13,15 +20,6 @@ import type {
 	VerifyWebhookParams,
 	VerifyWebhookResponse,
 } from "../types/index.js";
-
-import { env, stripeClient } from "../config/index.js";
-import { PAYMENT_MIN_USD_CHARGE } from "../constants/payment.constants.js";
-import {
-	InternalError,
-	RateLimitError,
-	ValidationError,
-} from "../errors/index.js";
-import { createCheckoutSessionParamsSchema } from "../schemas/index.js";
 import { formatZodErrors, getLoggerFromContext } from "../utils/index.js";
 
 export interface IPaymentService {

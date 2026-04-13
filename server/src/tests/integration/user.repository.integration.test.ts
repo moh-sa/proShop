@@ -346,7 +346,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should return 'failure result' with 'DatabaseValidationError' when ObjectId is invalid", async () => {
 			// Arrange
-			const invalidId = "invalid-id" as any;
+			const invalidId = "invalid-id";
 
 			// Act
 			const result = await repo.getById({ userId: invalidId });
@@ -541,7 +541,7 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 		test("Should return 'failure result' with 'DatabaseValidationError' when ObjectId is invalid", async () => {
 			// Arrange
-			const invalidId = "invalid-id" as any;
+			const invalidId = "invalid-id";
 
 			// Act
 			const result = await repo.delete({ userId: invalidId });

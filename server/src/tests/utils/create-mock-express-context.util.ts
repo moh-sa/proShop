@@ -1,5 +1,4 @@
 import type { NextFunction, Request, Response } from "express";
-
 import { createMocks } from "node-mocks-http";
 
 export const createMockExpressContext = () => {

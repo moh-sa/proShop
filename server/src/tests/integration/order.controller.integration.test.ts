@@ -6,7 +6,7 @@ import { ForbiddenError, NotFoundError } from "../../errors/index.js";
 import { OrderManager } from "../../managers/index.js";
 import { OrderModel } from "../../models/order.model.js";
 import { orderRepository } from "../../repositories/order.repository.js";
-import { SuccessResponse } from "../../types/api-response.type.js";
+import type { SuccessResponse } from "../../types/api-response.type.js";
 import type { CreateOrderResponse } from "../../types/index.js";
 import {
 	generateMockCheckoutSessionResponse,
@@ -714,7 +714,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response.meta);
 			assert.strictEqual(response.data.length, 2);
 			assert.ok(
-				response.data.every((order: any) => order.status === "processing"),
+				response.data.every(
+					(order: { status: string }) => order.status === "processing",
+				),
 			);
 		});
 

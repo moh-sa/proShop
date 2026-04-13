@@ -1,4 +1,4 @@
-/* eslint-disable perfectionist/sort-objects */
+ 
 import { mock } from "node:test";
 
 import type { IPasswordService } from "../../services/index.js";

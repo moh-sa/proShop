@@ -1,6 +1,8 @@
 import assert from "node:assert";
 import { beforeEach, describe, it, suite } from "node:test";
+
 import Stripe from "stripe";
+
 import { PAYMENT_MIN_USD_CHARGE } from "../../constants";
 import { InternalError, ValidationError } from "../../errors";
 import { PaymentService } from "../../services";
@@ -14,7 +16,7 @@ import {
 
 suite("Payment Service 〖 Unit Tests 〗", () => {
 	const mockProvider = mockStripe();
-	const service = new PaymentService(mockProvider as any);
+	const service = new PaymentService(mockProvider as unknown as Stripe);
 
 	beforeEach(() => mockProvider.reset());
 
@@ -97,7 +99,9 @@ suite("Payment Service 〖 Unit Tests 〗", () => {
 			];
 
 			mockProvider.checkout.sessions.create.mock.mockImplementationOnce(() =>
-				Promise.resolve({ url: "", id: "" } as any),
+				Promise.resolve(
+					{ id: "", url: "" } as unknown as Stripe.Response<Stripe.Checkout.Session>,
+				),
 			);
 
 			/// Act
@@ -117,7 +121,9 @@ suite("Payment Service 〖 Unit Tests 〗", () => {
 			};
 
 			mockProvider.checkout.sessions.create.mock.mockImplementationOnce(() =>
-				Promise.resolve({ url: "", id: "" } as any),
+				Promise.resolve(
+					{ id: "", url: "" } as unknown as Stripe.Response<Stripe.Checkout.Session>,
+				),
 			);
 
 			/// Act
@@ -136,7 +142,9 @@ suite("Payment Service 〖 Unit Tests 〗", () => {
 			const data = generateMockCreateSessionParams();
 
 			mockProvider.checkout.sessions.create.mock.mockImplementationOnce(() =>
-				Promise.resolve({ url: "", id: "" } as any),
+				Promise.resolve(
+					{ id: "", url: "" } as unknown as Stripe.Response<Stripe.Checkout.Session>,
+				),
 			);
 
 			/// Act
@@ -156,7 +164,9 @@ suite("Payment Service 〖 Unit Tests 〗", () => {
 			const data = generateMockCreateSessionParams();
 
 			mockProvider.checkout.sessions.create.mock.mockImplementationOnce(() =>
-				Promise.resolve({ id: "" } as any),
+				Promise.resolve(
+					{ id: "" } as unknown as Stripe.Response<Stripe.Checkout.Session>,
+				),
 			);
 
 			/// Act
@@ -190,7 +200,12 @@ suite("Payment Service 〖 Unit Tests 〗", () => {
 			const sessionId = "1234567890";
 
 			mockProvider.checkout.sessions.create.mock.mockImplementationOnce(() =>
-				Promise.resolve({ url: sessionUrl, id: sessionId } as any),
+				Promise.resolve(
+					{
+						id: sessionId,
+						url: sessionUrl,
+					} as unknown as Stripe.Response<Stripe.Checkout.Session>,
+				),
 			);
 
 			/// Act

@@ -1,4 +1,5 @@
 import type { IOrderService, IPaymentService } from "../services/index.js";
+import { orderService, paymentService } from "../services/index.js";
 import type {
 	AllOrdersResponse,
 	CreateOrder,
@@ -13,8 +14,6 @@ import type {
 	Result,
 	VerifyWebhookParams,
 } from "../types/index.js";
-
-import { orderService, paymentService } from "../services/index.js";
 import { frontendUrlBuilder, getLoggerFromContext } from "../utils/index.js";
 
 export interface IOrderManager {

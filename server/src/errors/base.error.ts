@@ -1,4 +1,4 @@
-import { ErrorType, HttpStatus } from "../types/index.js";
+import type { ErrorType, HttpStatus } from "../types/index.js";
 
 export class BaseError extends Error {
 	constructor(

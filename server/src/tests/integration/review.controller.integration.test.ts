@@ -1,11 +1,10 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 
-import type { Review } from "../../types/index.js";
-
 import { ReviewController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
 import { ReviewModel } from "../../models/review.model.js";
+import type { Review } from "../../types/index.js";
 import {
 	generateMockInsertReview,
 	generateMockInsertReviews,

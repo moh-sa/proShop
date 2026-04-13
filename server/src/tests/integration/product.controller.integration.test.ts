@@ -1,14 +1,13 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 
-import type { AllProducts, CreateProduct } from "../../types/index.js";
-
 import { ProductController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
 import { ProductManager } from "../../managers/index.js";
 import { ProductModel } from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { CacheService, ProductService } from "../../services/index.js";
+import type { AllProducts, CreateProduct } from "../../types/index.js";
 import {
 	generateMockInsertProductsWithStringImage,
 	generateMockInsertProductWithMulterImage,

@@ -1,8 +1,6 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 
-import type { CreateReview } from "../../types/index.js";
-
 import {
 	DatabaseDuplicateKeyError,
 	DatabaseValidationError,
@@ -13,6 +11,7 @@ import {
 	productRepository,
 	ReviewRepository,
 } from "../../repositories/index.js";
+import type { CreateReview } from "../../types/index.js";
 import {
 	generateMockInsertProductWithStringImage,
 	generateMockObjectId,
@@ -978,7 +977,7 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 	});
 
 	describe("Side Effects", () => {
-		test("should update product rating and numReviews when review is created", async (t) => {
+		test("should update product rating and numReviews when review is created", async () => {
 			// Arrange
 			const createdProduct = await createProduct(
 				generateMockInsertProductWithStringImage(),

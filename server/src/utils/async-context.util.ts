@@ -1,6 +1,6 @@
-import type { Logger } from "pino";
-
 import { AsyncLocalStorage } from "node:async_hooks";
+
+import type { Logger } from "pino";
 
 interface AsyncContext {
 	logger: Logger;

@@ -2,19 +2,18 @@ import * as argon from "argon2";
 import { z } from "zod";
 
 import type { PasswordBaseError } from "../errors/index.js";
-import type {
-	FailureResult,
-	MethodParams,
-	MethodReturn,
-	Result,
-} from "../types/index.js";
-
 import {
 	PasswordHashError,
 	PasswordMismatchError,
 	PasswordValidationError,
 	PasswordVerifyError,
 } from "../errors/index.js";
+import type {
+	FailureResult,
+	MethodParams,
+	MethodReturn,
+	Result,
+} from "../types/index.js";
 import { formatZodErrors, getLoggerFromContext } from "../utils/index.js";
 import { passwordValidator } from "../validators/index.js";
 

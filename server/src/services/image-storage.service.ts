@@ -1,11 +1,3 @@
-import type {
-	InsertImage,
-	MethodParams,
-	MethodReturn,
-	Result,
-	SelectImage,
-} from "../types/index.js";
-
 import cloudinary, {
 	DEFAULT_CLOUDINARY_UPLOAD_CONFIG,
 } from "../config/cloudinary.config.js";
@@ -15,6 +7,13 @@ import {
 	ValidationError,
 } from "../errors/index.js";
 import { insertImageSchema, selectImageSchema } from "../schemas/index.js";
+import type {
+	InsertImage,
+	MethodParams,
+	MethodReturn,
+	Result,
+	SelectImage,
+} from "../types/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 
 export interface IImageStorageService {

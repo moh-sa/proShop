@@ -1,4 +1,6 @@
+import { HTTP_STATUS } from "../constants/index.js";
 import type { IUserService } from "../services/index.js";
+import { userService } from "../services/index.js";
 import type {
 	AsyncHandler,
 	CreateUser,
@@ -7,9 +9,6 @@ import type {
 	PaginatedResponse,
 	SafeSelectUser,
 } from "../types/index.js";
-
-import { HTTP_STATUS } from "../constants/index.js";
-import { userService } from "../services/index.js";
 import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
 
 export interface IUserController {

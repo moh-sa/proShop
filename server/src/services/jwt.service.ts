@@ -1,14 +1,5 @@
 import jwt from "jsonwebtoken";
 
-import type {
-	MethodParams,
-	MethodReturn,
-	TokenDecoded,
-	TokenPair,
-	TokenPayload,
-	TokenResult,
-} from "../types/index.js";
-
 import { DEFAULT_JWT_CONFIG } from "../config/index.js";
 import {
 	JwtBaseError,
@@ -19,7 +10,15 @@ import {
 	JwtVerificationError,
 } from "../errors/index.js";
 import { tokenDecodedSchema, tokenTypeSchema } from "../schemas/index.js";
-import { type JwtConfig, type Result, TokenType } from "../types/index.js";
+import type {
+	MethodParams,
+	MethodReturn,
+	TokenDecoded,
+	TokenPair,
+	TokenPayload,
+	TokenResult,
+} from "../types/index.js";
+import type { JwtConfig, Result, TokenType } from "../types/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 import {
 	jwtTokenValidator,

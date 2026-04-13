@@ -1,18 +1,17 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import type {
-	CreateUser,
-	GetAllUsersServiceParams,
-	User,
-} from "../../types/index.js";
-
 import {
 	InternalError,
 	NotFoundError,
 	ValidationError,
 } from "../../errors/index.js";
 import { UserService } from "../../services/index.js";
+import type {
+	CreateUser,
+	GetAllUsersServiceParams,
+	User,
+} from "../../types/index.js";
 import {
 	generateMockInsertUser,
 	generateMockSelectUser,
@@ -526,7 +525,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'InternalError' when user data is invalid", () => {
 			// Arrange
-			const invalidUser = { invalid: "data" } as any;
+			const invalidUser = { invalid: "data" } as unknown as User;
 
 			// Act
 			const result = service.sanitizeUser(invalidUser);

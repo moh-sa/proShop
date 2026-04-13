@@ -4,7 +4,7 @@ import { after, before, beforeEach, describe, suite, test } from "node:test";
 import { DatabaseValidationError } from "../../errors/index.js";
 import { OrderModel } from "../../models/order.model.js";
 import { OrderRepository } from "../../repositories/order.repository.js";
-import { GetAllOrdersRepositoryParams } from "../../types/order.type.js";
+import type { GetAllOrdersRepositoryParams } from "../../types/order.type.js";
 import {
 	generateMockInsertOrder,
 	generateMockInsertOrders,

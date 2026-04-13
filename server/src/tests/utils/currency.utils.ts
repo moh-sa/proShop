@@ -1,4 +1,4 @@
-import { InsertOrder, SelectOrder } from "../../types";
+import type { InsertOrder, SelectOrder } from "../../types";
 import { fromCurrencySmallestUnit, toCurrencySmallestUnit } from "../../utils";
 
 export function toCents(amount: number): number {

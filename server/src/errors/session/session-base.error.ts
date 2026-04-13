@@ -1,5 +1,5 @@
 import { ERROR_TYPE } from "../../constants/index.js";
-import { ErrorType, HttpStatus } from "../../types/index.js";
+import type { ErrorType, HttpStatus } from "../../types/index.js";
 import { BaseError } from "../base.error.js";
 
 export class SessionBaseError extends BaseError {

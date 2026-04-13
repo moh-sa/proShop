@@ -1,4 +1,4 @@
-import { ErrorType } from "./error-type.type.js";
+import type { ErrorType } from "./error-type.type.js";
 
 // Error response type
 export interface ErrorDetails {

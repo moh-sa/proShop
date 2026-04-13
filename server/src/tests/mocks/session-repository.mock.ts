@@ -1,4 +1,4 @@
-/* eslint-disable perfectionist/sort-objects */
+ 
 import { mock } from "node:test";
 
 import type { ISessionRepository } from "../../repositories/index.js";

@@ -1,8 +1,7 @@
-import mongoose, { Types } from "mongoose";
 import assert from "node:assert/strict";
 import { beforeEach, describe, mock, suite, test } from "node:test";
 
-import type { CreateReview } from "../../types/index.js";
+import mongoose, { Types } from "mongoose";
 
 import {
 	DatabaseNetworkError,
@@ -13,6 +12,7 @@ import {
 } from "../../errors/index.js";
 import { ReviewModel } from "../../models/review.model.js";
 import { ReviewRepository } from "../../repositories/index.js";
+import type { CreateReview } from "../../types/index.js";
 import { Paginator } from "../../utils/index.js";
 import {
 	generateMockInsertReview,

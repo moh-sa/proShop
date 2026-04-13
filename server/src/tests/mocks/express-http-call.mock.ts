@@ -1,5 +1,6 @@
-import type { Request, Response } from "express";
 import type { TestContext } from "node:test";
+
+import type { Request, Response } from "express";
 
 import type { DeepPartialObject } from "../../types/index.js";
 

@@ -5,6 +5,7 @@ import { UserController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
 import { UserModel } from "../../models/user.model.js";
 import { userRepository } from "../../repositories/user.repository.js";
+import type { SafeSelectUser } from "../../types/index.js";
 import {
 	generateMockInsertReview,
 	generateMockInsertUser,
@@ -91,9 +92,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.ok(response.data);
-			response.data.forEach((user: any) => {
+			response.data.forEach((user: SafeSelectUser) => {
 				assert.ok(
-					!user.password,
+					!("password" in user),
 					"Password should not be included in response",
 				);
 			});
@@ -113,7 +114,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.ok(response.data);
-			response.data.forEach((user: any) => {
+			response.data.forEach((user: SafeSelectUser) => {
 				assert.ok(
 					"isAdmin" in user,
 					"isAdmin field should be included in response",

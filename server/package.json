@@ -1,10 +1,10 @@
 {
 	"name": "server",
 	"version": "1.0.0",
+	"private": true,
 	"description": "Server for the e-commerce platform",
 	"type": "module",
 	"main": "server.js",
-	"private": true,
 	"scripts": {
 		"build": "tsc",
 		"dev": "cross-env NODE_ENV=development tsx watch --import ./src/config/sentry.config.ts src/server.ts | pino-pretty",

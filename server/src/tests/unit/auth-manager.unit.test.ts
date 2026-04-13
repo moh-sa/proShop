@@ -1,8 +1,6 @@
 import assert from "node:assert";
 import { beforeEach, describe, it, suite } from "node:test";
 
-import type { TokenResult } from "../../types/index.js";
-
 import {
 	ConflictError,
 	InvalidCredentialsError,
@@ -10,6 +8,7 @@ import {
 	ValidationError,
 } from "../../errors/index.js";
 import { AuthManager } from "../../managers/auth.manager.js";
+import type { TokenResult } from "../../types/index.js";
 import {
 	generateMockInsertUser,
 	generateMockJwt,

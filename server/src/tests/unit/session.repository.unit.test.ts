@@ -1,6 +1,7 @@
-import mongoose from "mongoose";
 import assert from "node:assert/strict";
 import { describe, suite, test } from "node:test";
+
+import mongoose from "mongoose";
 
 import {
 	DatabaseDuplicateKeyError,

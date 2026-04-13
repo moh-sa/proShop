@@ -1,11 +1,10 @@
-import type { Request, Response } from "express";
-
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import type { CreateReview } from "../../types/index.js";
+import type { Request, Response } from "express";
 
 import { ReviewController } from "../../controllers/index.js";
+import type { CreateReview } from "../../types/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockObjectId,

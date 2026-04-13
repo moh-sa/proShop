@@ -1,4 +1,5 @@
 import type { DatabaseBaseError } from "../errors/index.js";
+import { UserModel } from "../models/user.model.js";
 import type {
 	CreateUser,
 	FailureResult,
@@ -12,8 +13,6 @@ import type {
 	UserFilter,
 	UserSchema,
 } from "../types/index.js";
-
-import { UserModel } from "../models/user.model.js";
 import {
 	handleDatabaseErrorResult,
 	Paginator,

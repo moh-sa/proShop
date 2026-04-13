@@ -1,12 +1,11 @@
-import type { Request, Response } from "express";
-
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import type { CreateUser } from "../../types/index.js";
+import type { Request, Response } from "express";
 
 import { UserController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
+import type { CreateUser } from "../../types/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockSelectUser,

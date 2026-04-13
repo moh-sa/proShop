@@ -1,4 +1,6 @@
 import type { DatabaseBaseError } from "../errors/index.js";
+import { ProductModel } from "../models/product.model.js";
+import { CacheService } from "../services/cache.service.js";
 import type {
 	AllProducts,
 	CreateProductWithStringImage,
@@ -14,9 +16,6 @@ import type {
 	Result,
 	TopRatedProduct,
 } from "../types/index.js";
-
-import { ProductModel } from "../models/product.model.js";
-import { CacheService } from "../services/cache.service.js";
 import {
 	handleDatabaseErrorResult,
 	Paginator,

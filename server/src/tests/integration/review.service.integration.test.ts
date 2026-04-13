@@ -1,8 +1,6 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 
-import type { CreateReview } from "../../types/index.js";
-
 import {
 	DatabaseDuplicateKeyError,
 	NotFoundError,
@@ -14,6 +12,7 @@ import { UserModel } from "../../models/user.model.js";
 import { productRepository } from "../../repositories/product.repository.js";
 import { reviewRepository } from "../../repositories/review.repository.js";
 import { ReviewService } from "../../services/review.service.js";
+import type { CreateReview } from "../../types/index.js";
 import {
 	generateMockInsertProductWithStringImage,
 	generateMockInsertReview,
@@ -763,7 +762,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			const updatedProduct = await productRepository.getById({
 				productId: createdReview.data.product,
 			});
-			(createdReview.data.product, assert.ok(updatedProduct.success));
+			assert.ok(updatedProduct.success);
 			assert.ok(updatedProduct.data);
 			assert.strictEqual(updatedProduct.data.numReviews, 1);
 			assert.strictEqual(updatedProduct.data.rating, updatedRating);

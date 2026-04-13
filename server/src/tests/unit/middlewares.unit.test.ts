@@ -1,9 +1,8 @@
-import type { TestContext } from "node:test";
-
 import assert from "node:assert";
+import type { TestContext } from "node:test";
 import test, { describe, suite } from "node:test";
 
-import type { CookieName, TokenType } from "../../types/index.js";
+import type { NextFunction, Request, Response } from "express";
 
 import {
 	AuthenticationError,
@@ -28,6 +27,7 @@ import {
 	SessionService,
 	UserService,
 } from "../../services/index.js";
+import type { CookieName, TokenType } from "../../types/index.js";
 import { mockExpressCall } from "../mocks/index.js";
 
 suite("Middlewares 〖 Unit Tests 〗", () => {
@@ -102,7 +102,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			setupMockValidateSession(t);
 
 			// Act
-			await authenticateRefreshSession(req as any, res as any, next);
+			await authenticateRefreshSession(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(
@@ -124,7 +126,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			setupMockValidateSession(t);
 
 			// Act
-			await authenticateRefreshSession(req as any, res as any, next);
+			await authenticateRefreshSession(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(
@@ -147,7 +151,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			const mockValidateSession = setupMockValidateSession(t, userId, tokenId);
 
 			// Act
-			await authenticateRefreshSession(req as any, res as any, next);
+			await authenticateRefreshSession(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(
@@ -172,7 +178,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			setupMockValidateSession(t, userId);
 
 			// Act
-			await authenticateRefreshSession(req as any, res as any, next);
+			await authenticateRefreshSession(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(res.locals.userId, userId);
@@ -190,7 +198,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			setupMockValidateSession(t, userId);
 
 			// Act
-			await authenticateRefreshSession(req as any, res as any, next);
+			await authenticateRefreshSession(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(next.mock.callCount(), 1);
@@ -209,7 +219,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => authenticateRefreshSession(req as any, res as any, next),
+				async () => authenticateRefreshSession(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 				AuthenticationError,
 			);
 		});
@@ -268,7 +280,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			setupMockVerifyJwt(t);
 
 			// Act
-			await authenticateAccessToken(req as any, res as any, next);
+			await authenticateAccessToken(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(
@@ -289,7 +303,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			const mockVerifyJwt = setupMockVerifyJwt(t);
 
 			// Act
-			await authenticateAccessToken(req as any, res as any, next);
+			await authenticateAccessToken(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(
@@ -310,7 +326,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			setupMockVerifyJwt(t, { userId });
 
 			// Act
-			await authenticateAccessToken(req as any, res as any, next);
+			await authenticateAccessToken(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(next.mock.callCount(), 1);
@@ -325,7 +343,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => authenticateAccessToken(req as any, res as any, next),
+				async () => authenticateAccessToken(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 				InternalError,
 			);
 		});
@@ -344,7 +364,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => authenticateAccessToken(req as any, res as any, next),
+				async () => authenticateAccessToken(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 				AuthenticationError,
 			);
 		});
@@ -364,7 +386,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => authenticateAccessToken(req as any, res as any, next),
+				async () => authenticateAccessToken(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 				AuthenticationError,
 			);
 		});
@@ -381,7 +405,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => authenticateAccessToken(req as any, res as any, next),
+				async () => authenticateAccessToken(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 				ValidationError,
 			);
 		});
@@ -397,7 +423,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => checkUserExists(req as any, res as any, next),
+				async () => checkUserExists(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 				InternalError,
 			);
 		});
@@ -422,7 +450,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await checkUserExists(req as any, res as any, next);
+			await checkUserExists(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(
@@ -447,7 +477,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => checkUserExists(req as any, res as any, next),
+				async () => checkUserExists(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 				ValidationError,
 			);
 		});
@@ -473,7 +505,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			}));
 
 			// Act
-			await checkUserExists(req as any, res as any, next);
+			await checkUserExists(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.deepStrictEqual(res.locals.user, user);
@@ -495,7 +529,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			}));
 
 			// Act
-			await checkUserExists(req as any, res as any, next);
+			await checkUserExists(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(next.mock.callCount(), 1);
@@ -512,7 +548,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			res.locals.user = { id: "507f1f77bcf86cd799439011", isAdmin: true };
 
 			// Act
-			await authorizeAdmin(req as any, res as any, next);
+			await authorizeAdmin(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(next.mock.callCount(), 1);
@@ -527,7 +565,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => authorizeAdmin(req as any, res as any, next),
+				async () => authorizeAdmin(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 				InternalError,
 			);
 		});
@@ -542,7 +582,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => authorizeAdmin(req as any, res as any, next),
+				async () => authorizeAdmin(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 				ForbiddenError,
 			);
 		});
@@ -558,7 +600,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => checkProductReviewedByUser(req as any, res as any, next),
+				async () => checkProductReviewedByUser(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 				InternalError,
 			);
 		});
@@ -573,7 +617,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => checkProductReviewedByUser(req as any, res as any, next),
+				async () => checkProductReviewedByUser(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 				ValidationError,
 			);
 		});
@@ -595,7 +641,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await checkProductReviewedByUser(req as any, res as any, next);
+			await checkProductReviewedByUser(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(
@@ -621,7 +669,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await checkProductReviewedByUser(req as any, res as any, next);
+			await checkProductReviewedByUser(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(mockExists.mock.calls[0].arguments[0]?.userId, userId);
@@ -645,7 +695,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.doesNotReject(async () =>
-				checkProductReviewedByUser(req as any, res as any, next),
+				checkProductReviewedByUser(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 			);
 		});
 
@@ -666,7 +718,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await checkProductReviewedByUser(req as any, res as any, next);
+			await checkProductReviewedByUser(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(next.mock.callCount(), 1);
@@ -690,7 +744,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => checkProductReviewedByUser(req as any, res as any, next),
+				async () => checkProductReviewedByUser(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 				ConflictError,
 			);
 		});
@@ -706,7 +762,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => verifyReviewOwnership(req as any, res as any, next),
+				async () => verifyReviewOwnership(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 				InternalError,
 			);
 		});
@@ -725,7 +783,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => verifyReviewOwnership(req as any, res as any, next),
+				async () => verifyReviewOwnership(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 				ValidationError,
 			);
 		});
@@ -750,7 +810,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await verifyReviewOwnership(req as any, res as any, next);
+			await verifyReviewOwnership(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(
@@ -775,7 +837,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			}));
 
 			// Act
-			await verifyReviewOwnership(req as any, res as any, next);
+			await verifyReviewOwnership(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(next.mock.callCount(), 1);
@@ -798,7 +862,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			}));
 
 			// Act
-			await verifyReviewOwnership(req as any, res as any, next);
+			await verifyReviewOwnership(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction);
 
 			// Assert
 			assert.strictEqual(next.mock.callCount(), 1);
@@ -822,7 +888,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => verifyReviewOwnership(req as any, res as any, next),
+				async () => verifyReviewOwnership(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 				ForbiddenError,
 			);
 		});
@@ -844,7 +912,9 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				async () => verifyReviewOwnership(req as any, res as any, next),
+				async () => verifyReviewOwnership(req as unknown as Request,
+				res as unknown as Response,
+				next as unknown as NextFunction),
 				NotFoundError,
 			);
 		});

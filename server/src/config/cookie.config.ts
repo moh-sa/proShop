@@ -1,5 +1,4 @@
 import type { CookieConfig } from "../types/index.js";
-
 import { env } from "./env.js";
 
 export const DEFAULT_COOKIE_CONFIG: CookieConfig = {

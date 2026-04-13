@@ -1,6 +1,7 @@
-import mongoose from "mongoose";
 import assert from "node:assert";
 import test, { describe, suite } from "node:test";
+
+import mongoose from "mongoose";
 
 import {
 	DatabaseNetworkError,

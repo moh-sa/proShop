@@ -1,10 +1,8 @@
 import type { Types } from "mongoose";
-
 import { model, Schema } from "mongoose";
 
-import type { ReviewSchema } from "../types/index.js";
-
 import { productRepository } from "../repositories/product.repository.js";
+import type { ReviewSchema } from "../types/index.js";
 
 const reviewSchema = new Schema<ReviewSchema>(
 	{

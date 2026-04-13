@@ -1,9 +1,7 @@
-import mongoose from "mongoose";
 import assert from "node:assert";
 import test, { beforeEach, describe, mock, suite } from "node:test";
 
-import type { CacheService } from "../../services/index.js";
-import type { CreateProductWithStringImage } from "../../types/index.js";
+import mongoose from "mongoose";
 
 import {
 	DatabaseNetworkError,
@@ -14,6 +12,8 @@ import {
 } from "../../errors/index.js";
 import { ProductModel } from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
+import type { CacheService } from "../../services/index.js";
+import type { CreateProductWithStringImage } from "../../types/index.js";
 import { Paginator } from "../../utils/paginator.util.js";
 import {
 	generateMockInsertProductWithStringImage,

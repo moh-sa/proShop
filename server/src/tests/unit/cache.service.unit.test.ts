@@ -1,9 +1,7 @@
-import type NodeCache from "node-cache";
-
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import type { CacheConfig, Namespace } from "../../types/index.js";
+import type NodeCache from "node-cache";
 
 import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../../config/index.js";
 import {
@@ -13,6 +11,7 @@ import {
 } from "../../errors/index.js";
 import { cacheItemSchema } from "../../schemas/index.js";
 import { CacheService } from "../../services/index.js";
+import type { CacheConfig, Namespace } from "../../types/index.js";
 import { mockNodeCache } from "../mocks/index.js";
 
 suite("Cache Manager 〖 Unit Tests 〗", () => {

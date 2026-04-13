@@ -1,6 +1,7 @@
-import jwt from "jsonwebtoken";
 import assert from "node:assert";
 import { beforeEach, describe, it, suite } from "node:test";
+
+import jwt from "jsonwebtoken";
 
 import { DEFAULT_JWT_CONFIG } from "../../config/index.js";
 import {
@@ -11,11 +12,12 @@ import {
 	JwtInvalidTokenError,
 } from "../../errors/index.js";
 import { JwtService } from "../../services/index.js";
+import type { TokenType } from "../../types/index.js";
 import { generateMockObjectId, mockJwt } from "../mocks/index.js";
 
 suite("JWT Service〖 Unit Tests 〗", () => {
 	const mockJWT = mockJwt();
-	const service = new JwtService(DEFAULT_JWT_CONFIG, mockJWT as any);
+	const service = new JwtService(DEFAULT_JWT_CONFIG, mockJWT as unknown as typeof jwt);
 
 	const userId = generateMockObjectId();
 	const tokenId = crypto.randomUUID();
@@ -242,8 +244,15 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 			// Arrange
 			t.mock.method(crypto, "randomUUID", () => tokenId);
 
-			mockJWT.sign.mock.mockImplementation((payload: any) =>
-				payload.type === "access" ? validAccessToken : validRefreshToken,
+			mockJWT.sign.mock.mockImplementation(
+				(payload: string | Buffer | jwt.JwtPayload) =>
+					typeof payload === "object" &&
+					payload !== null &&
+					!Buffer.isBuffer(payload) &&
+					"type" in payload &&
+					(payload as { type: string }).type === "access"
+						? validAccessToken
+						: validRefreshToken,
 			);
 
 			mockJWT.decode.mock.mockImplementation(() => ({
@@ -284,13 +293,21 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 			// Arrange
 			t.mock.method(crypto, "randomUUID", () => tokenId);
 
-			mockJWT.sign.mock.mockImplementation((payload: any) => {
-				if (payload.type === "access") {
-					return validAccessToken;
-				}
+			mockJWT.sign.mock.mockImplementation(
+				(payload: string | Buffer | jwt.JwtPayload) => {
+					if (
+						typeof payload === "object" &&
+						payload !== null &&
+						!Buffer.isBuffer(payload) &&
+						"type" in payload &&
+						(payload as { type: string }).type === "access"
+					) {
+						return validAccessToken;
+					}
 
-				throw new Error("Refresh token generation failed");
-			});
+					throw new Error("Refresh token generation failed");
+				},
+			);
 
 			mockJWT.decode.mock.mockImplementation(() => ({
 				exp: expiresAt.getTime() / 1000,
@@ -458,7 +475,7 @@ suite("JWT Service〖 Unit Tests 〗", () => {
 		it("should fail with invalid expected type", () => {
 			// Act
 			const result = service.verify({
-				expectedType: "invalid-type" as any,
+				expectedType: "invalid-type" as unknown as TokenType,
 				token: validAccessToken,
 			});
 

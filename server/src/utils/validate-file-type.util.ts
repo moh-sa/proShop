@@ -1,6 +1,6 @@
-import type { FileFilterCallback } from "multer";
+import path from "node:path";
 
-import path from "path";
+import type { FileFilterCallback } from "multer";
 
 export function validateFileType(
 	file: Express.Multer.File,

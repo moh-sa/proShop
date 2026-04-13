@@ -1,8 +1,10 @@
+import { type Mock, mock } from "node:test";
+
 import { faker } from "@faker-js/faker";
-import { Mock, mock } from "node:test";
 import type Stripe from "stripe";
-import { VerifyWebhookParams } from "../../types/payment.types.js";
-import { FunctionMocksWithReset } from "../types/mocked.type.js";
+
+import type { VerifyWebhookParams } from "../../types/payment.types.js";
+import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 
 type StripeSessionCreateFn = (
 	params?: Stripe.Checkout.SessionCreateParams,

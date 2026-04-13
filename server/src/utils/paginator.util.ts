@@ -1,5 +1,6 @@
 import type { Model, PipelineStage } from "mongoose";
 
+import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "../constants/index.js";
 import type {
 	DotPathRecord,
 	PaginatedResponse,
@@ -8,8 +9,6 @@ import type {
 	PaginationQuery,
 	PaginationSelect,
 } from "../types/index.js";
-
-import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "../constants/index.js";
 import { serializeMongoResult } from "./serialize-mongo-result.util.js";
 
 export interface PaginatorConfig {

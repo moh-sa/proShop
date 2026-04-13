@@ -1,4 +1,15 @@
+import {
+	InternalError,
+	NotFoundError,
+	ValidationError,
+} from "../errors/index.js";
 import type { IUserRepository } from "../repositories/index.js";
+import { userRepository } from "../repositories/index.js";
+import {
+	createUserSchema,
+	userPaginationParamsSchema,
+	userSchema,
+} from "../schemas/index.js";
 import type {
 	CreateUser,
 	GetAllUsersServiceParams,
@@ -11,18 +22,6 @@ import type {
 	User,
 	UserSelect,
 } from "../types/index.js";
-
-import {
-	InternalError,
-	NotFoundError,
-	ValidationError,
-} from "../errors/index.js";
-import { userRepository } from "../repositories/index.js";
-import {
-	createUserSchema,
-	userPaginationParamsSchema,
-	userSchema,
-} from "../schemas/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 import {
 	emailValidator,

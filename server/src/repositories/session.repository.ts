@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 
 import type { DatabaseBaseError } from "../errors/index.js";
+import { SessionModel } from "../models/session.model.js";
 import type {
 	CreateSession,
 	FailureResult,
@@ -15,8 +16,6 @@ import type {
 	SessionFilter,
 	SessionSchema,
 } from "../types/index.js";
-
-import { SessionModel } from "../models/session.model.js";
 import {
 	handleDatabaseErrorResult,
 	Paginator,

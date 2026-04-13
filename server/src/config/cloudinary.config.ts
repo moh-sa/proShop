@@ -1,5 +1,4 @@
 import type { UploadApiOptions } from "cloudinary";
-
 import { v2 as cloudinary } from "cloudinary";
 
 import { env } from "./env.js";

@@ -1,8 +1,6 @@
 import mongoose, { Error as MongooseError } from "mongoose";
 
 import type { DatabaseBaseError } from "../errors/index.js";
-import type { FailureResult } from "../types/index.js";
-
 import {
 	DatabaseDuplicateKeyError,
 	DatabaseNetworkError,
@@ -11,6 +9,7 @@ import {
 	DatabaseValidationError,
 	GenericDatabaseError,
 } from "../errors/index.js";
+import type { FailureResult } from "../types/index.js";
 
 /**
  * Handles database errors and returns the appropriate error.

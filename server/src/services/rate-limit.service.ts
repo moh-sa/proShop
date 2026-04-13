@@ -1,9 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 
-import type { RateLimitConfig } from "../types/index.js";
-
 import { RATE_LIMIT_CONFIG } from "../config/index.js";
 import { RateLimitError } from "../errors/index.js";
+import type { RateLimitConfig } from "../types/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 import { CacheService } from "./cache.service.js";
 

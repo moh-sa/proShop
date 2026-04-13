@@ -1,7 +1,9 @@
+import { ValidationError } from "../errors/index.js";
 import type {
 	IImageStorageService,
 	IProductService,
 } from "../services/index.js";
+import { imageStorageService, productService } from "../services/index.js";
 import type {
 	AllProducts,
 	CreateProduct,
@@ -13,9 +15,6 @@ import type {
 	Result,
 	TopRatedProduct,
 } from "../types/index.js";
-
-import { ValidationError } from "../errors/index.js";
-import { imageStorageService, productService } from "../services/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 
 export interface IProductManager {

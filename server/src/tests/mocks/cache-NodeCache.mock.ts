@@ -1,6 +1,6 @@
-import type NodeCache from "node-cache";
-
 import { mock } from "node:test";
+
+import type NodeCache from "node-cache";
 
 import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 

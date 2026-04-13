@@ -1,5 +1,4 @@
 import type { Response } from "express";
-
 import { pinoHttp } from "pino-http";
 
 import { env } from "../config/env.js";

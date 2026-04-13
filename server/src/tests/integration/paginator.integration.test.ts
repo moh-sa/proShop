@@ -148,7 +148,7 @@ suite("Paginator 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(
-				result.items.every((i: any) => i.rating >= 3),
+				result.items.every((i: Product) => i.rating >= 3),
 				true,
 			);
 		});

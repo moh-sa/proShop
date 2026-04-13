@@ -1,12 +1,11 @@
 import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 
-import type { Product, TopRatedProduct } from "../../types/index.js";
-
 import { DatabaseValidationError } from "../../errors/index.js";
 import { ProductModel } from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { CacheService } from "../../services/index.js";
+import type { Product, TopRatedProduct } from "../../types/index.js";
 import { generateMockObjectId } from "../mocks/index.js";
 import {
 	generateMockInsertProductsWithStringImage,

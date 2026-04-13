@@ -7,7 +7,7 @@ import {
 	ValidationError,
 } from "../../errors/index.js";
 import { OrderService } from "../../services/index.js";
-import { GetAllOrdersServiceParams } from "../../types/order.type.js";
+import type { GetAllOrdersServiceParams } from "../../types/order.type.js";
 import {
 	generateMockInsertOrder,
 	generateMockInsertProductWithStringImage,

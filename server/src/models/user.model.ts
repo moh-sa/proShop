@@ -1,13 +1,12 @@
 import { model, Schema } from "mongoose";
 
-import type { UserSchema } from "../types/index.js";
-
 import {
 	MAX_NAME_LENGTH,
 	MAX_PASSWORD_LENGTH,
 	MIN_NAME_LENGTH,
 	MIN_PASSWORD_LENGTH,
 } from "../constants/index.js";
+import type { UserSchema } from "../types/index.js";
 import { emailValidator } from "../validators/email.validator.js";
 
 const userSchema = new Schema<UserSchema>(

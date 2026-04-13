@@ -1,11 +1,7 @@
-import mongoose from "mongoose";
 import assert from "node:assert/strict";
 import { beforeEach, describe, mock, suite, test } from "node:test";
 
-import type {
-	CreateUser,
-	GetAllUsersRepositoryParams,
-} from "../../types/index.js";
+import mongoose from "mongoose";
 
 import {
 	DatabaseDuplicateKeyError,
@@ -17,6 +13,10 @@ import {
 } from "../../errors/index.js";
 import { UserModel } from "../../models/user.model.js";
 import { UserRepository } from "../../repositories/index.js";
+import type {
+	CreateUser,
+	GetAllUsersRepositoryParams,
+} from "../../types/index.js";
 import { Paginator } from "../../utils/paginator.util.js";
 import {
 	generateMockInsertUser,

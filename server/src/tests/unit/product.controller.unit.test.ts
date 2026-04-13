@@ -1,11 +1,10 @@
-import type { Request, Response } from "express";
-
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import type { CreateProduct, SuccessResponse } from "../../types/index.js";
+import type { Request, Response } from "express";
 
 import { ProductController } from "../../controllers/index.js";
+import type { CreateProduct, SuccessResponse } from "../../types/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockInsertProductWithMulterImage,
@@ -129,7 +128,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Assert
-			const { price, ...args } = mockManager.create.mock.calls[0].arguments[0];
+			const { price: _price, ...args } = mockManager.create.mock.calls[0].arguments[0];
 			assert.strictEqual(args.name, mockInsertProduct.name);
 			assert.strictEqual(args.description, mockInsertProduct.description);
 			assert.strictEqual(args.category, mockInsertProduct.category);
@@ -434,7 +433,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getAll(req as any, res as any, next);
+			await controller.getAll(req as unknown as Request, res as unknown as Response, next);
 
 			// Assert
 			assert.strictEqual(

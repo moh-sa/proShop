@@ -3,6 +3,7 @@ import { beforeEach, describe, it, suite } from "node:test";
 
 import { HTTP_STATUS } from "../../constants/index.js";
 import { AuthController } from "../../controllers/auth.controller.js";
+import type { ICookieService } from "../../services/index.js";
 import {
 	generateMockInsertUser,
 	generateMockJwt,
@@ -18,7 +19,10 @@ import { createMockExpressContext } from "../utils/index.js";
 suite("Auth Controller〖 Unit Tests 〗", () => {
 	const mockManager = mockAuthManager();
 	const mockCookie = mockCookieService();
-	const controller = new AuthController(mockManager, mockCookie as any);
+	const controller = new AuthController(
+		mockManager,
+		mockCookie as unknown as ICookieService,
+	);
 
 	beforeEach(() => {
 		mockManager.reset();

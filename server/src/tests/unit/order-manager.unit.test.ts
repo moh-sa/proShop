@@ -4,7 +4,7 @@ import test, { beforeEach, describe, suite } from "node:test";
 import { faker } from "@faker-js/faker";
 
 import { OrderManager } from "../../managers/order.manager.js";
-import { GetAllOrdersServiceParams } from "../../types/order.type.js";
+import type { GetAllOrdersServiceParams } from "../../types/order.type.js";
 import {
 	generateMockInsertOrder,
 	generateMockSelectOrder,

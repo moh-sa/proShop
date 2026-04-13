@@ -7,7 +7,7 @@ import { OrderModel } from "../../models/order.model.js";
 import { UserModel } from "../../models/user.model.js";
 import { orderRepository } from "../../repositories/index.js";
 import { OrderService } from "../../services/index.js";
-import { GetAllOrdersServiceParams } from "../../types/order.type.js";
+import type { GetAllOrdersServiceParams } from "../../types/order.type.js";
 import {
 	generateMockCheckoutSessionResponse,
 	generateMockInsertOrder,

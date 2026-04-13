@@ -1,7 +1,6 @@
 import type { SignOptions } from "jsonwebtoken";
 
 import type { JwtConfig } from "../types/index.js";
-
 import { env } from "./env.js";
 
 /** @deprecated*/

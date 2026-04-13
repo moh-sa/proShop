@@ -1,5 +1,7 @@
 import { after, before, beforeEach, describe, suite } from "node:test";
 
+import type * as Argon2 from "argon2";
+
 import { PasswordService } from "../../services/index.js";
 import { mockArgon2 } from "../mocks/argon2.mock.js";
 import {
@@ -9,7 +11,9 @@ import {
 
 suite("Password Service 〖 Integration Tests 〗", { todo: "IMPLEMENT" }, () => {
 	const mockProvider = mockArgon2();
-	const passwordService = new PasswordService(mockProvider as any); // eslint-disable-line @typescript-eslint/no-unused-vars
+	const _passwordService = new PasswordService(
+		mockProvider as unknown as typeof Argon2,
+	);
 
 	before(async () => connectTestDatabase());
 	after(async () => disconnectTestDatabase());

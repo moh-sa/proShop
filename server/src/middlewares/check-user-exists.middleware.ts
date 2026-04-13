@@ -23,7 +23,7 @@ export const checkUserExists = asyncHandler(async (_req, res, next) => {
 	}
 
 	// Set user in res.locals
-	// eslint-disable-next-line require-atomic-updates -- false warning
+	 
 	res.locals.user = getUserByIdResult.data;
 
 	next();

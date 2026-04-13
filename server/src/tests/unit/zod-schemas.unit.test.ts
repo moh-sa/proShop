@@ -1,7 +1,8 @@
-import { faker } from "@faker-js/faker";
-import { Types } from "mongoose";
 import assert from "node:assert";
 import { describe, suite, test } from "node:test";
+
+import { faker } from "@faker-js/faker";
+import { Types } from "mongoose";
 import { ZodError } from "zod";
 
 import {

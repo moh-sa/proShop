@@ -1,19 +1,5 @@
-import type { z } from "zod";
-
 import NodeCache from "node-cache";
-
-import type {
-	CacheConfig,
-	CacheFailureResult,
-	CacheItem,
-	CacheItems,
-	CacheResult,
-	CacheStats,
-	CacheSuccessResult,
-	MethodParams,
-	MethodReturn,
-	Namespace,
-} from "../types/index.js";
+import type { z } from "zod";
 
 import { DEFAULT_CACHE_CONFIG, MAX_CACHE_SIZE } from "../config/index.js";
 import {
@@ -27,6 +13,18 @@ import {
 	cacheKeySchema,
 	cacheKeysSchema,
 } from "../schemas/index.js";
+import type {
+	CacheConfig,
+	CacheFailureResult,
+	CacheItem,
+	CacheItems,
+	CacheResult,
+	CacheStats,
+	CacheSuccessResult,
+	MethodParams,
+	MethodReturn,
+	Namespace,
+} from "../types/index.js";
 import { formatZodErrors, getLoggerFromContext } from "../utils/index.js";
 
 export interface ICacheService {

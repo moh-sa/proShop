@@ -1,4 +1,6 @@
+import { HTTP_STATUS } from "../constants/index.js";
 import type { IProductManager } from "../managers/index.js";
+import { productManager } from "../managers/index.js";
 import type {
 	AllProducts,
 	AsyncHandler,
@@ -9,9 +11,6 @@ import type {
 	SafeSelectUser,
 	TopRatedProduct,
 } from "../types/index.js";
-
-import { HTTP_STATUS } from "../constants/index.js";
-import { productManager } from "../managers/index.js";
 import {
 	asyncHandler,
 	fromCurrencySmallestUnit,
@@ -183,7 +182,7 @@ export class ProductController implements IProductController {
 
 	getTopRated = asyncHandler<{
 		resBody: { data: Array<TopRatedProduct> };
-	}>(async (req, res) => {
+	}>(async (_req, res) => {
 		const logger = this._getLogger({ method: "getTopRated" });
 		logger.debug("Getting top rated products");
 

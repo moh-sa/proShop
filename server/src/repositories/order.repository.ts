@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 
 import type { DatabaseBaseError } from "../errors/index.js";
+import { OrderModel } from "../models/order.model.js";
 import type {
 	AllOrdersResponse,
 	CreateOrder,
@@ -17,8 +18,6 @@ import type {
 	PaginationQuery,
 	Result,
 } from "../types/index.js";
-
-import { OrderModel } from "../models/order.model.js";
 import {
 	handleDatabaseErrorResult,
 	Paginator,

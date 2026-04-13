@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 
 import type { DatabaseBaseError } from "../errors/index.js";
+import { ReviewModel } from "../models/review.model.js";
 import type {
 	CreateReview,
 	FailureResult,
@@ -16,8 +17,6 @@ import type {
 	ReviewFilter,
 	ReviewSchema,
 } from "../types/index.js";
-
-import { ReviewModel } from "../models/review.model.js";
 import {
 	handleDatabaseErrorResult,
 	Paginator,

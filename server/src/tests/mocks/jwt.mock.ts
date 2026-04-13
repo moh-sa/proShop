@@ -1,14 +1,13 @@
-/* eslint-disable perfectionist/sort-objects */
-import type jwt from "jsonwebtoken";
-
-import { faker } from "@faker-js/faker";
+ 
 import { mock } from "node:test";
 
-import type { TokenDecoded, TokenPair } from "../../types/index.js";
-import type { FunctionMocksWithReset } from "../types/mocked.type.js";
+import { faker } from "@faker-js/faker";
+import type jwt from "jsonwebtoken";
 
 import { DEFAULT_JWT_CONFIG } from "../../config/jwt.config.js";
-import { TokenType } from "../../types/index.js";
+import type { TokenDecoded, TokenPair } from "../../types/index.js";
+import type { TokenType } from "../../types/index.js";
+import type { FunctionMocksWithReset } from "../types/mocked.type.js";
 import { generateMockObjectId } from "./objectid.mock.js";
 
 type mockedJwt = Pick<typeof jwt, "decode" | "sign" | "verify">;

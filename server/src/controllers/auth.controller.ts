@@ -1,7 +1,10 @@
 import type { Request, Response } from "express";
 
+import { HTTP_STATUS } from "../constants/index.js";
 import type { IAuthManager } from "../managers/index.js";
+import { authManager } from "../managers/index.js";
 import type { ICookieService } from "../services/index.js";
+import { cookieService } from "../services/index.js";
 import type {
 	AsyncHandler,
 	CreateUser,
@@ -11,10 +14,6 @@ import type {
 	Session,
 	TokenPair,
 } from "../types/index.js";
-
-import { HTTP_STATUS } from "../constants/index.js";
-import { authManager } from "../managers/index.js";
-import { cookieService } from "../services/index.js";
 import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
 import { jwtTokenValidator } from "../validators/index.js";
 

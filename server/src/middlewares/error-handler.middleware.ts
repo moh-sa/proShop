@@ -1,6 +1,5 @@
-import type { NextFunction, Request, Response } from "express";
-
 import * as Sentry from "@sentry/node";
+import type { NextFunction, Request, Response } from "express";
 import { MulterError } from "multer";
 import { ZodError } from "zod";
 

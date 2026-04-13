@@ -1,17 +1,6 @@
 import { z } from "zod";
 
 import type { SessionBaseError } from "../errors/index.js";
-import type { ISessionRepository } from "../repositories/session.repository.js";
-import type {
-	CreateSession,
-	GetAllSessionsByUserIdServiceParams,
-	MethodParams,
-	MethodReturn,
-	PaginatedResponse,
-	Result,
-	Session,
-} from "../types/index.js";
-
 import {
 	DatabaseDuplicateKeyError,
 	SessionAlreadyExistsError,
@@ -21,10 +10,20 @@ import {
 	SessionValidationError,
 } from "../errors/index.js";
 import { sessionRepository } from "../repositories/index.js";
+import type { ISessionRepository } from "../repositories/session.repository.js";
 import {
 	createSessionSchema,
 	sessionByUserIdPaginationParamsSchema,
 } from "../schemas/index.js";
+import type {
+	CreateSession,
+	GetAllSessionsByUserIdServiceParams,
+	MethodParams,
+	MethodReturn,
+	PaginatedResponse,
+	Result,
+	Session,
+} from "../types/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 import { objectIdStringValidator, uuidValidator } from "../validators/index.js";
 
