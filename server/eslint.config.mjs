@@ -1,20 +1,22 @@
+// @ts-check
 import js from "@eslint/js";
 import eslintConfigPrettier from "eslint-config-prettier";
 import pluginN from "eslint-plugin-n";
 import packageJson from "eslint-plugin-package-json";
 import perfectionist from "eslint-plugin-perfectionist";
+import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
-export default tseslint.config(
-	{ ignores: ["dist/**", "node_modules/**", "bruno/**"] },
+export default defineConfig(
+	globalIgnores(["dist/**", "node_modules/**", "bruno/**"]),
 
 	js.configs.recommended,
 
 	{
 		files: ["src/**/*.ts"],
 
-		extends: tseslint.configs.recommended,
+		extends: [tseslint.configs.recommended],
 
 		languageOptions: {
 			globals: globals.node,
