@@ -1,121 +1,104 @@
-import eslint from "@eslint/js";
-import prettier from "eslint-config-prettier";
-import n from "eslint-plugin-n";
+import js from "@eslint/js";
+import eslintConfigPrettier from "eslint-config-prettier";
+import pluginN from "eslint-plugin-n";
 import packageJson from "eslint-plugin-package-json";
 import perfectionist from "eslint-plugin-perfectionist";
+import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
+	{ ignores: ["dist/**", "node_modules/**", "bruno/**"] },
+
+	js.configs.recommended,
+
 	{
-		ignores: ["**/node_modules/**", "dist/**", "*.config.*", ".env*"],
-	},
-	{
-		linterOptions: { reportUnusedDisableDirectives: "error" },
-	},
-	eslint.configs.recommended,
-	n.configs["flat/recommended"],
-	packageJson.configs.recommended,
-	packageJson.configs.stylistic,
-	perfectionist.configs["recommended-natural"],
-	{
-		extends: [tseslint.configs.strict],
-		files: ["**/*.{js,ts}"],
+		files: ["src/**/*.ts"],
+
+		extends: tseslint.configs.recommended,
+
 		languageOptions: {
-			parserOptions: {
-				projectService: {
-					allowDefaultProject: ["*.config.*s"],
-				},
-			},
+			globals: globals.node,
 		},
+
+		plugins: {
+			n: pluginN,
+			perfectionist,
+		},
+
 		rules: {
-			// TypeScript rules
-			"@typescript-eslint/prefer-nullish-coalescing": [
-				"error",
-				{ ignorePrimitives: true },
-			],
-			"@typescript-eslint/restrict-template-expressions": [
-				"error",
-				{ allowBoolean: true, allowNullish: true, allowNumber: true },
-			],
+			// --- TypeScript ---
+			// Base `no-unused-vars` ignores TS types; use the TS rule instead.
+			"no-unused-vars": "off",
 			"@typescript-eslint/no-unused-vars": [
 				"error",
 				{
+					args: "all",
+					caughtErrors: "all",
 					argsIgnorePattern: "^_",
-					varsIgnorePattern: "^_",
 					caughtErrorsIgnorePattern: "^_",
+					varsIgnorePattern: "^_",
+					destructuredArrayIgnorePattern: "^_",
 				},
 			],
+			"@typescript-eslint/no-explicit-any": "error",
+
+			// --- Imports & type-only imports ---
 			"@typescript-eslint/consistent-type-imports": [
 				"error",
-				{ prefer: "type-imports", fixStyle: "separate-type-imports" },
+				{ fixStyle: "inline-type-imports", prefer: "type-imports" },
 			],
+			// Pairs with consistent-type-imports (avoids stray side-effect-only imports).
 			"@typescript-eslint/no-import-type-side-effects": "error",
-			"@typescript-eslint/array-type": ["warn", { default: "generic" }],
 
-			// Node rules
-			"n/no-unsupported-features/node-builtins": [
-				"error",
-				{ allowExperimental: true, ignores: ["import.meta.dirname"] },
-			],
-			"n/prefer-global/process": ["error", "always"],
-			"n/prefer-global/buffer": ["error", "always"],
+			// --- Node ---
+			"n/prefer-node-protocol": "error",
+			// Prefer setting `process.exitCode` over `process.exit()` so async work can finish.
+			"n/no-process-exit": "warn",
 
-			// General code quality rules
-			// Stylistic concerns that don't interfere with Prettier
-			"logical-assignment-operators": [
-				"error",
-				"always",
-				{ enforceForIfStatements: true },
-			],
-			"no-useless-rename": "error",
-			"object-shorthand": "error",
-			"operator-assignment": "error",
-			"prefer-const": "error",
-			"prefer-template": "error",
-			"no-console": ["warn", { allow: ["warn", "error", "info"] }],
-
-			// Error handling rules
-			"prefer-promise-reject-errors": "error",
-
-			// Performance and best practices rules
-			"no-await-in-loop": "warn",
-			"require-atomic-updates": "warn",
-		},
-		settings: {
-			perfectionist: { partitionByComment: true, type: "natural" },
-		},
-	},
-
-	// Test files configuration
-	{
-		files: ["**/*.test.{js,ts}", "**/*.spec.{js,ts}", "**/tests/**/*.{js,ts}"],
-		rules: {
-			// Relax some rules for test files
-			"@typescript-eslint/no-explicit-any": "off",
-			"@typescript-eslint/no-non-null-assertion": "off",
-			"n/no-unpublished-import": "off",
-			"no-console": "off",
-
-			// Test-specific best practices
-			"@typescript-eslint/no-empty-function": "off",
-			"@typescript-eslint/no-unused-vars": [
+			// --- Sort imports & exports (perfectionist) ---
+			"perfectionist/sort-imports": [
 				"error",
 				{
-					argsIgnorePattern: "^_",
-					varsIgnorePattern:
-						"^_|^(it|describe|test|suite|before|after|beforeEach|afterEach)$",
+					groups: [
+						["builtin", "builtin-type"],
+						["external", "external-type"],
+						[
+							"internal",
+							"internal-type",
+							"parent",
+							"parent-type",
+							"sibling",
+							"sibling-type",
+							"index",
+							"index-type",
+						],
+					],
+					newlinesBetween: "always",
+					order: "asc",
+					type: "natural",
 				},
+			],
+
+			"perfectionist/sort-named-imports": [
+				"error",
+				{ order: "asc", type: "natural" },
+			],
+
+			"perfectionist/sort-exports": [
+				"error",
+				{ order: "asc", type: "natural" },
+			],
+
+			"perfectionist/sort-named-exports": [
+				"error",
+				{ order: "asc", type: "natural" },
 			],
 		},
 	},
 
-	// Configuration files
-	{
-		files: ["*.config.{js,ts,mjs}", "*.setup.{js,ts}"],
-		rules: {
-			"n/no-unpublished-import": "off",
-			"@typescript-eslint/no-var-requires": "off",
-		},
-	},
-	prettier,
+	packageJson.configs.recommended,
+	packageJson.configs.stylistic,
+
+	// Last: turns off ESLint rules that conflict with Prettier.
+	eslintConfigPrettier,
 );
