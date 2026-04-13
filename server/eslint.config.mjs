@@ -15,6 +15,7 @@ export default tseslint.config(
 	eslint.configs.recommended,
 	n.configs["flat/recommended"],
 	packageJson.configs.recommended,
+	packageJson.configs.stylistic,
 	perfectionist.configs["recommended-natural"],
 	{
 		extends: [tseslint.configs.strict],
