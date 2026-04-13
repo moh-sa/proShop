@@ -23,12 +23,11 @@ export async function disconnectTestDatabase() {
 	}
 }
 
-
 /**
  * Ensures all model indexes are created and ready
  */
 async function ensureIndexes(): Promise<void> {
-	const promises:Array<Promise<unknown>> = [];
+	const promises: Array<Promise<unknown>> = [];
 
 	// Get all registered models and ensure their indexes
 	for (const modelName of mongoose.modelNames()) {

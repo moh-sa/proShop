@@ -474,15 +474,9 @@ suite("Product Service 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.data.name, createdProduct.name);
 			assert.strictEqual(result.data.brand, createdProduct.brand);
 			assert.strictEqual(result.data.category, createdProduct.category);
-			assert.strictEqual(
-				result.data.description,
-				createdProduct.description,
-			);
+			assert.strictEqual(result.data.description, createdProduct.description);
 			assert.strictEqual(result.data.price, createdProduct.price);
-			assert.strictEqual(
-				result.data.countInStock,
-				createdProduct.countInStock,
-			);
+			assert.strictEqual(result.data.countInStock, createdProduct.countInStock);
 			assert.strictEqual(result.data.image, createdProduct.image);
 		});
 
