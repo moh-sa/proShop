@@ -6,7 +6,7 @@
 	"type": "module",
 	"main": "server.js",
 	"scripts": {
-		"build": "tsc",
+		"build": "tsc -p tsconfig.build.json",
 		"dev": "cross-env NODE_ENV=development tsx watch --import ./src/config/sentry.config.ts src/server.ts | pino-pretty",
 		"dev:debug": "cross-env NODE_ENV=development tsx watch --inspect src/server.ts | pino-pretty",
 		"format:check": "prettier --check .",
@@ -19,7 +19,7 @@
 		"test:debug": "cross-env NODE_ENV=test tsx --test --test-reporter spec --inspect src/tests/**/*.test.ts",
 		"test:integration": "cross-env NODE_ENV=test tsx --test --test-reporter spec src/tests/integration/*.integration.test.ts",
 		"test:unit": "cross-env NODE_ENV=test tsx --test --test-reporter spec src/tests/unit/*.unit.test.ts",
-		"type-check": "tsc --noEmit"
+		"type-check": "tsc -p tsconfig.json --noEmit"
 	},
 	"dependencies": {
 		"@proshop/shared": "workspace:*",

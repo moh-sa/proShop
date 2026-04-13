@@ -1,0 +1,19 @@
+{
+	"compilerOptions": {
+		"target": "ES6",
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"rootDir": "./src",
+		"outDir": "./dist",
+		"sourceMap": true,
+		"removeComments": true,
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"strict": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"skipLibCheck": true
+	}
+}
