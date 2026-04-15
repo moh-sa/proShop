@@ -65,7 +65,6 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const value = "test-data";
 
 			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheService["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
 			mockCache.set.mock.mockImplementationOnce(() => true);
 
 			// Act
@@ -82,7 +81,6 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const value = "test-data";
 
 			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheService["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
 			mockCache.set.mock.mockImplementationOnce(() => false);
 
 			// Act
@@ -100,7 +98,6 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const value = "test-data";
 
 			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheService["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
 			mockCache.set.mock.mockImplementationOnce(() => true);
 
 			// Act
@@ -117,7 +114,6 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const value = "test-data";
 
 			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheService["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
 			mockCache.set.mock.mockImplementationOnce(() => false);
 
 			// Act
@@ -134,7 +130,6 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const value = "test-data";
 
 			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheService["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
 			mockCache.set.mock.mockImplementationOnce(() => false);
 
 			// Act
@@ -151,7 +146,6 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const value = "test-data";
 
 			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheService["_validateSchema"] = t.mock.fn(() => ({ key, val: value }));
 			mockCache.set.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});
@@ -172,8 +166,6 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const val = "test-value";
 
 			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheService["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.set.mock.mockImplementation(() => true);
 
 			// Act
@@ -192,8 +184,6 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const val = "test-value";
 
 			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheService["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.set.mock.mockImplementation(() => false);
 
 			// Act
@@ -210,11 +200,11 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 		test("Should return the correct 'data' when '_cache.setMany' returns 'true'", (t) => {
 			// Arrange
 			const key = "test-key";
+			const expectedKey = `${namespace}:${key}`;
+
 			const val = "test-value";
 
 			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheService["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.set.mock.mockImplementation(() => true);
 
 			// Act
@@ -224,17 +214,17 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(Array.isArray(result));
 			assert.ok(result.length === 1);
 			assert.ok(result[0].success);
-			assert.strictEqual(result[0].data, key);
+			assert.strictEqual(result[0].data, expectedKey);
 		});
 
 		test("Should return the correct 'key' when '_cache.setMany' returns 'false'", (t) => {
 			// Arrange
 			const key = "test-key";
+			const expectedKey = `${namespace}:${key}`;
+
 			const val = "test-value";
 
 			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheService["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.set.mock.mockImplementation(() => false);
 
 			// Act
@@ -244,7 +234,7 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(Array.isArray(result));
 			assert.ok(result.length === 1);
 			assert.ok(!result[0].success);
-			assert.strictEqual(result[0].key, key);
+			assert.strictEqual(result[0].key, expectedKey);
 		});
 
 		test("Should return 'error' instance of 'CacheOperationError' when '_cache.setMany' returns 'false'", (t) => {
@@ -253,8 +243,6 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const val = "test-value";
 
 			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheService["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.set.mock.mockImplementationOnce(() => false);
 
 			// Act
@@ -273,8 +261,6 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			const val = "test-value";
 
 			cacheService["_validateMemoryCapacity"] = t.mock.fn(() => {});
-			cacheService["_validateSchema"] = t.mock.fn(() => [{ key, val }]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.set.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});
@@ -291,13 +277,11 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 	});
 
 	describe("Get", () => {
-		test("Should return 'success' and 'data' when '_cache.get' returns data", (t) => {
+		test("Should return 'success' and 'data' when '_cache.get' returns data", () => {
 			// Arrange
 			const key = "test-key";
 			const value = "test-data";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementationOnce(() => value);
 
 			// Act
@@ -308,12 +292,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result.data);
 		});
 
-		test("Should return 'success' and 'data' when '_cache.get' returns 'undefined'", (t) => {
+		test("Should return 'success' and 'data' when '_cache.get' returns 'undefined'", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementationOnce(() => undefined);
 
 			// Act
@@ -324,13 +306,11 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.data, undefined);
 		});
 
-		test("Should return the correct 'data' when '_cache.get' returns data", (t) => {
+		test("Should return the correct 'data' when '_cache.get' returns data", () => {
 			// Arrange
 			const key = "test-key";
 			const value = "test-data";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementationOnce(() => value);
 
 			// Act
@@ -341,12 +321,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.data, value);
 		});
 
-		test("Should return 'error' instance of 'CacheOperationError' when '_cache.get' throws", (t) => {
+		test("Should return 'error' instance of 'CacheOperationError' when '_cache.get' throws", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});
@@ -361,13 +339,11 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 	});
 
 	describe("getMany", () => {
-		test("Should return 'array' of 'success' and 'data' when '_cache.getMany' returns data", (t) => {
+		test("Should return 'array' of 'success' and 'data' when '_cache.getMany' returns data", () => {
 			// Arrange
 			const key = "test-key";
 			const value = "test-value";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementation(() => value);
 
 			// Act
@@ -380,12 +356,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result[0].data);
 		});
 
-		test("Should return 'array' of 'success', 'key', and 'error' when '_cache.getMany' returns 'undefined'", (t) => {
+		test("Should return 'array' of 'success', 'key', and 'error' when '_cache.getMany' returns 'undefined'", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementation(() => undefined);
 
 			// Act
@@ -399,13 +373,11 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result[0].error);
 		});
 
-		test("Should return the correct 'data' when '_cache.getMany' returns data", (t) => {
+		test("Should return the correct 'data' when '_cache.getMany' returns data", () => {
 			// Arrange
 			const key = "test-key";
 			const value = "test-value";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementation(() => value);
 
 			// Act
@@ -418,12 +390,11 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result[0].data, value);
 		});
 
-		test("Should return the correct 'key' when '_cache.getMany' returns 'undefined'", (t) => {
+		test("Should return the correct 'key' when '_cache.getMany' returns 'undefined'", () => {
 			// Arrange
 			const key = "test-key";
+			const expectedKey = `${namespace}:${key}`;
 
-			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementation(() => undefined);
 
 			// Act
@@ -433,15 +404,13 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(Array.isArray(result));
 			assert.ok(result.length === 1);
 			assert.ok(!result[0].success);
-			assert.strictEqual(result[0].key, key);
+			assert.strictEqual(result[0].key, expectedKey);
 		});
 
-		test("Should return 'error' instance of 'CacheOperationError' when '_cache.getMany' returns 'undefined'", (t) => {
+		test("Should return 'error' instance of 'CacheOperationError' when '_cache.getMany' returns 'undefined'", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementationOnce(() => undefined);
 
 			// Act
@@ -454,12 +423,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result[0].error instanceof CacheOperationError);
 		});
 
-		test("Should return 'error' instance of 'CacheOperationError' when '_cache.getMany' throws", (t) => {
+		test("Should return 'error' instance of 'CacheOperationError' when '_cache.getMany' throws", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.get.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});
@@ -476,12 +443,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 	});
 
 	describe("Delete", () => {
-		test("Should return 'success' and 'data' when '_cache.delete' returns '1'", (t) => {
+		test("Should return 'success' and 'data' when '_cache.delete' returns '1'", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementationOnce(() => 1);
 
 			// Act
@@ -492,12 +457,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result.data);
 		});
 
-		test("Should return 'success', 'key', and 'error' when '_cache.delete' returns '0'", (t) => {
+		test("Should return 'success', 'key', and 'error' when '_cache.delete' returns '0'", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementationOnce(() => 0);
 
 			// Act
@@ -509,12 +472,11 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result.error);
 		});
 
-		test("Should return the correct 'data' when '_cache.delete' returns '1'", (t) => {
+		test("Should return the correct 'data' when '_cache.delete' returns '1'", () => {
 			// Arrange
 			const key = "test-key";
+			const expectedKey = `${namespace}:${key}`;
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementationOnce(() => 1);
 
 			// Act
@@ -522,15 +484,14 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.ok(result.success);
-			assert.strictEqual(result.data, key);
+			assert.strictEqual(result.data, expectedKey);
 		});
 
-		test("Should return the correct 'key' when '_cache.delete' returns '0'", (t) => {
+		test("Should return the correct 'key' when '_cache.delete' returns '0'", () => {
 			// Arrange
 			const key = "test-key";
+			const expectedKey = `${namespace}:${key}`;
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementationOnce(() => 0);
 
 			// Act
@@ -538,15 +499,13 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.ok(!result.success);
-			assert.strictEqual(result.key, key);
+			assert.strictEqual(result.key, expectedKey);
 		});
 
-		test("Should return 'error' instance of 'CacheOperationError' when '_cache.delete' returns '0'", (t) => {
+		test("Should return 'error' instance of 'CacheOperationError' when '_cache.delete' returns '0'", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementationOnce(() => 0);
 
 			// Act
@@ -557,12 +516,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof CacheOperationError);
 		});
 
-		test("Should return 'error' instance of 'CacheOperationError' when '_cache.delete' throws", (t) => {
+		test("Should return 'error' instance of 'CacheOperationError' when '_cache.delete' throws", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});
@@ -577,12 +534,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 	});
 
 	describe("deleteMany", () => {
-		test("Should return 'array' of 'success' and 'data' when '_cache.deleteMany' returns '1'", (t) => {
+		test("Should return 'array' of 'success' and 'data' when '_cache.deleteMany' returns '1'", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementation(() => 1);
 
 			// Act
@@ -595,12 +550,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result[0].data);
 		});
 
-		test("Should return 'array' of 'success', 'key', and 'error' when '_cache.deleteMany' returns '0'", (t) => {
+		test("Should return 'array' of 'success', 'key', and 'error' when '_cache.deleteMany' returns '0'", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementation(() => 0);
 
 			// Act
@@ -614,12 +567,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result[0].error);
 		});
 
-		test("Should return the correct 'data' when '_cache.deleteMany' returns '1'", (t) => {
+		test("Should return the correct 'data' when '_cache.deleteMany' returns '1'", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementation(() => 1);
 
 			// Act
@@ -630,12 +581,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result[0].data, key);
 		});
 
-		test("Should return the correct 'key' when '_cache.deleteMany' returns '0'", (t) => {
+		test("Should return the correct 'key' when '_cache.deleteMany' returns '0'", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementation(() => 0);
 
 			// Act
@@ -646,12 +595,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result[0].key, key);
 		});
 
-		test("Should return 'error' instance of 'CacheOperationError' when '_cache.deleteMany' returns '0'", (t) => {
+		test("Should return 'error' instance of 'CacheOperationError' when '_cache.deleteMany' returns '0'", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementationOnce(() => 0);
 
 			// Act
@@ -662,12 +609,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result[0].error instanceof CacheOperationError);
 		});
 
-		test("Should return 'error' instance of 'CacheOperationError' when '_cache.deleteMany' throws", (t) => {
+		test("Should return 'error' instance of 'CacheOperationError' when '_cache.deleteMany' throws", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => [key]);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.del.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});
@@ -682,13 +627,11 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 	});
 
 	describe("take", () => {
-		test("Should return 'success' and 'data' when '_cache.take' returns data", (t) => {
+		test("Should return 'success' and 'data' when '_cache.take' returns data", () => {
 			// Arrange
 			const key = "test-key";
 			const value = "test-value";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.take.mock.mockImplementationOnce(() => value);
 
 			// Act
@@ -699,12 +642,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result.data);
 		});
 
-		test("Should return 'success', 'key', and 'error' when '_cache.take' returns 'undefined'", (t) => {
+		test("Should return 'success', 'key', and 'error' when '_cache.take' returns 'undefined'", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.take.mock.mockImplementationOnce(() => undefined);
 
 			// Act
@@ -716,13 +657,11 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result.error);
 		});
 
-		test("Should return the correct 'data' when '_cache.take' returns data", (t) => {
+		test("Should return the correct 'data' when '_cache.take' returns data", () => {
 			// Arrange
 			const key = "test-key";
 			const value = "test-value";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.take.mock.mockImplementationOnce(() => value);
 
 			// Act
@@ -733,12 +672,11 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.data, value);
 		});
 
-		test("Should return the correct 'key' when '_cache.take' returns 'undefined'", (t) => {
+		test("Should return the correct 'key' when '_cache.take' returns 'undefined'", () => {
 			// Arrange
 			const key = "test-key";
+			const expectedKey = `${namespace}:${key}`;
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.take.mock.mockImplementationOnce(() => undefined);
 
 			// Act
@@ -746,15 +684,13 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.ok(!result.success);
-			assert.strictEqual(result.key, key);
+			assert.strictEqual(result.key, expectedKey);
 		});
 
-		test("Should return 'error' instance of 'CacheOperationError' when '_cache.take' returns 'undefined'", (t) => {
+		test("Should return 'error' instance of 'CacheOperationError' when '_cache.take' returns 'undefined'", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.take.mock.mockImplementationOnce(() => undefined);
 
 			// Act
@@ -765,12 +701,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof CacheOperationError);
 		});
 
-		test("Should return 'error' instance of 'CacheOperationError' when '_cache.take' throws", (t) => {
+		test("Should return 'error' instance of 'CacheOperationError' when '_cache.take' throws", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.take.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});
@@ -843,12 +777,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 	});
 
 	describe("isKeyCached", () => {
-		test("Should return 'success' and 'data' when '_cache.has' returns 'true'", (t) => {
+		test("Should return 'success' and 'data' when '_cache.has' returns 'true'", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.has.mock.mockImplementationOnce(() => true);
 
 			// Act
@@ -859,12 +791,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result.data);
 		});
 
-		test("Should return 'success', 'key', and 'error' when '_cache.has' returns 'false'", (t) => {
+		test("Should return 'success', 'key', and 'error' when '_cache.has' returns 'false'", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.has.mock.mockImplementationOnce(() => false);
 
 			// Act
@@ -876,12 +806,11 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result.error);
 		});
 
-		test("Should return the correct 'data' when '_cache.has' returns 'true'", (t) => {
+		test("Should return the correct 'data' when '_cache.has' returns 'true'", () => {
 			// Arrange
 			const key = "test-key";
+			const expectedKey = `${namespace}:${key}`;
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.has.mock.mockImplementationOnce(() => true);
 
 			// Act
@@ -889,15 +818,14 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.ok(result.success);
-			assert.strictEqual(result.data, key);
+			assert.strictEqual(result.data, expectedKey);
 		});
 
-		test("Should return the correct 'key' when '_cache.has' returns 'false'", (t) => {
+		test("Should return the correct 'key' when '_cache.has' returns 'false'", () => {
 			// Arrange
 			const key = "test-key";
+			const expectedKey = `${namespace}:${key}`;
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.has.mock.mockImplementationOnce(() => false);
 
 			// Act
@@ -905,15 +833,13 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.ok(!result.success);
-			assert.strictEqual(result.key, key);
+			assert.strictEqual(result.key, expectedKey);
 		});
 
-		test("Should return 'error' instance of 'CacheOperationError' when '_cache.has' returns 'false'", (t) => {
+		test("Should return 'error' instance of 'CacheOperationError' when '_cache.has' returns 'false'", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.has.mock.mockImplementationOnce(() => false);
 
 			// Act
@@ -924,12 +850,10 @@ suite("Cache Manager 〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof CacheOperationError);
 		});
 
-		test("Should return 'error' instance of 'CacheOperationError' when '_cache.has' throws", (t) => {
+		test("Should return 'error' instance of 'CacheOperationError' when '_cache.has' throws", () => {
 			// Arrange
 			const key = "test-key";
 
-			cacheService["_validateSchema"] = t.mock.fn(() => key);
-			cacheService["_generateCacheKey"] = t.mock.fn(() => key);
 			mockCache.has.mock.mockImplementationOnce(() => {
 				throw new Error();
 			});

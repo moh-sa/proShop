@@ -11,6 +11,7 @@ import type {
 	CreateUser,
 	GetAllUsersServiceParams,
 	User,
+	UserSelect,
 } from "../../types/index.js";
 import {
 	generateMockInsertUser,
@@ -89,7 +90,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				}),
 			);
 
-			const userServiceGetAllSelect: User = {
+			const userServiceGetAllSelect: UserSelect = {
 				id: true,
 				createdAt: true,
 				email: true,

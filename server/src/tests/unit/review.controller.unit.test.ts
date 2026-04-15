@@ -1,8 +1,6 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import type { Request, Response } from "express";
-
 import { ReviewController } from "../../controllers/index.js";
 import type { CreateReview } from "../../types/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
@@ -47,11 +45,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.create(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.create(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.create.mock.callCount(), 1);
@@ -76,11 +71,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.create(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.create(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
@@ -102,11 +94,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.create(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.create(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
@@ -149,11 +138,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getAll(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAll(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
@@ -201,11 +187,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getAll(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAll(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
@@ -230,11 +213,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getAll(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAll(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
@@ -264,11 +244,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getAll(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAll(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
@@ -290,11 +267,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getAll(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAll(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
@@ -336,11 +310,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getAllByUserId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAllByUserId(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.getAllByUserId.mock.callCount(), 1);
@@ -382,11 +353,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getAllByUserId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAllByUserId(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.getAllByUserId.mock.callCount(), 1);
@@ -414,11 +382,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getAllByUserId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAllByUserId(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.getAllByUserId.mock.callCount(), 1);
@@ -454,11 +419,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getAllByUserId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAllByUserId(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
@@ -483,11 +445,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getAllByUserId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAllByUserId(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
@@ -529,11 +488,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getAllByProductId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAllByProductId(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.getAllByProductId.mock.callCount(), 1);
@@ -575,11 +531,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getAllByProductId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAllByProductId(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.getAllByProductId.mock.callCount(), 1);
@@ -607,11 +560,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getAllByProductId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAllByProductId(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.getAllByProductId.mock.callCount(), 1);
@@ -647,11 +597,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getAllByProductId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAllByProductId(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
@@ -676,11 +623,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getAllByProductId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAllByProductId(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
@@ -708,11 +652,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getById(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getById(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.getById.mock.callCount(), 1);
@@ -734,11 +675,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getById(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getById(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
@@ -757,11 +695,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getById(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getById(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
@@ -793,11 +728,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.update(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.update(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.update.mock.callCount(), 1);
@@ -823,11 +755,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.update(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.update(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
@@ -846,11 +775,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.update(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.update(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
@@ -877,11 +803,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.delete(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.delete(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.delete.mock.callCount(), 1);
@@ -903,11 +826,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.delete(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.delete(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
@@ -926,11 +846,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.delete(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.delete(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
@@ -955,11 +872,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.count(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.count(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.count.mock.callCount(), 1);
@@ -977,11 +891,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.count(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.count(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
@@ -999,11 +910,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.count(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.count(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
@@ -1030,11 +938,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.countByUserId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.countByUserId(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.countByUserId.mock.callCount(), 1);
@@ -1056,11 +961,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.countByUserId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.countByUserId(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
@@ -1079,11 +981,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.countByUserId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.countByUserId(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
@@ -1110,11 +1009,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.countByProductId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.countByProductId(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.countByProductId.mock.callCount(), 1);
@@ -1136,11 +1032,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.countByProductId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.countByProductId(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
@@ -1159,11 +1052,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.countByProductId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.countByProductId(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
@@ -1191,11 +1081,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.existsById(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.existsById(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.existsById.mock.callCount(), 1);
@@ -1217,11 +1104,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.existsById(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.existsById(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
@@ -1240,11 +1124,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.existsById(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.existsById(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
@@ -1277,11 +1158,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.existsByUserIdAndProductId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.existsByUserIdAndProductId(req, res, next);
 
 			// Assert
 			assert.strictEqual(
@@ -1317,11 +1195,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.existsByUserIdAndProductId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.existsByUserIdAndProductId(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
@@ -1345,11 +1220,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.existsByUserIdAndProductId(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.existsByUserIdAndProductId(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);

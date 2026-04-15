@@ -68,6 +68,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			mockImageUpload();
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.create(req, res, next);
 
 			// Assert
@@ -92,6 +93,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			mockImageUpload();
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.create(req, res, next);
 
 			// Assert
@@ -113,6 +115,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			mockImageUpload();
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.create(req, res, next);
 
 			// Assert
@@ -142,6 +145,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -157,6 +161,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -169,6 +174,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -194,6 +200,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			);
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -220,6 +227,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			req.query = { keyword };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -244,6 +252,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			req.query = { pageNumber: "1" };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -270,6 +279,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			req.query = { pageNumber: "2" };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -288,6 +298,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContext();
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -310,6 +321,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			req.query = { pageSize: "5" };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -344,6 +356,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			req.query = { sort: "price:asc" };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -371,6 +384,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			req.query = { brand: targetBrand };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -397,6 +411,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			req.query = { category: targetCategory };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -497,6 +512,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			req.params = { productId: createdProduct.id };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
@@ -517,6 +533,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			req.params = { productId: createdProduct.id };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
@@ -535,6 +552,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			req.params = { productId: createdProduct.id };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
@@ -571,6 +589,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
+				// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 				async () => await controller.getById(req, res, next),
 				NotFoundError,
 			);
@@ -591,6 +610,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			cache.set({ key: createdProduct.id, value: createdProduct });
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.update(req, res, next);
 
 			// Assert
@@ -615,6 +635,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			cache.set({ key: productId, value: createdProduct });
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.update(req, res, next);
 
 			// Assert
@@ -640,6 +661,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			cache.set({ key: productId, value: createdProduct });
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.update(req, res, next);
 
 			// Assert
@@ -656,6 +678,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
+				// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 				async () => await controller.update(req, res, next),
 				NotFoundError,
 			);
@@ -682,6 +705,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			);
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.delete(req, res, next);
 
 			// Assert
@@ -707,6 +731,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			);
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.delete(req, res, next);
 
 			// Assert
@@ -731,6 +756,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			);
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.delete(req, res, next);
 
 			// Assert
@@ -747,6 +773,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
+				// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 				async () => await controller.delete(req, res, next),
 				NotFoundError,
 			);

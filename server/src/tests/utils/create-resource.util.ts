@@ -6,14 +6,14 @@ import {
 	reviewRepository,
 	sessionRepository,
 	userRepository,
-} from "../../repositories";
+} from "../../repositories/index.js";
 import type {
 	CreateOrder,
 	CreateProduct,
 	CreateReview,
 	CreateSession,
 	CreateUser,
-} from "../../types";
+} from "../../types/index.js";
 
 // ORDER
 export async function createOrder(data: CreateOrder) {

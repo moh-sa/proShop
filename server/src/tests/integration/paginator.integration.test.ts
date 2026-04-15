@@ -140,7 +140,7 @@ suite("Paginator 〖 Integration Tests 〗", async () => {
 			await ProductModel.insertMany(mockData);
 
 			// Act
-			const result = await paginator.paginate({
+			const result = await paginator.paginate<Product>({
 				pageNumber: 1,
 				pageSize: 10,
 				query: { rating: { $gte: 3 } },
@@ -148,7 +148,7 @@ suite("Paginator 〖 Integration Tests 〗", async () => {
 
 			// Assert
 			assert.strictEqual(
-				result.items.every((i: Product) => i.rating >= 3),
+				result.items.every((i) => i.rating >= 3),
 				true,
 			);
 		});

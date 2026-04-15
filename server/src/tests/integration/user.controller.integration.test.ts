@@ -37,6 +37,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.query = { pageNumber: "1" };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -53,6 +54,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.query = { pageNumber: "1" };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -72,6 +74,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.query = { pageNumber: "1" };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -87,6 +90,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.query = { pageNumber: "1" };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -109,6 +113,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.query = { pageNumber: "1" };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -135,6 +140,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.params = { userId };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
@@ -163,6 +169,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			};
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
@@ -182,6 +189,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Act & Assert
 			await assert.rejects(
 				async () => {
+					// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response & Assert
 					await controller.getById(req, res, next);
 				},
 				{
@@ -200,6 +208,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.params = { userId: createdUser.id };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
@@ -215,6 +224,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.params = { userId: createdUser.id };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
@@ -236,6 +246,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.params = { userId: createdUser.id };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
@@ -259,6 +270,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.body = { name: "Updated Name" };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.update(req, res, next);
 
 			// Assert
@@ -289,6 +301,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.body = { name: "Updated Name" };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.update(req, res, next);
 
 			// Assert
@@ -308,6 +321,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(async () => {
+				// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response & Assert
 				await controller.update(req, res, next);
 			}, NotFoundError);
 		});
@@ -322,6 +336,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.body = { name: "Updated Name" };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.update(req, res, next);
 
 			// Assert
@@ -338,6 +353,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.body = { name: "Updated Name" };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.update(req, res, next);
 
 			// Assert
@@ -356,6 +372,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.body = { name: "Updated Name" };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.update(req, res, next);
 
 			// Assert
@@ -376,6 +393,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.body = { name: "Updated Name" };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.update(req, res, next);
 
 			// Assert
@@ -396,6 +414,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.params = { userId: createdUser.id };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.delete(req, res, next);
 
 			// Assert
@@ -414,6 +433,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.params = { userId: createdUser.id };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.delete(req, res, next);
 
 			// Assert
@@ -429,6 +449,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			// Act & Assert
 			await assert.rejects(
 				async () => {
+					// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response & Assert
 					await controller.delete(req, res, next);
 				},
 				{
@@ -447,6 +468,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			req.params = { userId: createdUser.id };
 
 			// Act
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.delete(req, res, next);
 
 			// Assert

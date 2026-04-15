@@ -1,5 +1,8 @@
-import type { InsertOrder, SelectOrder } from "../../types";
-import { fromCurrencySmallestUnit, toCurrencySmallestUnit } from "../../utils";
+import type { CreateOrder, Order } from "../../types/index.js";
+import {
+	fromCurrencySmallestUnit,
+	toCurrencySmallestUnit,
+} from "../../utils/index.js";
 
 export function toCents(amount: number): number {
 	return toCurrencySmallestUnit({
@@ -15,7 +18,7 @@ export function toDollars(amount: number): number {
 	});
 }
 
-export function convertOrderToCents<T extends InsertOrder | SelectOrder>(
+export function convertOrderToCents<T extends CreateOrder | Order>(
 	order: T,
 ): T {
 	return {
@@ -31,7 +34,7 @@ export function convertOrderToCents<T extends InsertOrder | SelectOrder>(
 	};
 }
 
-export function convertOrderToDollars<T extends InsertOrder | SelectOrder>(
+export function convertOrderToDollars<T extends CreateOrder | Order>(
 	order: T,
 ): T {
 	return {
@@ -47,7 +50,7 @@ export function convertOrderToDollars<T extends InsertOrder | SelectOrder>(
 	};
 }
 
-export function normalizeOrderPrices<T extends InsertOrder | SelectOrder>(
+export function normalizeOrderPrices<T extends CreateOrder | Order>(
 	order: T,
 ): T {
 	return convertOrderToDollars(convertOrderToCents(order));

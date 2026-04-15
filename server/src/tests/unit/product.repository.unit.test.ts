@@ -532,7 +532,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		test("Should return product object when 'cache.get' is called once and returns value", async () => {
 			// Arrange
 			mockCacheHit({
-				cacheKey,
 				instance: mockCache,
 				returnValue: mockProduct,
 			});
@@ -729,7 +728,6 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 		test("Should return array of products when 'cache.get' is called once and returns value", async () => {
 			// Arrange
 			mockCacheHit({
-				cacheKey,
 				instance: mockCache,
 				returnValue: mockProducts,
 			});

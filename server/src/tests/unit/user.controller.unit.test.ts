@@ -1,8 +1,6 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import type { Request, Response } from "express";
-
 import { UserController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
 import type { CreateUser } from "../../types/index.js";
@@ -39,11 +37,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getById(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getById(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.getById.mock.callCount(), 1);
@@ -65,11 +60,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getById(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getById(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
@@ -88,11 +80,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.getById(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getById(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
@@ -134,11 +123,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			mockService.getAll.mock.mockImplementationOnce(mockGetAllSuccess);
 
 			// Act
-			await controller.getAll(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAll(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
@@ -169,11 +155,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			mockService.getAll.mock.mockImplementationOnce(mockGetAllSuccess);
 
 			// Act
-			await controller.getAll(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAll(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
@@ -206,11 +189,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			mockService.getAll.mock.mockImplementationOnce(mockGetAllSuccess);
 
 			// Act
-			await controller.getAll(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAll(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
@@ -236,11 +216,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			mockService.getAll.mock.mockImplementationOnce(mockGetAllSuccess);
 
 			// Act
-			await controller.getAll(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAll(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.getAll.mock.callCount(), 1);
@@ -266,11 +243,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			mockService.getAll.mock.mockImplementationOnce(mockGetAllSuccess);
 
 			// Act
-			await controller.getAll(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAll(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
@@ -287,11 +261,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			mockService.getAll.mock.mockImplementationOnce(mockGetAllSuccess);
 
 			// Act
-			await controller.getAll(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.getAll(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
@@ -326,11 +297,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.update(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.update(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.updateById.mock.callCount(), 1);
@@ -356,11 +324,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.update(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.update(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
@@ -379,11 +344,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.update(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.update(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
@@ -410,11 +372,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.delete(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.delete(req, res, next);
 
 			// Assert
 			assert.strictEqual(mockService.delete.mock.callCount(), 1);
@@ -441,11 +400,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			// Act & Assert
 			await assert.rejects(
 				async () =>
-					await controller.delete(
-						req as unknown as Request,
-						res as unknown as Response,
-						next,
-					),
+					// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+					await controller.delete(req, res, next),
 				NotFoundError,
 			);
 		});
@@ -462,11 +418,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.delete(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.delete(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
@@ -485,11 +438,8 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			await controller.delete(
-				req as unknown as Request,
-				res as unknown as Response,
-				next,
-			);
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.delete(req, res, next);
 
 			// Assert
 			assert.strictEqual(res.json.mock.callCount(), 1);
