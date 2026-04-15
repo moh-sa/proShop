@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 import { createMocks } from "node-mocks-http";
 
-export const createMockExpressContext = () => {
-	const { req, res } = createMocks<Request, Response>();
+function baseMockContext<TReq extends Request, TRes extends Response>() {
+	const { req, res } = createMocks<TReq, TRes>();
 
 	const next: NextFunction = (error) => {
 		if (error) {
@@ -11,4 +11,11 @@ export const createMockExpressContext = () => {
 	};
 
 	return { next, req, res };
-};
+}
+
+/**
+ * Creates `req` / `res` / `next` with the Express's default `Request` and `Response` types.
+ */
+export function createMockExpressContext() {
+	return baseMockContext<Request, Response>();
+}
