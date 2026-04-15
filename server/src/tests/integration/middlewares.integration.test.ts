@@ -32,7 +32,7 @@ import {
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
-	createMockExpressContext,
+	createMockExpressContextFromHandler,
 	createProduct,
 	createReview,
 	createSession,
@@ -53,7 +53,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 	describe("checkProductReviewedByUser", () => {
 		test("Should throw ConflictError when review exists for user and product", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				checkProductReviewedByUser,
+			);
 			const user = await createUser(generateMockInsertUser());
 
 			const product = await createProduct({
@@ -80,7 +82,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should not throw when review does not exist", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				checkProductReviewedByUser,
+			);
 			const user = await createUser(generateMockInsertUser());
 
 			const product = await createProduct({
@@ -99,7 +103,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw ValidationError when productId is invalid", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				checkProductReviewedByUser,
+			);
 
 			const user = await createUser(generateMockInsertUser());
 
@@ -115,7 +121,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw InternalError when res.locals.user is missing", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				checkProductReviewedByUser,
+			);
 			req.params.productId = generateMockObjectId();
 
 			// Act & Assert
@@ -129,7 +137,8 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 	describe("checkUserIdExists", () => {
 		test("Should set res.locals.user when user exists for res.locals.userId", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } =
+				createMockExpressContextFromHandler(checkUserExists);
 
 			const user = await createUser(generateMockInsertUser());
 
@@ -144,7 +153,8 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should set the correct user in res.locals.user", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } =
+				createMockExpressContextFromHandler(checkUserExists);
 
 			const user = await createUser(generateMockInsertUser());
 
@@ -161,7 +171,8 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw NotFoundError when user does not exist", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } =
+				createMockExpressContextFromHandler(checkUserExists);
 
 			const mockId = generateMockObjectId();
 			res.locals.userId = mockId;
@@ -175,7 +186,8 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw InternalError when res.locals.userId is missing", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } =
+				createMockExpressContextFromHandler(checkUserExists);
 
 			// Act & Assert
 			await assert.rejects(
@@ -188,7 +200,8 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 	describe("checkIfUserIsAdmin", () => {
 		test("Should not throw when user is admin", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } =
+				createMockExpressContextFromHandler(authorizeAdmin);
 
 			const mockUser = generateMockSelectUser({ isAdmin: true });
 
@@ -200,7 +213,8 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'ForbiddenError' if user is not admin", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } =
+				createMockExpressContextFromHandler(authorizeAdmin);
 
 			const mockUser = generateMockSelectUser({ isAdmin: false });
 			res.locals.user = mockUser;
@@ -214,7 +228,8 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'InternalError' if user is missing in res.locals", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } =
+				createMockExpressContextFromHandler(authorizeAdmin);
 
 			// Act & Assert
 			await assert.rejects(
@@ -227,7 +242,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 	describe("verifyReviewOwnership", () => {
 		test("Should not throw when user owns the review", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				verifyReviewOwnership,
+			);
 
 			const mockUser = generateMockSelectUser({ isAdmin: false });
 			res.locals.user = mockUser;
@@ -248,7 +265,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should not throw when user is admin and not owner", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				verifyReviewOwnership,
+			);
 
 			const mockUser = generateMockSelectUser({ isAdmin: true });
 			res.locals.user = mockUser;
@@ -269,7 +288,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw ForbiddenError when user is not owner and not admin", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				verifyReviewOwnership,
+			);
 
 			const mockUser = generateMockSelectUser({ isAdmin: false });
 			res.locals.user = mockUser;
@@ -287,7 +308,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw ValidationError when reviewId is invalid", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				verifyReviewOwnership,
+			);
 
 			const mockUser = generateMockSelectUser({ isAdmin: false });
 			res.locals.user = mockUser;
@@ -302,7 +325,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw InternalError when res.locals.user is missing", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				verifyReviewOwnership,
+			);
 
 			req.params.reviewId = generateMockObjectId();
 
@@ -315,7 +340,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw NotFoundError when review does not exist", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				verifyReviewOwnership,
+			);
 
 			const mockUser = generateMockSelectUser({ isAdmin: false });
 			res.locals.user = mockUser;
@@ -334,7 +361,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw AuthenticationError when refresh token cookie is missing", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				authenticateRefreshSession,
+			);
 			req.cookies = {};
 			req.signedCookies = {};
 
@@ -347,7 +376,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw AuthenticationError when refresh token is invalid", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				authenticateRefreshSession,
+			);
 			req.cookies = {};
 			req.signedCookies = {
 				refreshToken: JSON.stringify("invalid"),
@@ -366,7 +397,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			const refresh = jwtService.generateRefreshToken({ userId });
 			assert.ok(refresh.success);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				authenticateRefreshSession,
+			);
 			req.cookies = {};
 			req.signedCookies = {
 				refreshToken: JSON.stringify(refresh.data.token),
@@ -392,7 +425,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 				}),
 			);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				authenticateRefreshSession,
+			);
 			req.cookies = {};
 			req.signedCookies = {
 				refreshToken: JSON.stringify(refresh.data.token),
@@ -411,7 +446,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw InternalError when res.locals.userId is missing", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				authenticateAccessToken,
+			);
 			req.cookies = {};
 			req.signedCookies = {};
 
@@ -424,7 +461,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 		test("Should throw AuthenticationError when access token cookie is missing", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				authenticateAccessToken,
+			);
 			res.locals.userId = generateMockObjectId();
 			req.cookies = {};
 			req.signedCookies = {};
@@ -442,7 +481,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			const access = jwtService.generateAccessToken({ userId });
 			assert.ok(access.success);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				authenticateAccessToken,
+			);
 			res.locals.userId = generateMockObjectId();
 			req.cookies = {};
 			req.signedCookies = {
@@ -462,7 +503,9 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			const access = jwtService.generateAccessToken({ userId });
 			assert.ok(access.success);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				authenticateAccessToken,
+			);
 			res.locals.userId = userId;
 			req.cookies = {};
 			req.signedCookies = {

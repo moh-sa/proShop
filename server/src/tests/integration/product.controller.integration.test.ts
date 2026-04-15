@@ -18,7 +18,7 @@ import {
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
-	createMockExpressContext,
+	createMockExpressContextFromHandler,
 	createProduct,
 	createProducts,
 	disconnectTestDatabase,
@@ -59,7 +59,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			const { image, ...mockProduct } =
 				generateMockInsertProductWithMulterImage();
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.create,
+			);
 			req.body = mockProduct;
 			// @ts-expect-error - `req.file` expect the type to be diskStorage
 			req.file = image;
@@ -84,7 +86,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			const { image, ...mockProduct } =
 				generateMockInsertProductWithMulterImage();
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.create,
+			);
 			req.body = mockProduct;
 			// @ts-expect-error - `req.file` expect the type to be diskStorage
 			req.file = image;
@@ -106,7 +110,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			const { image, ...mockProduct } =
 				generateMockInsertProductWithMulterImage();
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.create,
+			);
 			req.body = mockProduct;
 			// @ts-expect-error - `req.file` expect the type to be diskStorage
 			req.file = image;
@@ -142,7 +148,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 				}),
 			);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			// Act
 			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
@@ -158,7 +166,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when 'service.getAll' is called with valid data", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			// Act
 			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
@@ -171,7 +181,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return 'meta data' containing pagination information when 'service.getAll' is called with valid data", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			// Act
 			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
@@ -191,7 +203,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return array of products when 'service.getAll' is called with existing products", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			const createdProducts = await createProducts(
 				generateMockInsertProductsWithStringImage({
@@ -213,7 +227,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return filtered products when 'service.getAll' is called with keyword", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			const createdProducts = await createProducts(
 				generateMockInsertProductsWithStringImage({
@@ -241,7 +257,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '10' products in 'page 1' when 'service.getAll' is called with 13 products in database", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			await createProducts(
 				generateMockInsertProductsWithStringImage({
@@ -268,7 +286,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '3' products in 'page 2' when 'service.getAll' is called with 13 products in database", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			await createProducts(
 				generateMockInsertProductsWithStringImage({
@@ -295,7 +315,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return 'empty array' when 'service.getAll' is called with no products in database", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			// Act
 			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
@@ -310,7 +332,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return products with custom page size when 'service.getAll' is called with pageSize parameter", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			await createProducts(
 				generateMockInsertProductsWithStringImage({
@@ -335,7 +359,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return products sorted by price when 'service.getAll' is called with sort parameter", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			const createdProducts = await createProducts(
 				generateMockInsertProductsWithStringImage({
@@ -371,7 +397,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return products filtered by brand when 'service.getAll' is called with brand query", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			const createdProducts = await createProducts(
 				generateMockInsertProductsWithStringImage({
@@ -398,7 +426,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return products filtered by category when 'service.getAll' is called with category query", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			const createdProducts = await createProducts(
 				generateMockInsertProductsWithStringImage({
@@ -428,7 +458,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 	describe("getTopRated", () => {
 		test("Should return success response when 'service.getTopRated' is called with valid data", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getTopRated,
+			);
 
 			const createdProducts = await createProducts(
 				generateMockInsertProductsWithStringImage({
@@ -449,7 +481,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when 'service.getTopRated' is called with valid data", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getTopRated,
+			);
 
 			await createProducts(
 				generateMockInsertProductsWithStringImage({
@@ -467,7 +501,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return array of top rated products when 'service.getTopRated' is called with valid data", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getTopRated,
+			);
 
 			const createdProducts = await createProducts(
 				generateMockInsertProductsWithStringImage({
@@ -488,7 +524,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return 'empty array' when 'service.getTopRated' is called with no products in database", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getTopRated,
+			);
 
 			// Act
 			await controller.getTopRated(req, res, next);
@@ -503,7 +541,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 	describe("getById", () => {
 		test("Should return success response when 'service.getById' is called with valid data", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 
 			const createdProduct = await createProduct(
 				generateMockInsertProductWithStringImage(),
@@ -524,7 +564,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when 'service.getById' is called with valid data", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 
 			const createdProduct = await createProduct(
 				generateMockInsertProductWithStringImage(),
@@ -543,7 +585,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return product object when 'service.getById' is called with existing product", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 
 			const createdProduct = await createProduct(
 				generateMockInsertProductWithStringImage(),
@@ -583,7 +627,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'NotFoundError' when 'service.getById' is called with non-existent product id", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 			const productId = generateMockObjectId();
 			req.params = { productId: productId };
 
@@ -599,7 +645,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 	describe("update", () => {
 		test("Should return success response when 'service.update' is called with valid data", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.update,
+			);
 
 			const createdProduct = await createProduct(
 				generateMockInsertProductWithStringImage(),
@@ -622,7 +670,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when 'service.update' is called with valid data", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.update,
+			);
 
 			const createdProduct = await createProduct(
 				generateMockInsertProductWithStringImage(),
@@ -645,7 +695,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return updated product when 'service.update' is called with valid update data", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.update,
+			);
 
 			const createdProduct = await createProduct(
 				generateMockInsertProductWithStringImage(),
@@ -672,7 +724,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'NotFoundError' when 'service.update' is called with non-existent product id", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.update,
+			);
 			const productId = generateMockObjectId();
 			req.params = { productId };
 
@@ -688,7 +742,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 	describe("delete", () => {
 		test("Should return success response when 'service.delete' is called with valid data", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.delete,
+			);
 
 			const createdProduct = await createProduct(
 				generateMockInsertProductWithStringImage(),
@@ -716,7 +772,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '204' status code when 'service.delete' is called with valid data", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.delete,
+			);
 
 			const createdProduct = await createProduct(
 				generateMockInsertProductWithStringImage(),
@@ -741,7 +799,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return 'data' equals to 'null' 'service.delete' is called with valid data", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.delete,
+			);
 
 			const createdProduct = await createProduct(
 				generateMockInsertProductWithStringImage(),
@@ -767,7 +827,9 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'NotFoundError' when 'service.delete' is called with non-existent product id", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.delete,
+			);
 			const productId = generateMockObjectId();
 			req.params = { productId };
 

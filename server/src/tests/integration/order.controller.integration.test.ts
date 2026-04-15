@@ -20,7 +20,7 @@ import {
 	connectTestDatabase,
 	convertOrderToCents,
 	convertOrderToDollars,
-	createMockExpressContext,
+	createMockExpressContextFromHandler,
 	createOrder,
 	createOrders,
 	disconnectTestDatabase,
@@ -47,7 +47,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockOrderData = generateMockInsertOrder();
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.create,
+			);
 			req.body = mockOrderData;
 			res.locals.user = mockOrderData.user;
 
@@ -61,7 +63,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
 			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.ok(response.data.order);
@@ -72,7 +73,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockOrderData = generateMockInsertOrder();
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.create,
+			);
 			req.body = mockOrderData;
 			res.locals.user = mockOrderData.user;
 
@@ -93,7 +96,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockOrderData = generateMockInsertOrder();
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.create,
+			);
 			req.body = mockOrderData;
 			res.locals.user = mockOrderData.user;
 
@@ -129,7 +134,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockOrderData = generateMockInsertOrder();
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.create,
+			);
 			req.body = mockOrderData;
 			res.locals.user = mockOrderData.user;
 
@@ -161,7 +168,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockOrderData = generateMockInsertOrder();
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.create,
+			);
 			req.body = mockOrderData;
 			res.locals.user = mockOrderData.user;
 
@@ -184,7 +193,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const mockOrderData = generateMockInsertOrder();
 			const expectedData = convertOrderToCents(mockOrderData);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.create,
+			);
 			req.body = mockOrderData;
 			res.locals.user = mockOrderData.user;
 
@@ -221,7 +232,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockOrderData = normalizeOrderPrices(generateMockInsertOrder());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.create,
+			);
 			req.body = mockOrderData;
 			res.locals.user = mockOrderData.user;
 
@@ -263,7 +276,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdOrder = await createOrder(generateMockInsertOrder());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 			req.params = { orderId: createdOrder.id };
 			res.locals.user = generateMockSelectUser({
 				id: createdOrder.user.id,
@@ -285,7 +300,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdOrder = await createOrder(generateMockInsertOrder());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 			req.params = { orderId: createdOrder.id };
 			res.locals.user = generateMockSelectUser({
 				id: createdOrder.user.id,
@@ -305,7 +322,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdOrder = await createOrder(generateMockInsertOrder());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 			req.params = { orderId: createdOrder.id };
 			res.locals.user = generateMockSelectUser({
 				id: createdOrder.user.id,
@@ -327,7 +346,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdOrder = await createOrder(generateMockInsertOrder());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 			req.params = { orderId: createdOrder.id };
 			res.locals.user = createdOrder.user;
 
@@ -346,7 +367,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const orderId = generateMockObjectId();
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 			req.params = { orderId: orderId };
 
 			// Act & Assert
@@ -367,7 +390,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const expectedData = convertOrderToDollars(createdOrder);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 			req.params = { orderId: createdOrder.id };
 			res.locals.user = generateMockSelectUser({
 				id: createdOrder.user.id,
@@ -402,7 +427,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const differentUser = generateMockSelectUser({ isAdmin: false });
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 			req.params = { orderId: createdOrder.id };
 			res.locals.user = differentUser;
 
@@ -427,7 +454,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const adminUser = generateMockSelectUser({ isAdmin: true });
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 			req.params = { orderId: createdOrder.id };
 			res.locals.user = adminUser;
 
@@ -452,7 +481,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			await createOrders(generateMockInsertOrders(2));
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 			req.query = { pageNumber: "1", pageSize: "10" };
 
 			// Act
@@ -469,7 +500,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when called with valid pagination parameters", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 			req.query = { pageNumber: "1" };
 
 			// Act
@@ -485,7 +518,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			await createOrders(generateMockInsertOrders(2));
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 			req.query = { pageNumber: "1", pageSize: "10" };
 
 			// Act
@@ -503,7 +538,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return empty paginated response when no orders exist", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 			req.query = { pageNumber: "1" };
 
 			// Act
@@ -523,7 +560,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			await createOrders(generateMockInsertOrders(3));
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 			req.query = {
 				status: "processing",
 				pageNumber: "1",
@@ -547,7 +586,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			await createOrder(generateMockInsertOrder());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 			req.query = {};
 
 			// Act
@@ -567,7 +608,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const expectedData = createdOrders.map(convertOrderToDollars);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 			req.query = { pageNumber: "1", pageSize: "10" };
 
 			// Act
@@ -594,7 +637,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const userId = createdOrder.user.id;
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByUserId,
+			);
 			req.params = { userId };
 			req.query = { pageNumber: "1", pageSize: "10" };
 			res.locals.user = generateMockSelectUser({
@@ -618,7 +663,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockOrder = generateMockInsertOrder();
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByUserId,
+			);
 			req.params = { userId: mockOrder.user.id };
 			req.query = { pageNumber: "1" };
 			res.locals.user = generateMockSelectUser({
@@ -644,7 +691,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 				...generateMockInsertOrders(2),
 			]);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByUserId,
+			);
 			req.params = { userId: mockUser.id };
 			req.query = { pageNumber: "1", pageSize: "10" };
 			res.locals.user = mockUser;
@@ -668,7 +717,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			await createOrders(generateMockInsertOrders(5));
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByUserId,
+			);
 			req.params = { userId: mockUser.id };
 			req.query = { pageNumber: "1" };
 			res.locals.user = mockUser;
@@ -692,7 +743,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const orderOwner = createdOrders[0].user;
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByUserId,
+			);
 			req.params = { userId: orderOwner.id };
 			req.query = { pageNumber: "1" };
 			res.locals.user = orderOwner;
@@ -722,7 +775,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 				...generateMockInsertOrders(2, { status: "pending", user: mockUser }),
 			]);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByUserId,
+			);
 			req.params = { userId: mockUser.id };
 			req.query = {
 				status: "processing",
@@ -753,7 +808,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const mockOrder = generateMockInsertOrder();
 			await createOrder(mockOrder);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByUserId,
+			);
 			req.params = { userId: mockOrder.user.id };
 			req.query = {};
 			res.locals.user = generateMockSelectUser({
@@ -784,7 +841,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const expectedData = createdOrders.map(convertOrderToDollars);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByUserId,
+			);
 			req.params = { userId: mockUser.id };
 			req.query = { pageNumber: "1", pageSize: "10" };
 			res.locals.user = mockUser;
@@ -813,7 +872,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const differentUser = generateMockSelectUser({ isAdmin: false });
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByUserId,
+			);
 			req.params = { userId: orderOwner.id };
 			req.query = { pageNumber: "1", pageSize: "10" };
 			res.locals.user = differentUser;
@@ -841,7 +902,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const adminUser = generateMockSelectUser({ isAdmin: true });
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByUserId,
+			);
 			req.params = { userId: orderOwner.id };
 			req.query = { pageNumber: "1", pageSize: "10" };
 			res.locals.user = adminUser;
@@ -875,7 +938,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const orderId = createdOrder.id;
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.updatePayment,
+			);
 			req.params = { orderId };
 			req.body = {
 				id: "cs_456",
@@ -904,7 +969,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			const orderId = createdOrder.id;
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.updatePayment,
+			);
 			req.params = { orderId };
 			req.body = {
 				id: "cs_456",
@@ -934,7 +1001,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const provider = "stripe";
 			const sessionURL = "https://checkout.stripe.com/c/pay/cs_456";
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.updatePayment,
+			);
 			req.params = { orderId };
 			req.body = { id: paymentId, provider, sessionURL };
 
@@ -966,7 +1035,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const paymentId = "cs_456";
 			const sessionURL = "https://checkout.stripe.com/c/pay/cs_456";
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.updatePayment,
+			);
 			req.params = { orderId };
 			req.body = { id: paymentId, provider: "stripe", sessionURL };
 
@@ -987,7 +1058,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const orderId = generateMockObjectId();
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.updatePayment,
+			);
 			req.params = { orderId };
 			req.body = {
 				id: "cs_123",
@@ -1021,7 +1094,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const provider = "stripe";
 			const sessionURL = "https://checkout.stripe.com/c/pay/cs_123";
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.updatePayment,
+			);
 			req.params = { orderId };
 			req.body = { id: paymentId, provider, sessionURL };
 
@@ -1054,7 +1129,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const orderId = createdOrder.id;
 			const expectedData = convertOrderToDollars(createdOrder);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.updatePayment,
+			);
 			req.params = { orderId };
 			req.body = {
 				id: "cs_456",
@@ -1088,7 +1165,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 	describe("handleStripeWebhook", () => {
 		test("Should return 400 when 'stripe-signature' header is missing", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.handleStripeWebhook,
+			);
 			req.body = Buffer.from("test-payload");
 
 			// Act
@@ -1105,7 +1184,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return 400 when 'stripe-signature' header is an array instead of string", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.handleStripeWebhook,
+			);
 			req.body = Buffer.from("test-payload");
 			req.headers["stripe-signature"] = ["sig1", "sig2"];
 
@@ -1123,7 +1204,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return 400 when body is not a Buffer", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.handleStripeWebhook,
+			);
 			req.body = { notABuffer: true };
 			req.headers["stripe-signature"] = "valid-signature";
 
@@ -1141,7 +1224,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return 400 with appropriate error message when body is missing", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.handleStripeWebhook,
+			);
 			req.body = undefined;
 			req.headers["stripe-signature"] = "valid-signature";
 

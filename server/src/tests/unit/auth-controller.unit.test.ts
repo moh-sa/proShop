@@ -14,7 +14,7 @@ import {
 	mockAuthManager,
 	mockCookieService,
 } from "../mocks/index.js";
-import { createMockExpressContext } from "../utils/index.js";
+import { createMockExpressContextFromHandler } from "../utils/index.js";
 
 suite("Auth Controller〖 Unit Tests 〗", () => {
 	const mockManager = mockAuthManager();
@@ -35,7 +35,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const mockInsertUser = generateMockInsertUser();
 			const { password: _, ...safeUser } = generateMockSelectUser();
 			const mockTokens = generateMockTokenPairWithData();
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signUp,
+			);
 			req.body = mockInsertUser;
 
 			mockManager.signUp.mock.mockImplementation(async () => ({
@@ -68,7 +70,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const mockInsertUser = generateMockInsertUser();
 			const { password: _, ...safeUser } = generateMockSelectUser();
 			const mockTokens = generateMockTokenPairWithData();
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signUp,
+			);
 			req.body = mockInsertUser;
 
 			mockManager.signUp.mock.mockImplementation(async () => ({
@@ -109,7 +113,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const mockInsertUser = generateMockInsertUser();
 			const { password: _, ...safeUser } = generateMockSelectUser();
 			const mockTokens = generateMockTokenPairWithData();
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signUp,
+			);
 			req.body = mockInsertUser;
 
 			mockManager.signUp.mock.mockImplementation(async () => ({
@@ -142,7 +148,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 		it("should throw manager error and prevent cookie setting", async () => {
 			// Arrange
 			const mockInsertUser = generateMockInsertUser();
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signUp,
+			);
 			req.body = mockInsertUser;
 
 			const error = new Error("signup failed");
@@ -171,7 +179,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const { password: _, ...safeUser } =
 				generateMockSelectUser(mockInsertUser);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signIn,
+			);
 			req.body = { email, password };
 
 			mockManager.signIn.mock.mockImplementation(async () => ({
@@ -208,7 +218,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const { password: _, ...safeUser } =
 				generateMockSelectUser(mockInsertUser);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signIn,
+			);
 			req.body = { email, password };
 
 			mockManager.signIn.mock.mockImplementation(async () => ({
@@ -252,7 +264,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const { password: _, ...safeUser } =
 				generateMockSelectUser(mockInsertUser);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signIn,
+			);
 			req.body = { email, password };
 
 			mockManager.signIn.mock.mockImplementation(async () => ({
@@ -286,7 +300,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			// Arrange
 			const { email, password } = generateMockInsertUser();
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signIn,
+			);
 			req.body = { email, password };
 
 			const error = new Error("signin failed");
@@ -310,7 +326,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockRefreshToken = generateMockJwt("refresh");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signOut,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -337,7 +355,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockRefreshToken = generateMockJwt("refresh");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signOut,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -367,7 +387,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockRefreshToken = generateMockJwt("refresh");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signOut,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -396,7 +418,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			// Arrange
 			const error = new Error("no cookie");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signOut,
+			);
 
 			mockCookie.get.mock.mockImplementation(
 				// @ts-expect-error - test case
@@ -418,7 +442,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const mockRefreshToken = generateMockJwt("refresh");
 			const error = new Error("fail");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signOut,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -444,7 +470,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const mockRefreshToken = generateMockJwt("refresh");
 			const mockRemovedCount = 3;
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signOutAll,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -470,7 +498,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockRefreshToken = generateMockJwt("refresh");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signOutAll,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -501,7 +531,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const mockRefreshToken = generateMockJwt("refresh");
 			const mockRemovedCount = 3;
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signOutAll,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -530,7 +562,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			// Arrange
 			const error = new Error("no cookie");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signOutAll,
+			);
 			mockCookie.get.mock.mockImplementation(
 				// @ts-expect-error - test case
 				() => ({ error, success: false }),
@@ -551,7 +585,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const mockRefreshToken = generateMockJwt("refresh");
 			const error = new Error("Sign out all failed");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.signOutAll,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -578,7 +614,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const mockRefreshToken = generateMockJwt("refresh");
 			const { exp: expiresAt, token } = generateMockTokenWithData("access");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.refreshAccessToken,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -609,7 +647,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 				token,
 			};
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.refreshAccessToken,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -648,7 +688,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 				token,
 			};
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.refreshAccessToken,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -676,7 +718,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			// Arrange
 			const error = new Error("no cookie");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.refreshAccessToken,
+			);
 
 			mockCookie.get.mock.mockImplementation(
 				// @ts-expect-error - test case
@@ -698,7 +742,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const mockRefreshToken = generateMockJwt("refresh");
 			const error = new Error("x");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.refreshAccessToken,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -733,7 +779,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 				totalPages: 1,
 			};
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getUserSessions,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -771,7 +819,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 				totalPages: 1,
 			};
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getUserSessions,
+			);
 			req.query = {
 				pageNumber: "2",
 				pageSize: "20",
@@ -819,7 +869,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 				totalPages: 1,
 			};
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getUserSessions,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -862,7 +914,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 				totalPages: 1,
 			};
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getUserSessions,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -904,7 +958,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 				totalPages: 1,
 			};
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getUserSessions,
+			);
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
 				success: true,
@@ -932,7 +988,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			// Arrange
 			const error = new Error("no cookie");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getUserSessions,
+			);
 
 			mockCookie.get.mock.mockImplementation(
 				// @ts-expect-error - test case
@@ -954,7 +1012,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const mockRefreshToken = generateMockJwt("refresh");
 			const error = new Error("x");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getUserSessions,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -979,7 +1039,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockRefreshToken = generateMockJwt("refresh");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.revokeSession,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -1005,7 +1067,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockRefreshToken = generateMockJwt("refresh");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.revokeSession,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -1035,7 +1099,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockRefreshToken = generateMockJwt("refresh");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.revokeSession,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -1067,7 +1133,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			// Arrange
 			const error = new Error("no cookie");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.revokeSession,
+			);
 
 			mockCookie.get.mock.mockImplementation(
 				// @ts-expect-error - test case
@@ -1088,7 +1156,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const mockRefreshToken = generateMockJwt("refresh");
 			const error = new Error("x");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.revokeSession,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -1115,7 +1185,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const mockRevokedCount = 5;
 			const mockRefreshToken = generateMockJwt("refresh");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.revokeAllSessions,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -1142,7 +1214,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const mockRefreshToken = generateMockJwt("refresh");
 			const mockRevokedCount = 5;
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.revokeAllSessions,
+			);
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
 				success: true,
@@ -1172,7 +1246,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const mockRefreshToken = generateMockJwt("refresh");
 			const mockRevokedCount = 5;
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.revokeAllSessions,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,
@@ -1201,7 +1277,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			// Arrange
 			const error = new Error("no cookie");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.revokeAllSessions,
+			);
 			mockCookie.get.mock.mockImplementation(
 				// @ts-expect-error - test case
 				() => ({ error, success: false }),
@@ -1222,7 +1300,9 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			const mockRefreshToken = generateMockJwt("refresh");
 			const error = new Error("x");
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.revokeAllSessions,
+			);
 
 			mockCookie.get.mock.mockImplementation(() => ({
 				data: mockRefreshToken,

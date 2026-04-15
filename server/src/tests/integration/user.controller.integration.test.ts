@@ -14,7 +14,7 @@ import {
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
-	createMockExpressContext,
+	createMockExpressContextFromHandler,
 	createUser,
 	createUsers,
 	disconnectTestDatabase,
@@ -30,7 +30,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 	describe("getAll", () => {
 		test("Should return success response when 'service.getAll' is called successfully", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			await createUsers(generateMockInsertUsers({ count: 3 }));
 
@@ -50,7 +52,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return empty array when no users exist", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 			req.query = { pageNumber: "1" };
 
 			// Act
@@ -67,7 +71,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when 'service.getAll' is called", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			await createUsers(generateMockInsertUsers({ count: 3 }));
 
@@ -83,7 +89,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should exclude password field from all users in response", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			await createUsers(generateMockInsertUsers({ count: 3 }));
 
@@ -106,7 +114,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should include isAdmin field for all users in response", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			await createUsers(generateMockInsertUsers({ count: 3 }));
 
@@ -132,7 +142,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 	describe("getById", () => {
 		test("Should return success response when 'service.getById' is called with valid 'userId' from params", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 
 			const createdUser = await createUser(generateMockInsertUser());
 			const userId = createdUser.id;
@@ -153,7 +165,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return success response when 'service.getById' is called with valid 'userId' from locals", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 
 			const createdUser = await createUser(generateMockInsertUser());
 			const userId = createdUser.id;
@@ -182,7 +196,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'NotFoundError' when user does not exist", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 			const nonExistentId = generateMockObjectId();
 			req.params = { userId: nonExistentId };
 
@@ -201,7 +217,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when user is found", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 
 			const createdUser = await createUser(generateMockInsertUser());
 
@@ -217,7 +235,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should exclude password field from response", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 
 			const createdUser = await createUser(generateMockInsertUser());
 
@@ -237,7 +257,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should include isAdmin field in response", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 
 			const createdUser = await createUser(
 				generateMockInsertUser({ isAdmin: true }),
@@ -262,7 +284,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 	describe("update", () => {
 		test("Should return success response when 'service.update' is called with valid user id from params", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.update,
+			);
 
 			const createdUser = await createUser(generateMockInsertUser());
 
@@ -283,7 +307,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return success response when 'service.update' is called with valid user id from locals", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.update,
+			);
 
 			const createdUser = await createUser(generateMockInsertUser());
 			const userId = createdUser.id;
@@ -314,7 +340,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'NotFoundError' when user does not exist", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.update,
+			);
 			const nonExistentId = generateMockObjectId();
 			req.params = { userId: nonExistentId };
 			req.body = { name: "Updated Name" };
@@ -328,7 +356,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when update is successful", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.update,
+			);
 
 			const createdUser = await createUser(generateMockInsertUser());
 
@@ -345,7 +375,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should update only provided fields", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.update,
+			);
 
 			const createdUser = await createUser(generateMockInsertUser());
 
@@ -364,7 +396,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should exclude password field from response", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.update,
+			);
 
 			const createdUser = await createUser(generateMockInsertUser());
 
@@ -385,7 +419,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should maintain existing fields when called with partial update", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.update,
+			);
 
 			const createdUser = await createUser(generateMockInsertUser());
 
@@ -407,7 +443,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 	describe("delete", () => {
 		test("Should return success response when 'service.delete' is called with valid 'userId'", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.delete,
+			);
 
 			const createdUser = await createUser(generateMockInsertUser());
 
@@ -426,7 +464,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '204' status code when 'service.delete' is called with valid 'userId'", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.delete,
+			);
 
 			const createdUser = await createUser(generateMockInsertUser());
 
@@ -442,7 +482,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should throw 'NotFoundError' when user does not exist", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.delete,
+			);
 			const nonExistentId = generateMockObjectId();
 			req.params = { userId: nonExistentId };
 
@@ -461,7 +503,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 		test("Should remove user from database when delete is successful", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.delete,
+			);
 
 			const createdUser = await createUser(generateMockInsertUser());
 

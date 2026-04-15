@@ -13,7 +13,7 @@ import {
 } from "../mocks/index.js";
 import {
 	connectTestDatabase,
-	createMockExpressContext,
+	createMockExpressContextFromHandler,
 	createReview,
 	createReviews,
 	disconnectTestDatabase,
@@ -34,7 +34,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				user: mockUser.id,
 			});
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.create,
+			);
 			req.body = mockReview;
 			res.locals.user = mockUser;
 
@@ -55,7 +57,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				user: mockUser.id,
 			});
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.create,
+			);
 			req.body = mockReview;
 			res.locals.user = mockUser;
 
@@ -75,7 +79,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				user: mockUser.id,
 			});
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.create,
+			);
 			req.body = mockReview;
 			res.locals.user = mockUser;
 
@@ -101,7 +107,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 			req.params = { reviewId: createdReview.id };
 
 			// Act
@@ -118,7 +126,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 			req.params = { reviewId: createdReview.id };
 
 			// Act
@@ -134,7 +144,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 			req.params = { reviewId: createdReview.id };
 
 			// Act
@@ -155,7 +167,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 		test("Should throw 'NotFoundError' when 'service.getById' is called with non-existent 'reviewId'", async () => {
 			// Arrange
 			const reviewId = generateMockObjectId();
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getById,
+			);
 			req.params = { reviewId };
 
 			// Act & Assert
@@ -174,7 +188,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 	describe("getAll", () => {
 		test("Should return success response when 'service.getAll' is called", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			// Act
 			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
@@ -187,7 +203,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return '200' status code when 'service.getAll' is called", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			// Act
 			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
@@ -204,7 +222,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				generateMockInsertReviews({ count: 3 }),
 			);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			// Act
 			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
@@ -227,7 +247,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return empty paginated result when 'service.getAll' is called with no reviews in database", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 
 			// Act
 			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
@@ -249,7 +271,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			await createReviews(generateMockInsertReviews({ count: 15 }));
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 			req.query = { pageNumber: "1", pageSize: "5" };
 
 			// Act
@@ -275,7 +299,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			await createReviews(generateMockInsertReviews({ count: 15 }));
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 			req.query = { pageNumber: "2", pageSize: "5" };
 
 			// Act
@@ -311,7 +337,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				}),
 			]);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAll,
+			);
 			req.query = { productId: productId };
 
 			// Act
@@ -337,7 +365,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				generateMockInsertReviews({ count: 3 }),
 			);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByUserId,
+			);
 			req.params = { userId: createdReviews[0].user };
 
 			// Act
@@ -358,7 +388,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				generateMockInsertReviews({ count: 3 }),
 			);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByUserId,
+			);
 			req.params = { userId: createdReviews[0].user };
 
 			// Act
@@ -383,7 +415,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				...generateMockInsertReviews({ count: 2 }),
 			]);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByUserId,
+			);
 			req.params = { userId: userId };
 
 			// Act
@@ -412,7 +446,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const userId = generateMockObjectId();
 			await createReviews(generateMockInsertReviews({ count: 2 }));
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByUserId,
+			);
 			req.params = { userId: userId };
 
 			// Act
@@ -441,7 +477,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				}),
 			);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByUserId,
+			);
 			req.params = { userId: userId };
 			req.query = { pageNumber: "1", pageSize: "3" };
 
@@ -473,7 +511,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			);
 			const productId = createdReviews[0].product;
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByUserId,
+			);
 			req.params = { userId: userId };
 			req.query = { productId: productId };
 
@@ -497,7 +537,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				generateMockInsertReviews({ count: 3 }),
 			);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByProductId,
+			);
 			req.params = { productId: createdReviews[0].product };
 
 			// Act
@@ -515,7 +557,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				generateMockInsertReviews({ count: 3 }),
 			);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByProductId,
+			);
 			req.params = { productId: createdReviews[0].product };
 
 			// Act
@@ -540,7 +584,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				...generateMockInsertReviews({ count: 2 }),
 			]);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByProductId,
+			);
 			req.params = { productId };
 
 			// Act
@@ -570,7 +616,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			await createReviews(generateMockInsertReviews({ count: 2 }));
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByProductId,
+			);
 			req.params = { productId };
 
 			// Act
@@ -600,7 +648,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				}),
 			);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByProductId,
+			);
 			req.params = { productId };
 			req.query = { pageNumber: "1", pageSize: "3" };
 
@@ -635,7 +685,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			);
 			const userId = createdReviews[0].user;
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.getAllByProductId,
+			);
 			req.params = { productId };
 			req.query = { userId: userId };
 
@@ -657,7 +709,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.update,
+			);
 			req.params = { reviewId: createdReview.id };
 
 			// Act
@@ -674,7 +728,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.update,
+			);
 			req.params = { reviewId: createdReview.id };
 
 			// Act
@@ -690,7 +746,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.update,
+			);
 			const updateData = { comment: "UPDATED COMMENT", rating: 5 };
 			req.params = { reviewId: createdReview.id };
 			req.body = updateData;
@@ -710,7 +768,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.update,
+			);
 			const updateData = { comment: "UPDATED COMMENT ONLY" };
 			req.params = { reviewId: createdReview.id };
 			req.body = updateData;
@@ -732,7 +792,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			await createReviews(generateMockInsertReviews({ count: 2 }));
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.update,
+			);
 			req.params = { reviewId };
 
 			// Act & Assert
@@ -753,7 +815,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.delete,
+			);
 			req.params = { reviewId: createdReview.id };
 
 			// Act
@@ -769,7 +833,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.delete,
+			);
 			req.params = { reviewId: createdReview.id };
 
 			// Act
@@ -785,7 +851,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.delete,
+			);
 			req.params = { reviewId: createdReview.id };
 
 			// Act
@@ -804,7 +872,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			await createReviews(generateMockInsertReviews({ count: 2 }));
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.delete,
+			);
 			req.params = { reviewId };
 
 			// Act & Assert
@@ -825,7 +895,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			await createReviews(generateMockInsertReviews({ count: 3 }));
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.count,
+			);
 
 			// Act
 			await controller.count(req, res, next);
@@ -840,7 +912,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			await createReviews(generateMockInsertReviews({ count: 3 }));
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.count,
+			);
 
 			// Act
 			await controller.count(req, res, next);
@@ -854,7 +928,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			await createReviews(generateMockInsertReviews({ count: 3 }));
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.count,
+			);
 
 			// Act
 			await controller.count(req, res, next);
@@ -871,7 +947,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				generateMockInsertReviews({ count: 3 }),
 			);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.count,
+			);
 
 			// Act
 			await controller.count(req, res, next);
@@ -884,7 +962,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 		test("Should return zero when 'service.count' is called with no reviews in database", async () => {
 			// Arrange
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.count,
+			);
 
 			// Act
 			await controller.count(req, res, next);
@@ -903,7 +983,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				generateMockInsertReviews({ count: 3 }),
 			);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.countByUserId,
+			);
 			req.params = { userId: createdReviews[0].user };
 
 			// Act
@@ -922,7 +1004,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				generateMockInsertReviews({ count: 3 }),
 			);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.countByUserId,
+			);
 			req.params = { userId: createdReviews[0].user };
 
 			// Act
@@ -940,7 +1024,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				generateMockInsertReviews({ count: 3 }),
 			);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.countByUserId,
+			);
 			req.params = { userId: createdReviews[0].user };
 
 			// Act
@@ -966,7 +1052,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				...generateMockInsertReviews({ count: 2 }),
 			]);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.countByUserId,
+			);
 			req.params = { userId };
 
 			// Act
@@ -985,7 +1073,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			await createReviews(generateMockInsertReviews({ count: 2 }));
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.countByUserId,
+			);
 			req.params = { userId };
 
 			// Act
@@ -1006,7 +1096,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				generateMockInsertReviews({ count: 3 }),
 			);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.countByProductId,
+			);
 			req.params = { productId: createdReviews[0].product };
 
 			// Act
@@ -1025,7 +1117,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				generateMockInsertReviews({ count: 3 }),
 			);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.countByProductId,
+			);
 			req.params = { productId: createdReviews[0].product };
 
 			// Act
@@ -1043,7 +1137,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				generateMockInsertReviews({ count: 3 }),
 			);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.countByProductId,
+			);
 			req.params = { productId: createdReviews[0].product };
 
 			// Act
@@ -1069,7 +1165,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				...generateMockInsertReviews({ count: 2 }),
 			]);
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.countByProductId,
+			);
 			req.params = { productId };
 
 			// Act
@@ -1088,7 +1186,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			await createReviews(generateMockInsertReviews({ count: 2 }));
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.countByProductId,
+			);
 			req.params = { productId };
 
 			// Act
@@ -1107,7 +1207,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.existsById,
+			);
 			req.params = { reviewId: createdReview.id };
 
 			// Act
@@ -1124,7 +1226,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.existsById,
+			);
 			req.params = { reviewId: createdReview.id };
 
 			// Act
@@ -1144,7 +1248,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			const targetReview = createdReviews[0];
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.existsById,
+			);
 			req.params = { reviewId: targetReview.id };
 
 			// Act
@@ -1160,7 +1266,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 		test("Should throw 'NotFoundError' when 'service.existsById' is called with non-existent review id", async () => {
 			// Arrange
 			const reviewId = generateMockObjectId();
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.existsById,
+			);
 			req.params = { reviewId };
 
 			// Act & Assert
@@ -1181,7 +1289,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.existsByUserIdAndProductId,
+			);
 			req.params = {
 				productId: createdReview.product,
 				userId: createdReview.user,
@@ -1201,7 +1311,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.existsByUserIdAndProductId,
+			);
 			req.params = {
 				productId: createdReview.product,
 				userId: createdReview.user,
@@ -1223,7 +1335,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			);
 			const targetReview = createdReviews[0];
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.existsByUserIdAndProductId,
+			);
 			req.params = {
 				productId: targetReview.product,
 				userId: targetReview.user,
@@ -1245,7 +1359,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			await createReviews(generateMockInsertReviews({ count: 2 }));
 
-			const { next, req, res } = createMockExpressContext();
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.existsByUserIdAndProductId,
+			);
 			req.params = {
 				productId: mockId,
 				userId: mockId,
