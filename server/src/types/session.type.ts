@@ -30,7 +30,6 @@ export type SessionSort = z.infer<typeof sessionPaginationSortSchema>;
 // Method Params
 export type GetAllSessionsByUserIdControllerParams =
 	PaginationParamsStringified & {
-		refreshToken: string;
 		sort?: string;
 	};
 

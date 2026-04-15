@@ -41,10 +41,7 @@ export type OrderSelect = PaginationSelect<Order>;
 export type OrderSort = z.infer<typeof orderPaginationSortSchema>;
 
 // Method Params
-export type GetAllOrdersByUserIdControllerParams =
-	GetAllOrdersControllerParams & {
-		userId: string;
-	};
+export type GetAllOrdersByUserIdControllerParams = GetAllOrdersControllerParams;
 
 export type GetAllOrdersControllerParams = PaginationParamsStringified & {
 	sort?: string;
