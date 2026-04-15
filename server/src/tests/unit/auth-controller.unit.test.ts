@@ -799,7 +799,6 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getUserSessions(req, res, next);
 
 			// Assert
@@ -843,7 +842,6 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getUserSessions(req, res, next);
 
 			// Assert
@@ -888,7 +886,6 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getUserSessions(req, res, next);
 
 			// Assert
@@ -933,7 +930,6 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getUserSessions(req, res, next);
 
 			// Assert
@@ -976,7 +972,6 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getUserSessions(req, res, next);
 
 			// Assert
@@ -999,7 +994,6 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 				async () => await controller.getUserSessions(req, res, next),
 				error,
 			);
@@ -1027,7 +1021,6 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 				async () => await controller.getUserSessions(req, res, next),
 				error,
 			);

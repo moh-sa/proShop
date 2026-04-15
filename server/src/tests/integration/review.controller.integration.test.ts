@@ -41,7 +41,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			res.locals.user = mockUser;
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.create(req, res, next);
 
 			// Assert
@@ -64,7 +63,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			res.locals.user = mockUser;
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.create(req, res, next);
 
 			// Assert
@@ -86,7 +84,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			res.locals.user = mockUser;
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.create(req, res, next);
 
 			// Assert
@@ -113,7 +110,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { reviewId: createdReview.id };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
@@ -132,7 +128,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { reviewId: createdReview.id };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
@@ -150,7 +145,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { reviewId: createdReview.id };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
@@ -174,7 +168,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response & Assert
 				async () => await controller.getById(req, res, next),
 				(error) => {
 					assert.ok(error instanceof NotFoundError);
@@ -193,7 +186,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			);
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -208,7 +200,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			);
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -227,7 +218,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			);
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -252,7 +242,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			);
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -277,7 +266,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.query = { pageNumber: "1", pageSize: "5" };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -305,7 +293,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.query = { pageNumber: "2", pageSize: "5" };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -340,10 +327,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.getAll,
 			);
-			req.query = { productId: productId };
+			req.query = { productId: productId, pageNumber: "1", pageSize: "10" };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -371,7 +357,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { userId: createdReviews[0].user };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByUserId(req, res, next);
 
 			// Assert
@@ -394,7 +379,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { userId: createdReviews[0].user };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByUserId(req, res, next);
 
 			// Assert
@@ -421,7 +405,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { userId: userId };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByUserId(req, res, next);
 
 			// Assert
@@ -452,7 +435,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { userId: userId };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByUserId(req, res, next);
 
 			// Assert
@@ -484,7 +466,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.query = { pageNumber: "1", pageSize: "3" };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByUserId(req, res, next);
 
 			// Assert
@@ -515,10 +496,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				controller.getAllByUserId,
 			);
 			req.params = { userId: userId };
-			req.query = { productId: productId };
+			req.query = { productId: productId, pageNumber: "1", pageSize: "10" };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByUserId(req, res, next);
 
 			// Assert
@@ -543,7 +523,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { productId: createdReviews[0].product };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByProductId(req, res, next);
 
 			// Assert
@@ -563,7 +542,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { productId: createdReviews[0].product };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByProductId(req, res, next);
 
 			// Assert
@@ -590,7 +568,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { productId };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByProductId(req, res, next);
 
 			// Assert
@@ -622,7 +599,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { productId };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByProductId(req, res, next);
 
 			// Assert
@@ -655,7 +631,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.query = { pageNumber: "1", pageSize: "3" };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByProductId(req, res, next);
 
 			// Assert
@@ -689,10 +664,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				controller.getAllByProductId,
 			);
 			req.params = { productId };
-			req.query = { userId: userId };
+			req.query = { userId: userId, pageNumber: "1", pageSize: "10" };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByProductId(req, res, next);
 
 			// Assert
@@ -715,7 +689,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { reviewId: createdReview.id };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.update(req, res, next);
 
 			// Assert
@@ -734,7 +707,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { reviewId: createdReview.id };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.update(req, res, next);
 
 			// Assert
@@ -754,7 +726,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.body = updateData;
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.update(req, res, next);
 
 			// Assert
@@ -776,7 +747,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.body = updateData;
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.update(req, res, next);
 
 			// Assert
@@ -799,7 +769,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response & Assert
 				async () => await controller.update(req, res, next),
 				(error: unknown) => {
 					assert.ok(error instanceof NotFoundError);
@@ -821,7 +790,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { reviewId: createdReview.id };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.delete(req, res, next);
 
 			// Assert
@@ -839,7 +807,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { reviewId: createdReview.id };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.delete(req, res, next);
 
 			// Assert
@@ -857,7 +824,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { reviewId: createdReview.id };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.delete(req, res, next);
 
 			// Assert
@@ -879,7 +845,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response & Assert
 				async () => await controller.delete(req, res, next),
 				(error: unknown) => {
 					assert.ok(error instanceof NotFoundError);
@@ -989,7 +954,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { userId: createdReviews[0].user };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.countByUserId(req, res, next);
 
 			// Assert
@@ -1010,7 +974,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { userId: createdReviews[0].user };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.countByUserId(req, res, next);
 
 			// Assert
@@ -1030,7 +993,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { userId: createdReviews[0].user };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.countByUserId(req, res, next);
 
 			// Assert
@@ -1058,7 +1020,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { userId };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.countByUserId(req, res, next);
 
 			// Assert
@@ -1079,7 +1040,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { userId };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.countByUserId(req, res, next);
 
 			// Assert
@@ -1102,7 +1062,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { productId: createdReviews[0].product };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.countByProductId(req, res, next);
 
 			// Assert
@@ -1123,7 +1082,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { productId: createdReviews[0].product };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.countByProductId(req, res, next);
 
 			// Assert
@@ -1143,7 +1101,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { productId: createdReviews[0].product };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.countByProductId(req, res, next);
 
 			// Assert
@@ -1171,7 +1128,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { productId };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.countByProductId(req, res, next);
 
 			// Assert
@@ -1192,7 +1148,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { productId };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.countByProductId(req, res, next);
 
 			// Assert
@@ -1213,7 +1168,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { reviewId: createdReview.id };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.existsById(req, res, next);
 
 			// Assert
@@ -1232,7 +1186,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { reviewId: createdReview.id };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.existsById(req, res, next);
 
 			// Assert
@@ -1254,7 +1207,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			req.params = { reviewId: targetReview.id };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.existsById(req, res, next);
 
 			// Assert
@@ -1273,7 +1225,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 				async () => await controller.existsById(req, res, next),
 				(error: unknown) => {
 					assert.ok(error instanceof NotFoundError);
@@ -1298,7 +1249,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			};
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.existsByUserIdAndProductId(req, res, next);
 
 			// Assert
@@ -1320,7 +1270,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			};
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.existsByUserIdAndProductId(req, res, next);
 
 			// Assert
@@ -1344,7 +1293,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			};
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.existsByUserIdAndProductId(req, res, next);
 
 			// Assert
@@ -1369,7 +1317,6 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 				async () => await controller.existsByUserIdAndProductId(req, res, next),
 				(error: unknown) => {
 					assert.ok(error instanceof NotFoundError);

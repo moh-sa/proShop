@@ -7,7 +7,6 @@ import { OrderManager } from "../../managers/index.js";
 import { OrderModel } from "../../models/order.model.js";
 import { orderRepository } from "../../repositories/order.repository.js";
 import type { SuccessResponse } from "../../types/api-response.type.js";
-import type { CreateOrderResponse } from "../../types/index.js";
 import {
 	generateMockCheckoutSessionResponse,
 	generateMockInsertOrder,
@@ -46,19 +45,19 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should return success response when 'manager.create' is called with valid data", async () => {
 			// Arrange
 			const mockOrderData = generateMockInsertOrder();
+			const mockUser = generateMockSelectUser(mockOrderData.user);
 
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.create,
 			);
 			req.body = mockOrderData;
-			res.locals.user = mockOrderData.user;
+			res.locals.user = mockUser;
 
 			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSession, success: true }),
 			);
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.create(req, res, next);
 
 			// Assert
@@ -72,19 +71,19 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should return '201' status code when 'manager.create' is called with valid data", async () => {
 			// Arrange
 			const mockOrderData = generateMockInsertOrder();
+			const mockUser = generateMockSelectUser(mockOrderData.user);
 
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.create,
 			);
 			req.body = mockOrderData;
-			res.locals.user = mockOrderData.user;
+			res.locals.user = mockUser;
 
 			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSession, success: true }),
 			);
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.create(req, res, next);
 
 			// Assert
@@ -95,24 +94,24 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should create order when 'manager.create' is called with valid data", async () => {
 			// Arrange
 			const mockOrderData = generateMockInsertOrder();
+			const mockUser = generateMockSelectUser(mockOrderData.user);
 
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.create,
 			);
 			req.body = mockOrderData;
-			res.locals.user = mockOrderData.user;
+			res.locals.user = mockUser;
 
 			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSession, success: true }),
 			);
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.create(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.ok(response.data.order.id);
 			assert.strictEqual(response.data.order.user.id, mockOrderData.user.id);
@@ -133,24 +132,24 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should include user ID in created order when 'manager.create' is called with valid data", async () => {
 			// Arrange
 			const mockOrderData = generateMockInsertOrder();
+			const mockUser = generateMockSelectUser(mockOrderData.user);
 
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.create,
 			);
 			req.body = mockOrderData;
-			res.locals.user = mockOrderData.user;
+			res.locals.user = mockUser;
 
 			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSession, success: true }),
 			);
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.create(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(response.data);
 			// User should be populated with id, name, email
 			assert.strictEqual(response.data.order.user.id, mockOrderData.user.id);
@@ -167,23 +166,24 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should include session URL in response when 'manager.create' is called with valid data", async () => {
 			// Arrange
 			const mockOrderData = generateMockInsertOrder();
+			const mockUser = generateMockSelectUser(mockOrderData.user);
 
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.create,
 			);
 			req.body = mockOrderData;
-			res.locals.user = mockOrderData.user;
+			res.locals.user = mockUser;
 
 			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSession, success: true }),
 			);
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.create(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
+			assert.ok(response.success);
 			assert.ok(response.data.session);
 			assert.strictEqual(response.data.session.url, mockSession.url);
 		});
@@ -193,22 +193,25 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const mockOrderData = generateMockInsertOrder();
 			const expectedData = convertOrderToCents(mockOrderData);
 
+			const mockUser = generateMockSelectUser(mockOrderData.user);
+
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.create,
 			);
 			req.body = mockOrderData;
-			res.locals.user = mockOrderData.user;
+			res.locals.user = mockUser;
 
 			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSession, success: true }),
 			);
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.create(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
+			assert.ok(response.success);
+
 			const foundOrder = await orderRepository.getById({
 				orderId: response.data.order.id,
 			});
@@ -231,25 +234,24 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should convert all price fields from cents to dollars in response when creating order", async () => {
 			// Arrange
 			const mockOrderData = normalizeOrderPrices(generateMockInsertOrder());
+			const mockUser = generateMockSelectUser(mockOrderData.user);
 
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.create,
 			);
 			req.body = mockOrderData;
-			res.locals.user = mockOrderData.user;
+			res.locals.user = mockUser;
 
 			paymentService.createCheckoutSession.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: mockSession, success: true }),
 			);
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.create(req, res, next);
 
 			// Assert
-			const response = res._getJSONData() as SuccessResponse<{
-				data: CreateOrderResponse;
-			}>;
+			const response = res._getJSONData();
+			assert.ok(response.success);
 
 			assert.strictEqual(
 				response.data.order.itemsPrice,
@@ -286,12 +288,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			});
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
 			assert.ok(response.success);
 			assert.ok(response.data);
 		});
@@ -310,7 +310,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			});
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
@@ -332,12 +331,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			});
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.strictEqual(response.data.id, createdOrder.id);
 		});
@@ -345,19 +343,20 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should return order with correct user data when 'service.getById' is called with existing order", async () => {
 			// Arrange
 			const createdOrder = await createOrder(generateMockInsertOrder());
+			const mockUser = generateMockSelectUser(createdOrder.user);
 
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.getById,
 			);
 			req.params = { orderId: createdOrder.id };
-			res.locals.user = createdOrder.user;
+			res.locals.user = mockUser;
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
+			assert.ok(response.success);
 			assert.strictEqual(response.data.user.id, createdOrder.user.id);
 			assert.strictEqual(response.data.user.email, createdOrder.user.email);
 			assert.strictEqual(response.data.user.name, createdOrder.user.name);
@@ -374,7 +373,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 				async () => await controller.getById(req, res, next),
 				(error: unknown) => {
 					assert.ok(error instanceof NotFoundError);
@@ -400,7 +398,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			});
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
@@ -435,7 +432,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 				async () => await controller.getById(req, res, next),
 				(error: unknown) => {
 					assert.ok(error instanceof ForbiddenError);
@@ -461,7 +457,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			res.locals.user = adminUser;
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getById(req, res, next);
 
 			// Assert
@@ -469,7 +464,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(code, 200);
 
 			const response = res._getJSONData();
-			assert.ok(response);
 			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.strictEqual(response.data.id, createdOrder.id);
@@ -487,12 +481,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			req.query = { pageNumber: "1", pageSize: "10" };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
 			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.ok(response.meta);
@@ -503,10 +495,9 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.getAll,
 			);
-			req.query = { pageNumber: "1" };
+			req.query = { pageNumber: "1", pageSize: "10" };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
@@ -524,12 +515,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			req.query = { pageNumber: "1", pageSize: "10" };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(Array.isArray(response.data));
 			assert.ok(response.meta);
 			assert.strictEqual(response.data.length, 2);
@@ -541,15 +531,14 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.getAll,
 			);
-			req.query = { pageNumber: "1" };
+			req.query = { pageNumber: "1", pageSize: "10" };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(Array.isArray(response.data));
 			assert.ok(response.meta);
 			assert.strictEqual(response.data.length, 0);
@@ -571,12 +560,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			};
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.ok(response.meta);
 			assert.strictEqual(response.meta.pageSize, 2);
@@ -589,15 +577,15 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.getAll,
 			);
+			// @ts-expect-error - test case
 			req.query = {};
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.ok(response.meta);
 		});
@@ -614,13 +602,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			req.query = { pageNumber: "1", pageSize: "10" };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAll(req, res, next);
 
 			// Assert
-			const response = res._getJSONData() as SuccessResponse<{
-				data: typeof createdOrders;
-			}>;
+			const response = res._getJSONData();
+			assert.ok(response.success);
 
 			response.data.forEach((order) => {
 				const originalOrder = expectedData.find((o) => o.id === order.id);
@@ -648,12 +634,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			});
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByUserId(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
 			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.ok(response.meta);
@@ -667,14 +651,13 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 				controller.getAllByUserId,
 			);
 			req.params = { userId: mockOrder.user.id };
-			req.query = { pageNumber: "1" };
+			req.query = { pageNumber: "1", pageSize: "10" };
 			res.locals.user = generateMockSelectUser({
 				id: mockOrder.user.id,
 				isAdmin: false,
 			});
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByUserId(req, res, next);
 
 			// Assert
@@ -699,12 +682,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			res.locals.user = mockUser;
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByUserId(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(Array.isArray(response.data));
 			assert.ok(response.meta);
 			assert.strictEqual(response.data.length, 3);
@@ -721,16 +703,15 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 				controller.getAllByUserId,
 			);
 			req.params = { userId: mockUser.id };
-			req.query = { pageNumber: "1" };
+			req.query = { pageNumber: "1", pageSize: "10" };
 			res.locals.user = mockUser;
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByUserId(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(Array.isArray(response.data));
 			assert.ok(response.meta);
 			assert.strictEqual(response.data.length, 0);
@@ -740,23 +721,21 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 		test("Should not return orders from other users when called with specific userId", async () => {
 			// Arrange
 			const createdOrders = await createOrders(generateMockInsertOrders(2));
-
-			const orderOwner = createdOrders[0].user;
+			const orderOwner = generateMockSelectUser(createdOrders[0].user);
 
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.getAllByUserId,
 			);
 			req.params = { userId: orderOwner.id };
-			req.query = { pageNumber: "1" };
+			req.query = { pageNumber: "1", pageSize: "10" };
 			res.locals.user = orderOwner;
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByUserId(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(Array.isArray(response.data));
 			assert.ok(response.meta);
 			assert.strictEqual(response.data.length, 1);
@@ -787,12 +766,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			res.locals.user = mockUser;
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByUserId(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(Array.isArray(response.data));
 			assert.ok(response.meta);
 			assert.strictEqual(response.data.length, 2);
@@ -805,26 +783,23 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 		test("Should handle empty query parameters with userId", async () => {
 			// Arrange
-			const mockOrder = generateMockInsertOrder();
-			await createOrder(mockOrder);
+			const createdOrder = await createOrder(generateMockInsertOrder());
+			const mockUser = generateMockSelectUser(createdOrder.user);
 
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.getAllByUserId,
 			);
-			req.params = { userId: mockOrder.user.id };
+			req.params = { userId: mockUser.id };
+			// @ts-expect-error - test case
 			req.query = {};
-			res.locals.user = generateMockSelectUser({
-				id: mockOrder.user.id,
-				isAdmin: false,
-			});
+			res.locals.user = mockUser;
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByUserId(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.ok(response.meta);
 		});
@@ -849,13 +824,11 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			res.locals.user = mockUser;
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByUserId(req, res, next);
 
 			// Assert
-			const response = res._getJSONData() as SuccessResponse<{
-				data: typeof createdOrders;
-			}>;
+			const response = res._getJSONData();
+			assert.ok(response.success);
 
 			response.data.forEach((order) => {
 				const originalOrder = expectedData.find((o) => o.id === order.id);
@@ -881,7 +854,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 				async () => await controller.getAllByUserId(req, res, next),
 				(error: unknown) => {
 					assert.ok(error instanceof ForbiddenError);
@@ -910,7 +882,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			res.locals.user = adminUser;
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.getAllByUserId(req, res, next);
 
 			// Assert
@@ -918,7 +889,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(code, 200);
 
 			const response = res._getJSONData();
-			assert.ok(response);
 			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.ok(response.meta);
@@ -949,12 +919,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			};
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.updatePayment(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
 			assert.ok(response.success);
 			assert.ok(response.data);
 		});
@@ -980,7 +948,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			};
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.updatePayment(req, res, next);
 
 			// Assert
@@ -1008,11 +975,12 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			req.body = { id: paymentId, provider, sessionURL };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.updatePayment(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
+			assert.ok(response.success);
+
 			assert.strictEqual(response.data.payment?.sessionURL, sessionURL);
 
 			const order = await orderRepository.getById({ orderId });
@@ -1042,16 +1010,16 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			req.body = { id: paymentId, provider: "stripe", sessionURL };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.updatePayment(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
+			assert.ok(response.success);
 			assert.ok(response.data);
-			assert.strictEqual(response.data.payment?.id, paymentId);
-			assert.strictEqual(response.data.payment?.provider, "stripe");
-			assert.strictEqual(response.data.payment?.sessionURL, sessionURL);
+			assert.ok(response.data.payment);
+			assert.strictEqual(response.data.payment.id, paymentId);
+			assert.strictEqual(response.data.payment.provider, "stripe");
+			assert.strictEqual(response.data.payment.sessionURL, sessionURL);
 		});
 
 		test("Should throw 'NotFoundError' when called with non-existent order id", async () => {
@@ -1070,7 +1038,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 
 			// Act & Assert
 			await assert.rejects(
-				// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 				async () => await controller.updatePayment(req, res, next),
 				(error: unknown) => {
 					assert.ok(error instanceof NotFoundError);
@@ -1101,12 +1068,10 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			req.body = { id: paymentId, provider, sessionURL };
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.updatePayment(req, res, next);
 
 			// Assert
 			const response = res._getJSONData();
-			assert.ok(response);
 			assert.ok(response.success);
 			assert.strictEqual(response.data.payment?.id, paymentId);
 			assert.strictEqual(response.data.payment?.provider, provider);
@@ -1140,7 +1105,6 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			};
 
 			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
 			await controller.updatePayment(req, res, next);
 
 			// Assert
@@ -1178,8 +1142,8 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(code, 400);
 
 			const response = res._getJSONData();
-			assert.ok(response.errors);
 			assert.strictEqual(response.success, false);
+			assert.ok(response.errors);
 		});
 
 		test("Should return 400 when 'stripe-signature' header is an array instead of string", async () => {
@@ -1198,8 +1162,8 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(code, 400);
 
 			const response = res._getJSONData();
-			assert.ok(response.errors);
 			assert.strictEqual(response.success, false);
+			assert.ok(response.errors);
 		});
 
 		test("Should return 400 when body is not a Buffer", async () => {
@@ -1218,8 +1182,8 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(code, 400);
 
 			const response = res._getJSONData();
-			assert.ok(response.errors);
 			assert.strictEqual(response.success, false);
+			assert.ok(response.errors);
 		});
 
 		test("Should return 400 with appropriate error message when body is missing", async () => {
