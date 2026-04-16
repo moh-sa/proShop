@@ -3,11 +3,11 @@ import type { IUserService } from "../services/index.js";
 import { userService } from "../services/index.js";
 import type {
 	AsyncHandler,
-	CreateUser,
 	GetAllUsersControllerParams,
 	GetAllUsersServiceParams,
 	PaginatedResponse,
 	SafeSelectUser,
+	UpdateUserBodyInput,
 } from "../types/index.js";
 import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
 
@@ -31,7 +31,7 @@ export interface IUserController {
 	update: AsyncHandler<{
 		locals: { user: SafeSelectUser };
 		params: { userId: string };
-		reqBody: Partial<CreateUser>;
+		reqBody: UpdateUserBodyInput;
 		resBody: { data: SafeSelectUser };
 	}>;
 }
@@ -126,16 +126,18 @@ export class UserController implements IUserController {
 	update = asyncHandler<{
 		locals: { user: SafeSelectUser };
 		params: { userId: string };
-		reqBody: Partial<CreateUser>;
+		reqBody: UpdateUserBodyInput;
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "update" });
-		logger.debug({ userId: req.params.userId }, "Updating user");
 
-		const result = await this._service.updateById({
-			data: req.body,
+		const dataToUpdate = {
+			...req.body,
 			userId: req.params.userId || res.locals.user.id,
-		});
+		};
+		logger.debug({ data: dataToUpdate }, "Updating user");
+
+		const result = await this._service.updateById(dataToUpdate);
 		if (!result.success) {
 			throw result.error;
 		}

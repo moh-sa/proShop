@@ -9,6 +9,7 @@ import type {
 	PaginatedResponse,
 	PaginationQuery,
 	Result,
+	UpdateUserInput,
 	User,
 	UserFilter,
 	UserSchema,
@@ -30,10 +31,7 @@ export interface IUserRepository {
 	): Promise<UserResult<PaginatedResponse<User>>>;
 	getByEmail(data: { email: string }): Promise<UserResult<null | User>>;
 	getById(data: { userId: string }): Promise<UserResult<null | User>>;
-	update(data: {
-		data: Partial<CreateUser>;
-		userId: string;
-	}): Promise<UserResult<null | User>>;
+	update(args: UpdateUserInput): Promise<UserResult<null | User>>;
 }
 
 type UserResult<T> = Result<T, DatabaseBaseError>;
@@ -156,8 +154,8 @@ export class UserRepository implements IUserRepository {
 	}
 
 	public async update({
-		data,
 		userId,
+		...data
 	}: MethodParams<IUserRepository, "update">): MethodReturn<
 		IUserRepository,
 		"update"

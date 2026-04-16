@@ -7,6 +7,7 @@ import type { IUserRepository } from "../repositories/index.js";
 import { userRepository } from "../repositories/index.js";
 import {
 	createUserSchema,
+	updateUserSchema,
 	userPaginationParamsSchema,
 	userSchema,
 } from "../schemas/index.js";
@@ -19,6 +20,7 @@ import type {
 	Result,
 	SafeSelectUser,
 	UnSafeSelectUser,
+	UpdateUserInput,
 	User,
 	UserSelect,
 } from "../types/index.js";
@@ -40,10 +42,7 @@ export interface IUserService {
 	getByEmail: (data: { email: string }) => Promise<UserResult<SafeSelectUser>>;
 	getById: (data: { userId: string }) => Promise<UserResult<SafeSelectUser>>;
 	sanitizeUser: (user: User) => UserResult<SafeSelectUser>;
-	updateById: (data: {
-		data: Partial<CreateUser>;
-		userId: string;
-	}) => Promise<UserResult<SafeSelectUser>>;
+	updateById: (args: UpdateUserInput) => Promise<UserResult<SafeSelectUser>>;
 
 	// UNSAFE METHODS - returns full user object
 	/****ONLY FOR INTERNAL USE***/
@@ -394,54 +393,42 @@ export class UserService implements IUserService {
 		};
 	}
 
-	public async updateById({
-		data,
-		userId,
-	}: MethodParams<IUserService, "updateById">): MethodReturn<
-		IUserService,
-		"updateById"
-	> {
+	public async updateById(
+		args: MethodParams<IUserService, "updateById">,
+	): MethodReturn<IUserService, "updateById"> {
 		const logger = this._getLogger({ method: "updateById" });
-		logger.debug({ data, userId }, "Updating user by ID");
+		logger.debug({ args }, "Updating user by ID");
 
-		const userIdValidationResult = this._validateUserId(userId);
-		if (!userIdValidationResult.success) {
-			logger.warn(
-				{ error: userIdValidationResult.error, userId },
-				"Invalid user ID",
-			);
-			return userIdValidationResult;
+		// arguments validation
+		const argsValidationResult = updateUserSchema.safeParse(args);
+		if (!argsValidationResult.success) {
+			logger.warn(argsValidationResult.error, "Invalid arguments data");
+			return {
+				error: new ValidationError("Invalid arguments data", {
+					cause: argsValidationResult.error,
+				}),
+				success: false,
+			};
 		}
 
 		logger.debug(
-			{ validatedUserId: userIdValidationResult.data },
-			"Validated user ID",
+			{ validatedArgs: argsValidationResult.data },
+			"Validated arguments data",
 		);
 
-		const updateDataValidationResult = this._validateUpdateData(data);
-		if (!updateDataValidationResult.success) {
-			logger.warn(
-				{ error: updateDataValidationResult.error, userId },
-				"Invalid update data",
-			);
-			return updateDataValidationResult;
-		}
-
-		logger.debug(
-			{ validatedUpdateData: updateDataValidationResult.data },
-			"Validated update data",
+		// repository call
+		const updateResult = await this._repository.update(
+			argsValidationResult.data,
 		);
-
-		const updateResult = await this._repository.update({
-			data: updateDataValidationResult.data,
-			userId: userIdValidationResult.data,
-		});
 		if (!updateResult.success) {
 			logger.warn({ error: updateResult.error }, "Failed to update user by ID");
 			return updateResult;
 		}
 		if (!updateResult.data) {
-			logger.warn({ userId }, "User not found");
+			logger.warn(
+				{ userId: argsValidationResult.data.userId },
+				"User not found",
+			);
 			return {
 				error: new NotFoundError("User"),
 				success: false,
@@ -453,7 +440,10 @@ export class UserService implements IUserService {
 		const sanitizeResult = this.sanitizeUser(updateResult.data);
 		if (!sanitizeResult.success) {
 			logger.warn(
-				{ error: sanitizeResult.error, userId },
+				{
+					error: sanitizeResult.error,
+					userId: argsValidationResult.data.userId,
+				},
 				"Failed to sanitize user",
 			);
 			return sanitizeResult;
