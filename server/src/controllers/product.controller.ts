@@ -4,12 +4,13 @@ import { productManager } from "../managers/index.js";
 import type {
 	AllProducts,
 	AsyncHandler,
-	CreateProduct,
+	CreateProductBodyInput,
 	GetAllProductsControllerParams,
 	PaginatedResponse,
 	Product,
 	SafeSelectUser,
 	TopRatedProduct,
+	UpdateProductBodyInput,
 } from "../types/index.js";
 import {
 	asyncHandler,
@@ -21,7 +22,7 @@ import {
 export interface IProductController {
 	create: AsyncHandler<{
 		locals: { user: SafeSelectUser };
-		reqBody: CreateProduct;
+		reqBody: CreateProductBodyInput;
 		resBody: { data: Product };
 	}>;
 	delete: AsyncHandler<{
@@ -44,7 +45,7 @@ export interface IProductController {
 	}>;
 	update: AsyncHandler<{
 		params: { productId: string };
-		reqBody: Partial<CreateProduct>;
+		reqBody: UpdateProductBodyInput;
 		resBody: { data: Product };
 	}>;
 }
@@ -53,14 +54,14 @@ export class ProductController implements IProductController {
 
 	create = asyncHandler<{
 		locals: { user: SafeSelectUser };
-		reqBody: CreateProduct;
+		reqBody: CreateProductBodyInput;
 		resBody: { data: Product };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "create" });
 
 		const dataToCreate = {
 			...req.body,
-			image: req.file,
+			image: req.file!,
 			price: this._toCents(req.body.price),
 			user: res.locals.user.id,
 		};
@@ -209,7 +210,7 @@ export class ProductController implements IProductController {
 
 	update = asyncHandler<{
 		params: { productId: string };
-		reqBody: Partial<CreateProduct>;
+		reqBody: UpdateProductBodyInput;
 		resBody: { data: Product };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "update" });

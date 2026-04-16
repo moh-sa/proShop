@@ -6,7 +6,7 @@ import type {
 import { imageStorageService, productService } from "../services/index.js";
 import type {
 	AllProducts,
-	CreateProduct,
+	CreateProductUploadInput,
 	GetAllProductsManagerParams,
 	MethodParams,
 	MethodReturn,
@@ -14,11 +14,14 @@ import type {
 	Product,
 	Result,
 	TopRatedProduct,
+	UpdateProductUploadInput,
 } from "../types/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 
 export interface IProductManager {
-	create(data: CreateProduct): Promise<ProductManagerResult<Product>>;
+	create(
+		data: CreateProductUploadInput,
+	): Promise<ProductManagerResult<Product>>;
 	delete(data: { productId: string }): Promise<ProductManagerResult<void>>;
 	getAll(
 		args: GetAllProductsManagerParams,
@@ -26,7 +29,7 @@ export interface IProductManager {
 	getById(data: { productId: string }): Promise<ProductManagerResult<Product>>;
 	getTopRated(): Promise<ProductManagerResult<Array<TopRatedProduct>>>;
 	update(data: {
-		data: Partial<CreateProduct>;
+		data: UpdateProductUploadInput;
 		productId: string;
 	}): Promise<ProductManagerResult<Product>>;
 }
