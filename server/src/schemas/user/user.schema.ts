@@ -25,6 +25,13 @@ const baseSchema = z.object({
 });
 
 export const createUserSchema = baseSchema;
+
+export const updateUserSchema = baseSchema.partial().extend({
+	userId: objectIdStringValidator,
+});
+
+export const updateUserBodySchema = updateUserSchema.omit({ userId: true });
+
 export const userSchema = baseSchema.extend({
 	createdAt: z.date(),
 	id: objectIdStringValidator,
