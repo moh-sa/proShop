@@ -16,6 +16,7 @@ import type {
 	Review,
 	ReviewFilter,
 	ReviewSchema,
+	UpdateReviewInput,
 } from "../types/index.js";
 import {
 	handleDatabaseErrorResult,
@@ -48,10 +49,7 @@ export interface IReviewRepository {
 		data: GetAllReviewsByUserIdRepositoryParams,
 	) => Promise<ReviewResult<PaginatedResponse<Review>>>;
 	getById: (data: { reviewId: string }) => Promise<ReviewResult<null | Review>>;
-	update: (data: {
-		data: Partial<CreateReview>;
-		reviewId: string;
-	}) => Promise<ReviewResult<null | Review>>;
+	update: (args: UpdateReviewInput) => Promise<ReviewResult<null | Review>>;
 }
 
 type ReviewResult<T> = Result<T, DatabaseBaseError>;
@@ -283,8 +281,8 @@ export class ReviewRepository implements IReviewRepository {
 	}
 
 	public async update({
-		data,
 		reviewId,
+		...data
 	}: MethodParams<IReviewRepository, "update">): MethodReturn<
 		IReviewRepository,
 		"update"

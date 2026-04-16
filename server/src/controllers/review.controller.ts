@@ -10,6 +10,7 @@ import type {
 	PaginatedResponse,
 	Review,
 	SafeSelectUser,
+	UpdateReviewBodyInput,
 } from "../types/index.js";
 import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
 
@@ -71,7 +72,7 @@ export interface IReviewController {
 	}>;
 	update: AsyncHandler<{
 		params: { reviewId: string };
-		reqBody: Partial<CreateReview>;
+		reqBody: UpdateReviewBodyInput;
 		resBody: { data: Review };
 	}>;
 }
@@ -406,16 +407,18 @@ export class ReviewController implements IReviewController {
 
 	update = asyncHandler<{
 		params: { reviewId: string };
-		reqBody: Partial<CreateReview>;
+		reqBody: UpdateReviewBodyInput;
 		resBody: { data: Review };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "update" });
-		logger.debug({ reviewId: req.params.reviewId }, "Updating review");
 
-		const updatedReview = await this._service.update({
-			data: req.body,
+		const dataToUpdate = {
+			...req.body,
 			reviewId: req.params.reviewId,
-		});
+		};
+		logger.debug({ data: dataToUpdate }, "Updating review");
+
+		const updatedReview = await this._service.update(dataToUpdate);
 		if (!updatedReview.success) {
 			throw updatedReview.error;
 		}

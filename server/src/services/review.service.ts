@@ -1,7 +1,7 @@
 import { NotFoundError, ValidationError } from "../errors/index.js";
 import type { IReviewRepository } from "../repositories/index.js";
 import { reviewRepository } from "../repositories/index.js";
-import { createReviewSchema } from "../schemas/index.js";
+import { createReviewSchema, updateReviewSchema } from "../schemas/index.js";
 import {
 	reviewByProductIdPaginationParamsSchema,
 	reviewByUserIdPaginationParamsSchema,
@@ -17,6 +17,7 @@ import type {
 	PaginatedResponse,
 	Result,
 	Review,
+	UpdateReviewInput,
 } from "../types/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 import { objectIdStringValidator } from "../validators/index.js";
@@ -46,10 +47,7 @@ export interface IReviewService {
 		args: GetAllReviewsByUserIdServiceParams,
 	) => Promise<ReviewResult<PaginatedResponse<Review>>>;
 	getById: (data: { reviewId: string }) => Promise<ReviewResult<Review>>;
-	update: (data: {
-		data: Partial<CreateReview>;
-		reviewId: string;
-	}) => Promise<ReviewResult<Review>>;
+	update: (args: UpdateReviewInput) => Promise<ReviewResult<Review>>;
 }
 
 type ReviewResult<T> = Result<T>;
@@ -550,55 +548,46 @@ export class ReviewService implements IReviewService {
 		};
 	}
 
-	public async update({
-		data,
-		reviewId,
-	}: MethodParams<IReviewService, "update">): MethodReturn<
-		IReviewService,
-		"update"
-	> {
+	public async update(
+		args: MethodParams<IReviewService, "update">,
+	): MethodReturn<IReviewService, "update"> {
 		const logger = this._getLogger({ method: "update" });
-		logger.debug({ data, reviewId }, "Updating review");
+		logger.debug({ args }, "Updating review");
 
-		const reviewIdValidationResult = this._validateObjectId(
-			"reviewId",
-			reviewId,
-		);
-		if (!reviewIdValidationResult.success) {
-			logger.warn(
-				{ error: reviewIdValidationResult.error, reviewId },
-				"review ID validation failed",
-			);
-			return reviewIdValidationResult;
+		// arguments validation
+		const argsValidationResult = updateReviewSchema.safeParse(args);
+		if (!argsValidationResult.success) {
+			logger.warn(argsValidationResult.error, "Invalid arguments data");
+			return {
+				error: new ValidationError("Invalid arguments data", {
+					cause: argsValidationResult.error,
+				}),
+				success: false,
+			};
 		}
 
-		const updateDataValidationResult = this._validateUpdateData(data);
-		if (!updateDataValidationResult.success) {
-			logger.warn(
-				{ error: updateDataValidationResult.error, reviewId },
-				"update data validation failed",
-			);
-			return updateDataValidationResult;
-		}
-
-		const result = await this._repository.update({
-			data: updateDataValidationResult.data,
-			reviewId: reviewIdValidationResult.data,
-		});
+		// repository call
+		const result = await this._repository.update(argsValidationResult.data);
 		if (!result.success) {
 			logger.error({ error: result.error }, "Failed to update review");
 			return result;
 		}
 
 		if (!result.data) {
-			logger.warn({ reviewId }, "Review not found");
+			logger.warn(
+				{ reviewId: argsValidationResult.data.reviewId },
+				"Review not found",
+			);
 			return {
 				error: new NotFoundError("Review"),
 				success: false,
 			};
 		}
 
-		logger.info({ reviewId }, "Review updated successfully");
+		logger.info(
+			{ reviewId: argsValidationResult.data.reviewId },
+			"Review updated successfully",
+		);
 		return {
 			data: result.data,
 			success: true,
