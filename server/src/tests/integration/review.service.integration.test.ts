@@ -12,7 +12,7 @@ import { UserModel } from "../../models/user.model.js";
 import { productRepository } from "../../repositories/product.repository.js";
 import { reviewRepository } from "../../repositories/review.repository.js";
 import { ReviewService } from "../../services/review.service.js";
-import type { CreateReview } from "../../types/index.js";
+import type { CreateReview, UpdateReviewInput } from "../../types/index.js";
 import {
 	generateMockInsertProductWithStringImage,
 	generateMockInsertReview,
@@ -712,22 +712,19 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
-			const updateData: Partial<CreateReview> = {
+			const updateData: UpdateReviewInput = {
 				comment: "Updated Comment",
-				name: "Updated Name",
+				rating: 5,
+				reviewId: createdReview.id,
 			};
 
 			// Act
-			const result = await reviewService.update({
-				data: updateData,
-				reviewId: createdReview.id,
-			});
+			const result = await reviewService.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.strictEqual(result.data.name, updateData.name);
 			assert.strictEqual(result.data.comment, updateData.comment);
-			assert.strictEqual(result.data.rating, createdReview.rating);
+			assert.strictEqual(result.data.rating, updateData.rating);
 			assert.strictEqual(result.data.user, createdReview.user);
 			assert.strictEqual(result.data.product, createdReview.product);
 		});
@@ -746,15 +743,15 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			);
 			assert.ok(createdReview.success);
 
-			const updateData = { rating: 5 };
+			const updateData: UpdateReviewInput = {
+				rating: 5,
+				reviewId: createdReview.data.id,
+			};
 			const updatedMock = { ...createdReview.data, ...updateData };
 			const updatedRating = calculateAvgRating([updatedMock]);
 
 			// Act
-			const result = await reviewService.update({
-				data: updateData,
-				reviewId: createdReview.data.id,
-			});
+			const result = await reviewService.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -771,13 +768,13 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 		test("Should return 'NotFoundError' when 'repo.update' is called with non-existent review ID", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId();
-			const updateData = { name: "Updated Name" };
+			const updateData: UpdateReviewInput = {
+				rating: 5,
+				reviewId: nonExistentId,
+			};
 
 			// Act
-			const result = await reviewService.update({
-				data: updateData,
-				reviewId: nonExistentId,
-			});
+			const result = await reviewService.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -786,11 +783,11 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 		test("Should return 'ValidationError' when 'repo.update' is called with 'reviewId' being invalid ObjectId", async () => {
 			// Arrange
-			const updateData = { name: "Updated Name" };
 			const reviewId = "invalid-review-id";
+			const updateData: UpdateReviewInput = { rating: 5, reviewId };
 
 			// Act
-			const result = await reviewService.update({ data: updateData, reviewId });
+			const result = await reviewService.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -799,11 +796,11 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 		test("Should return 'ValidationError' when 'repo.update' is called with 'rating' being out of range 0-5", async () => {
 			// Arrange
-			const updateData = { rating: 6 };
 			const reviewId = generateMockObjectId();
+			const updateData: UpdateReviewInput = { rating: 6, reviewId };
 
 			// Act
-			const result = await reviewService.update({ data: updateData, reviewId });
+			const result = await reviewService.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, false);

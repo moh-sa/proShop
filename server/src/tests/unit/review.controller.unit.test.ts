@@ -738,8 +738,12 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 				reviewId,
 			);
 			assert.deepStrictEqual(
-				mockService.update.mock.calls[0].arguments[0].data,
-				updateData,
+				mockService.update.mock.calls[0].arguments[0].comment,
+				updateData.comment,
+			);
+			assert.deepStrictEqual(
+				mockService.update.mock.calls[0].arguments[0].rating,
+				updateData.rating,
 			);
 		});
 

@@ -12,7 +12,7 @@ import {
 } from "../../errors/index.js";
 import { ReviewModel } from "../../models/review.model.js";
 import { ReviewRepository } from "../../repositories/index.js";
-import type { CreateReview } from "../../types/index.js";
+import type { UpdateReviewInput } from "../../types/index.js";
 import { Paginator } from "../../utils/index.js";
 import {
 	generateMockInsertReview,
@@ -924,7 +924,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 	describe("update", () => {
 		const mockReview = generateMockSelectReview();
 		const reviewId = mockReview.id;
-		const updateData: Partial<CreateReview> = { comment: "new-comment" };
+		const updateData: UpdateReviewInput = { comment: "new-comment", reviewId };
 		const expectedResult = { ...mockReview, ...updateData };
 
 		test("Should return review object when 'db.findByIdAndUpdate' is called once with 'reviewId' and 'updateData'", async (t) => {
@@ -938,7 +938,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const updatedReview = await repo.update({ data: updateData, reviewId });
+			const updatedReview = await repo.update(updateData);
 
 			// Assert
 			assert.strictEqual(updatedReview.success, true);
@@ -951,8 +951,8 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				reviewId,
 			);
 			assert.deepStrictEqual(
-				findByIdAndUpdateMock.mock.calls[0].arguments[1],
-				updateData,
+				findByIdAndUpdateMock.mock.calls[0].arguments[1]?.comment,
+				updateData.comment,
 			);
 		});
 
@@ -963,7 +963,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			}));
 
 			// Act
-			const updatedReview = await repo.update({ data: updateData, reviewId });
+			const updatedReview = await repo.update(updateData);
 
 			// Assert
 			assert.strictEqual(updatedReview.success, true);
@@ -979,7 +979,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.update({ data: updateData, reviewId });
+			const result = await repo.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -997,7 +997,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.update({ data: updateData, reviewId });
+			const result = await repo.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -1013,7 +1013,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.update({ data: updateData, reviewId });
+			const result = await repo.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -1029,7 +1029,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.update({ data: updateData, reviewId });
+			const result = await repo.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -1045,7 +1045,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.update({ data: updateData, reviewId });
+			const result = await repo.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, false);

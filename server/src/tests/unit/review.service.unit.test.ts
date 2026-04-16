@@ -3,7 +3,7 @@ import test, { beforeEach, describe, suite } from "node:test";
 
 import { NotFoundError, ValidationError } from "../../errors/index.js";
 import { ReviewService } from "../../services/index.js";
-import type { CreateReview } from "../../types/index.js";
+import type { UpdateReviewInput } from "../../types/index.js";
 import {
 	generateMockInsertReview,
 	generateMockObjectId,
@@ -569,7 +569,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 	describe("update", () => {
 		const mockReview = generateMockSelectReview();
 		const reviewId = mockReview.id;
-		const updateData: Partial<CreateReview> = { comment: "new-comment" };
+		const updateData: UpdateReviewInput = { comment: "new-comment", reviewId };
 		const expectedResult = { ...mockReview, ...updateData };
 
 		test("Should return 'review object' when 'repo.update' is called once with 'reviewId' and 'updateData'", async () => {
@@ -579,10 +579,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const result = await service.update({
-				data: updateData,
-				reviewId,
-			});
+			const result = await service.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -594,8 +591,12 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 				reviewId,
 			);
 			assert.deepEqual(
-				mockRepo.update.mock.calls[0].arguments[0].data,
-				updateData,
+				mockRepo.update.mock.calls[0].arguments[0].comment,
+				updateData.comment,
+			);
+			assert.deepEqual(
+				mockRepo.update.mock.calls[0].arguments[0].rating,
+				updateData.rating,
 			);
 		});
 
@@ -606,10 +607,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const result = await service.update({
-				data: updateData,
-				reviewId,
-			});
+			const result = await service.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -618,14 +616,14 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'ValidationError' if 'reviewId' is invalid ObjectId", async () => {
 			// Arrange
-			const updateData = { comment: "new-comment" };
 			const reviewId = "invalid-review-id";
+			const updateData: UpdateReviewInput = {
+				comment: "new-comment",
+				reviewId,
+			};
 
 			// Act
-			const result = await service.update({
-				data: updateData,
-				reviewId,
-			});
+			const result = await service.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, false);

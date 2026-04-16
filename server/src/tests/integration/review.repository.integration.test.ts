@@ -11,7 +11,7 @@ import {
 	productRepository,
 	ReviewRepository,
 } from "../../repositories/index.js";
-import type { CreateReview } from "../../types/index.js";
+import type { UpdateReviewInput } from "../../types/index.js";
 import {
 	generateMockInsertProductWithStringImage,
 	generateMockObjectId,
@@ -662,16 +662,14 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
-			const updateData = {
+			const updateData: UpdateReviewInput = {
 				comment: "Updated comment",
 				rating: 5,
+				reviewId: createdReview.id,
 			};
 
 			// Act
-			const updatedReview = await reviewRepository.update({
-				data: updateData,
-				reviewId: createdReview.id,
-			});
+			const updatedReview = await reviewRepository.update(updateData);
 
 			// Assert
 			assert.ok(updatedReview.success);
@@ -688,13 +686,14 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 		test("should return null when 'update' is called with non-existent review ID", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId();
-			const updateData = { comment: "Updated comment", rating: 5 };
+			const updateData: UpdateReviewInput = {
+				comment: "Updated comment",
+				rating: 5,
+				reviewId: nonExistentId,
+			};
 
 			// Act
-			const updatedReview = await reviewRepository.update({
-				data: updateData,
-				reviewId: nonExistentId,
-			});
+			const updatedReview = await reviewRepository.update(updateData);
 
 			// Assert
 			assert.strictEqual(updatedReview.success, true);
@@ -1014,13 +1013,13 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 				}),
 			);
 
-			const updateData: Partial<CreateReview> = { rating: 5 };
+			const updateData: UpdateReviewInput = {
+				rating: 5,
+				reviewId: createdReview.id,
+			};
 
 			// Act
-			await reviewRepository.update({
-				data: updateData,
-				reviewId: createdReview.id,
-			});
+			await reviewRepository.update(updateData);
 
 			// Assert
 			const updatedProduct = await productRepository.getById({ productId });
