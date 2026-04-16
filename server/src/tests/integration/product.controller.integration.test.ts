@@ -7,7 +7,10 @@ import { ProductManager } from "../../managers/index.js";
 import { ProductModel } from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import { CacheService, ProductService } from "../../services/index.js";
-import type { AllProducts, CreateProduct } from "../../types/index.js";
+import type {
+	AllProducts,
+	UpdateProductUploadInput,
+} from "../../types/index.js";
 import {
 	generateMockInsertProductsWithStringImage,
 	generateMockInsertProductWithMulterImage,
@@ -680,7 +683,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 
 			const productId = createdProduct.id;
 
-			const updateData: Partial<CreateProduct> = { name: "UPDATED NAME" };
+			const updateData: UpdateProductUploadInput = { name: "UPDATED NAME" };
 
 			req.params = { productId };
 			req.body = updateData;

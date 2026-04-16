@@ -74,6 +74,7 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 			};
 
 			// Act
+			// @ts-expect-error - test case
 			const result = await productManager.create(mockProduct);
 
 			// Assert

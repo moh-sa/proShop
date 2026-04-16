@@ -13,7 +13,7 @@ import {
 import { ProductModel } from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
 import type { CacheService } from "../../services/index.js";
-import type { CreateProductWithStringImage } from "../../types/index.js";
+import type { UpdateProductInput } from "../../types/index.js";
 import { Paginator } from "../../utils/paginator.util.js";
 import {
 	generateMockInsertProductWithStringImage,
@@ -867,7 +867,7 @@ suite("Product Repository 〖 Unit Tests 〗", () => {
 	describe("update", () => {
 		const mockProduct = generateMockSelectProduct();
 		const productId = mockProduct.id;
-		const updateData: Partial<CreateProductWithStringImage> = {
+		const updateData: UpdateProductInput = {
 			name: "UPDATED PRODUCT NAME",
 		};
 		const expectedResult = { ...mockProduct, ...updateData };

@@ -9,7 +9,7 @@ import {
 } from "../../repositories/index.js";
 import type {
 	CreateOrder,
-	CreateProduct,
+	CreateProductInput,
 	CreateReview,
 	CreateSession,
 	CreateUser,
@@ -33,9 +33,7 @@ export async function createOrders(data: Array<CreateOrder>) {
 }
 
 // PRODUCT
-type CreateProductWithStringImage = Omit<CreateProduct, "image"> & {
-	image: string;
-};
+type CreateProductWithStringImage = CreateProductInput;
 
 export async function createProduct(data: CreateProductWithStringImage) {
 	const createdProduct = await productRepository.create(data);

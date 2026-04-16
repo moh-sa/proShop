@@ -4,7 +4,7 @@ import test, { beforeEach, describe, suite } from "node:test";
 import type { Response } from "express";
 
 import { ProductController } from "../../controllers/index.js";
-import type { CreateProduct, SuccessResponse } from "../../types/index.js";
+import type { SuccessResponse, UpdateProductInput } from "../../types/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockInsertProductWithMulterImage,
@@ -768,7 +768,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 	describe("update", () => {
 		const mockProduct = generateMockSelectProduct();
 		const productId = mockProduct.id;
-		const updateData: Partial<CreateProduct> = {
+		const updateData: UpdateProductInput = {
 			image: undefined,
 			name: "new-name",
 		};

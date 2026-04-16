@@ -64,6 +64,7 @@ suite("Product Manager 〖 Unit Tests 〗", () => {
 			};
 
 			// Act
+			// @ts-expect-error - test case
 			const result = await manager.create(productWithoutImage);
 
 			// Assert
