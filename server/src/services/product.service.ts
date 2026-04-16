@@ -1,18 +1,15 @@
-import {
-	IMAGE_FIELD_NAME,
-	MAX_TOP_RATED_PRODUCTS,
-} from "../constants/index.js";
+import { MAX_TOP_RATED_PRODUCTS } from "../constants/index.js";
 import { NotFoundError, ValidationError } from "../errors/index.js";
 import type { IProductRepository } from "../repositories/index.js";
 import { productRepository } from "../repositories/index.js";
 import {
 	createProductSchema,
 	productPaginationParamsSchema,
-	selectImageSchema,
+	updateProductSchema,
 } from "../schemas/index.js";
 import type {
 	AllProducts,
-	CreateProductWithStringImage,
+	CreateProductInput,
 	GetAllProductsServiceParams,
 	MethodParams,
 	MethodReturn,
@@ -21,12 +18,13 @@ import type {
 	ProductSelect,
 	Result,
 	TopRatedProduct,
+	UpdateProductInput,
 } from "../types/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 import { objectIdStringValidator } from "../validators/index.js";
 
 export interface IProductService {
-	create(data: CreateProductWithStringImage): Promise<ProductResult<Product>>;
+	create(data: CreateProductInput): Promise<ProductResult<Product>>;
 	delete(data: { productId: string }): Promise<ProductResult<void>>;
 	getAll(
 		args: GetAllProductsServiceParams,
@@ -34,7 +32,7 @@ export interface IProductService {
 	getById(data: { productId: string }): Promise<ProductResult<Product>>;
 	getTopRated(): Promise<ProductResult<Array<TopRatedProduct>>>;
 	update(data: {
-		data: Partial<CreateProductWithStringImage>;
+		data: UpdateProductInput;
 		productId: string;
 	}): Promise<ProductResult<Product>>;
 }
@@ -53,7 +51,7 @@ export class ProductService implements IProductService {
 		const logger = this._getLogger({ method: "create" });
 		logger.debug({ data }, "Creating product");
 
-		const validationResult = this._dataSchema().required().safeParse(data);
+		const validationResult = createProductSchema.safeParse(data);
 		if (!validationResult.success) {
 			logger.warn({ error: validationResult.error }, "Invalid product data");
 			return {
@@ -263,9 +261,7 @@ export class ProductService implements IProductService {
 		const logger = this._getLogger({ method: "update" });
 		logger.debug({ args }, "Updating product");
 
-		const updateDataValidationResult = this._dataSchema()
-			.partial()
-			.safeParse(args.data);
+		const updateDataValidationResult = updateProductSchema.safeParse(args.data);
 		if (!updateDataValidationResult.success) {
 			logger.warn(
 				{ error: updateDataValidationResult.error, productId: args.productId },
@@ -320,12 +316,6 @@ export class ProductService implements IProductService {
 			data: updatedProduct.data,
 			success: true,
 		};
-	}
-
-	private _dataSchema() {
-		return createProductSchema.omit({ [IMAGE_FIELD_NAME]: true }).extend({
-			[IMAGE_FIELD_NAME]: selectImageSchema,
-		});
 	}
 
 	private _getLogger(args: { [key: string]: unknown; method: string }) {

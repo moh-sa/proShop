@@ -3,7 +3,7 @@ import { ProductModel } from "../models/product.model.js";
 import { CacheService } from "../services/cache.service.js";
 import type {
 	AllProducts,
-	CreateProductWithStringImage,
+	CreateProductInput,
 	FailureResult,
 	GetAllProductsRepositoryParams,
 	MethodParams,
@@ -15,6 +15,7 @@ import type {
 	ProductSchema,
 	Result,
 	TopRatedProduct,
+	UpdateProductInput,
 } from "../types/index.js";
 import {
 	handleDatabaseErrorResult,
@@ -24,7 +25,7 @@ import {
 
 export interface IProductRepository {
 	count(query: Record<string, unknown>): Promise<ProductResult<number>>;
-	create(data: CreateProductWithStringImage): Promise<ProductResult<Product>>;
+	create(data: CreateProductInput): Promise<ProductResult<Product>>;
 	delete(data: { productId: string }): Promise<ProductResult<null | Product>>;
 	getAll(
 		args: GetAllProductsRepositoryParams,
@@ -34,7 +35,7 @@ export interface IProductRepository {
 		limit: number;
 	}): Promise<ProductResult<Array<TopRatedProduct>>>;
 	update(data: {
-		data: Partial<CreateProductWithStringImage>;
+		data: Partial<UpdateProductInput>;
 		productId: string;
 	}): Promise<ProductResult<null | Product>>;
 }
