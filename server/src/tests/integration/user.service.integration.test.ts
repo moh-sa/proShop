@@ -5,6 +5,7 @@ import { NotFoundError, ValidationError } from "../../errors/index.js";
 import { UserModel } from "../../models/user.model.js";
 import { userRepository } from "../../repositories/user.repository.js";
 import { UserService } from "../../services/user.service.js";
+import type { UpdateUserInput } from "../../types/user.type.js";
 import {
 	generateMockInsertUser,
 	generateMockInsertUsers,
@@ -168,16 +169,14 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdUser = await createUser(mockUser);
 
-			const updateData = {
+			const updateData: UpdateUserInput = {
 				email: "updated@example.com",
 				name: "Updated Name",
+				userId: createdUser.id,
 			};
 
 			// Act
-			const result = await userService.updateById({
-				data: updateData,
-				userId: createdUser.id,
-			});
+			const result = await userService.updateById(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -190,13 +189,13 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdUser = await createUser(mockUser);
 
-			const updateData = { isAdmin: true };
+			const updateData: UpdateUserInput = {
+				isAdmin: true,
+				userId: createdUser.id,
+			};
 
 			// Act
-			const result = await userService.updateById({
-				data: updateData,
-				userId: createdUser.id,
-			});
+			const result = await userService.updateById(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -209,13 +208,10 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdUser = await createUser(mockUser);
 
-			const updateData = {};
+			const updateData: UpdateUserInput = { userId: createdUser.id };
 
 			// Act
-			const result = await userService.updateById({
-				data: updateData,
-				userId: createdUser.id,
-			});
+			const result = await userService.updateById(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -228,13 +224,14 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdUser = await createUser(mockUser);
 
-			const updateData = { email: "new@example.com", name: undefined };
+			const updateData: UpdateUserInput = {
+				email: "new@example.com",
+				name: undefined,
+				userId: createdUser.id,
+			};
 
 			// Act
-			const result = await userService.updateById({
-				data: updateData,
-				userId: createdUser.id,
-			});
+			const result = await userService.updateById(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -245,13 +242,13 @@ suite("User Service 〖 Integration Tests 〗", () => {
 		test("Should return 'NotFoundError' when 'repo.updateById' is called with a non-existent ID", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId();
-			const updateData = { name: "Updated Name" };
+			const updateData: UpdateUserInput = {
+				name: "Updated Name",
+				userId: nonExistentId,
+			};
 
 			// Act
-			const result = await userService.updateById({
-				data: updateData,
-				userId: nonExistentId,
-			});
+			const result = await userService.updateById(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -262,13 +259,13 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdUser = await createUser(mockUser);
 
-			const updateData = { email: "invalid-email" };
+			const updateData: UpdateUserInput = {
+				email: "invalid-email",
+				userId: createdUser.id,
+			};
 
 			// Act
-			const result = await userService.updateById({
-				data: updateData,
-				userId: createdUser.id,
-			});
+			const result = await userService.updateById(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -279,13 +276,13 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			// Arrange
 			const createdUser = await createUser(mockUser);
 
-			const updateData = { password: "123" };
+			const updateData: UpdateUserInput = {
+				password: "123",
+				userId: createdUser.id,
+			};
 
 			// Act
-			const result = await userService.updateById({
-				data: updateData,
-				userId: createdUser.id,
-			});
+			const result = await userService.updateById(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -294,14 +291,11 @@ suite("User Service 〖 Integration Tests 〗", () => {
 
 		test("Should return 'ValidationError' when 'repo.updateById' is called with invalid 'userId'", async () => {
 			// Arrange
-			const updateData = { name: "Updated Name" };
 			const userId = "invalid-user-id";
+			const updateData: UpdateUserInput = { name: "Updated Name", userId };
 
 			// Act
-			const result = await userService.updateById({
-				data: updateData,
-				userId,
-			});
+			const result = await userService.updateById(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, false);

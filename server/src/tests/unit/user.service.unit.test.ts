@@ -8,8 +8,8 @@ import {
 } from "../../errors/index.js";
 import { UserService } from "../../services/index.js";
 import type {
-	CreateUser,
 	GetAllUsersServiceParams,
+	UpdateUserInput,
 	User,
 	UserSelect,
 } from "../../types/index.js";
@@ -297,9 +297,9 @@ suite("User Service 〖 Unit Tests 〗", () => {
 		const mockUser = generateMockSelectUser();
 		const userId = mockUser.id;
 
-		const updateData: Partial<CreateUser> = { name: "new-name" };
+		const updateData: UpdateUserInput = { name: "new-name", userId };
 		const updatedData = { ...mockUser, ...updateData };
-		const { password: _, ...expectedUpdatedData } = updatedData;
+		const { password: _, userId: __, ...expectedUpdatedData } = updatedData;
 
 		test("Should return 'user object' without 'password' when 'repo.update' is called once with 'userId' and 'updateData'", async () => {
 			// Arrange
@@ -311,10 +311,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const result = await service.updateById({
-				data: updateData,
-				userId: userId,
-			});
+			const result = await service.updateById(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -322,11 +319,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockRepo.update.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockRepo.update.mock.calls[0].arguments[0].userId,
-				userId,
-			);
-			assert.deepStrictEqual(
-				mockRepo.update.mock.calls[0].arguments[0].data,
+				mockRepo.update.mock.calls[0].arguments[0],
 				updateData,
 			);
 		});
@@ -341,10 +334,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const result = await service.updateById({
-				data: updateData,
-				userId: userId,
-			});
+			const result = await service.updateById(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -357,7 +347,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = await service.updateById({
-				data: updateData,
+				...updateData,
 				userId: invalidUserId,
 			});
 
@@ -377,7 +367,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = await service.updateById({
-				data: invalidUpdateData,
+				...invalidUpdateData,
 				userId: userId,
 			});
 

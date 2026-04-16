@@ -13,10 +13,7 @@ import {
 } from "../../errors/index.js";
 import { UserModel } from "../../models/user.model.js";
 import { UserRepository } from "../../repositories/index.js";
-import type {
-	CreateUser,
-	GetAllUsersRepositoryParams,
-} from "../../types/index.js";
+import type { GetAllUsersRepositoryParams } from "../../types/index.js";
 import { Paginator } from "../../utils/paginator.util.js";
 import {
 	generateMockInsertUser,
@@ -731,7 +728,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser.id;
-			const updateData: Partial<CreateUser> = { name: "Updated Name" };
+			const updateData = { name: "Updated Name" };
 			const expectedResult = { ...mockUser, ...updateData };
 			const findByIdAndUpdateMock = t.mock.method(
 				UserModel,
@@ -742,7 +739,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const result = await repo.update({ data: updateData, userId });
+			const result = await repo.update({ ...updateData, userId });
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -763,13 +760,13 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser.id;
-			const updateData: Partial<CreateUser> = { name: "Updated Name" };
+			const updateData = { name: "Updated Name" };
 			t.mock.method(UserModel, "findByIdAndUpdate", () => ({
 				lean: async () => null,
 			}));
 
 			// Act
-			const result = await repo.update({ data: updateData, userId });
+			const result = await repo.update({ ...updateData, userId });
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -780,14 +777,14 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser.id;
-			const updateData: Partial<CreateUser> = { name: "Updated Name" };
+			const updateData = { name: "Updated Name" };
 			const validationError = new mongoose.Error.ValidationError();
 			t.mock.method(UserModel, "findByIdAndUpdate", () => {
 				throw validationError;
 			});
 
 			// Act
-			const result = await repo.update({ data: updateData, userId });
+			const result = await repo.update({ ...updateData, userId });
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -798,7 +795,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser.id;
-			const updateData: Partial<CreateUser> = { name: "Updated Name" };
+			const updateData = { name: "Updated Name" };
 			const duplicateKeyError = new mongoose.mongo.MongoServerError({});
 			duplicateKeyError.code = 11000;
 			t.mock.method(UserModel, "findByIdAndUpdate", () => {
@@ -806,7 +803,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.update({ data: updateData, userId });
+			const result = await repo.update({ ...updateData, userId });
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -817,7 +814,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser.id;
-			const updateData: Partial<CreateUser> = { name: "Updated Name" };
+			const updateData = { name: "Updated Name" };
 			const timeoutError = new mongoose.mongo.MongoNetworkTimeoutError(
 				"Timeout",
 			);
@@ -826,7 +823,7 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			});
 
 			// Act
-			const result = await repo.update({ data: updateData, userId });
+			const result = await repo.update({ ...updateData, userId });
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -837,14 +834,14 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser.id;
-			const updateData: Partial<CreateUser> = { name: "Updated Name" };
+			const updateData = { name: "Updated Name" };
 			const queryError = new mongoose.Error("Query failed");
 			t.mock.method(UserModel, "findByIdAndUpdate", () => {
 				throw queryError;
 			});
 
 			// Act
-			const result = await repo.update({ data: updateData, userId });
+			const result = await repo.update({ ...updateData, userId });
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -855,14 +852,14 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser.id;
-			const updateData: Partial<CreateUser> = { name: "Updated Name" };
+			const updateData = { name: "Updated Name" };
 			const networkError = new mongoose.mongo.MongoError("Network error");
 			t.mock.method(UserModel, "findByIdAndUpdate", () => {
 				throw networkError;
 			});
 
 			// Act
-			const result = await repo.update({ data: updateData, userId });
+			const result = await repo.update({ ...updateData, userId });
 
 			// Assert
 			assert.strictEqual(result.success, false);
@@ -873,14 +870,14 @@ suite("User Repository〖 Unit Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const userId = mockUser.id;
-			const updateData: Partial<CreateUser> = { name: "Updated Name" };
+			const updateData = { name: "Updated Name" };
 			const unknownError = new Error("Something unexpected happened");
 			t.mock.method(UserModel, "findByIdAndUpdate", () => {
 				throw unknownError;
 			});
 
 			// Act
-			const result = await repo.update({ data: updateData, userId });
+			const result = await repo.update({ ...updateData, userId });
 
 			// Assert
 			assert.strictEqual(result.success, false);

@@ -11,6 +11,7 @@ import {
 } from "../../errors/index.js";
 import { UserModel } from "../../models/user.model.js";
 import { UserRepository } from "../../repositories/index.js";
+import type { UpdateUserInput } from "../../types/user.type.js";
 import {
 	generateMockInsertUser,
 	generateMockInsertUsers,
@@ -415,16 +416,14 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 			// Arrange
 			const createdUser = await createUser(generateMockInsertUser());
 
-			const updateData = {
+			const updateData: UpdateUserInput = {
 				email: "updated@example.com",
 				name: "Updated Name",
+				userId: createdUser.id,
 			};
 
 			// Act
-			const result = await repo.update({
-				data: updateData,
-				userId: createdUser.id,
-			});
+			const result = await repo.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -436,13 +435,13 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 		test("Should return 'success result' with 'partially updated user' when only some fields are updated", async () => {
 			// Arrange
 			const createdUser = await createUser(generateMockInsertUser());
-			const updateData = { name: "Updated Name" };
+			const updateData: UpdateUserInput = {
+				name: "Updated Name",
+				userId: createdUser.id,
+			};
 
 			// Act
-			const result = await repo.update({
-				data: updateData,
-				userId: createdUser.id,
-			});
+			const result = await repo.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -458,14 +457,15 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 
 			const createdUser = await createUser(generateMockInsertUser());
 			const originalUpdatedAt = createdUser.updatedAt;
+			const updateData: UpdateUserInput = {
+				name: "Updated Name",
+				userId: createdUser.id,
+			};
 
 			t.mock.timers.tick(100);
 
 			// Act
-			const result = await repo.update({
-				data: { name: "Updated Name" },
-				userId: createdUser.id,
-			});
+			const result = await repo.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -476,13 +476,13 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 		test("Should return 'success result' with 'null' when user ID does not exist", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId();
-			const updateData = { name: "Updated Name" };
+			const updateData: UpdateUserInput = {
+				name: "Updated Name",
+				userId: nonExistentId,
+			};
 
 			// Act
-			const result = await repo.update({
-				data: updateData,
-				userId: nonExistentId,
-			});
+			const result = await repo.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, true);
@@ -495,11 +495,13 @@ suite("UserRepository 〖 Integration Tests 〗", async () => {
 				generateMockInsertUsers({ count: 2 }),
 			);
 
-			// Act
-			const result = await repo.update({
-				data: { email: user1.email },
+			const updateData: UpdateUserInput = {
+				email: user1.email,
 				userId: user2.id,
-			});
+			};
+
+			// Act
+			const result = await repo.update(updateData);
 
 			// Assert
 			assert.strictEqual(result.success, false);
