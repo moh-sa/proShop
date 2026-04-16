@@ -22,6 +22,17 @@ const baseSchema = z.object({
 
 export const createReviewSchema = baseSchema;
 
+export const updateReviewSchema = baseSchema
+	.pick({ comment: true, rating: true })
+	.partial()
+	.extend({
+		reviewId: objectIdStringValidator,
+	});
+
+export const updateReviewBodySchema = updateReviewSchema.omit({
+	reviewId: true,
+});
+
 export const reviewSchema = baseSchema.extend({
 	createdAt: z.date(),
 	id: objectIdStringValidator,

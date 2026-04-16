@@ -4,6 +4,8 @@ import type {
 	createReviewSchema,
 	reviewModelSchema,
 	reviewSchema,
+	updateReviewBodySchema,
+	updateReviewSchema,
 } from "../schemas/index.js";
 import type {
 	reviewByProductIdPaginationFiltersSchema,
@@ -22,6 +24,8 @@ import type {
 import type { Stringify } from "./stringify.type.js";
 
 export type CreateReview = z.infer<typeof createReviewSchema>;
+export type UpdateReviewInput = z.infer<typeof updateReviewSchema>;
+export type UpdateReviewBodyInput = z.infer<typeof updateReviewBodySchema>;
 export type Review = z.infer<typeof reviewSchema>;
 export type ReviewSchema = z.infer<typeof reviewModelSchema>;
 
