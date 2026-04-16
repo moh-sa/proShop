@@ -27,9 +27,27 @@ const baseSchema = z.object({
 	user: objectIdStringValidator,
 });
 
-export const createProductSchema = baseSchema.extend({
-	[IMAGE_FIELD_NAME]: insertImageSchema.optional(),
+export const createProductUploadSchema = baseSchema.extend({
+	[IMAGE_FIELD_NAME]: insertImageSchema,
 });
+
+export const createProductSchema = baseSchema.extend({
+	[IMAGE_FIELD_NAME]: selectImageSchema,
+});
+
+export const createProductBodySchema = baseSchema.omit({ user: true });
+
+export const updateProductBodySchema = baseSchema
+	.omit({ user: true })
+	.partial();
+
+export const updateProductUploadSchema = createProductUploadSchema
+	.omit({ user: true })
+	.partial();
+
+export const updateProductSchema = createProductSchema
+	.omit({ user: true })
+	.partial();
 
 export const productSchema = baseSchema.extend({
 	createdAt: z.date(),
