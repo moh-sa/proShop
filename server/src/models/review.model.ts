@@ -43,8 +43,10 @@ const reviewSchema = new Schema<ReviewSchema>(
 	},
 );
 
+// Indexes
 // Compound index to ensure ONE review per user per product
 reviewSchema.index({ product: 1, "user.id": 1 }, { unique: true });
+reviewSchema.index({ product: 1, rating: -1 });
 
 // Update product 'rating' and 'numReviews' after review is saved or updated
 async function updateProductRating(productId: Types.ObjectId) {
