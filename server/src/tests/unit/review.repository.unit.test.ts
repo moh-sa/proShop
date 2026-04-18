@@ -210,10 +210,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				paginateArgs.query["user.id"] instanceof mongoose.Types.ObjectId,
 			);
 			assert.strictEqual(paginateArgs.query.product.toString(), productId);
-			assert.strictEqual(
-				paginateArgs.query["user.id"].toString(),
-				userId,
-			);
+			assert.strictEqual(paginateArgs.query["user.id"].toString(), userId);
 		});
 
 		test("Should call 'paginator.paginate' with sort parameters", async (t) => {
@@ -929,7 +926,11 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 	describe("update", () => {
 		const mockReview = generateMockSelectReview();
 		const reviewId = mockReview.id;
-		const updateData: UpdateReviewInput = { comment: "new-comment", reviewId };
+		const updateData: UpdateReviewInput = {
+			comment: "new-comment",
+			rating: 4,
+			reviewId,
+		};
 		const expectedResult = { ...mockReview, ...updateData };
 
 		test("Should return review object when 'db.findByIdAndUpdate' is called once with 'reviewId' and 'updateData'", async (t) => {
@@ -959,6 +960,14 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				findByIdAndUpdateMock.mock.calls[0].arguments[1]?.comment,
 				updateData.comment,
 			);
+			assert.deepStrictEqual(
+				findByIdAndUpdateMock.mock.calls[0].arguments[1]?.rating,
+				updateData.rating,
+			);
+			assert.deepStrictEqual(findByIdAndUpdateMock.mock.calls[0].arguments[2], {
+				returnDocument: "after",
+				runValidators: true,
+			});
 		});
 
 		test("Should return 'null' when 'db.findByIdAndUpdate' returns 'null'", async (t) => {

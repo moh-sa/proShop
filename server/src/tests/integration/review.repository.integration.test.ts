@@ -69,6 +69,30 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof DatabaseDuplicateKeyError);
 		});
+
+		test("should return 'DatabaseValidationError' when 'create' is called with rating below minimum", async () => {
+			// Arrange
+			const mockReview = generateMockInsertReview({ rating: 0 });
+
+			// Act
+			const result = await reviewRepository.create(mockReview);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
+		});
+
+		test("should return 'DatabaseValidationError' when 'create' is called with rating above maximum", async () => {
+			// Arrange
+			const mockReview = generateMockInsertReview({ rating: 6 });
+
+			// Act
+			const result = await reviewRepository.create(mockReview);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
+		});
 	});
 
 	describe("getById", () => {
@@ -698,6 +722,40 @@ suite("Review Repository 〖 Integration Tests 〗", async () => {
 			// Assert
 			assert.strictEqual(updatedReview.success, true);
 			assert.strictEqual(updatedReview.data, null);
+		});
+
+		test("should return 'DatabaseValidationError' when 'update' is called with rating below minimum", async () => {
+			// Arrange
+			const createdReview = await createReview(generateMockInsertReview());
+			const updateData: UpdateReviewInput = {
+				comment: "x",
+				rating: 0,
+				reviewId: createdReview.id,
+			};
+
+			// Act
+			const result = await reviewRepository.update(updateData);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
+		});
+
+		test("should return 'DatabaseValidationError' when 'update' is called with rating above maximum", async () => {
+			// Arrange
+			const createdReview = await createReview(generateMockInsertReview());
+			const updateData: UpdateReviewInput = {
+				comment: "x",
+				rating: 6,
+				reviewId: createdReview.id,
+			};
+
+			// Act
+			const result = await reviewRepository.update(updateData);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof DatabaseValidationError);
 		});
 	});
 
