@@ -66,7 +66,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			await createReview(
 				generateMockInsertReview({
 					product: product.id,
-					user: user.id,
+					user: { id: user.id, name: user.name },
 				}),
 			);
 
@@ -251,7 +251,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 			const created = await createReview(
 				generateMockInsertReview({
-					user: mockUser.id,
+					user: { id: mockUser.id, name: mockUser.name },
 				}),
 			);
 
@@ -274,7 +274,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 			const created = await createReview(
 				generateMockInsertReview({
-					user: mockUser.id,
+					user: { id: mockUser.id, name: mockUser.name },
 				}),
 			);
 

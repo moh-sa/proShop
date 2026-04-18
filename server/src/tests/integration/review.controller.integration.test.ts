@@ -31,7 +31,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const mockReview = generateMockInsertReview({
-				user: mockUser.id,
+				user: { id: mockUser.id, name: mockUser.name },
 			});
 
 			const { next, req, res } = createMockExpressContextFromHandler(
@@ -53,7 +53,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const mockReview = generateMockInsertReview({
-				user: mockUser.id,
+				user: { id: mockUser.id, name: mockUser.name },
 			});
 
 			const { next, req, res } = createMockExpressContextFromHandler(
@@ -74,7 +74,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Arrange
 			const mockUser = generateMockSelectUser();
 			const mockReview = generateMockInsertReview({
-				user: mockUser.id,
+				user: { id: mockUser.id, name: mockUser.name },
 			});
 
 			const { next, req, res } = createMockExpressContextFromHandler(
@@ -91,9 +91,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.success, true);
 			assert.ok(response.data);
 			assert.ok(response.data.id);
-			assert.strictEqual(response.data.user, mockReview.user);
 			assert.strictEqual(response.data.product, mockReview.product);
-			assert.strictEqual(response.data.name, mockUser.name);
+			assert.strictEqual(response.data.user.id, mockReview.user.id);
+			assert.strictEqual(response.data.user.name, mockReview.user.name);
 			assert.strictEqual(response.data.rating, mockReview.rating);
 			assert.strictEqual(response.data.comment, mockReview.comment);
 		});
@@ -151,9 +151,9 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const response = res._getJSONData();
 			assert.strictEqual(response.success, true);
 			assert.ok(response.data);
-			assert.strictEqual(response.data.user, createdReview.user);
 			assert.strictEqual(response.data.product, createdReview.product);
-			assert.strictEqual(response.data.name, createdReview.name);
+			assert.strictEqual(response.data.user.id, createdReview.user.id);
+			assert.strictEqual(response.data.user.name, createdReview.user.name);
 			assert.strictEqual(response.data.rating, createdReview.rating);
 			assert.strictEqual(response.data.comment, createdReview.comment);
 		});
@@ -354,7 +354,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.getAllByUserId,
 			);
-			req.params = { userId: createdReviews[0].user };
+			req.params = { userId: createdReviews[0].user.id };
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -376,7 +376,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.getAllByUserId,
 			);
-			req.params = { userId: createdReviews[0].user };
+			req.params = { userId: createdReviews[0].user.id };
 
 			// Act
 			await controller.getAllByUserId(req, res, next);
@@ -391,7 +391,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const userId = generateMockObjectId();
 			const targetReviews = generateMockInsertReviews({
 				count: 3,
-				options: { user: userId },
+				options: { user: { id: userId, name: "test-user" } },
 			});
 
 			await createReviews([
@@ -419,7 +419,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.meta.totalPages, 1);
 
 			assert.strictEqual(
-				response.data.every((review: Review) => review.user === userId),
+				response.data.every((review: Review) => review.user.id === userId),
 				true,
 			);
 		});
@@ -455,7 +455,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const createdReviews = await createReviews(
 				generateMockInsertReviews({
 					count: 8,
-					options: { user: userId },
+					options: { user: { id: userId, name: "test-user" } },
 				}),
 			);
 
@@ -488,7 +488,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const userId = generateMockObjectId();
 
 			const createdReviews = await createReviews(
-				generateMockInsertReviews({ count: 2, options: { user: userId } }),
+				generateMockInsertReviews({
+					count: 2,
+					options: { user: { id: userId, name: "test-user" } },
+				}),
 			);
 			const productId = createdReviews[0].product;
 
@@ -658,7 +661,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 					options: { product: productId },
 				}),
 			);
-			const userId = createdReviews[0].user;
+			const userId = createdReviews[0].user.id;
 
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.getAllByProductId,
@@ -674,7 +677,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.success, true);
 			assert.strictEqual(response.meta.totalItems, 1);
 			assert.strictEqual(response.data.length, 1);
-			assert.strictEqual(response.data[0].user, userId);
+			assert.strictEqual(response.data[0].user.id, userId);
 		});
 	});
 
@@ -951,7 +954,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.countByUserId,
 			);
-			req.params = { userId: createdReviews[0].user };
+			req.params = { userId: createdReviews[0].user.id };
 
 			// Act
 			await controller.countByUserId(req, res, next);
@@ -971,7 +974,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.countByUserId,
 			);
-			req.params = { userId: createdReviews[0].user };
+			req.params = { userId: createdReviews[0].user.id };
 
 			// Act
 			await controller.countByUserId(req, res, next);
@@ -990,7 +993,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.countByUserId,
 			);
-			req.params = { userId: createdReviews[0].user };
+			req.params = { userId: createdReviews[0].user.id };
 
 			// Act
 			await controller.countByUserId(req, res, next);
@@ -1006,7 +1009,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const userId = generateMockObjectId();
 			const targetReviews = generateMockInsertReviews({
 				count: 3,
-				options: { user: userId },
+				options: { user: { id: userId, name: "test-user" } },
 			});
 
 			await createReviews([
@@ -1245,7 +1248,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			);
 			req.params = {
 				productId: createdReview.product,
-				userId: createdReview.user,
+				userId: createdReview.user.id,
 			};
 
 			// Act
@@ -1266,7 +1269,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			);
 			req.params = {
 				productId: createdReview.product,
-				userId: createdReview.user,
+				userId: createdReview.user.id,
 			};
 
 			// Act
@@ -1289,7 +1292,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			);
 			req.params = {
 				productId: targetReview.product,
-				userId: targetReview.user,
+				userId: targetReview.user.id,
 			};
 
 			// Act

@@ -2,7 +2,7 @@ import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
 import { ReviewController } from "../../controllers/index.js";
-import type { CreateReview } from "../../types/index.js";
+import type { UpdateReviewInput } from "../../types/review.type.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockObjectId,
@@ -31,10 +31,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 				req: { body: mockReview },
 				res: {
 					locals: {
-						user: {
-							id: mockReview.user,
-							name: mockReview.name,
-						},
+						user: mockReview.user,
 					},
 				},
 				testContext: t,
@@ -61,7 +58,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockReview },
 				res: {
-					locals: { user: { id: mockReview.user, name: mockReview.name } },
+					locals: {
+						user: mockReview.user,
+					},
 				},
 				testContext: t,
 			});
@@ -84,7 +83,9 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			const { next, req, res } = mockExpressCall({
 				req: { body: mockReview },
 				res: {
-					locals: { user: { id: mockReview.user, name: mockReview.name } },
+					locals: {
+						user: mockReview.user,
+					},
 				},
 				testContext: t,
 			});
@@ -282,7 +283,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
 	describe("getAllByUserId", () => {
 		const mockReviews = generateMockSelectReviews({ count: 2 });
-		const userId = mockReviews[0].user;
+		const userId = mockReviews[0].user.id;
 		const mockPaginationMeta = {
 			currentPage: 1,
 			hasNextPage: false,
@@ -713,7 +714,11 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
 		test("Should call 'service.update' once with the correct 'reviewId'", async (t) => {
 			// Arrange
-			const updateData: Partial<CreateReview> = { name: "new-name" };
+			const updateData: UpdateReviewInput = {
+				comment: "new-comment",
+				rating: 5,
+				reviewId,
+			};
 
 			const { next, req, res } = mockExpressCall({
 				req: {

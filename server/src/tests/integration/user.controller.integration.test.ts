@@ -166,7 +166,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			const userId = createdUser.id;
 
 			res.locals = {
-				review: generateMockInsertReview({ user: userId }),
+				review: generateMockInsertReview({
+					user: { id: userId, name: createdUser.name },
+				}),
 				token: {
 					id: userId,
 					exp: Math.floor(Date.now() / 1000) + 3600,
@@ -302,7 +304,9 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			const userId = createdUser.id;
 
 			res.locals = {
-				review: generateMockInsertReview({ user: userId }),
+				review: generateMockInsertReview({
+					user: { id: userId, name: createdUser.name },
+				}),
 				token: {
 					id: userId,
 					exp: Math.floor(Date.now() / 1000) + 3600,

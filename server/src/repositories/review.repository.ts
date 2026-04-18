@@ -103,7 +103,9 @@ export class ReviewRepository implements IReviewRepository {
 		"countByUserId"
 	> {
 		try {
-			const result = await this._db.countDocuments({ user: userId }).lean();
+			const result = await this._db
+				.countDocuments({ "user.id": userId })
+				.lean();
 
 			return {
 				data: result,
@@ -180,7 +182,7 @@ export class ReviewRepository implements IReviewRepository {
 			const result = await this._db
 				.exists({
 					product: productId,
-					user: userId,
+					"user.id": userId,
 				})
 				.lean();
 
@@ -247,7 +249,7 @@ export class ReviewRepository implements IReviewRepository {
 				pageSize: args.pageSize,
 				query: {
 					...(args.filters && this._prepareFilters(args.filters)),
-					user: new Types.ObjectId(args.userId),
+					"user.id": new Types.ObjectId(args.userId),
 				},
 				select: args.select,
 				sort: args.sort,
@@ -319,7 +321,7 @@ export class ReviewRepository implements IReviewRepository {
 		}
 
 		if (filters.userId) {
-			newFilter.user = new Types.ObjectId(filters.userId);
+			newFilter["user.id"] = new Types.ObjectId(filters.userId);
 		}
 
 		return newFilter;

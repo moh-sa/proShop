@@ -160,8 +160,10 @@ export class ReviewController implements IReviewController {
 
 		const data = {
 			...req.body,
-			name: res.locals.user.name,
-			user: res.locals.user.id,
+			user: {
+				id: res.locals.user.id,
+				name: res.locals.user.name,
+			},
 		};
 		logger.debug({ data }, "Creating review");
 

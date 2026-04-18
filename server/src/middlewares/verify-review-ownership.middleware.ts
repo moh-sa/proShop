@@ -44,7 +44,7 @@ export const verifyReviewOwnership = asyncHandler(async (req, res, next) => {
 	}
 
 	const isAdmin = user.isAdmin;
-	const isUserIdMatch = userId === reviewExistsResult.data.user;
+	const isUserIdMatch = userId === reviewExistsResult.data.user.id;
 
 	if (!isUserIdMatch && !isAdmin) {
 		return next(

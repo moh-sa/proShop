@@ -4,13 +4,24 @@ import { model, Schema } from "mongoose";
 import { productRepository } from "../repositories/product.repository.js";
 import type { ReviewSchema } from "../types/index.js";
 
-const reviewSchema = new Schema<ReviewSchema>(
+const userFieldsSchema = new Schema(
 	{
-		comment: {
+		id: {
+			ref: "User",
+			required: true,
+			type: Schema.Types.ObjectId,
+		},
+		name: {
 			required: true,
 			type: String,
 		},
-		name: {
+	},
+	{ _id: false },
+);
+
+const reviewSchema = new Schema<ReviewSchema>(
+	{
+		comment: {
 			required: true,
 			type: String,
 		},
@@ -23,11 +34,7 @@ const reviewSchema = new Schema<ReviewSchema>(
 			required: true,
 			type: Number,
 		},
-		user: {
-			ref: "User",
-			required: true,
-			type: Schema.Types.ObjectId,
-		},
+		user: userFieldsSchema,
 	},
 	{
 		timestamps: true,
@@ -35,7 +42,7 @@ const reviewSchema = new Schema<ReviewSchema>(
 );
 
 // Compound index to ensure ONE review per user per product
-reviewSchema.index({ product: 1, user: 1 }, { unique: true });
+reviewSchema.index({ product: 1, "user.id": 1 }, { unique: true });
 
 // Update product 'rating' and 'numReviews' after review is saved or updated
 async function updateProductRating(productId: Types.ObjectId) {

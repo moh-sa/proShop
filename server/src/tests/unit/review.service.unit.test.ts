@@ -44,7 +44,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 		test("Should return 'ValidationError' if 'review.user' is invalid objectId", async () => {
 			// Arrange
 			const mockInsertReview = generateMockInsertReview({
-				user: "invalid-user-id",
+				user: { id: "invalid-user-id", name: "x" },
 			});
 
 			// Act
@@ -253,7 +253,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 	describe("getAllByUserId", () => {
 		const mockReviews = generateMockSelectReviews({ count: 4 });
-		const userId = mockReviews[0].user;
+		const userId = mockReviews[0].user.id;
 		const mockPaginationMeta = {
 			currentPage: 1,
 			hasNextPage: false,

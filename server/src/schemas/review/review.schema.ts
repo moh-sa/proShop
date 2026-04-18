@@ -6,9 +6,13 @@ import {
 	objectIdValidator,
 } from "../../validators/index.js";
 
+const userFieldsSchema = z.object({
+	id: objectIdStringValidator,
+	name: nonEmptyStringValidator("user name"),
+});
+
 const baseSchema = z.object({
 	comment: nonEmptyStringValidator("comment"),
-	name: nonEmptyStringValidator("name"),
 
 	product: objectIdStringValidator,
 
@@ -17,7 +21,7 @@ const baseSchema = z.object({
 		.positive({ error: "Rating must be a positive number." })
 		.max(5, { error: "Rating must be between 1 and 5." }),
 
-	user: objectIdStringValidator,
+	user: userFieldsSchema,
 });
 
 export const createReviewSchema = baseSchema;
@@ -42,5 +46,7 @@ export const reviewSchema = baseSchema.extend({
 export const reviewModelSchema = reviewSchema.extend({
 	id: objectIdValidator,
 	product: objectIdValidator,
-	user: objectIdValidator,
+	user: userFieldsSchema.extend({
+		id: objectIdValidator,
+	}),
 });

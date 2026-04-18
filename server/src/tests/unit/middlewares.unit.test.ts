@@ -804,7 +804,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 				ReviewService.prototype,
 				"getById",
 				async () => ({
-					data: { user: userId },
+					data: { user: { id: userId, name: "owner" } },
 					success: true,
 				}),
 			);
@@ -832,7 +832,7 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 			});
 
 			t.mock.method(ReviewService.prototype, "getById", async () => ({
-				data: { user: userId },
+				data: { user: { id: userId, name: "owner" } },
 				success: true,
 			}));
 

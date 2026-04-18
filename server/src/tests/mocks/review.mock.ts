@@ -3,15 +3,21 @@ import { faker } from "@faker-js/faker";
 import type { CreateReview, Review } from "../../types/index.js";
 import { generateMockObjectId } from "./objectid.mock.js";
 
+function generateReviewUser(): CreateReview["user"] {
+	return {
+		id: generateMockObjectId(),
+		name: faker.internet.username(),
+	};
+}
+
 export function generateMockInsertReview(
 	options: Partial<CreateReview> = {},
 ): CreateReview {
 	return {
 		comment: faker.lorem.sentence(),
-		name: faker.internet.username(),
 		product: generateMockObjectId(),
 		rating: faker.number.int({ max: 5, min: 1 }),
-		user: generateMockObjectId(),
+		user: generateReviewUser(),
 		...options,
 	};
 }
@@ -36,11 +42,10 @@ export function generateMockSelectReview(
 		id: generateMockObjectId(),
 		comment: faker.lorem.sentence(),
 		createdAt: new Date(),
-		name: faker.internet.username(),
 		product: generateMockObjectId(),
 		rating: faker.number.int({ max: 5, min: 1 }),
 		updatedAt: new Date(),
-		user: generateMockObjectId(),
+		user: generateReviewUser(),
 		...options,
 	};
 }

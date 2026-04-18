@@ -196,7 +196,7 @@ export class ReviewService implements IReviewService {
 			{
 				productId: result.data.product,
 				reviewId: result.data.id,
-				userId: result.data.user,
+				userId: result.data.user.id,
 			},
 			"Review created successfully",
 		);
