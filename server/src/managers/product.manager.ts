@@ -1,4 +1,3 @@
-import { ValidationError } from "../errors/index.js";
 import type {
 	IImageStorageService,
 	IProductService,
@@ -51,13 +50,6 @@ export class ProductManager implements IProductManager {
 		const logger = this._getLogger({ method: "create" });
 		logger.debug({ data }, "Creating product with image");
 
-		if (!data.image) {
-			logger.warn("No image provided for product creation");
-			return {
-				error: new ValidationError("Product image is required"),
-				success: false,
-			};
-		}
 		logger.info("Uploading product image");
 
 		const imageResult = await this._imageStorage.upload({

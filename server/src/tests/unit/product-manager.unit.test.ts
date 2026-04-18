@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test, { beforeEach, describe, suite } from "node:test";
 
-import { ValidationError } from "../../errors/index.js";
 import { ProductManager } from "../../managers/product.manager.js";
 import type { GetAllProductsManagerParams } from "../../types/index.js";
 import {
@@ -54,26 +53,6 @@ suite("Product Manager 〖 Unit Tests 〗", () => {
 				...mockProductWithFile,
 				image: mockImageUrl,
 			});
-		});
-
-		test("should return validation error when no image is provided", async () => {
-			// Arrange
-			const productWithoutImage = {
-				...mockProductWithFile,
-				image: undefined,
-			};
-
-			// Act
-			// @ts-expect-error - test case
-			const result = await manager.create(productWithoutImage);
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof ValidationError);
-			assert.ok(result.error.message.includes("image"));
-
-			assert.strictEqual(mockImageSvc.upload.mock.callCount(), 0);
-			assert.strictEqual(mockProductSvc.create.mock.callCount(), 0);
 		});
 
 		test("should return error when image upload fails", async () => {

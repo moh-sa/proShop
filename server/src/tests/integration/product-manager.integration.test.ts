@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 
-import { ValidationError } from "../../errors/index.js";
 import { ProductManager } from "../../managers/product.manager.js";
 import { ProductModel } from "../../models/product.model.js";
 import { ProductRepository } from "../../repositories/index.js";
@@ -64,26 +63,6 @@ suite("Product Manager 〖 Integration Tests 〗", () => {
 			assert.strictEqual(result.data.numReviews, 0);
 
 			assert.strictEqual(mockImageSvc.upload.mock.callCount(), 1);
-		});
-
-		test("should return validation error when image is missing", async () => {
-			// Arrange
-			const mockProduct = {
-				...generateMockInsertProductWithMulterImage(),
-				image: undefined,
-			};
-
-			// Act
-			// @ts-expect-error - test case
-			const result = await productManager.create(mockProduct);
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof ValidationError);
-
-			const count = await productRepository.count({});
-			assert.strictEqual(count.success, true);
-			assert.strictEqual(count.data, 0);
 		});
 
 		test("should return error when image upload fails", async () => {
