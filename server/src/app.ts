@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import mongoSanitize from "express-mongo-sanitize";
 import helmet from "helmet";
 
 import { env } from "./config/env.js";
@@ -20,6 +21,7 @@ app.use(
 	}),
 );
 app.use(helmet());
+app.use(mongoSanitize({}));
 
 // webhooks - MUST be before request parsing middlewares
 app.use("/api/v1/webhooks/*", express.raw({ type: "application/json" }));
