@@ -1,7 +1,6 @@
-import { isValidObjectId } from "mongoose";
 import { z } from "zod";
 
-import { emptyStringToUndefinedSchema } from "../empty-string-to-undefined.schema.js";
+import { objectIdStringValidator } from "../../validators/object-id.validator.js";
 import {
 	createPaginationSortSchema,
 	paginationParamsSchema,
@@ -11,9 +10,7 @@ import { orderSchema, orderStatusSchema } from "./order.schema.js";
 export const orderPaginationFiltersSchema = z
 	.object({
 		status: orderStatusSchema.optional(),
-		userId: emptyStringToUndefinedSchema.refine((v) => isValidObjectId(v), {
-			message: "Invalid user ID",
-		}),
+		userId: objectIdStringValidator,
 	})
 	.partial();
 
