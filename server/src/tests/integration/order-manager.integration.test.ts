@@ -101,7 +101,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			const checkoutCallArgs =
 				mockPayment.createCheckoutSession.mock.calls[0].arguments[0];
 			const expectedItems = checkoutCallArgs.items.filter(
-				(i) => i.name !== "Shipping",
+				(i) => i.name !== "Shipping" && i.name !== "Tax",
 			);
 
 			assert.strictEqual(expectedItems.length, mockOrder.orderItems.length);
@@ -148,7 +148,7 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 
 			assert.strictEqual(
 				checkoutCallArgs.items.length,
-				mockOrder.orderItems.length + 1, // +1 for shipping line
+				mockOrder.orderItems.length + 2, // +2 for shipping and tax lines
 			);
 
 			const shippingLine = checkoutCallArgs.items.filter(
@@ -188,10 +188,78 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 
 			assert.strictEqual(
 				checkoutCallArgs.items.length,
-				mockOrder.orderItems.length,
+				mockOrder.orderItems.length + 1, // +1 for tax line
 			);
+
 			assert.strictEqual(
 				checkoutCallArgs.items.some((i) => i.name === "Shipping"),
+				false,
+			);
+		});
+
+		test("should include tax as a checkout line item when tax is charged", async () => {
+			// Arrange
+			const taxPrice = 4.25;
+			const mockOrder = generateMockInsertOrder({
+				orderItemsCount: 2,
+				taxPrice,
+			});
+			const mockCheckoutResponse = generateMockCheckoutSessionResponse();
+			mockPayment.createCheckoutSession.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: mockCheckoutResponse,
+					success: true,
+				}),
+			);
+
+			// Act
+			const result = await orderManager.create(mockOrder);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+
+			const checkoutCallArgs =
+				mockPayment.createCheckoutSession.mock.calls[0].arguments[0];
+
+			assert.strictEqual(
+				checkoutCallArgs.items.length,
+				mockOrder.orderItems.length + 2, // +2 for shipping and tax lines
+			);
+
+			const taxLine = checkoutCallArgs.items.filter((i) => i.name === "Tax");
+
+			assert.strictEqual(taxLine[0].name, "Tax");
+			assert.strictEqual(taxLine[0].quantity, 1);
+			assert.strictEqual(taxLine[0].unitAmount, result.data.order.taxPrice);
+		});
+
+		test("should not add tax line item when taxPrice is zero", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({
+				orderItemsCount: 2,
+				taxPrice: 0,
+			});
+			const mockCheckoutResponse = generateMockCheckoutSessionResponse();
+			mockPayment.createCheckoutSession.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: mockCheckoutResponse,
+					success: true,
+				}),
+			);
+
+			// Act
+			await orderManager.create(mockOrder);
+
+			// Assert
+			const checkoutCallArgs =
+				mockPayment.createCheckoutSession.mock.calls[0].arguments[0];
+
+			assert.strictEqual(
+				checkoutCallArgs.items.length,
+				mockOrder.orderItems.length + 1, // +1 for shipping line
+			);
+			assert.strictEqual(
+				checkoutCallArgs.items.some((i) => i.name === "Tax"),
 				false,
 			);
 		});
