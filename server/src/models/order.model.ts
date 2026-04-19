@@ -2,17 +2,22 @@ import mongoose, { model, Schema } from "mongoose";
 
 import type { OrderSchema } from "../types/index.js";
 
-const orderItemsSchema = new Schema({
-	image: { required: true, type: String },
-	name: { required: true, type: String },
-	price: { required: true, type: Number },
-	product: {
-		ref: "Product",
-		required: true,
-		type: mongoose.Schema.Types.ObjectId,
+const orderItemsSchema = new Schema(
+	{
+		image: { required: true, type: String },
+		name: { required: true, type: String },
+		price: { required: true, type: Number },
+		product: {
+			ref: "Product",
+			required: true,
+			type: mongoose.Schema.Types.ObjectId,
+		},
+		qty: { required: true, type: Number },
 	},
-	qty: { required: true, type: Number },
-});
+	{
+		_id: false,
+	},
+);
 
 const orderSchema = new Schema<OrderSchema>(
 	{
