@@ -3,7 +3,6 @@ export * from "./cache/index.js";
 export * from "./common/index.js";
 export * from "./cookie/index.js";
 export * from "./database/index.js";
-export * from "./empty-cart.error.js";
 export * from "./jwt/index.js";
 export * from "./password/index.js";
 export * from "./rate-limit.error.js";
