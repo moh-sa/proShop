@@ -11,7 +11,7 @@ import type {
 } from "../types/index.js";
 import { serializeMongoResult } from "./serialize-mongo-result.util.js";
 
-export interface PaginatorConfig {
+interface PaginatorConfig {
 	defaultPageSize?: number;
 	maxPageSize?: number;
 }
