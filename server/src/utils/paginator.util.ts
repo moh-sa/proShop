@@ -16,7 +16,7 @@ interface PaginatorConfig {
 	maxPageSize?: number;
 }
 
-export type PaginatorParams<TDocument extends Record<string, unknown>> =
+type PaginatorParams<TDocument extends Record<string, unknown>> =
 	PaginationParams & {
 		pipeline?: PaginatorPipeline;
 		query?: PaginatorQuery<TDocument>;
