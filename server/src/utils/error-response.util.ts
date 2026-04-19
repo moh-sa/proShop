@@ -2,7 +2,7 @@ import type { Response } from "express";
 
 import type { ErrorResponse, HttpStatus } from "../types/index.js";
 
-export function createErrorResponseObject({
+function createErrorResponseObject({
 	code,
 	errors,
 }: Omit<ErrorResponse, "success" | "timestamp">): ErrorResponse {
