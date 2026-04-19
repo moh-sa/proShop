@@ -67,7 +67,7 @@ export const allOrdersResponseSchema = orderSchema.pick({
 	user: true,
 });
 
-export const markAsBaseParamsSchema = z.object({
+const markAsBaseParamsSchema = z.object({
 	orderId: objectIdStringValidator,
 });
 
