@@ -3,7 +3,6 @@ import type { z } from "zod";
 import type {
 	allOrdersResponseSchema,
 	createOrderSchema,
-	markAsBaseParamsSchema,
 	markAsCancelledParamsSchema,
 	markAsProcessingParamsSchema,
 	orderModelSchema,
@@ -60,8 +59,6 @@ export type GetAllOrdersServiceParams = PaginationParamsStringified & {
 	filters?: Stringify<OrderFilter>;
 	sort?: string;
 };
-
-export type MarkAsBaseParams = z.infer<typeof markAsBaseParamsSchema>;
 
 export type MarkAsCancelledParams = z.infer<typeof markAsCancelledParamsSchema>;
 
