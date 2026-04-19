@@ -9,7 +9,6 @@ import type {
 	MethodParams,
 	MethodReturn,
 	Order,
-	OrderItem,
 	PaginatedResponse,
 	Result,
 	VerifyWebhookParams,
@@ -91,7 +90,7 @@ export class OrderManager implements IOrderManager {
 		);
 
 		// Transform order items to checkout line items
-		const lineItems = this._transformToLineItems(orderResult.data.orderItems);
+		const lineItems = this._buildCheckoutLineItems(orderResult.data);
 		logger.debug(
 			{ lineItems },
 			"Transformed order items to checkout line items",
@@ -241,14 +240,16 @@ export class OrderManager implements IOrderManager {
 	}
 
 	/**
-	 * Transforms order items to Stripe checkout line items format
+	 * Builds checkout line items from order items
 	 */
-	private _transformToLineItems(orderItems: Array<OrderItem>): Array<LineItem> {
-		return orderItems.map((item) => ({
+	private _buildCheckoutLineItems(order: Order): Array<LineItem> {
+		const items: Array<LineItem> = order.orderItems.map((item) => ({
 			name: item.name,
 			quantity: item.qty,
 			unitAmount: item.price,
 		}));
+
+		return items;
 	}
 }
 
