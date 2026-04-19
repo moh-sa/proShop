@@ -58,7 +58,7 @@ export function generateMockSelectProduct(): Product {
 		numReviews: 0,
 		rating: 0,
 		updatedAt: new Date(),
-		user: generateMockObjectId(),
+		userId: generateMockObjectId(),
 	};
 }
 
@@ -85,6 +85,6 @@ function generateMockInsertProduct(): Omit<CreateProductUploadInput, "image"> {
 	const mockProduct = baseMockProduct();
 	return {
 		...mockProduct,
-		user: generateMockObjectId(),
+		userId: generateMockObjectId(),
 	};
 }

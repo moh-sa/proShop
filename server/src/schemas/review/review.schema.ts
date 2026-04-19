@@ -14,7 +14,7 @@ const userFieldsSchema = z.object({
 const baseSchema = z.object({
 	comment: nonEmptyStringValidator("comment"),
 
-	product: objectIdStringValidator,
+	productId: objectIdStringValidator,
 
 	rating: z.coerce
 		.number()
@@ -45,7 +45,7 @@ export const reviewSchema = baseSchema.extend({
 
 export const reviewModelSchema = reviewSchema.extend({
 	id: objectIdValidator,
-	product: objectIdValidator,
+	productId: objectIdValidator,
 	user: userFieldsSchema.extend({
 		id: objectIdValidator,
 	}),

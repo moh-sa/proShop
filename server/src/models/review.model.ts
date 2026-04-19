@@ -25,7 +25,7 @@ const reviewSchema = new Schema<ReviewSchema>(
 			required: true,
 			type: String,
 		},
-		product: {
+		productId: {
 			ref: "Product",
 			required: true,
 			type: Schema.Types.ObjectId,
@@ -45,17 +45,17 @@ const reviewSchema = new Schema<ReviewSchema>(
 
 // Indexes
 // Compound index to ensure ONE review per user per product
-reviewSchema.index({ product: 1, "user.id": 1 }, { unique: true });
-reviewSchema.index({ product: 1, rating: -1 });
-reviewSchema.index({ product: 1, createdAt: -1 });
+reviewSchema.index({ productId: 1, "user.id": 1 }, { unique: true });
+reviewSchema.index({ productId: 1, rating: -1 });
+reviewSchema.index({ productId: 1, createdAt: -1 });
 
 // Update product 'rating' and 'numReviews' after review is saved or updated
 async function updateProductRating(productId: Types.ObjectId) {
 	const newStats = await ReviewModel.aggregate([
-		{ $match: { product: productId } },
+		{ $match: { productId } },
 		{
 			$group: {
-				_id: "$product",
+				_id: "$productId",
 				numReviews: { $sum: 1 },
 				rating: { $avg: "$rating" },
 			},
@@ -73,14 +73,14 @@ async function updateProductRating(productId: Types.ObjectId) {
 }
 
 reviewSchema.post("save", async function () {
-	await updateProductRating(this.product);
+	await updateProductRating(this.productId);
 });
 
 reviewSchema.post(
 	["findOneAndUpdate", "findOneAndDelete"],
 	async function (doc) {
 		if (doc) {
-			await updateProductRating(doc.product);
+			await updateProductRating(doc.productId);
 		}
 	},
 );

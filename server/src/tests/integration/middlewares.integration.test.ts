@@ -60,12 +60,12 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 			const product = await createProduct({
 				...generateMockInsertProductWithStringImage(),
-				user: user.id,
+				userId: user.id,
 			});
 
 			await createReview(
 				generateMockInsertReview({
-					product: product.id,
+					productId: product.id,
 					user: { id: user.id, name: user.name },
 				}),
 			);
@@ -89,7 +89,7 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 
 			const product = await createProduct({
 				...generateMockInsertProductWithStringImage(),
-				user: user.id,
+				userId: user.id,
 			});
 
 			res.locals.user = user;

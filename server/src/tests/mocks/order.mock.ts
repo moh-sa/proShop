@@ -49,7 +49,7 @@ function generateMockOrderItem(
 		image: options.image ?? mockProduct.image,
 		name: options.name ?? mockProduct.name,
 		price: options.price ?? mockProduct.price,
-		product: options.product ?? mockProduct.id,
+		productId: options.productId ?? mockProduct.id,
 		qty:
 			options.qty ??
 			faker.number.int({

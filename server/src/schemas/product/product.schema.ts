@@ -24,7 +24,7 @@ const baseSchema = z.object({
 
 	price: z.coerce.number().min(0, { error: "Price is required." }),
 
-	user: objectIdStringValidator,
+	userId: objectIdStringValidator,
 });
 
 export const createProductUploadSchema = baseSchema.extend({
@@ -35,18 +35,18 @@ export const createProductSchema = baseSchema.extend({
 	[IMAGE_FIELD_NAME]: selectImageSchema,
 });
 
-export const createProductBodySchema = baseSchema.omit({ user: true });
+export const createProductBodySchema = baseSchema.omit({ userId: true });
 
 export const updateProductBodySchema = baseSchema
-	.omit({ user: true })
+	.omit({ userId: true })
 	.partial();
 
 export const updateProductUploadSchema = createProductUploadSchema
-	.omit({ user: true })
+	.omit({ userId: true })
 	.partial();
 
 export const updateProductSchema = createProductSchema
-	.omit({ user: true })
+	.omit({ userId: true })
 	.partial();
 
 export const productSchema = baseSchema.extend({
@@ -67,5 +67,5 @@ export const productSchema = baseSchema.extend({
 
 export const productModelSchema = productSchema.extend({
 	id: objectIdValidator,
-	user: objectIdValidator,
+	userId: objectIdValidator,
 });

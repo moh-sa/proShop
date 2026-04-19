@@ -63,7 +63,7 @@ export class ProductController implements IProductController {
 			...req.body,
 			image: req.file!,
 			price: this._toCents(req.body.price),
-			user: res.locals.user.id,
+			userId: res.locals.user.id,
 		};
 
 		logger.debug({ data: dataToCreate }, "Creating product");

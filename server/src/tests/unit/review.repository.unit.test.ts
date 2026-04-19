@@ -205,11 +205,11 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const paginateArgs = mockPaginate.mock.calls[0].arguments[0];
 			assert.ok(paginateArgs);
 			assert.ok(paginateArgs.query);
-			assert.ok(paginateArgs.query.product instanceof mongoose.Types.ObjectId);
+			assert.ok(paginateArgs.query.productId instanceof mongoose.Types.ObjectId);
 			assert.ok(
 				paginateArgs.query["user.id"] instanceof mongoose.Types.ObjectId,
 			);
-			assert.strictEqual(paginateArgs.query.product.toString(), productId);
+			assert.strictEqual(paginateArgs.query.productId.toString(), productId);
 			assert.strictEqual(paginateArgs.query["user.id"].toString(), userId);
 		});
 
@@ -565,7 +565,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const firstCall = paginateMock.mock.calls[0]?.arguments[0];
 			assert.ok(firstCall);
 			assert.deepStrictEqual(firstCall.query, {
-				product: new Types.ObjectId(productId),
+				productId: new Types.ObjectId(productId),
 				"user.id": new Types.ObjectId(userId),
 			});
 		});
@@ -707,7 +707,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 	describe("getAllByProductId", () => {
 		const mockReviews = generateMockSelectReviews({ count: 5 });
-		const productId = mockReviews[0].product;
+		const productId = mockReviews[0].productId;
 		const mockPaginationMeta = {
 			currentPage: 1,
 			hasNextPage: false,
@@ -757,7 +757,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 				pageSize,
 			);
 			assert.deepStrictEqual(paginateMock.mock.calls[0].arguments[0].query, {
-				product: new Types.ObjectId(productId),
+				productId: new Types.ObjectId(productId),
 			});
 		});
 
@@ -783,7 +783,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const mergeCall = paginateMock.mock.calls[0]?.arguments[0];
 			assert.ok(mergeCall);
 			assert.deepStrictEqual(mergeCall.query, {
-				product: new Types.ObjectId(productId),
+				productId: new Types.ObjectId(productId),
 				"user.id": new Types.ObjectId(userId),
 			});
 		});
@@ -1466,7 +1466,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(countDocumentsMock.mock.callCount(), 1);
 			assert.deepStrictEqual(countDocumentsMock.mock.calls[0].arguments[0], {
-				product: productId,
+				productId,
 			});
 		});
 
@@ -1713,7 +1713,7 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(existsMock.mock.callCount(), 1);
 			assert.deepStrictEqual(existsMock.mock.calls[0].arguments[0], {
-				product: productId,
+				productId,
 				"user.id": userId,
 			});
 		});

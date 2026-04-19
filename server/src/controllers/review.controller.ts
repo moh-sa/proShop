@@ -174,7 +174,7 @@ export class ReviewController implements IReviewController {
 
 		logger.info(
 			{
-				productId: newReview.data.product,
+				productId: newReview.data.productId,
 				reviewId: newReview.data.id,
 				userId: res.locals.user.id,
 			},
@@ -427,7 +427,7 @@ export class ReviewController implements IReviewController {
 
 		logger.info(
 			{
-				productId: updatedReview.data.product,
+				productId: updatedReview.data.productId,
 				reviewId: updatedReview.data.id,
 				updateData: req.body,
 			},

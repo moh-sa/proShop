@@ -28,7 +28,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 		const mockInsertProduct = generateMockInsertProductWithMulterImage();
 		const mockSelectProduct = generateMockSelectProduct();
 
-		const userId = mockInsertProduct.user;
+		const userId = mockInsertProduct.userId;
 		const priceInCents = toCents(mockInsertProduct.price);
 		const priceInDollars = mockInsertProduct.price;
 
@@ -127,7 +127,7 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(args.brand, mockInsertProduct.brand);
 			assert.strictEqual(args.countInStock, mockInsertProduct.countInStock);
 			assert.strictEqual(args.image, mockInsertProduct.image);
-			assert.strictEqual(args.user, userId);
+			assert.strictEqual(args.userId, userId);
 		});
 
 		test("Should call 'res.status' once with '201' after successfully creating product data", async (t) => {

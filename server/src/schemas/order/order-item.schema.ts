@@ -6,7 +6,7 @@ import { productSchema } from "../product/product.schema.js";
 const baseOrderItemSchema = productSchema
 	.pick({ image: true, name: true, price: true })
 	.extend({
-		product: objectIdStringValidator,
+		productId: objectIdStringValidator,
 		qty: z.number().int().min(1),
 	});
 

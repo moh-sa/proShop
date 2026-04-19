@@ -55,10 +55,10 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should return 'ValidationError' if 'review.product' is invalid objectId", async () => {
+		test("Should return 'ValidationError' if 'review.productId' is invalid objectId", async () => {
 			// Arrange
 			const mockInsertReview = generateMockInsertReview({
-				product: "invalid-product-id",
+				productId: "invalid-product-id",
 			});
 
 			// Act
@@ -378,7 +378,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 	describe("getAllByProductId", () => {
 		const mockReviews = generateMockSelectReviews({ count: 5 });
-		const productId = mockReviews[0].product;
+		const productId = mockReviews[0].productId;
 		const mockPaginationMeta = {
 			currentPage: 1,
 			hasNextPage: false,

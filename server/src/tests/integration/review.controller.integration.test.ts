@@ -91,7 +91,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.success, true);
 			assert.ok(response.data);
 			assert.ok(response.data.id);
-			assert.strictEqual(response.data.product, mockReview.product);
+			assert.strictEqual(response.data.productId, mockReview.productId);
 			assert.strictEqual(response.data.user.id, mockReview.user.id);
 			assert.strictEqual(response.data.user.name, mockReview.user.name);
 			assert.strictEqual(response.data.rating, mockReview.rating);
@@ -151,7 +151,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const response = res._getJSONData();
 			assert.strictEqual(response.success, true);
 			assert.ok(response.data);
-			assert.strictEqual(response.data.product, createdReview.product);
+			assert.strictEqual(response.data.productId, createdReview.productId);
 			assert.strictEqual(response.data.user.id, createdReview.user.id);
 			assert.strictEqual(response.data.user.name, createdReview.user.name);
 			assert.strictEqual(response.data.rating, createdReview.rating);
@@ -317,7 +317,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			await createReviews([
 				...generateMockInsertReviews({
 					count: 2,
-					options: { product: productId },
+					options: { productId },
 				}),
 				...generateMockInsertReviews({
 					count: 3,
@@ -338,7 +338,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.meta.totalItems, 2);
 			assert.strictEqual(response.data.length, 2);
 			assert.strictEqual(
-				response.data.every((review: Review) => review.product === productId),
+				response.data.every((review: Review) => review.productId === productId),
 				true,
 			);
 		});
@@ -493,7 +493,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 					options: { user: { id: userId, name: "test-user" } },
 				}),
 			);
-			const productId = createdReviews[0].product;
+			const productId = createdReviews[0].productId;
 
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.getAllByUserId,
@@ -509,7 +509,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.success, true);
 			assert.strictEqual(response.meta.totalItems, 1);
 			assert.strictEqual(response.data.length, 1);
-			assert.strictEqual(response.data[0].product, productId);
+			assert.strictEqual(response.data[0].productId, productId);
 		});
 	});
 
@@ -523,7 +523,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.getAllByProductId,
 			);
-			req.params = { productId: createdReviews[0].product };
+			req.params = { productId: createdReviews[0].productId };
 
 			// Act
 			await controller.getAllByProductId(req, res, next);
@@ -542,7 +542,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.getAllByProductId,
 			);
-			req.params = { productId: createdReviews[0].product };
+			req.params = { productId: createdReviews[0].productId };
 
 			// Act
 			await controller.getAllByProductId(req, res, next);
@@ -557,7 +557,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const productId = generateMockObjectId();
 			const targetReviews = generateMockInsertReviews({
 				count: 3,
-				options: { product: productId },
+				options: { productId },
 			});
 
 			await createReviews([
@@ -585,7 +585,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(response.meta.totalPages, 1);
 
 			assert.strictEqual(
-				response.data.every((review: Review) => review.product === productId),
+				response.data.every((review: Review) => review.productId === productId),
 				true,
 			);
 		});
@@ -623,7 +623,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const createdReviews = await createReviews(
 				generateMockInsertReviews({
 					count: 7,
-					options: { product: productId },
+					options: { productId },
 				}),
 			);
 
@@ -658,7 +658,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const createdReviews = await createReviews(
 				generateMockInsertReviews({
 					count: 2,
-					options: { product: productId },
+					options: { productId },
 				}),
 			);
 			const userId = createdReviews[0].user.id;
@@ -1062,7 +1062,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.countByProductId,
 			);
-			req.params = { productId: createdReviews[0].product };
+			req.params = { productId: createdReviews[0].productId };
 
 			// Act
 			await controller.countByProductId(req, res, next);
@@ -1082,7 +1082,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.countByProductId,
 			);
-			req.params = { productId: createdReviews[0].product };
+			req.params = { productId: createdReviews[0].productId };
 
 			// Act
 			await controller.countByProductId(req, res, next);
@@ -1101,7 +1101,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.countByProductId,
 			);
-			req.params = { productId: createdReviews[0].product };
+			req.params = { productId: createdReviews[0].productId };
 
 			// Act
 			await controller.countByProductId(req, res, next);
@@ -1117,7 +1117,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			const productId = generateMockObjectId();
 			const targetReviews = generateMockInsertReviews({
 				count: 4,
-				options: { product: productId },
+				options: { productId },
 			});
 
 			await createReviews([
@@ -1247,7 +1247,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				controller.existsByUserIdAndProductId,
 			);
 			req.params = {
-				productId: createdReview.product,
+				productId: createdReview.productId,
 				userId: createdReview.user.id,
 			};
 
@@ -1268,7 +1268,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				controller.existsByUserIdAndProductId,
 			);
 			req.params = {
-				productId: createdReview.product,
+				productId: createdReview.productId,
 				userId: createdReview.user.id,
 			};
 
@@ -1291,7 +1291,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				controller.existsByUserIdAndProductId,
 			);
 			req.params = {
-				productId: targetReview.product,
+				productId: targetReview.productId,
 				userId: targetReview.user.id,
 			};
 

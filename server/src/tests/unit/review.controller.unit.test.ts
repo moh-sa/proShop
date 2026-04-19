@@ -461,7 +461,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 
 	describe("getAllByProductId", () => {
 		const mockReviews = generateMockSelectReviews({ count: 2 });
-		const productId = mockReviews[0].product;
+		const productId = mockReviews[0].productId;
 		const mockPaginationMeta = {
 			currentPage: 1,
 			hasNextPage: false,

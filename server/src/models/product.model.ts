@@ -44,7 +44,7 @@ const productSchema = new Schema<ProductSchema>(
 			required: true,
 			type: Number,
 		},
-		user: {
+		userId: {
 			ref: "User",
 			required: true,
 			type: mongoose.Schema.Types.ObjectId,

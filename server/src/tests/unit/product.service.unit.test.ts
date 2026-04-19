@@ -63,13 +63,13 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should return validation error if 'product.user' is invalid objectId", async () => {
+		test("Should return validation error if 'product.userId' is invalid objectId", async () => {
 			// Arrange
 			const mockProductWithFile = generateMockInsertProductWithMulterImage();
 			const invalidProduct = {
 				...mockProductWithFile,
 				image: "https://example.com/image.jpg", // Use string URL
-				user: "invalid-user-id",
+				userId: "invalid-user-id",
 			};
 
 			// Act

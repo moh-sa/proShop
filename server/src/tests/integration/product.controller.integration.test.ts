@@ -128,7 +128,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			assert.ok(response.success);
 			assert.ok(response.data);
 			assert.ok(response.data.id);
-			assert.strictEqual(response.data.user, mockUser.id);
+			assert.strictEqual(response.data.userId, mockUser.id);
 			assert.strictEqual(response.data.name, mockProduct.name);
 			assert.strictEqual(response.data.brand, mockProduct.brand);
 			assert.strictEqual(response.data.category, mockProduct.category);

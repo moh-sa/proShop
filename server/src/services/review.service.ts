@@ -194,7 +194,7 @@ export class ReviewService implements IReviewService {
 
 		logger.info(
 			{
-				productId: result.data.product,
+				productId: result.data.productId,
 				reviewId: result.data.id,
 				userId: result.data.user.id,
 			},

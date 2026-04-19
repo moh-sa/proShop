@@ -84,7 +84,7 @@ export class ReviewRepository implements IReviewRepository {
 	> {
 		try {
 			const result = await this._db
-				.countDocuments({ product: productId })
+				.countDocuments({ productId })
 				.lean();
 
 			return {
@@ -181,7 +181,7 @@ export class ReviewRepository implements IReviewRepository {
 		try {
 			const result = await this._db
 				.exists({
-					product: productId,
+					productId,
 					"user.id": userId,
 				})
 				.lean();
@@ -225,7 +225,7 @@ export class ReviewRepository implements IReviewRepository {
 				pageSize: args.pageSize,
 				query: {
 					...(args.filters && this._prepareFilters(args.filters)),
-					product: new Types.ObjectId(args.productId),
+					productId: new Types.ObjectId(args.productId),
 				},
 				select: args.select,
 				sort: args.sort,
@@ -320,7 +320,7 @@ export class ReviewRepository implements IReviewRepository {
 		const newFilter: Partial<PaginationQuery<ReviewSchema>> = {};
 
 		if (filters.productId) {
-			newFilter.product = new Types.ObjectId(filters.productId);
+			newFilter.productId = new Types.ObjectId(filters.productId);
 		}
 
 		if (filters.userId) {

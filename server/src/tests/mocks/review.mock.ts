@@ -15,7 +15,7 @@ export function generateMockInsertReview(
 ): CreateReview {
 	return {
 		comment: faker.lorem.sentence(),
-		product: generateMockObjectId(),
+		productId: generateMockObjectId(),
 		rating: faker.number.int({ max: 5, min: 1 }),
 		user: generateReviewUser(),
 		...options,
@@ -42,7 +42,7 @@ export function generateMockSelectReview(
 		id: generateMockObjectId(),
 		comment: faker.lorem.sentence(),
 		createdAt: new Date(),
-		product: generateMockObjectId(),
+		productId: generateMockObjectId(),
 		rating: faker.number.int({ max: 5, min: 1 }),
 		updatedAt: new Date(),
 		user: generateReviewUser(),
