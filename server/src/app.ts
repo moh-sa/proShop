@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import helmet from "helmet";
 
 import { env } from "./config/env.js";
 import { addLoggerToContext } from "./middlewares/add-logger-to-context.middleware.js";
@@ -18,6 +19,7 @@ app.use(
 		origin: [env.CLIENT_URL],
 	}),
 );
+app.use(helmet());
 
 // webhooks - MUST be before request parsing middlewares
 app.use("/api/v1/webhooks/*", express.raw({ type: "application/json" }));
