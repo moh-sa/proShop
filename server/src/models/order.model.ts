@@ -2,6 +2,18 @@ import mongoose, { model, Schema } from "mongoose";
 
 import type { OrderSchema } from "../types/index.js";
 
+const orderItemsSchema = new Schema({
+	image: { required: true, type: String },
+	name: { required: true, type: String },
+	price: { required: true, type: Number },
+	product: {
+		ref: "Product",
+		required: true,
+		type: mongoose.Schema.Types.ObjectId,
+	},
+	qty: { required: true, type: Number },
+});
+
 const orderSchema = new Schema<OrderSchema>(
 	{
 		deliveredAt: {
@@ -12,19 +24,7 @@ const orderSchema = new Schema<OrderSchema>(
 			required: true,
 			type: Number,
 		},
-		orderItems: [
-			{
-				image: { required: true, type: String },
-				name: { required: true, type: String },
-				price: { required: true, type: Number },
-				product: {
-					ref: "Product",
-					required: true,
-					type: mongoose.Schema.Types.ObjectId,
-				},
-				qty: { required: true, type: Number },
-			},
-		],
+		orderItems: [orderItemsSchema],
 		payment: {
 			id: { type: String },
 			paidAt: { type: Date },
