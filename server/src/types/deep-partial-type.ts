@@ -1,9 +1,10 @@
 // credit: https://www.totaltypescript.com/tips/use-deep-partials-to-help-with-mocking-an-entity
-export type DeepPartialArray<Thing> = Array<DeepPartial<Thing>>;
 
 export type DeepPartialObject<Thing> = {
 	[Key in keyof Thing]?: DeepPartial<Thing[Key]>;
 };
+
+type DeepPartialArray<Thing> = Array<DeepPartial<Thing>>;
 
 type DeepPartial<Thing> = Thing extends (...args: Array<unknown>) => unknown
 	? Thing
