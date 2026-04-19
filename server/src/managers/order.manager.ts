@@ -240,7 +240,7 @@ export class OrderManager implements IOrderManager {
 	}
 
 	/**
-	 * Builds checkout line items from order items
+	 * Builds checkout line items from order items and add shipping line
 	 */
 	private _buildCheckoutLineItems(order: Order): Array<LineItem> {
 		const items: Array<LineItem> = order.orderItems.map((item) => ({
@@ -248,6 +248,14 @@ export class OrderManager implements IOrderManager {
 			quantity: item.qty,
 			unitAmount: item.price,
 		}));
+
+		if (order.shippingPrice > 0) {
+			items.push({
+				name: "Shipping",
+				quantity: 1,
+				unitAmount: order.shippingPrice,
+			});
+		}
 
 		return items;
 	}

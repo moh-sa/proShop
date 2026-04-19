@@ -85,7 +85,91 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 			// const mockUser = await UserModel.create(generateMockInsertUser());
 			const mockOrder = generateMockInsertOrder({
 				orderItemsCount: 3,
-				// user: mockUser,
+			});
+			const mockCheckoutResponse = generateMockCheckoutSessionResponse();
+			mockPayment.createCheckoutSession.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: mockCheckoutResponse,
+					success: true,
+				}),
+			);
+
+			// Act
+			await orderManager.create(mockOrder);
+
+			// Assert
+			const checkoutCallArgs =
+				mockPayment.createCheckoutSession.mock.calls[0].arguments[0];
+			const expectedItems = checkoutCallArgs.items.filter(
+				(i) => i.name !== "Shipping",
+			);
+
+			assert.strictEqual(expectedItems.length, mockOrder.orderItems.length);
+
+			// Verify each line item has correct structure and values
+			mockOrder.orderItems.forEach((item, index) => {
+				const lineItem = expectedItems[index];
+
+				assert.strictEqual(lineItem.name, item.name);
+				assert.strictEqual(lineItem.quantity, item.qty);
+				assert.strictEqual(lineItem.unitAmount, item.price);
+			});
+
+			// Verify other checkout params
+			assert.strictEqual(checkoutCallArgs.currency, "usd");
+			assert.strictEqual(typeof checkoutCallArgs.orderId, "string");
+			assert.strictEqual(typeof checkoutCallArgs.successUrl, "string");
+			assert.strictEqual(typeof checkoutCallArgs.cancelUrl, "string");
+		});
+
+		test("should include shipping as a checkout line item when shipping is charged", async () => {
+			// Arrange
+			const shippingPrice = 5.99;
+			const mockOrder = generateMockInsertOrder({
+				orderItemsCount: 2,
+				shippingPrice,
+			});
+			const mockCheckoutResponse = generateMockCheckoutSessionResponse();
+			mockPayment.createCheckoutSession.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: mockCheckoutResponse,
+					success: true,
+				}),
+			);
+
+			// Act
+			const result = await orderManager.create(mockOrder);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+
+			const checkoutCallArgs =
+				mockPayment.createCheckoutSession.mock.calls[0].arguments[0];
+
+			assert.strictEqual(
+				checkoutCallArgs.items.length,
+				mockOrder.orderItems.length + 1, // +1 for shipping line
+			);
+
+			const shippingLine = checkoutCallArgs.items.filter(
+				(i) => i.name === "Shipping",
+			);
+
+			assert.strictEqual(shippingLine.length, 1);
+
+			assert.strictEqual(shippingLine[0].name, "Shipping");
+			assert.strictEqual(shippingLine[0].quantity, 1);
+			assert.strictEqual(
+				shippingLine[0].unitAmount,
+				result.data.order.shippingPrice,
+			);
+		});
+
+		test("should not add shipping line item when shippingPrice is zero", async () => {
+			// Arrange
+			const mockOrder = generateMockInsertOrder({
+				orderItemsCount: 2,
+				shippingPrice: 0,
 			});
 			const mockCheckoutResponse = generateMockCheckoutSessionResponse();
 			mockPayment.createCheckoutSession.mock.mockImplementationOnce(() =>
@@ -106,21 +190,10 @@ suite("Order Manager 〖 Integration Tests 〗", () => {
 				checkoutCallArgs.items.length,
 				mockOrder.orderItems.length,
 			);
-
-			// Verify each line item has correct structure and values
-			mockOrder.orderItems.forEach((item, index) => {
-				const lineItem = checkoutCallArgs.items[index];
-
-				assert.strictEqual(lineItem.name, item.name);
-				assert.strictEqual(lineItem.quantity, item.qty);
-				assert.strictEqual(lineItem.unitAmount, item.price);
-			});
-
-			// Verify other checkout params
-			assert.strictEqual(checkoutCallArgs.currency, "usd");
-			assert.strictEqual(typeof checkoutCallArgs.orderId, "string");
-			assert.strictEqual(typeof checkoutCallArgs.successUrl, "string");
-			assert.strictEqual(typeof checkoutCallArgs.cancelUrl, "string");
+			assert.strictEqual(
+				checkoutCallArgs.items.some((i) => i.name === "Shipping"),
+				false,
+			);
 		});
 
 		test("Should store the checkout session id and sessionURL in the order", async () => {

@@ -193,21 +193,110 @@ suite("Order Manager 〖 Unit Tests 〗", () => {
 			const checkoutCallArgs =
 				mockPaymentSvc.createCheckoutSession.mock.calls[0].arguments[0];
 
+			const expectedItems = checkoutCallArgs.items.filter(
+				(i) => i.name !== "Shipping",
+			);
+
 			// Verify line items transformation
 			assert.strictEqual(
-				checkoutCallArgs.items.length,
+				expectedItems.length,
 				orderWithItems.orderItems.length,
 			);
 
 			// Verify each line item has correct structure
 			for (let i = 0; i < orderWithItems.orderItems.length; i++) {
 				const orderItem = orderWithItems.orderItems[i];
-				const lineItem = checkoutCallArgs.items[i];
+				const lineItem = expectedItems[i];
 
 				assert.strictEqual(lineItem.name, orderItem.name);
 				assert.strictEqual(lineItem.quantity, orderItem.qty);
 				assert.strictEqual(lineItem.unitAmount, orderItem.price);
 			}
+		});
+
+		test("should include shipping as a checkout line item when shipping is charged", async () => {
+			// Arrange
+			const shippingPrice = 5.99;
+			const orderWithShipping = generateMockSelectOrder({
+				orderItemsCount: 2,
+				shippingPrice,
+			});
+
+			mockOrderSvc.create.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: orderWithShipping, success: true }),
+			);
+			mockPaymentSvc.createCheckoutSession.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { id: mockCheckoutSessionId, url: mockCheckoutUrl },
+					success: true,
+				}),
+			);
+			mockOrderSvc.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: orderWithShipping, success: true }),
+			);
+
+			// Act
+			const result = await manager.create(mockInsertOrder);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+
+			const checkoutCallArgs =
+				mockPaymentSvc.createCheckoutSession.mock.calls[0].arguments[0];
+
+			assert.strictEqual(
+				checkoutCallArgs.items.length,
+				orderWithShipping.orderItems.length + 1, // +1 for shipping line
+			);
+
+			const shippingLine = checkoutCallArgs.items.filter(
+				(i) => i.name === "Shipping",
+			);
+
+			assert.strictEqual(shippingLine.length, 1);
+			assert.strictEqual(shippingLine[0].name, "Shipping");
+			assert.strictEqual(shippingLine[0].quantity, 1);
+			assert.strictEqual(
+				shippingLine[0].unitAmount,
+				result.data.order.shippingPrice,
+			);
+		});
+
+		test("should not add shipping line item when shippingPrice is zero", async () => {
+			// Arrange
+			const orderFreeShipping = generateMockSelectOrder({
+				orderItemsCount: 2,
+				shippingPrice: 0,
+			});
+
+			mockOrderSvc.create.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: orderFreeShipping, success: true }),
+			);
+			mockPaymentSvc.createCheckoutSession.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: { id: mockCheckoutSessionId, url: mockCheckoutUrl },
+					success: true,
+				}),
+			);
+			mockOrderSvc.updatePayment.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: orderFreeShipping, success: true }),
+			);
+
+			// Act
+			await manager.create(mockInsertOrder);
+
+			// Assert
+			const checkoutCallArgs =
+				mockPaymentSvc.createCheckoutSession.mock.calls[0].arguments[0];
+
+			assert.strictEqual(
+				checkoutCallArgs.items.length,
+				orderFreeShipping.orderItems.length,
+			);
+			assert.strictEqual(
+				checkoutCallArgs.items.some((i) => i.name === "Shipping"),
+				false,
+			);
 		});
 	});
 
