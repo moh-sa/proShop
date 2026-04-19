@@ -8,7 +8,6 @@ export * from "./get-currency-factor.util.js";
 export * from "./handle-database-error.util.js";
 export * from "./logger.util.js";
 export * from "./paginator.util.js";
-export * from "./remove-object-fields.js";
 export * from "./serialize-mongo-result.util.js";
 export * from "./success-response.util.js";
 export * from "./validate-file-type.util.js";
