@@ -1,6 +1,5 @@
 import type { z } from "zod";
 
-import type { UserModel } from "../models/user.model.js";
 import type {
 	createUserSchema,
 	updateUserBodySchema,
@@ -22,7 +21,6 @@ export type CreateUser = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type UpdateUserBodyInput = z.infer<typeof updateUserBodySchema>;
 export type User = z.infer<typeof userSchema>;
-export type UserDocument = ReturnType<(typeof UserModel)["hydrate"]>;
 export type UserSchema = z.infer<typeof userModelSchema>;
 
 // SAFE/UNSAFE user types
