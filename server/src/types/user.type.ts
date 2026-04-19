@@ -47,6 +47,7 @@ export type GetAllUsersControllerParams = PaginationParamsStringified & {
 export type GetAllUsersRepositoryParams = z.infer<
 	typeof userPaginationParamsSchema
 > & {
+	filters?: UserFilter;
 	select?: UserSelect;
 	sort?: UserSort;
 };
