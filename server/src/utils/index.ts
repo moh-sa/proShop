@@ -6,7 +6,6 @@ export * from "./format-zod-errors.util.js";
 export * from "./frontend-url-builder.util.js";
 export * from "./get-currency-factor.util.js";
 export * from "./handle-database-error.util.js";
-export * from "./jwt-generate-token.util.js";
 export * from "./logger.util.js";
 export * from "./paginator.util.js";
 export * from "./remove-object-fields.js";
