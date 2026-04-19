@@ -1,24 +1,14 @@
-import { isValidObjectId } from "mongoose";
 import z from "zod";
 
+import { objectIdStringValidator } from "../../validators/object-id.validator.js";
 import { paginationParamsSchema } from "../pagination/pagination.schema.js";
 import { createPaginationSortSchema } from "../pagination/sort.schema.js";
 import { reviewSchema } from "./review.schema.js";
 
 // Filters
 const baseFiltersSchema = z.object({
-	productId: z
-		.string()
-		.trim()
-		.refine((v) => isValidObjectId(v), {
-			message: "Invalid product ID",
-		}),
-	userId: z
-		.string()
-		.trim()
-		.refine((v) => isValidObjectId(v), {
-			message: "Invalid user ID",
-		}),
+	productId: objectIdStringValidator,
+	userId: objectIdStringValidator,
 });
 
 export const reviewPaginationFiltersSchema = baseFiltersSchema.partial();
