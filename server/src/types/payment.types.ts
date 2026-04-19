@@ -18,8 +18,6 @@ export interface CreateCheckoutSessionResponse {
 
 export type LineItem = z.infer<typeof createCheckoutSessionItemSchema>;
 
-export type LineItems = Array<LineItem>;
-
 export type PaymentProvider = z.infer<typeof paymentProviderSchema>;
 
 export interface VerifyWebhookParams {
