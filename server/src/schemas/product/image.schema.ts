@@ -9,11 +9,11 @@ export const insertImageSchema = z.object({
 		error: "Invalid buffer",
 	}),
 
-	encoding: nonEmptyStringValidator("encoding"),
+	encoding: nonEmptyStringValidator,
 
-	fieldname: nonEmptyStringValidator("fieldname"),
+	fieldname: nonEmptyStringValidator,
 
-	mimetype: nonEmptyStringValidator("mimetype").refine(
+	mimetype: nonEmptyStringValidator.refine(
 		(val) => IMAGE_TYPE_LIMIT.includes(val),
 		{
 			error: `Invalid image type. Allowed types: ${IMAGE_TYPE_LIMIT.map((val) =>
@@ -22,7 +22,7 @@ export const insertImageSchema = z.object({
 		},
 	),
 
-	originalname: nonEmptyStringValidator("originalname"),
+	originalname: nonEmptyStringValidator,
 
 	size: z
 		.number()

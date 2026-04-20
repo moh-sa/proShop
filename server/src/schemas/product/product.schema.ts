@@ -9,18 +9,18 @@ import {
 import { insertImageSchema, selectImageSchema } from "./image.schema.js";
 
 const baseSchema = z.object({
-	brand: nonEmptyStringValidator("brand"),
+	brand: nonEmptyStringValidator,
 
-	category: nonEmptyStringValidator("category"),
+	category: nonEmptyStringValidator,
 
 	countInStock: z.coerce
 		.number()
 		.int()
 		.min(0, { error: "Count in stock is required." }),
 
-	description: nonEmptyStringValidator("description"),
+	description: nonEmptyStringValidator,
 
-	name: nonEmptyStringValidator("name"),
+	name: nonEmptyStringValidator,
 
 	price: z.coerce.number().min(0, { error: "Price is required." }),
 

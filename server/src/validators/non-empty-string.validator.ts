@@ -1,7 +1,11 @@
 import { z } from "zod";
 
-export const nonEmptyStringValidator = (fieldName: string) =>
-	z
-		.string()
-		.trim()
-		.min(1, { error: `${fieldName} is required` });
+export const nonEmptyStringValidator = z
+	.string()
+	.trim()
+	.nonempty({
+		error: (ctx) => {
+			const path = ctx.path?.join(".") || "";
+			return ` ${path} is required`;
+		},
+	});

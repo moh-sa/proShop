@@ -8,11 +8,11 @@ import {
 
 const userFieldsSchema = z.object({
 	id: objectIdStringValidator,
-	name: nonEmptyStringValidator("user name"),
+	name: nonEmptyStringValidator,
 });
 
 const baseSchema = z.object({
-	comment: nonEmptyStringValidator("comment"),
+	comment: nonEmptyStringValidator,
 
 	productId: objectIdStringValidator,
 

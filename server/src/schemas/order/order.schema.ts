@@ -19,7 +19,7 @@ export const orderStatusSchema = z.enum([
 ]);
 
 export const paymentSchema = z.object({
-	id: nonEmptyStringValidator("payment ID"),
+	id: nonEmptyStringValidator,
 	paidAt: z.coerce.date(),
 	provider: paymentProviderSchema,
 	sessionURL: urlValidator,

@@ -7,10 +7,10 @@ export const jwtConfigSchema = z.object({
 	 * @description short lived token expressed in **`seconds`**
 	 */
 	accessTokenExpiresIn: z.number().int().positive(),
-	accessTokenSecret: nonEmptyStringValidator("accessTokenSecret"),
+	accessTokenSecret: nonEmptyStringValidator,
 	/**
 	 * @description short lived token expressed in **`seconds`**
 	 */
 	refreshTokenExpiresIn: z.number().int().positive(),
-	refreshTokenSecret: nonEmptyStringValidator("refreshTokenSecret"),
+	refreshTokenSecret: nonEmptyStringValidator,
 });
