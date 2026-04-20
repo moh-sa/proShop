@@ -553,7 +553,7 @@ export class SessionService implements ISessionService {
 	): SessionResult<{ tokenId: string; userId: string }> {
 		const argsValidationResult = z
 			.object({
-				tokenId: uuidValidator("tokenId"),
+				tokenId: uuidValidator,
 				userId: objectIdStringValidator,
 			})
 			.safeParse({ tokenId, userId });

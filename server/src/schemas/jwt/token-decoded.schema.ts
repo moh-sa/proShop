@@ -9,7 +9,7 @@ import { tokenTypeSchema } from "./token-type.schema.js";
 export const tokenDecodedSchema = z.object({
 	exp: z.number().int().positive(),
 	iat: z.number().int().positive(),
-	tokenId: uuidValidator("Token ID"),
+	tokenId: uuidValidator,
 	type: tokenTypeSchema,
 	userId: objectIdStringValidator,
 });

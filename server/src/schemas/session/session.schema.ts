@@ -9,7 +9,7 @@ import {
 const baseSchema = z.object({
 	expiresAt: z.date(),
 	revokedAt: z.date().nullable(),
-	tokenId: uuidValidator("Token ID"),
+	tokenId: uuidValidator,
 	userId: objectIdStringValidator,
 });
 

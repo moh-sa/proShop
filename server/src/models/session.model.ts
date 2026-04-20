@@ -38,7 +38,7 @@ const SessionSchema = new Schema<SessionSchema>(
 			validate: {
 				message: "Invalid token ID",
 				validator(value: string) {
-					return uuidValidator("Token ID").safeParse(value).success;
+					return uuidValidator.safeParse(value).success;
 				},
 			},
 		},

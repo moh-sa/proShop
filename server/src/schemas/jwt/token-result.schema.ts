@@ -10,5 +10,5 @@ export const tokenResultSchema = z.object({
 		error: "Token expiration date must be in the future",
 	}),
 	token: nonEmptyStringValidator,
-	tokenId: uuidValidator("Token ID"),
+	tokenId: uuidValidator,
 });
