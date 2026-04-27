@@ -1,5 +1,5 @@
 import { createRouter, Router } from "@tanstack/react-router";
-import { ErrorPage } from "./components/errors";
+import { ErrorPage, NotFoundPage } from "./components/errors";
 import { queryClient } from "./providers/query.provider";
 import { routeTree } from "./routeTree.gen";
 
@@ -10,6 +10,7 @@ const router = createRouter({
     client: queryClient,
   },
   defaultPreload: "intent",
+  defaultNotFoundComponent: NotFoundPage,
   defaultErrorComponent: ErrorPage,
 });
 
