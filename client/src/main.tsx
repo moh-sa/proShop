@@ -1,7 +1,8 @@
 import * as Sentry from "@sentry/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import QueryProvider from "./providers/query.provider.tsx";
+import App from "./App";
+import QueryProvider from "./providers/query.provider";
 
 createRoot(document.getElementById("root")!, {
   onUncaughtError: Sentry.reactErrorHandler(),
@@ -10,7 +11,7 @@ createRoot(document.getElementById("root")!, {
 }).render(
   <StrictMode>
     <QueryProvider>
-      <RouterProvider router={router} />
+      <App />
     </QueryProvider>
   </StrictMode>,
 );
