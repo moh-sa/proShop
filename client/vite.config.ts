@@ -2,6 +2,7 @@ import { sentryVitePlugin } from "@sentry/vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
+import { resolve } from "node:path";
 import { defineConfig, loadEnv } from "vite";
 
 // https://vite.dev/config/
@@ -10,6 +11,11 @@ export default defineConfig(({ mode }) => {
 
   return {
     build: { sourcemap: "hidden" },
+    resolve: {
+      alias: {
+        "@": resolve(__dirname, "./src"),
+      },
+    },
     plugins: [
       tanstackRouter({
         target: "react",

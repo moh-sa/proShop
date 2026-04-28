@@ -2,9 +2,9 @@ import * as Sentry from "@sentry/react";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { initSentry } from "./instrument.ts";
-import QueryProvider, { queryClient } from "./providers/query.provider.tsx";
-import { routeTree } from "./routeTree.gen.ts";
+import { initSentry } from "./instrument";
+import QueryProvider, { queryClient } from "./providers/query.provider";
+import { routeTree } from "./routeTree.gen";
 
 const router = createRouter({
   routeTree,
