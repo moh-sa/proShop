@@ -4,6 +4,7 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "node:path";
 import { defineConfig, loadEnv } from "vite";
+import mkcert from "vite-plugin-mkcert";
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -40,6 +41,7 @@ export default defineConfig(({ mode }) => {
 					],
 				},
 			}),
+			mkcert(),
 		],
 	};
 });
