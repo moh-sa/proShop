@@ -3,7 +3,7 @@
 /** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').PluginOptions} */
 const config = {
   plugins: ["prettier-plugin-tailwindcss"],
-  tailwindStyleSheet: "./src/index.css",
+  tailwindStylesheet: "./src/index.css",
 };
 
 export default config;
