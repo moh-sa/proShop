@@ -62,7 +62,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.CREATED);
 			assert.ok(responseData.success);
-			assert.deepStrictEqual(responseData.data.user, expectedUserData);
+			assert.deepStrictEqual(responseData.data, expectedUserData);
 		});
 
 		it("should set both access and refresh tokens as cookies", async () => {
@@ -206,7 +206,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.OK);
 			assert.ok(responseData.success);
-			assert.deepStrictEqual(responseData.data.user, expectedUserData);
+			assert.deepStrictEqual(responseData.data, expectedUserData);
 		});
 
 		it("should set both access and refresh tokens as cookies after signin", async () => {

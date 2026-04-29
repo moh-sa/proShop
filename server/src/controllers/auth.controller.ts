@@ -27,7 +27,7 @@ export interface IAuthController {
 	 */
 	signUp: AsyncHandler<{
 		reqBody: CreateUser;
-		resBody: { data: { user: SafeSelectUser } };
+		resBody: { data: SafeSelectUser };
 	}>;
 
 	/**
@@ -35,7 +35,7 @@ export interface IAuthController {
 	 */
 	signIn: AsyncHandler<{
 		reqBody: Pick<CreateUser, "email" | "password">;
-		resBody: { data: { user: SafeSelectUser } };
+		resBody: { data: SafeSelectUser };
 	}>;
 
 	/**
@@ -104,7 +104,7 @@ export class AuthController implements IAuthController {
 	 */
 	signIn = asyncHandler<{
 		reqBody: Pick<CreateUser, "email" | "password">;
-		resBody: { data: { user: SafeSelectUser } };
+		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "signIn" });
 		logger.debug({ args: req.body }, "Signing in user");
@@ -124,9 +124,7 @@ export class AuthController implements IAuthController {
 		logger.info({ userId: result.data.user.id }, "User signed in successfully");
 
 		res.status(HTTP_STATUS.OK).json({
-			data: {
-				user: result.data.user,
-			},
+			data: result.data.user,
 			success: true,
 		});
 	});
@@ -136,7 +134,7 @@ export class AuthController implements IAuthController {
 	 */
 	signUp = asyncHandler<{
 		reqBody: CreateUser;
-		resBody: { data: { user: SafeSelectUser } };
+		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "signUp" });
 		logger.debug({ args: req.body }, "Signing up user");
@@ -156,9 +154,7 @@ export class AuthController implements IAuthController {
 		logger.info({ userId: result.data.user.id }, "User signed up successfully");
 
 		res.status(HTTP_STATUS.CREATED).json({
-			data: {
-				user: result.data.user,
-			},
+			data: result.data.user,
 			success: true,
 		});
 	});
