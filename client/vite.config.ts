@@ -7,39 +7,39 @@ import { defineConfig, loadEnv } from "vite";
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "");
+	const env = loadEnv(mode, process.cwd(), "");
 
-  return {
-    build: { sourcemap: "hidden" },
-    resolve: {
-      alias: {
-        "@": resolve(__dirname, "./src"),
-      },
-    },
-    plugins: [
-      tanstackRouter({
-        target: "react",
-        autoCodeSplitting: true,
-      }),
-      tailwindcss(),
-      react({
-        babel: {
-          plugins: [["babel-plugin-react-compiler"]],
-        },
-      }),
-      sentryVitePlugin({
-        org: "self-yki",
-        project: "proshop-client",
-        authToken: env.VITE_SENTRY_AUTH_TOKEN,
-        telemetry: false,
-        sourcemaps: {
-          filesToDeleteAfterUpload: [
-            "./**/*.map",
-            ".*/**/public/**/*.map",
-            "./dist/**/client/**/*.map",
-          ],
-        },
-      }),
-    ],
-  };
+	return {
+		build: { sourcemap: "hidden" },
+		resolve: {
+			alias: {
+				"@": resolve(__dirname, "./src"),
+			},
+		},
+		plugins: [
+			tanstackRouter({
+				target: "react",
+				autoCodeSplitting: true,
+			}),
+			tailwindcss(),
+			react({
+				babel: {
+					plugins: [["babel-plugin-react-compiler"]],
+				},
+			}),
+			sentryVitePlugin({
+				org: "self-yki",
+				project: "proshop-client",
+				authToken: env.VITE_SENTRY_AUTH_TOKEN,
+				telemetry: false,
+				sourcemaps: {
+					filesToDeleteAfterUpload: [
+						"./**/*.map",
+						".*/**/public/**/*.map",
+						"./dist/**/client/**/*.map",
+					],
+				},
+			}),
+		],
+	};
 });

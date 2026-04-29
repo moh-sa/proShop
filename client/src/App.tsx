@@ -6,7 +6,7 @@ const router = getRouter();
 initSentry(router);
 
 function App() {
-  return <RouterProvider router={router} />;
+	return <RouterProvider router={router} />;
 }
 
 export default App;

@@ -4,14 +4,14 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import type { RouterContext } from "../types/router-context.type";
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  component: RootLayout,
+	component: RootLayout,
 });
 
 function RootLayout() {
-  return (
-    <>
-      <RootLayoutComponent />
-      <TanStackRouterDevtools />
-    </>
-  );
+	return (
+		<>
+			<RootLayoutComponent />
+			<TanStackRouterDevtools />
+		</>
+	);
 }
