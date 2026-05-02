@@ -783,7 +783,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 	});
 
 	describe("delete", () => {
-		test("Should return success response when 'service.delete' is called with 'reviewId'", async () => {
+		test("Should return '204' with empty body when 'service.delete' is called with 'reviewId'", async () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
@@ -796,43 +796,8 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			await controller.delete(req, res, next);
 
 			// Assert
-			const response = res._getJSONData();
-			assert.strictEqual(response.success, true);
-		});
-
-		test("Should return '204' status code when 'service.delete' is called with 'reviewId'", async () => {
-			// Arrange
-			const createdReview = await createReview(generateMockInsertReview());
-
-			const { next, req, res } = createMockExpressContextFromHandler(
-				controller.delete,
-			);
-			req.params = { reviewId: createdReview.id };
-
-			// Act
-			await controller.delete(req, res, next);
-
-			// Assert
-			const code = res._getStatusCode();
-			assert.strictEqual(code, 204);
-		});
-
-		test("Should return 'data' equals to 'null' when 'service.delete' is called with 'reviewId'", async () => {
-			// Arrange
-			const createdReview = await createReview(generateMockInsertReview());
-
-			const { next, req, res } = createMockExpressContextFromHandler(
-				controller.delete,
-			);
-			req.params = { reviewId: createdReview.id };
-
-			// Act
-			await controller.delete(req, res, next);
-
-			// Assert
-			const response = res._getJSONData();
-			assert.strictEqual(response.success, true);
-			assert.strictEqual(response.data, null);
+			assert.strictEqual(res._getStatusCode(), 204);
+			assert.strictEqual(res._getData(), "");
 		});
 
 		test("Should throw 'NotFoundError' when 'service.delete' is called with non-existent 'reviewId'", async () => {

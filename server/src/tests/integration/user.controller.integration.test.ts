@@ -428,27 +428,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 	});
 
 	describe("delete", () => {
-		test("Should return success response when 'service.delete' is called with valid 'userId'", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContextFromHandler(
-				controller.delete,
-			);
-
-			const createdUser = await createUser(generateMockInsertUser());
-
-			req.params = { userId: createdUser.id };
-
-			// Act
-			await controller.delete(req, res, next);
-
-			// Assert
-			const response = res._getJSONData();
-			assert.ok(response);
-			assert.ok(response.success);
-			assert.equal(response.data, null);
-		});
-
-		test("Should return '204' status code when 'service.delete' is called with valid 'userId'", async () => {
+		test("Should return '204' with empty body when 'service.delete' is called with valid 'userId'", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.delete,
@@ -463,6 +443,7 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 
 			// Assert
 			assert.equal(res._getStatusCode(), 204);
+			assert.strictEqual(res._getData(), "");
 		});
 
 		test("Should throw 'NotFoundError' when user does not exist", async () => {

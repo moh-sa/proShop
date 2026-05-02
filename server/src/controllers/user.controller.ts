@@ -14,7 +14,7 @@ import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
 export interface IUserController {
 	delete: AsyncHandler<{
 		params: { userId: string };
-		resBody: { data: null };
+		resBody: never;
 	}>;
 	getAll: AsyncHandler<{
 		query: GetAllUsersControllerParams;
@@ -41,7 +41,7 @@ export class UserController implements IUserController {
 
 	delete = asyncHandler<{
 		params: { userId: string };
-		resBody: { data: null };
+		resBody: never;
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "delete" });
 		logger.debug({ userId: req.params.userId }, "Deleting user");
@@ -53,10 +53,7 @@ export class UserController implements IUserController {
 
 		logger.info({ userId: result.data.id }, "User deleted successfully");
 
-		res.status(HTTP_STATUS.NO_CONTENT).json({
-			data: null,
-			success: true,
-		});
+		res.status(HTTP_STATUS.NO_CONTENT).end();
 	});
 
 	getAll = asyncHandler<{

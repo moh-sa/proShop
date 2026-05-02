@@ -33,7 +33,7 @@ export interface IReviewController {
 	}>;
 	delete: AsyncHandler<{
 		params: { reviewId: string };
-		resBody: { data: null };
+		resBody: never;
 	}>;
 	existsById: AsyncHandler<{
 		params: { reviewId: string };
@@ -189,7 +189,7 @@ export class ReviewController implements IReviewController {
 
 	delete = asyncHandler<{
 		params: { reviewId: string };
-		resBody: { data: null };
+		resBody: never;
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "delete" });
 		logger.debug({ reviewId: req.params.reviewId }, "Deleting review");
@@ -206,10 +206,7 @@ export class ReviewController implements IReviewController {
 			"Review deleted successfully",
 		);
 
-		res.status(HTTP_STATUS.NO_CONTENT).json({
-			data: null,
-			success: true,
-		});
+		res.status(HTTP_STATUS.NO_CONTENT).end();
 	});
 
 	existsById = asyncHandler<{

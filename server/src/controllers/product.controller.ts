@@ -27,7 +27,7 @@ export interface IProductController {
 	}>;
 	delete: AsyncHandler<{
 		params: { productId: string };
-		resBody: { data: null };
+		resBody: never;
 	}>;
 	getAll: AsyncHandler<{
 		query: GetAllProductsControllerParams;
@@ -89,7 +89,7 @@ export class ProductController implements IProductController {
 
 	delete = asyncHandler<{
 		params: { productId: string };
-		resBody: { data: null };
+		resBody: never;
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "delete" });
 		logger.debug({ productId: req.params.productId }, "Deleting product");
@@ -106,10 +106,7 @@ export class ProductController implements IProductController {
 			"Product deleted successfully",
 		);
 
-		res.status(HTTP_STATUS.NO_CONTENT).json({
-			data: null,
-			success: true,
-		});
+		res.status(HTTP_STATUS.NO_CONTENT).end();
 	});
 
 	getAll = asyncHandler<{

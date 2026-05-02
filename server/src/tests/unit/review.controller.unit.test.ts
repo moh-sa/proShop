@@ -841,29 +841,8 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 204);
-		});
-
-		test("Should call 'res.json' once with the success response object containing review data", async (t) => {
-			// Arrange
-			const { next, req, res } = mockExpressCall({
-				req: { params: { reviewId } },
-				testContext: t,
-			});
-
-			mockService.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: mockReview, success: true }),
-			);
-
-			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
-			await controller.delete(req, res, next);
-
-			// Assert
-			assert.strictEqual(res.json.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: null }),
-			);
+			assert.strictEqual(res.end.mock.callCount(), 1);
+			assert.strictEqual(res.json.mock.callCount(), 0);
 		});
 	});
 

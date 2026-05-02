@@ -41,25 +41,18 @@ export interface IAuthController {
 	/**
 	 * DELETE /auth/signout/current
 	 */
-	signOut: AsyncHandler<{ resBody: { data: { message: string } } }>;
+	signOut: AsyncHandler<{ resBody: never }>;
 
 	/**
 	 * DELETE /auth/signout
 	 */
-	signOutAll: AsyncHandler<{
-		resBody: {
-			data: { message: string };
-			meta: { removedCount: number };
-		};
-	}>;
+	signOutAll: AsyncHandler<{ resBody: never }>;
 
 	// Token Management
 	/**
 	 * POST /auth/token/refresh
 	 */
-	refreshAccessToken: AsyncHandler<{
-		resBody: { data: { message: string } };
-	}>;
+	refreshAccessToken: AsyncHandler;
 
 	// Session Management
 	/**
@@ -76,14 +69,12 @@ export interface IAuthController {
 	/**
 	 * DELETE /auth/sessions/current
 	 */
-	revokeSession: AsyncHandler<{ resBody: { data: { message: string } } }>;
+	revokeSession: AsyncHandler<{ resBody: never }>;
 
 	/**
 	 * DELETE /auth/sessions
 	 */
-	revokeAllSessions: AsyncHandler<{
-		resBody: { data: { message: string }; meta: { revokedCount: number } };
-	}>;
+	revokeAllSessions: AsyncHandler<{ resBody: never }>;
 }
 
 /**
@@ -162,48 +153,36 @@ export class AuthController implements IAuthController {
 	/**
 	 * DELETE /auth/signout/current
 	 */
-	signOut = asyncHandler<{ resBody: { data: { message: string } } }>(
-		async (req, res) => {
-			const logger = this._getLogger({ method: "signOut" });
-			logger.debug({ args: req.body }, "Signing out current session");
+	signOut = asyncHandler<{ resBody: never }>(async (req, res) => {
+		const logger = this._getLogger({ method: "signOut" });
+		logger.debug({ args: req.body }, "Signing out current session");
 
-			// Get refresh token from cookie
-			const refreshCookie = this._getRefreshTokenFromCookie(req);
-			logger.debug({ refreshCookie }, "Got refresh token from cookie");
+		// Get refresh token from cookie
+		const refreshCookie = this._getRefreshTokenFromCookie(req);
+		logger.debug({ refreshCookie }, "Got refresh token from cookie");
 
-			// Delete the session
-			const result = await this._authManager.signOut({
-				refreshToken: refreshCookie,
-			});
-			if (!result.success) {
-				throw result.error;
-			}
-			logger.debug({ result: result.data }, "Session signed out");
+		// Delete the session
+		const result = await this._authManager.signOut({
+			refreshToken: refreshCookie,
+		});
+		if (!result.success) {
+			throw result.error;
+		}
+		logger.debug({ result: result.data }, "Session signed out");
 
-			// Clear the access and refresh tokens cookies
-			this._clearAuthCookies(res);
-			logger.debug("Cleared access and refresh tokens cookies successfully");
+		// Clear the access and refresh tokens cookies
+		this._clearAuthCookies(res);
+		logger.debug("Cleared access and refresh tokens cookies successfully");
 
-			logger.info("User signed out successfully");
+		logger.info("User signed out successfully");
 
-			res.status(HTTP_STATUS.OK).json({
-				data: {
-					message: "Logged out successfully",
-				},
-				success: true,
-			});
-		},
-	);
+		res.status(HTTP_STATUS.NO_CONTENT).end();
+	});
 
 	/**
 	 * DELETE /auth/signout
 	 */
-	signOutAll = asyncHandler<{
-		resBody: {
-			data: { message: string };
-			meta: { removedCount: number };
-		};
-	}>(async (req, res) => {
+	signOutAll = asyncHandler<{ resBody: never }>(async (req, res) => {
 		const logger = this._getLogger({ method: "signOutAll" });
 		logger.debug("Signing out all sessions");
 
@@ -229,23 +208,13 @@ export class AuthController implements IAuthController {
 			"User signed out from all devices successfully",
 		);
 
-		res.status(HTTP_STATUS.OK).json({
-			data: {
-				message: "Logged out from all devices",
-			},
-			meta: {
-				removedCount: result.data,
-			},
-			success: true,
-		});
+		res.status(HTTP_STATUS.NO_CONTENT).end();
 	});
 
 	/**
 	 * POST /auth/token/refresh
 	 */
-	refreshAccessToken = asyncHandler<{
-		resBody: { data: { message: string } };
-	}>(async (req, res) => {
+	refreshAccessToken = asyncHandler(async (req, res) => {
 		const logger = this._getLogger({ method: "refreshAccessToken" });
 		logger.debug("Refreshing access token");
 
@@ -272,12 +241,7 @@ export class AuthController implements IAuthController {
 
 		logger.info("Access token refreshed successfully");
 
-		res.status(HTTP_STATUS.OK).json({
-			data: {
-				message: "Access token refreshed successfully",
-			},
-			success: true,
-		});
+		res.status(HTTP_STATUS.OK).end();
 	});
 
 	/**
@@ -322,9 +286,7 @@ export class AuthController implements IAuthController {
 	/**
 	 * DELETE /auth/sessions/current
 	 */
-	revokeSession = asyncHandler<{
-		resBody: { data: { message: string } };
-	}>(async (req, res) => {
+	revokeSession = asyncHandler<{ resBody: never }>(async (req, res) => {
 		const logger = this._getLogger({ method: "revokeSession" });
 		logger.debug("Revoking current session");
 
@@ -347,20 +309,13 @@ export class AuthController implements IAuthController {
 
 		logger.info("Session revoked successfully");
 
-		res.status(HTTP_STATUS.OK).json({
-			data: {
-				message: "Session revoked successfully",
-			},
-			success: true,
-		});
+		res.status(HTTP_STATUS.NO_CONTENT).end();
 	});
 
 	/**
 	 * DELETE /auth/sessions
 	 */
-	revokeAllSessions = asyncHandler<{
-		resBody: { data: { message: string }; meta: { revokedCount: number } };
-	}>(async (req, res) => {
+	revokeAllSessions = asyncHandler<{ resBody: never }>(async (req, res) => {
 		const logger = this._getLogger({ method: "revokeAllSessions" });
 		logger.debug("Revoking all sessions");
 
@@ -386,15 +341,7 @@ export class AuthController implements IAuthController {
 			"All sessions revoked successfully",
 		);
 
-		res.status(HTTP_STATUS.OK).json({
-			data: {
-				message: "All sessions revoked successfully",
-			},
-			meta: {
-				revokedCount: result.data,
-			},
-			success: true,
-		});
+		res.status(HTTP_STATUS.NO_CONTENT).end();
 	});
 
 	private _clearAuthCookies(res: Response): void {

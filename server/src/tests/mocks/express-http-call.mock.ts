@@ -36,6 +36,7 @@ function mockResponse({
 	testContext: TestContext;
 }) {
 	const res = {
+		end: testContext.mock.fn(() => res),
 		json: testContext.mock.fn((input: unknown) => input),
 		locals,
 		status: testContext.mock.fn((_code: number) => res),

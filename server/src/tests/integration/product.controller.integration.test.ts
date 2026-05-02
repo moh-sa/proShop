@@ -716,7 +716,7 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 	});
 
 	describe("delete", () => {
-		test("Should return success response when 'service.delete' is called with valid data", async () => {
+		test("Should return '204' with empty body when 'service.delete' is called with valid data", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContextFromHandler(
 				controller.delete,
@@ -740,61 +740,8 @@ suite("Product Controller 〖 Integration Tests 〗", () => {
 			await controller.delete(req, res, next);
 
 			// Assert
-			const response = res._getJSONData();
-			assert.ok(response.success);
-		});
-
-		test("Should return '204' status code when 'service.delete' is called with valid data", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContextFromHandler(
-				controller.delete,
-			);
-
-			const createdProduct = await createProduct(
-				generateMockInsertProductWithStringImage(),
-			);
-
-			const productId = createdProduct.id;
-
-			req.params = { productId };
-
-			storage.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: undefined, success: true }),
-			);
-
-			// Act
-			await controller.delete(req, res, next);
-
-			// Assert
-			const code = res._getStatusCode();
-			assert.strictEqual(code, 204);
-		});
-
-		test("Should return 'data' equals to 'null' 'service.delete' is called with valid data", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContextFromHandler(
-				controller.delete,
-			);
-
-			const createdProduct = await createProduct(
-				generateMockInsertProductWithStringImage(),
-			);
-
-			const productId = createdProduct.id;
-
-			req.params = { productId };
-
-			storage.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: undefined, success: true }),
-			);
-
-			// Act
-			await controller.delete(req, res, next);
-
-			// Assert
-			const response = res._getJSONData();
-			assert.ok(response.success);
-			assert.strictEqual(response.data, null);
+			assert.strictEqual(res._getStatusCode(), 204);
+			assert.strictEqual(res._getData(), "");
 		});
 
 		test("Should throw 'NotFoundError' when 'service.delete' is called with non-existent product id", async () => {

@@ -383,7 +383,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			);
 		});
 
-		it("should return 200 with success message", async () => {
+		it("should return 204 with empty body", async () => {
 			// Arrange
 			const mockRefreshToken = generateMockJwt("refresh");
 
@@ -408,10 +408,8 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			await controller.signOut(req, res, next);
 
 			// Assert
-			const responseData = res._getJSONData();
-			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.OK);
-			assert.ok(responseData.success);
-			assert.strictEqual(responseData.data.message, "Logged out successfully");
+			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.NO_CONTENT);
+			assert.strictEqual(res._getData(), "");
 		});
 
 		it("should throw when refresh cookie is missing/invalid", async () => {
@@ -526,7 +524,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			);
 		});
 
-		it("should return 200 with removed count in meta", async () => {
+		it("should return 204 with empty body after signing out all sessions", async () => {
 			// Arrange
 			const mockRefreshToken = generateMockJwt("refresh");
 			const mockRemovedCount = 3;
@@ -552,10 +550,8 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			await controller.signOutAll(req, res, next);
 
 			// Assert
-			const responseData = res._getJSONData();
-			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.OK);
-			assert.ok(responseData.success);
-			assert.strictEqual(responseData.meta.removedCount, mockRemovedCount);
+			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.NO_CONTENT);
+			assert.strictEqual(res._getData(), "");
 		});
 
 		it("should throw when refresh cookie is missing/invalid", async () => {
@@ -636,6 +632,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.OK);
+			assert.strictEqual(res._getData(), "");
 		});
 
 		it("should set only access token cookie (not refresh token)", async () => {
@@ -1088,7 +1085,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			);
 		});
 
-		it("should return 200 with success message", async () => {
+		it("should return 204 with empty body after revoking session", async () => {
 			// Arrange
 			const mockRefreshToken = generateMockJwt("refresh");
 
@@ -1113,13 +1110,8 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			await controller.revokeSession(req, res, next);
 
 			// Assert
-			const responseData = res._getJSONData();
-			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.OK);
-			assert.ok(responseData.success);
-			assert.strictEqual(
-				responseData.data.message,
-				"Session revoked successfully",
-			);
+			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.NO_CONTENT);
+			assert.strictEqual(res._getData(), "");
 		});
 
 		it("should throw when refresh cookie is missing/invalid", async () => {
@@ -1234,7 +1226,7 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			);
 		});
 
-		it("should return 200 with revoked count in meta", async () => {
+		it("should return 204 with empty body after revoking all sessions", async () => {
 			// Arrange
 			const mockRefreshToken = generateMockJwt("refresh");
 			const mockRevokedCount = 5;
@@ -1260,10 +1252,8 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 			await controller.revokeAllSessions(req, res, next);
 
 			// Assert
-			const responseData = res._getJSONData();
-			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.OK);
-			assert.ok(responseData.success);
-			assert.strictEqual(responseData.meta.revokedCount, mockRevokedCount);
+			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.NO_CONTENT);
+			assert.strictEqual(res._getData(), "");
 		});
 
 		it("should throw when refresh cookie is missing/invalid", async () => {

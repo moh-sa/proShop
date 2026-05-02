@@ -5,7 +5,6 @@ import type { Response } from "express";
 
 import { ProductController } from "../../controllers/index.js";
 import type { SuccessResponse, UpdateProductInput } from "../../types/index.js";
-import { createSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockInsertProductWithMulterImage,
 	generateMockObjectId,
@@ -970,29 +969,8 @@ suite("Product Controller 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 204);
-		});
-
-		test("Should call 'res.json' once with the success response object containing product data", async (t) => {
-			// Arrange
-			const { next, req, res } = mockExpressCall({
-				req: { params: { productId } },
-				testContext: t,
-			});
-
-			mockManager.delete.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: undefined, success: true }),
-			);
-
-			// Act
-			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
-			await controller.delete(req, res as unknown as Response, next);
-
-			// Assert
-			assert.strictEqual(res.json.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: null }),
-			);
+			assert.strictEqual(res.end.mock.callCount(), 1);
+			assert.strictEqual(res.json.mock.callCount(), 0);
 		});
 	});
 });
