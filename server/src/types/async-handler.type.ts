@@ -26,7 +26,7 @@ export type AsyncHandlerGenerics = {
  */
 type StrictResponseJson<Body extends ResponseBody> =
 	SuccessResponse<Body> extends never
-		? never
+		? (body: Record<string, never>) => Response
 		: (body: ApiResponse<Body>) => Response;
 
 /**
