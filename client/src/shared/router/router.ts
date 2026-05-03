@@ -1,12 +1,8 @@
+import { ErrorPage, NotFoundPage } from "@/components/errors";
+import { routeTree } from "@/routeTree.gen";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRouter, Router } from "@tanstack/react-router";
-import { ErrorPage, NotFoundPage } from "./components/errors";
-import { routeTree } from "./routeTree.gen";
-import { queryClient } from "./shared/query";
-
-export type RouterContext = {
-	client: QueryClient;
-};
+import { queryClient } from "../query";
 
 const router = createRouter({
 	routeTree,
@@ -19,12 +15,18 @@ const router = createRouter({
 	defaultErrorComponent: ErrorPage,
 });
 
+/** Returns the same router instance */
+export function getRouter(): Router<typeof routeTree> {
+	return router;
+}
+
+export type RouterContext = {
+	client: QueryClient;
+};
+
+// Register the router type with TanStack Router for proper type inference (e.g. links, useRouter, etc.).
 declare module "@tanstack/react-router" {
 	interface Register {
 		router: typeof router;
 	}
-}
-
-export default function getRouter(): Router<typeof routeTree> {
-	return router;
 }

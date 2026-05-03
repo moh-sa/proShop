@@ -1,6 +1,6 @@
 import { RouterProvider } from "@tanstack/react-router";
 import { initSentry } from "./instrument";
-import getRouter from "./router";
+import { getRouter } from "./shared/router";
 
 const router = getRouter();
 initSentry(router);
