@@ -1,12 +1,5 @@
 import type { NormalizedError, ServerApiError } from "./normalize.error";
 
-// Sets `ClientApiError` as the default error type for React Query
-declare module "@tanstack/react-query" {
-	interface Register {
-		defaultError: ClientApiError;
-	}
-}
-
 /**
  * Thrown by the API stack after `normalizeError()`. Narrow on `details.kind`.
  *

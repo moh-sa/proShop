@@ -1,5 +1,13 @@
 import { QueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
+import type { ClientApiError } from "../api";
+
+// Sets `ClientApiError` as the default error type for React Query
+declare module "@tanstack/react-query" {
+	interface Register {
+		defaultError: ClientApiError;
+	}
+}
 
 export const queryClient = new QueryClient({
 	defaultOptions: {
