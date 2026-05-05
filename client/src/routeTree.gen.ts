@@ -12,7 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnauthorizedRouteImport } from './routes/unauthorized'
 import { Route as GuestRouteImport } from './routes/_guest'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as GuestSigninRouteImport } from './routes/_guest/signin'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/_admin'
 
 const UnauthorizedRoute = UnauthorizedRouteImport.update({
@@ -28,10 +28,10 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
+const GuestSigninRoute = GuestSigninRouteImport.update({
+  id: '/signin',
+  path: '/signin',
+  getParentRoute: () => GuestRoute,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/_admin',
@@ -39,37 +39,38 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AuthenticatedAdminRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/signin': typeof GuestSigninRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/': typeof AuthenticatedAdminRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/signin': typeof GuestSigninRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_guest': typeof GuestRouteWithChildren
   '/unauthorized': typeof UnauthorizedRoute
-  '/_authenticated/_admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/_admin': typeof AuthenticatedAdminRoute
+  '/_guest/signin': typeof GuestSigninRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/unauthorized'
+  fullPaths: '/' | '/unauthorized' | '/signin'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/unauthorized'
+  to: '/' | '/unauthorized' | '/signin'
   id:
     | '__root__'
-    | '/'
     | '/_authenticated'
     | '/_guest'
     | '/unauthorized'
     | '/_authenticated/_admin'
+    | '/_guest/signin'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   GuestRoute: typeof GuestRouteWithChildren
   UnauthorizedRoute: typeof UnauthorizedRoute
@@ -98,12 +99,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_guest/signin': {
+      id: '/_guest/signin'
+      path: '/signin'
+      fullPath: '/signin'
+      preLoaderRoute: typeof GuestSigninRouteImport
+      parentRoute: typeof GuestRoute
     }
     '/_authenticated/_admin': {
       id: '/_authenticated/_admin'
@@ -115,33 +116,29 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthenticatedAdminRouteChildren {}
-
-const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {}
-
-const AuthenticatedAdminRouteWithChildren =
-  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
-
 interface AuthenticatedRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
-interface GuestRouteChildren {}
+interface GuestRouteChildren {
+  GuestSigninRoute: typeof GuestSigninRoute
+}
 
-const GuestRouteChildren: GuestRouteChildren = {}
+const GuestRouteChildren: GuestRouteChildren = {
+  GuestSigninRoute: GuestSigninRoute,
+}
 
 const GuestRouteWithChildren = GuestRoute._addFileChildren(GuestRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   GuestRoute: GuestRouteWithChildren,
   UnauthorizedRoute: UnauthorizedRoute,
