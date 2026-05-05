@@ -1,4 +1,5 @@
 import { RootLayout as RootLayoutComponent } from "@/components/layouts";
+import { useAuth } from "@/features/auth";
 import { AppProvider } from "@/providers/app.provider";
 import type { RouterContext } from "@/shared/router";
 import { createRootRouteWithContext } from "@tanstack/react-router";
@@ -9,6 +10,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootLayout() {
+	useAuth();
 	return (
 		<AppProvider>
 			<RootLayoutComponent />

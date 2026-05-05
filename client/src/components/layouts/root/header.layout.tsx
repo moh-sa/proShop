@@ -1,27 +1,15 @@
 import { Logo } from "@/components/branding";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SignInButton } from "@/features/auth";
+import { SignInButton, useAuth } from "@/features/auth";
 import { CartButton } from "@/features/cart";
 import { SearchBar } from "@/features/search";
-import { UserMenu, type User } from "@/features/users";
+import { UserMenu } from "@/features/users";
 
 function AuthSection() {
-	// TODO: get user from `useAuth` hook
-	const isLoading = false;
-	const isAuthenticated = true;
-	const user: User | null = isAuthenticated
-		? {
-				id: "1",
-				name: "John Doe",
-				email: "john.doe@example.com",
-				isAdmin: true,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			}
-		: null;
+	const { isAuthenticated, isLoading, user } = useAuth();
 
 	if (isLoading) return <Skeleton className="size-8 rounded-full" />;
-	return user ? <UserMenu user={user} /> : <SignInButton />;
+	return isAuthenticated && user ? <UserMenu user={user} /> : <SignInButton />;
 }
 
 export function Header() {
