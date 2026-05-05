@@ -6,9 +6,12 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { signOutMutationOptions } from "@/features/auth";
 import type { User } from "@/features/users";
-import { Link } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { HistoryIcon, LogOutIcon, SettingsIcon, UserIcon } from "lucide-react";
+import { toast } from "sonner";
 
 export function UserMenu(props: { user: User }) {
 	const initials = props.user.name
@@ -60,17 +63,33 @@ export function UserMenu(props: { user: User }) {
 				)}
 
 				<DropdownMenuSeparator />
-				<DropdownMenuItem
-					variant="destructive"
-					onClick={() => {
-						// TODO: use signout mutation
-						console.log("sign out");
-					}}
-				>
-					<LogOutIcon className="size-4" />
-					Sign Out
-				</DropdownMenuItem>
+				<SignOutMenuItem />
 			</DropdownMenuContent>
 		</DropdownMenu>
+	);
+}
+
+function SignOutMenuItem() {
+	const navigate = useNavigate();
+	const signOutMutation = useMutation(signOutMutationOptions);
+
+	function handleSignOut() {
+		signOutMutation.mutate(undefined, {
+			onSuccess: () => {
+				navigate({ to: "/" });
+			},
+			onError: (error) => {
+				toast.error("Failed to sign out", {
+					description: error.message,
+				});
+			},
+		});
+	}
+
+	return (
+		<DropdownMenuItem variant="destructive" onClick={handleSignOut}>
+			<LogOutIcon className="size-4" />
+			Sign Out
+		</DropdownMenuItem>
 	);
 }
