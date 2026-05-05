@@ -50,8 +50,7 @@ export function UserMenu(props: { user: User }) {
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
 							nativeButton={false}
-							// TODO: update link
-							render={<Link to="/" />}
+							render={<Link to="/dashboard" />}
 							className="text-amber-600 hover:bg-amber-600/10 hover:text-amber-600 focus:bg-amber-600/10 focus:text-amber-600 not-data-[variant=destructive]:focus:**:text-amber-600"
 						>
 							<SettingsIcon className="size-4" />
