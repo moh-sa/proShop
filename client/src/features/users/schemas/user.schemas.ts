@@ -11,7 +11,7 @@ const nameSchema = z.string().trim().min(MIN_NAME_LENGTH).max(MAX_NAME_LENGTH);
 
 const emailSchema = z.string().trim().toLowerCase().pipe(z.email());
 
-const passwordSchema = z.coerce
+const passwordSchema = z
 	.string()
 	.trim()
 	.min(MIN_PASSWORD_LENGTH)
