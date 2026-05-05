@@ -101,12 +101,7 @@ function RouteComponent() {
 				<CardFooter className="justify-center">
 					<p className="text-muted-foreground">
 						New to ProShop?{" "}
-						<Link
-							// TODO: update to '/signup' route
-							to="/"
-							search={{ redirect: redirectTo }}
-							className="text-card-foreground hover:underline"
-						>
+						<Link to="/signup" className="text-card-foreground hover:underline">
 							Sign up
 						</Link>
 					</p>
