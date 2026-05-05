@@ -13,6 +13,7 @@ import { Route as UnauthorizedRouteImport } from './routes/unauthorized'
 import { Route as GuestRouteImport } from './routes/_guest'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as GuestSignupRouteImport } from './routes/_guest/signup'
 import { Route as GuestSigninRouteImport } from './routes/_guest/signin'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/_admin'
 import { Route as AuthenticatedAdminDashboardIndexRouteImport } from './routes/_authenticated/_admin/dashboard/index'
@@ -35,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuestSignupRoute = GuestSignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => GuestRoute,
+} as any)
 const GuestSigninRoute = GuestSigninRouteImport.update({
   id: '/signin',
   path: '/signin',
@@ -55,12 +61,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/unauthorized': typeof UnauthorizedRoute
   '/signin': typeof GuestSigninRoute
+  '/signup': typeof GuestSignupRoute
   '/dashboard/': typeof AuthenticatedAdminDashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/unauthorized': typeof UnauthorizedRoute
   '/signin': typeof GuestSigninRoute
+  '/signup': typeof GuestSignupRoute
   '/dashboard': typeof AuthenticatedAdminDashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -71,13 +79,14 @@ export interface FileRoutesById {
   '/unauthorized': typeof UnauthorizedRoute
   '/_authenticated/_admin': typeof AuthenticatedAdminRouteWithChildren
   '/_guest/signin': typeof GuestSigninRoute
+  '/_guest/signup': typeof GuestSignupRoute
   '/_authenticated/_admin/dashboard/': typeof AuthenticatedAdminDashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/unauthorized' | '/signin' | '/dashboard/'
+  fullPaths: '/' | '/unauthorized' | '/signin' | '/signup' | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/unauthorized' | '/signin' | '/dashboard'
+  to: '/' | '/unauthorized' | '/signin' | '/signup' | '/dashboard'
   id:
     | '__root__'
     | '/'
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
     | '/unauthorized'
     | '/_authenticated/_admin'
     | '/_guest/signin'
+    | '/_guest/signup'
     | '/_authenticated/_admin/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -125,6 +135,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_guest/signup': {
+      id: '/_guest/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof GuestSignupRouteImport
+      parentRoute: typeof GuestRoute
     }
     '/_guest/signin': {
       id: '/_guest/signin'
@@ -175,10 +192,12 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 
 interface GuestRouteChildren {
   GuestSigninRoute: typeof GuestSigninRoute
+  GuestSignupRoute: typeof GuestSignupRoute
 }
 
 const GuestRouteChildren: GuestRouteChildren = {
   GuestSigninRoute: GuestSigninRoute,
+  GuestSignupRoute: GuestSignupRoute,
 }
 
 const GuestRouteWithChildren = GuestRoute._addFileChildren(GuestRouteChildren)
