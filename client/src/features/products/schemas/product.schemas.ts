@@ -50,3 +50,12 @@ export const productSchema = baseSchema.extend({
 	numReviews: numReviewsSchema,
 	rating: ratingSchema,
 });
+
+export const productTopRatedListSchema = z.array(
+	productSchema.pick({
+		id: true,
+		name: true,
+		image: true,
+		price: true,
+	}),
+);
