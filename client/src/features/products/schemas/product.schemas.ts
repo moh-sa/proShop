@@ -59,3 +59,13 @@ export const productTopRatedListSchema = z.array(
 		price: true,
 	}),
 );
+
+export const ProductListItemSchema = productSchema.pick({
+	id: true,
+	name: true,
+	brand: true,
+	category: true,
+	image: true,
+	rating: true,
+	price: true,
+});

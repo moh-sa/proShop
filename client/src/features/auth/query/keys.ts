@@ -1,4 +1,4 @@
-import type { PaginationParams } from "@/shared/api";
+import type { PaginationParams } from "@/features/pagination";
 
 export const authKeys = {
 	all: ["auth"] as const,
