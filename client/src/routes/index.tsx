@@ -1,11 +1,13 @@
 import { HomeLayout } from "@/components/layouts";
+
 import { TopRatedCarousel } from "@/features/carousel";
+import { paginationParamsSchema } from "@/features/pagination";
 import { productTopRatedListQueryOptions } from "@/features/products/queries";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
-	// TODO: use 'paginationParamsSchema' with 'validateSearch'
-	// TODO: use 'loaderDeps' to pass the search params to the loader
+	validateSearch: paginationParamsSchema,
+	loaderDeps: ({ search }) => search,
 	loader: async ({ context }) => {
 		const topRatedProducts = await context.client.ensureQueryData(
 			productTopRatedListQueryOptions,
