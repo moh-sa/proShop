@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Link } from "@tanstack/react-router";
+import { Link, type LinkProps } from "@tanstack/react-router";
 import {
 	ChevronLeftIcon,
 	ChevronRightIcon,
@@ -40,8 +40,9 @@ function PaginationItem({ ...props }: React.ComponentProps<"li">) {
 
 type PaginationLinkProps = {
 	isActive?: boolean;
+	className?: string;
 } & Pick<React.ComponentProps<typeof Button>, "size"> &
-	React.ComponentProps<typeof Link>;
+	LinkProps;
 
 function PaginationLink({
 	className,
