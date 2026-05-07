@@ -1,7 +1,7 @@
 import { HomeLayout } from "@/components/layouts";
 
 import { TopRatedCarousel } from "@/features/carousel";
-import { paginationParamsSchema } from "@/features/pagination";
+import { Pagination, paginationParamsSchema } from "@/features/pagination";
 import { ProductGrid } from "@/features/products/components";
 import {
 	productPaginatedListQueryOptions,
@@ -35,6 +35,7 @@ function RouteComponent() {
 		<HomeLayout
 			carouselSlot={<TopRatedCarousel products={data.topRated} />}
 			gridSlot={<ProductGrid products={data.paginated.data} />}
+			paginationSlot={<Pagination {...data.paginated.meta} />}
 		/>
 	);
 }
