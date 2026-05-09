@@ -3,6 +3,7 @@ import {
 	type PaginationParams,
 } from "@/features/pagination";
 import {
+	buildSearchParams,
 	ClientApiError,
 	get,
 	getPaginated,
@@ -22,13 +23,15 @@ export async function productPaginatedListApi(
 	params: PaginationParams,
 	signal: AbortSignal,
 ): Promise<ApiPaginatedResponse<ProductListItem>> {
-	const parsedParams = paginationParamsSchema.safeParse(params);
+	const parsedParams = paginationParamsSchema
+		.transform(buildSearchParams)
+		.safeParse(params);
 	if (!parsedParams.success) {
 		throw new ClientApiError(normalizeError(parsedParams.error, "input"));
 	}
 
 	return await getPaginated(
-		`/products?pageNumber=${parsedParams.data.pageNumber}&pageSize=${parsedParams.data.pageSize}`,
+		`/products?${parsedParams.data}`,
 		ProductListItemSchema,
 		signal,
 	);
