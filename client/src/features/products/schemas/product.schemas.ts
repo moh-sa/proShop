@@ -1,3 +1,4 @@
+import { paginationParamsSchema } from "@/features/pagination";
 import { idSchema, selectSchema } from "@/shared/schemas";
 import z from "zod";
 import { IMAGE_MAX_SIZE, IMAGE_MIMETYPES } from "../consts";
@@ -69,3 +70,9 @@ export const ProductListItemSchema = productSchema.pick({
 	rating: true,
 	price: true,
 });
+
+export const productSearchParamsSchema = z
+	.object({
+		keyword: z.coerce.string().trim().optional(),
+	})
+	.extend(paginationParamsSchema.shape);

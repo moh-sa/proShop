@@ -3,6 +3,7 @@ import type {
 	createProductSchema,
 	ProductListItemSchema,
 	productSchema,
+	productSearchParamsSchema,
 	productTopRatedListSchema,
 	updateProductSchema,
 } from "../schemas";
@@ -13,3 +14,4 @@ export type Product = z.infer<typeof productSchema>;
 
 export type ProductTopRatedList = z.infer<typeof productTopRatedListSchema>;
 export type ProductListItem = z.infer<typeof ProductListItemSchema>;
+export type ProductSearchParams = z.infer<typeof productSearchParamsSchema>;

@@ -10,8 +10,16 @@ import {
 	normalizeError,
 	type ApiPaginatedResponse,
 } from "@/shared/api";
-import { ProductListItemSchema, productTopRatedListSchema } from "../schemas";
-import type { ProductListItem, ProductTopRatedList } from "../types";
+import {
+	ProductListItemSchema,
+	productSearchParamsSchema,
+	productTopRatedListSchema,
+} from "../schemas";
+import type {
+	ProductListItem,
+	ProductSearchParams,
+	ProductTopRatedList,
+} from "../types";
 
 export async function productTopRatedListApi(
 	signal: AbortSignal,
@@ -24,6 +32,25 @@ export async function productPaginatedListApi(
 	signal: AbortSignal,
 ): Promise<ApiPaginatedResponse<ProductListItem>> {
 	const parsedParams = paginationParamsSchema
+		.transform(buildSearchParams)
+		.safeParse(params);
+	if (!parsedParams.success) {
+		throw new ClientApiError(normalizeError(parsedParams.error, "input"));
+	}
+
+	return await getPaginated(
+		`/products?${parsedParams.data}`,
+		ProductListItemSchema,
+		signal,
+	);
+}
+
+export async function productSearchListApi(
+	params: ProductSearchParams,
+	signal: AbortSignal,
+): Promise<ApiPaginatedResponse<ProductListItem>> {
+	const parsedParams = productSearchParamsSchema
+		.extend(paginationParamsSchema.shape)
 		.transform(buildSearchParams)
 		.safeParse(params);
 	if (!parsedParams.success) {
