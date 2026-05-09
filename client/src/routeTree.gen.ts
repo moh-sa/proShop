@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnauthorizedRouteImport } from './routes/unauthorized'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as GuestRouteImport } from './routes/_guest'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
@@ -21,6 +22,11 @@ import { Route as AuthenticatedAdminDashboardIndexRouteImport } from './routes/_
 const UnauthorizedRoute = UnauthorizedRouteImport.update({
   id: '/unauthorized',
   path: '/unauthorized',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GuestRoute = GuestRouteImport.update({
@@ -59,6 +65,7 @@ const AuthenticatedAdminDashboardIndexRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/search': typeof SearchRoute
   '/unauthorized': typeof UnauthorizedRoute
   '/signin': typeof GuestSigninRoute
   '/signup': typeof GuestSignupRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/search': typeof SearchRoute
   '/unauthorized': typeof UnauthorizedRoute
   '/signin': typeof GuestSigninRoute
   '/signup': typeof GuestSignupRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_guest': typeof GuestRouteWithChildren
+  '/search': typeof SearchRoute
   '/unauthorized': typeof UnauthorizedRoute
   '/_authenticated/_admin': typeof AuthenticatedAdminRouteWithChildren
   '/_guest/signin': typeof GuestSigninRoute
@@ -84,14 +93,21 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/unauthorized' | '/signin' | '/signup' | '/dashboard/'
+  fullPaths:
+    | '/'
+    | '/search'
+    | '/unauthorized'
+    | '/signin'
+    | '/signup'
+    | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/unauthorized' | '/signin' | '/signup' | '/dashboard'
+  to: '/' | '/search' | '/unauthorized' | '/signin' | '/signup' | '/dashboard'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/_guest'
+    | '/search'
     | '/unauthorized'
     | '/_authenticated/_admin'
     | '/_guest/signin'
@@ -103,6 +119,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   GuestRoute: typeof GuestRouteWithChildren
+  SearchRoute: typeof SearchRoute
   UnauthorizedRoute: typeof UnauthorizedRoute
 }
 
@@ -113,6 +130,13 @@ declare module '@tanstack/react-router' {
       path: '/unauthorized'
       fullPath: '/unauthorized'
       preLoaderRoute: typeof UnauthorizedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_guest': {
@@ -206,6 +230,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   GuestRoute: GuestRouteWithChildren,
+  SearchRoute: SearchRoute,
   UnauthorizedRoute: UnauthorizedRoute,
 }
 export const routeTree = rootRouteImport
