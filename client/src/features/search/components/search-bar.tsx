@@ -3,17 +3,19 @@ import {
 	InputGroupAddon,
 	InputGroupInput,
 } from "@/components/ui/input-group";
-import { useNavigate } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { SearchIcon } from "lucide-react";
 import { type SubmitEvent } from "react";
 
+// why no 'useState' you ask?
+// why re-render the component on every keystroke
+// if we won't use the 'controlled' value for suggestions or auto-completion?
 export function SearchBar() {
 	const navigate = useNavigate();
+	const location = useLocation();
 
-	// TODO: 'useSearch' + from :/search
-	// search params are: keyword/query and page/pageNumber
-	// and validate the search params on the route.
-	// wire the 'keyword' to the input field
+	const isSearchRoute = location.pathname === "/search";
+	const urlKeyword = location.search?.keyword ?? "";
 
 	function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
 		e.preventDefault();
@@ -30,7 +32,13 @@ export function SearchBar() {
 				<InputGroupAddon align="inline-start">
 					<SearchIcon className="size-4" />
 				</InputGroupAddon>
-				<InputGroupInput placeholder="Search..." name="search" />
+				<InputGroupInput
+					name="search"
+					placeholder="Search..."
+					defaultValue={isSearchRoute ? urlKeyword : ""}
+					// key is used to reset the input field when the route changes
+					key={isSearchRoute ? urlKeyword : ""}
+				/>
 			</InputGroup>
 		</form>
 	);
