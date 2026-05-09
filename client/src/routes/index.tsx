@@ -1,5 +1,3 @@
-import { HomeLayout } from "@/components/layouts";
-
 import { TopRatedCarousel } from "@/features/carousel";
 import { Pagination, paginationParamsSchema } from "@/features/pagination";
 import { ProductGrid } from "@/features/products/components";
@@ -32,10 +30,17 @@ function RouteComponent() {
 	const data = Route.useLoaderData();
 
 	return (
-		<HomeLayout
-			carouselSlot={<TopRatedCarousel products={data.topRated} />}
-			gridSlot={<ProductGrid products={data.paginated.data} />}
-			paginationSlot={<Pagination {...data.paginated.meta} />}
-		/>
+		<div className="flex h-full flex-col gap-8">
+			{/* CAROUSEL SECTION */}
+			<section className="h-[25vh] max-h-full w-full md:h-[44vh]">
+				<TopRatedCarousel products={data.topRated} />
+			</section>
+
+			{/* PRODUCTS SECTION */}
+			<section className="flex h-full flex-col justify-between gap-4">
+				<ProductGrid products={data.paginated.data} />
+				<Pagination {...data.paginated.meta} />
+			</section>
+		</div>
 	);
 }
