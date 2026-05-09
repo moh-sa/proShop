@@ -1,3 +1,4 @@
+export * from "./build-search-params.util";
 export * from "./delete.util";
 export * from "./get.util";
 export * from "./patch.util";
