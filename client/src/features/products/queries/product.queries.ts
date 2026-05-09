@@ -11,7 +11,7 @@ export const productTopRatedListQueryOptions = queryOptions({
 
 export function productPaginatedListQueryOptions(params: PaginationParams) {
 	return queryOptions({
-		queryKey: productKeys.list(params),
+		queryKey: productKeys.home(params),
 		queryFn: ({ signal }) => productPaginatedListApi(params, signal),
 		refetchOnWindowFocus: false,
 	});
