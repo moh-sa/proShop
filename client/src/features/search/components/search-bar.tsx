@@ -18,11 +18,10 @@ export function SearchBar() {
 	function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
 		e.preventDefault();
 
-		// const formData = new FormData(e.currentTarget);
-		// const search = formData.get("search")?.toString().trim();
+		const formData = new FormData(e.currentTarget);
+		const search = formData.get("search")?.toString().trim();
 
-		// TODO: navigate to /search?query=search
-		navigate({ to: "/" });
+		navigate({ to: "/search", search: { keyword: search } });
 	}
 
 	return (
