@@ -2,10 +2,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { ShoppingCartIcon } from "lucide-react";
+import { selectTotalQuantity, useCartStore } from "../stores";
 
 export function CartButton() {
 	// TODO: update link to /cart
-	// TODO: get cart items from `useCart` hook
 
 	return (
 		<div className="relative">
@@ -13,9 +13,18 @@ export function CartButton() {
 				<ShoppingCartIcon className="size-4" />
 				Cart
 			</Button>
-			<Badge className="pointer-events-none absolute -top-2 -right-2 h-4 min-w-4 text-xs">
-				3
-			</Badge>
+			<QuantityBadge />
 		</div>
+	);
+}
+
+function QuantityBadge() {
+	const totalQuantity = useCartStore(selectTotalQuantity);
+	if (totalQuantity === 0) return null;
+
+	return (
+		<Badge className="pointer-events-none absolute -top-2 -right-2 h-4 min-w-4 text-xs tabular-nums">
+			{totalQuantity}
+		</Badge>
 	);
 }
