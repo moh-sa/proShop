@@ -15,7 +15,7 @@ const priceSchema = z.number().positive();
 
 const countInStockSchema = z.number().int().positive();
 
-const numReviewsSchema = z.number().int().positive();
+const numReviewsSchema = z.number().int().min(0);
 
 const ratingSchema = z.number().min(0).max(5);
 
