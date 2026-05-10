@@ -40,7 +40,14 @@ export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 
 export type AllProducts = Pick<
 	Product,
-	"brand" | "category" | "id" | "image" | "name" | "price" | "rating"
+	| "brand"
+	| "category"
+	| "id"
+	| "image"
+	| "name"
+	| "price"
+	| "rating"
+	| "countInStock"
 >;
 
 export type Product = z.infer<typeof productSchema>;

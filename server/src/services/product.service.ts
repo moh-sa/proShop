@@ -155,6 +155,7 @@ export class ProductService implements IProductService {
 			name: true,
 			price: true,
 			rating: true,
+			countInStock: true,
 		};
 
 		const result = await this._repository.getAll({

@@ -358,6 +358,7 @@ suite("Product Service 〖 Unit Tests 〗", () => {
 					name: true,
 					price: true,
 					rating: true,
+					countInStock: true,
 				},
 			);
 		});

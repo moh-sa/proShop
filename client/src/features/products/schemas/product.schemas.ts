@@ -69,6 +69,7 @@ export const ProductListItemSchema = productSchema.pick({
 	image: true,
 	rating: true,
 	price: true,
+	countInStock: true,
 });
 
 export const productSearchParamsSchema = z
