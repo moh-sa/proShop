@@ -10,12 +10,15 @@ import {
 	normalizeError,
 	type ApiPaginatedResponse,
 } from "@/shared/api";
+import { idSchema } from "@/shared/schemas";
 import {
 	ProductListItemSchema,
+	productSchema,
 	productSearchParamsSchema,
 	productTopRatedListSchema,
 } from "../schemas";
 import type {
+	Product,
 	ProductListItem,
 	ProductSearchParams,
 	ProductTopRatedList,
@@ -62,4 +65,16 @@ export async function productSearchListApi(
 		ProductListItemSchema,
 		signal,
 	);
+}
+
+export async function getProductByIdApi(
+	productId: string,
+	signal: AbortSignal,
+): Promise<Product> {
+	const parsedId = idSchema.safeParse(productId);
+	if (!parsedId.success) {
+		throw new ClientApiError(normalizeError(parsedId.error, "input"));
+	}
+
+	return await get(`/products/${parsedId.data}`, productSchema, signal);
 }

@@ -1,6 +1,7 @@
 import type { PaginationParams } from "@/features/pagination";
 import { queryOptions } from "@tanstack/react-query";
 import {
+	getProductByIdApi,
 	productPaginatedListApi,
 	productSearchListApi,
 	productTopRatedListApi,
@@ -27,5 +28,14 @@ export function productSearchListQueryOptions(params: ProductSearchParams) {
 		queryKey: productKeys.search(params),
 		queryFn: ({ signal }) => productSearchListApi(params, signal),
 		refetchOnWindowFocus: false,
+	});
+}
+
+export function productDetailQueryOptions(productId: string) {
+	return queryOptions({
+		queryKey: productKeys.detail(productId),
+		queryFn: ({ signal }) => getProductByIdApi(productId, signal),
+		refetchOnWindowFocus: false,
+		enabled: Boolean(productId),
 	});
 }

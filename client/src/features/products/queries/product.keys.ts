@@ -9,4 +9,6 @@ export const productKeys = {
 	search: (params: ProductSearchParams) =>
 		[...productKeys._lists(), "search", params] as const,
 	topRated: () => [...productKeys._lists(), "top-rated"] as const,
+	detail: (productId: string) =>
+		[...productKeys.all, "detail", productId] as const,
 } as const;
