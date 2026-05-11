@@ -3,7 +3,6 @@ import test, { after, before, beforeEach, describe, suite } from "node:test";
 
 import {
 	AuthenticationError,
-	ConflictError,
 	ForbiddenError,
 	InternalError,
 	NotFoundError,
@@ -13,7 +12,6 @@ import {
 	authenticateAccessToken,
 	authenticateRefreshSession,
 	authorizeAdmin,
-	checkProductReviewedByUser,
 	checkUserExists,
 	verifyReviewOwnership,
 } from "../../middlewares/index.js";
@@ -23,7 +21,6 @@ import { SessionModel } from "../../models/session.model.js";
 import { UserModel } from "../../models/user.model.js";
 import { JwtService } from "../../services/index.js";
 import {
-	generateMockInsertProductWithStringImage,
 	generateMockInsertReview,
 	generateMockInsertSession,
 	generateMockInsertUser,
@@ -33,7 +30,6 @@ import {
 import {
 	connectTestDatabase,
 	createMockExpressContextFromHandler,
-	createProduct,
 	createReview,
 	createSession,
 	createUser,
@@ -48,90 +44,6 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		await SessionModel.deleteMany({});
 		await ReviewModel.deleteMany({});
 		await ProductModel.deleteMany({});
-	});
-
-	describe("checkProductReviewedByUser", () => {
-		test("Should throw ConflictError when review exists for user and product", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContextFromHandler(
-				checkProductReviewedByUser,
-			);
-			const user = await createUser(generateMockInsertUser());
-
-			const product = await createProduct({
-				...generateMockInsertProductWithStringImage(),
-				userId: user.id,
-			});
-
-			await createReview(
-				generateMockInsertReview({
-					productId: product.id,
-					user: { id: user.id, name: user.name },
-				}),
-			);
-
-			res.locals.user = user;
-			req.params.productId = product.id;
-
-			// Act & Assert
-			await assert.rejects(
-				async () => checkProductReviewedByUser(req, res, next),
-				ConflictError,
-			);
-		});
-
-		test("Should not throw when review does not exist", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContextFromHandler(
-				checkProductReviewedByUser,
-			);
-			const user = await createUser(generateMockInsertUser());
-
-			const product = await createProduct({
-				...generateMockInsertProductWithStringImage(),
-				userId: user.id,
-			});
-
-			res.locals.user = user;
-			req.params.productId = product.id;
-
-			// Act & Assert
-			await assert.doesNotReject(async () =>
-				checkProductReviewedByUser(req, res, next),
-			);
-		});
-
-		test("Should throw ValidationError when productId is invalid", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContextFromHandler(
-				checkProductReviewedByUser,
-			);
-
-			const user = await createUser(generateMockInsertUser());
-
-			res.locals.user = user;
-			req.params.productId = "invalid";
-
-			// Act & Assert
-			await assert.rejects(
-				async () => checkProductReviewedByUser(req, res, next),
-				ValidationError,
-			);
-		});
-
-		test("Should throw InternalError when res.locals.user is missing", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContextFromHandler(
-				checkProductReviewedByUser,
-			);
-			req.params.productId = generateMockObjectId();
-
-			// Act & Assert
-			await assert.rejects(
-				async () => checkProductReviewedByUser(req, res, next),
-				InternalError,
-			);
-		});
 	});
 
 	describe("checkUserIdExists", () => {

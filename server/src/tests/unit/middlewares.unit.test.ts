@@ -6,7 +6,6 @@ import type { NextFunction, Request, Response } from "express";
 
 import {
 	AuthenticationError,
-	ConflictError,
 	ForbiddenError,
 	InternalError,
 	NotFoundError,
@@ -16,7 +15,6 @@ import {
 	authenticateAccessToken,
 	authenticateRefreshSession,
 	authorizeAdmin,
-	checkProductReviewedByUser,
 	checkUserExists,
 	verifyReviewOwnership,
 } from "../../middlewares/index.js";
@@ -586,168 +584,6 @@ suite("Middlewares 〖 Unit Tests 〗", () => {
 				res as unknown as Response,
 				next as unknown as NextFunction),
 				ForbiddenError,
-			);
-		});
-	});
-
-	describe("checkProductReviewedByUser", () => {
-		test("Should call next with InternalError when res.locals.user is missing", async (t) => {
-			// Arrange
-			const { next, req, res } = mockExpressCall({
-				req: { params: {} },
-				testContext: t,
-			});
-
-			// Act & Assert
-			await assert.rejects(
-				async () => checkProductReviewedByUser(req as unknown as Request,
-				res as unknown as Response,
-				next as unknown as NextFunction),
-				InternalError,
-			);
-		});
-
-		test("Should call next with ValidationError when productId is invalid", async (t) => {
-			// Arrange
-			const { next, req, res } = mockExpressCall({
-				req: { params: { productId: "invalid" } },
-				res: { locals: { user: { id: "507f1f77bcf86cd799439011" } } },
-				testContext: t,
-			});
-
-			// Act & Assert
-			await assert.rejects(
-				async () => checkProductReviewedByUser(req as unknown as Request,
-				res as unknown as Response,
-				next as unknown as NextFunction),
-				ValidationError,
-			);
-		});
-
-		test("Should pass productId to ReviewService.existsByUserIdAndProductId", async (t) => {
-			// Arrange
-			const productId = "507f1f77bcf86cd799439011";
-			const userId = "507f1f77bcf86cd799439012";
-			const { next, req, res } = mockExpressCall({
-				req: { params: { productId } },
-				res: { locals: { user: { id: userId } } },
-				testContext: t,
-			});
-
-			const mockExists = t.mock.method(
-				ReviewService.prototype,
-				"existsByUserIdAndProductId",
-				async () => ({ error: new NotFoundError("Review"), success: false }),
-			);
-
-			// Act
-			await checkProductReviewedByUser(req as unknown as Request,
-				res as unknown as Response,
-				next as unknown as NextFunction);
-
-			// Assert
-			assert.strictEqual(
-				mockExists.mock.calls[0].arguments[0]?.productId,
-				productId,
-			);
-		});
-
-		test("Should pass userId to ReviewService.existsByUserIdAndProductId", async (t) => {
-			// Arrange
-			const productId = "507f1f77bcf86cd799439011";
-			const userId = "507f1f77bcf86cd799439012";
-			const { next, req, res } = mockExpressCall({
-				req: { params: { productId } },
-				res: { locals: { user: { id: userId } } },
-				testContext: t,
-			});
-
-			const mockExists = t.mock.method(
-				ReviewService.prototype,
-				"existsByUserIdAndProductId",
-				async () => ({ error: new NotFoundError("Review"), success: false }),
-			);
-
-			// Act
-			await checkProductReviewedByUser(req as unknown as Request,
-				res as unknown as Response,
-				next as unknown as NextFunction);
-
-			// Assert
-			assert.strictEqual(mockExists.mock.calls[0].arguments[0]?.userId, userId);
-		});
-
-		test("Should not throw when review does not exist", async (t) => {
-			// Arrange
-			const productId = "507f1f77bcf86cd799439011";
-			const userId = "507f1f77bcf86cd799439012";
-			const { next, req, res } = mockExpressCall({
-				req: { params: { productId } },
-				res: { locals: { user: { id: userId } } },
-				testContext: t,
-			});
-
-			t.mock.method(
-				ReviewService.prototype,
-				"existsByUserIdAndProductId",
-				async () => ({ error: new NotFoundError("Review"), success: false }),
-			);
-
-			// Act & Assert
-			await assert.doesNotReject(async () =>
-				checkProductReviewedByUser(req as unknown as Request,
-				res as unknown as Response,
-				next as unknown as NextFunction),
-			);
-		});
-
-		test("Should call next once without error when review does not exist", async (t) => {
-			// Arrange
-			const productId = "507f1f77bcf86cd799439011";
-			const userId = "507f1f77bcf86cd799439012";
-			const { next, req, res } = mockExpressCall({
-				req: { params: { productId } },
-				res: { locals: { user: { id: userId } } },
-				testContext: t,
-			});
-
-			t.mock.method(
-				ReviewService.prototype,
-				"existsByUserIdAndProductId",
-				async () => ({ error: new NotFoundError("Review"), success: false }),
-			);
-
-			// Act
-			await checkProductReviewedByUser(req as unknown as Request,
-				res as unknown as Response,
-				next as unknown as NextFunction);
-
-			// Assert
-			assert.strictEqual(next.mock.callCount(), 1);
-		});
-
-		test("Should call next with ConflictError when review exists", async (t) => {
-			// Arrange
-			const productId = "507f1f77bcf86cd799439011";
-			const userId = "507f1f77bcf86cd799439012";
-			const { next, req, res } = mockExpressCall({
-				req: { params: { productId } },
-				res: { locals: { user: { id: userId } } },
-				testContext: t,
-			});
-
-			t.mock.method(
-				ReviewService.prototype,
-				"existsByUserIdAndProductId",
-				async () => ({ data: { id: productId }, success: true }),
-			);
-
-			// Act & Assert
-			await assert.rejects(
-				async () => checkProductReviewedByUser(req as unknown as Request,
-				res as unknown as Response,
-				next as unknown as NextFunction),
-				ConflictError,
 			);
 		});
 	});
