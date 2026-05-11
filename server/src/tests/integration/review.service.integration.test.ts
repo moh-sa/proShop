@@ -1023,7 +1023,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 	});
 
 	describe("existsById", () => {
-		test("Should return review ID when 'repo.existsById' is called with existing review ID", async () => {
+		test("Should return true when 'repo.existsById' is called with existing review ID", async () => {
 			// Arrange
 			const createdReview = await createReview(generateMockInsertReview());
 
@@ -1034,11 +1034,10 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.ok(result.data.id);
-			assert.strictEqual(result.data.id, createdReview.id);
+			assert.strictEqual(result.data, true);
 		});
 
-		test("Should return 'NotFoundError' when 'repo.existsById' is called with non-existent review ID", async () => {
+		test("Should return false when 'repo.existsById' is called with non-existent review ID", async () => {
 			// Arrange
 			const nonExistentId = generateMockObjectId();
 
@@ -1048,8 +1047,8 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof NotFoundError);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, false);
 		});
 
 		test("Should return 'ValidationError' when 'repo.existsById' is called with 'reviewId' being invalid ObjectId", async () => {
@@ -1066,7 +1065,7 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 	});
 
 	describe("existsByUserIdAndProductId", () => {
-		test("Should return review ID when 'repo.existsByUserIdAndProductId' is called with existing user-product review", async () => {
+		test("Should return true when 'repo.existsByUserIdAndProductId' is called with existing user-product review", async () => {
 			// Arrange
 			const createdReviews = await createReviews(
 				generateMockInsertReviews({ count: 3 }),
@@ -1081,11 +1080,10 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.ok(result.data.id);
-			assert.strictEqual(result.data.id, targetReview.id);
+			assert.strictEqual(result.data, true);
 		});
 
-		test("Should return 'NotFoundError' when 'repo.existsByUserIdAndProductId' is called with non-existent user-product review", async () => {
+		test("Should return false when 'repo.existsByUserIdAndProductId' is called with non-existent user-product review", async () => {
 			// Arrange
 			const userId = generateMockObjectId();
 			const productId = generateMockObjectId();
@@ -1097,8 +1095,8 @@ suite("Review Service 〖 Integration Tests 〗", () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof NotFoundError);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, false);
 		});
 
 		test("Should return 'ValidationError' when 'repo.existsByUserIdAndProductId' is called with 'userId' being invalid ObjectId", async () => {

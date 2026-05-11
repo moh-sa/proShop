@@ -32,11 +32,11 @@ export interface IReviewService {
 	delete: (data: { reviewId: string }) => Promise<ReviewResult<Review>>;
 	existsById: (data: {
 		reviewId: string;
-	}) => Promise<ReviewResult<{ id: string }>>;
+	}) => Promise<ReviewResult<boolean>>;
 	existsByUserIdAndProductId: (data: {
 		productId: string;
 		userId: string;
-	}) => Promise<ReviewResult<{ id: string }>>;
+	}) => Promise<ReviewResult<boolean>>;
 	getAll: (
 		args: GetAllReviewsServiceParams,
 	) => Promise<ReviewResult<PaginatedResponse<Review>>>;
@@ -287,17 +287,17 @@ export class ReviewService implements IReviewService {
 		}
 
 		if (!result.data) {
-			logger.warn({ reviewId }, "Review not found");
+			logger.debug({ reviewId }, "Review does not exist by ID");
 			return {
-				error: new NotFoundError("Review"),
-				success: false,
+				data: false,
+				success: true,
 			};
 		}
 
-		logger.info({ reviewId }, "Review exists by ID successfully");
+		logger.info({ reviewId }, "Review exists by ID");
 
 		return {
-			data: result.data,
+			data: true,
 			success: true,
 		};
 	}
@@ -349,20 +349,23 @@ export class ReviewService implements IReviewService {
 		}
 
 		if (!result.data) {
-			logger.warn({ productId, userId }, "Review not found");
+			logger.debug(
+				{ productId, userId },
+				"No review for user ID and product ID combination",
+			);
 			return {
-				error: new NotFoundError("Review"),
-				success: false,
+				data: false,
+				success: true,
 			};
 		}
 
 		logger.info(
 			{ productId, userId },
-			"Review exists by user ID and product ID successfully",
+			"Review exists for user ID and product ID",
 		);
 
 		return {
-			data: result.data,
+			data: true,
 			success: true,
 		};
 	}

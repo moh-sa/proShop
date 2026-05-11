@@ -797,7 +797,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 		const reviewId = id;
 		const expectedResult = { id };
 
-		test("Should return 'reviewId' when 'repo.existsById' is called once with 'reviewId'", async () => {
+		test("Should return true when 'repo.existsById' returns a review id", async () => {
 			// Arrange
 			mockRepo.existsById.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: expectedResult, success: true }),
@@ -810,7 +810,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.deepEqual(result.data, expectedResult);
+			assert.strictEqual(result.data, true);
 
 			assert.strictEqual(mockRepo.existsById.mock.callCount(), 1);
 			assert.deepEqual(
@@ -819,7 +819,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should return 'NotFoundError' when 'repo.existsById' returns 'null'", async () => {
+		test("Should return false when 'repo.existsById' returns 'null'", async () => {
 			// Arrange
 			mockRepo.existsById.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: null, success: true }),
@@ -831,8 +831,8 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof NotFoundError);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, false);
 		});
 
 		test("Should return 'ValidationError' if 'reviewId' is invalid ObjectId", async () => {
@@ -854,7 +854,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 		const id = generateMockObjectId();
 		const existsResult = { id };
 
-		test("Should return 'reviewId' when'repo.existsByUserIdAndProductId' is called once with 'userId' and 'productId'", async () => {
+		test("Should return true when 'repo.existsByUserIdAndProductId' returns a review id", async () => {
 			// Arrange
 			mockRepo.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: existsResult, success: true }),
@@ -868,7 +868,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 
 			// Assert
 			assert.strictEqual(result.success, true);
-			assert.deepEqual(result.data, existsResult);
+			assert.strictEqual(result.data, true);
 
 			assert.strictEqual(
 				mockRepo.existsByUserIdAndProductId.mock.callCount(),
@@ -887,7 +887,7 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should return 'NotFoundError' when 'repo.existsByUserIdAndProductId' returns 'null'", async () => {
+		test("Should return false when 'repo.existsByUserIdAndProductId' returns 'null'", async () => {
 			// Arrange
 			mockRepo.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>
 				Promise.resolve({ data: null, success: true }),
@@ -900,8 +900,8 @@ suite("Review Service 〖 Unit Tests 〗", () => {
 			});
 
 			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof NotFoundError);
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data, false);
 		});
 
 		test("Should return 'ValidationError' if 'userId' is invalid ObjectId", async () => {

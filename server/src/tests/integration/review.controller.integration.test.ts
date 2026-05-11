@@ -1141,7 +1141,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.strictEqual(response.success, true);
-			assert.ok(response.data);
+			assert.strictEqual(response.data, true);
 		});
 
 		test("Should return '200' status code when 'service.existsById' is called with 'reviewId'", async () => {
@@ -1161,7 +1161,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(code, 200);
 		});
 
-		test("Should return 'review id' when 'service.existsById' is called with existing 'reviewId'", async () => {
+		test("Should return true when 'service.existsById' is called with existing 'reviewId'", async () => {
 			// Arrange
 			const createdReviews = await createReviews(
 				generateMockInsertReviews({ count: 5 }),
@@ -1180,10 +1180,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.strictEqual(response.success, true);
-			assert.strictEqual(response.data.id, targetReview.id);
+			assert.strictEqual(response.data, true);
 		});
 
-		test("Should throw 'NotFoundError' when 'service.existsById' is called with non-existent review id", async () => {
+		test("Should return false when 'service.existsById' is called with non-existent review id", async () => {
 			// Arrange
 			const reviewId = generateMockObjectId();
 			const { next, req, res } = createMockExpressContextFromHandler(
@@ -1191,15 +1191,15 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			);
 			req.params = { reviewId };
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.existsById(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof NotFoundError);
-					assert.strictEqual(error.message, "Review not found");
-					return true;
-				},
-			);
+			// Act
+			await controller.existsById(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			const code = res._getStatusCode();
+			assert.strictEqual(code, 200);
+			assert.strictEqual(response.success, true);
+			assert.strictEqual(response.data, false);
 		});
 	});
 
@@ -1222,7 +1222,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.strictEqual(response.success, true);
-			assert.ok(response.data);
+			assert.strictEqual(response.data, true);
 		});
 
 		test("Should return '200' status code when 'service.existsByUserIdAndProductId' is called with valid data", async () => {
@@ -1245,7 +1245,7 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			assert.strictEqual(code, 200);
 		});
 
-		test("Should return 'review id' when 'service.existsByUserIdAndProductId' is called with existing combination", async () => {
+		test("Should return true when 'service.existsByUserIdAndProductId' is called with existing combination", async () => {
 			// Arrange
 			const createdReviews = await createReviews(
 				generateMockInsertReviews({ count: 3 }),
@@ -1266,10 +1266,10 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 			// Assert
 			const response = res._getJSONData();
 			assert.strictEqual(response.success, true);
-			assert.strictEqual(response.data.id, targetReview.id);
+			assert.strictEqual(response.data, true);
 		});
 
-		test("Should throw 'NotFoundError' when 'service.existsByUserIdAndProductId' is called with non-existent combination", async () => {
+		test("Should return false when 'service.existsByUserIdAndProductId' is called with non-existent combination", async () => {
 			// Arrange
 			const mockId = generateMockObjectId();
 
@@ -1283,15 +1283,15 @@ suite("Review Controller 〖 Integration Tests 〗", () => {
 				userId: mockId,
 			};
 
-			// Act & Assert
-			await assert.rejects(
-				async () => await controller.existsByUserIdAndProductId(req, res, next),
-				(error: unknown) => {
-					assert.ok(error instanceof NotFoundError);
-					assert.strictEqual(error.message, "Review not found");
-					return true;
-				},
-			);
+			// Act
+			await controller.existsByUserIdAndProductId(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			const code = res._getStatusCode();
+			assert.strictEqual(code, 200);
+			assert.strictEqual(response.success, true);
+			assert.strictEqual(response.data, false);
 		});
 	});
 });

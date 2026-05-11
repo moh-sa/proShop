@@ -1053,9 +1053,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 	});
 
 	describe("existsById", () => {
-		const id = generateMockObjectId();
-		const reviewId = id;
-		const serviceResult = { id };
+		const reviewId = generateMockObjectId();
 
 		test("Should call 'service.existsById' once with the correct 'reviewId'", async (t) => {
 			// Arrange
@@ -1065,7 +1063,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.existsById.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: serviceResult, success: true }),
+				Promise.resolve({ data: true, success: true }),
 			);
 
 			// Act
@@ -1080,7 +1078,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should call 'res.status' once with '200' after successfully fetching review data", async (t) => {
+		test("Should call 'res.status' once with '200' after successful existence check", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId } },
@@ -1088,7 +1086,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.existsById.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: serviceResult, success: true }),
+				Promise.resolve({ data: true, success: true }),
 			);
 
 			// Act
@@ -1100,7 +1098,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
-		test("Should call 'res.json' once with the success response object containing review data", async (t) => {
+		test("Should call 'res.json' once with the success response when review exists", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: { params: { reviewId } },
@@ -1108,7 +1106,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.existsById.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: serviceResult, success: true }),
+				Promise.resolve({ data: true, success: true }),
 			);
 
 			// Act
@@ -1119,7 +1117,26 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: serviceResult }),
+				createSuccessResponseObject({ data: true }),
+			);
+		});
+
+		test("Should call 'res.json' with data false when review does not exist", async (t) => {
+			const { next, req, res } = mockExpressCall({
+				req: { params: { reviewId } },
+				testContext: t,
+			});
+
+			mockService.existsById.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: false, success: true }),
+			);
+
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.existsById(req, res, next);
+
+			assert.deepStrictEqual(
+				res.json.mock.calls[0].arguments[0],
+				createSuccessResponseObject({ data: false }),
 			);
 		});
 	});
@@ -1127,7 +1144,6 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 	describe("existsByUserIdAndProductId", () => {
 		const userId = generateMockObjectId();
 		const productId = generateMockObjectId();
-		const serviceResult = { id: generateMockObjectId() };
 
 		test("Should call 'service.existsByUserIdAndProductId' once with the correct 'userId' and 'productId'", async (t) => {
 			// Arrange
@@ -1142,7 +1158,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: serviceResult, success: true }),
+				Promise.resolve({ data: true, success: true }),
 			);
 
 			// Act
@@ -1166,7 +1182,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			);
 		});
 
-		test("Should call 'res.status' once with '200' after successfully fetching review data", async (t) => {
+		test("Should call 'res.status' once with '200' after successful existence check", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
@@ -1179,7 +1195,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: serviceResult, success: true }),
+				Promise.resolve({ data: true, success: true }),
 			);
 
 			// Act
@@ -1191,7 +1207,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
 		});
 
-		test("Should call 'res.json' once with the success response object containing review data", async (t) => {
+		test("Should call 'res.json' once with the success response when review exists", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
 				req: {
@@ -1204,7 +1220,7 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			});
 
 			mockService.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>
-				Promise.resolve({ data: serviceResult, success: true }),
+				Promise.resolve({ data: true, success: true }),
 			);
 
 			// Act
@@ -1215,7 +1231,31 @@ suite("Review Controller 〖 Unit Tests 〗", () => {
 			assert.strictEqual(res.json.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				res.json.mock.calls[0].arguments[0],
-				createSuccessResponseObject({ data: serviceResult }),
+				createSuccessResponseObject({ data: true }),
+			);
+		});
+
+		test("Should call 'res.json' with data false when review does not exist", async (t) => {
+			const { next, req, res } = mockExpressCall({
+				req: {
+					params: {
+						productId: productId,
+						userId: userId,
+					},
+				},
+				testContext: t,
+			});
+
+			mockService.existsByUserIdAndProductId.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: false, success: true }),
+			);
+
+			// @ts-expect-error - type mismatch between my asyncHandler and express Request/Response
+			await controller.existsByUserIdAndProductId(req, res, next);
+
+			assert.deepStrictEqual(
+				res.json.mock.calls[0].arguments[0],
+				createSuccessResponseObject({ data: false }),
 			);
 		});
 	});

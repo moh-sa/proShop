@@ -37,11 +37,11 @@ export interface IReviewController {
 	}>;
 	existsById: AsyncHandler<{
 		params: { reviewId: string };
-		resBody: { data: { id: string } };
+		resBody: { data: boolean };
 	}>;
 	existsByUserIdAndProductId: AsyncHandler<{
 		params: { productId: string; userId: string };
-		resBody: { data: { id: string } };
+		resBody: { data: boolean };
 	}>;
 	getAll: AsyncHandler<{
 		query: GetAllReviewsControllerParams;
@@ -211,7 +211,7 @@ export class ReviewController implements IReviewController {
 
 	existsById = asyncHandler<{
 		params: { reviewId: string };
-		resBody: { data: { id: string } };
+		resBody: { data: boolean };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "existsById" });
 		logger.debug(
@@ -227,8 +227,8 @@ export class ReviewController implements IReviewController {
 		}
 
 		logger.info(
-			{ reviewId: exists.data.id },
-			"Review exists by ID successfully",
+			{ exists: exists.data, reviewId: req.params.reviewId },
+			"Review existence check by ID completed",
 		);
 
 		res.status(HTTP_STATUS.OK).json({
@@ -239,7 +239,7 @@ export class ReviewController implements IReviewController {
 
 	existsByUserIdAndProductId = asyncHandler<{
 		params: { productId: string; userId: string };
-		resBody: { data: { id: string } };
+		resBody: { data: boolean };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "existsByUserIdAndProductId" });
 		logger.debug(
@@ -256,8 +256,12 @@ export class ReviewController implements IReviewController {
 		}
 
 		logger.info(
-			{ productId: exists.data.id },
-			"Review exists by user ID and product ID successfully",
+			{
+				exists: exists.data,
+				productId: req.params.productId,
+				userId: req.params.userId,
+			},
+			"Review existence check by user and product completed",
 		);
 
 		res.status(HTTP_STATUS.OK).json({
