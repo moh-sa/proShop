@@ -254,9 +254,12 @@ export class Paginator<
 		sort: ProjectionSort<TDocument>;
 	}): Promise<{ items: Array<TResult>; totalItems: number }> {
 		const hasSort = args.sort && Object.keys(args.sort).length > 0;
-		const sort = hasSort
+		const baseSort = hasSort
 			? (args.sort as Record<string, -1 | 1>)
 			: ({ createdAt: -1 } as Record<string, -1 | 1>);
+		
+		// Always append _id as a tiebreaker for deterministic ordering
+		const sort = { ...baseSort, _id: 1 as const };
 
 		type AggregateResult = {
 			items: Array<TResult>;
