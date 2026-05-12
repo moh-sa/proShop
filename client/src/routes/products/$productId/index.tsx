@@ -6,6 +6,7 @@ import {
 } from "@/features/reviews";
 import type { User } from "@/features/users";
 import { createFileRoute } from "@tanstack/react-router";
+import { ProductRoutePending } from "./-pending/route-pending";
 import { ProductDetailSection } from "./-product-detail";
 import { ReviewSection } from "./-reviews-section";
 
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/products/$productId/")({
 		);
 	},
 	component: RouteComponent,
+	pendingComponent: ProductRoutePending,
 });
 
 function RouteComponent() {

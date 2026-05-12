@@ -4,7 +4,6 @@ import {
 	AlertDescription,
 	AlertTitle,
 } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
 import { SignInButton, useAuth } from "@/features/auth";
 import {
 	createReviewMutationOptions,
@@ -22,6 +21,8 @@ import {
 } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 import { Suspense } from "react";
+import { ReviewsListPending } from "./-pending/form-list.pending";
+import { ReviewFormPending } from "./-pending/review-form.pending";
 
 const routeApi = getRouteApi("/products/$productId/");
 
@@ -65,12 +66,6 @@ function ReviewListContainer({ productId }: { productId: string }) {
 	);
 }
 
-export function ReviewsListPending() {
-	return (
-		<Skeleton className="min-h-[280px] w-full rounded-xl md:min-h-[320px]" />
-	);
-}
-
 function HasReviewedProductAlert() {
 	return (
 		<Alert>
@@ -110,8 +105,7 @@ function ReviewFormPanel(props: { productId: string }) {
 	if (!user) return <SignInToReviewAlert />;
 
 	return (
-		// '224px' is the current height of the review form
-		<Suspense fallback={<Skeleton className="size-full min-h-[224px]" />}>
+		<Suspense fallback={<ReviewFormPending />}>
 			<AuthenticatedReviewPanel productId={props.productId} user={user} />
 		</Suspense>
 	);
