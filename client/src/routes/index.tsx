@@ -6,6 +6,7 @@ import {
 	productTopRatedListQueryOptions,
 } from "@/features/products/queries";
 import { createFileRoute } from "@tanstack/react-router";
+import { HomeRoutePending } from "./-home-route-pending";
 
 export const Route = createFileRoute("/")({
 	validateSearch: paginationParamsSchema,
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/")({
 		};
 	},
 	component: RouteComponent,
+	pendingComponent: HomeRoutePending,
 });
 
 function RouteComponent() {
