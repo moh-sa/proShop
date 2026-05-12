@@ -1,3 +1,4 @@
+import { getRouter } from "@/shared/router";
 import { mutationOptions } from "@tanstack/react-query";
 import { signInApi, signOutApi, signUpApi } from "../api/api";
 import { authKeys } from "./keys";
@@ -5,23 +6,26 @@ import { authKeys } from "./keys";
 export const signUpMutationOptions = mutationOptions({
 	mutationKey: ["sign-up"],
 	mutationFn: signUpApi,
-	onSuccess(data, _variables, _onMutateResult, context) {
+	onSuccess: async (data, _variables, _onMutateResult, context) => {
 		context.client.setQueryData(authKeys.me(), data);
+		await getRouter().invalidate();
 	},
 });
 
 export const signInMutationOptions = mutationOptions({
 	mutationKey: ["sign-in"],
 	mutationFn: signInApi,
-	onSuccess(data, _variables, _onMutateResult, context) {
+	onSuccess: async (data, _variables, _onMutateResult, context) => {
 		context.client.setQueryData(authKeys.me(), data);
+		await getRouter().invalidate();
 	},
 });
 
 export const signOutMutationOptions = mutationOptions({
 	mutationKey: ["sign-out"],
 	mutationFn: signOutApi,
-	onSuccess(_data, _variables, _onMutateResult, context) {
+	onSuccess: async (_data, _variables, _onMutateResult, context) => {
 		context.client.setQueryData(authKeys.me(), null);
+		await getRouter().invalidate();
 	},
 });

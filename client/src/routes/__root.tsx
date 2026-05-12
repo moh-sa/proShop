@@ -1,20 +1,41 @@
 import { Logo } from "@/components/branding";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SignInButton, useAuth } from "@/features/auth";
+import { getMeQueryOptions, SignInButton, useAuth } from "@/features/auth";
 import { CartButton } from "@/features/cart";
 import { SearchBar } from "@/features/search";
 import { UserMenu } from "@/features/users";
 import { AppProvider } from "@/providers/app.provider";
 import type { RouterContext } from "@/shared/router";
-import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import {
+	createRootRouteWithContext,
+	Outlet,
+	useRouter,
+} from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import React from "react";
 
 export const Route = createRootRouteWithContext<RouterContext>()({
+	beforeLoad: async ({ context }) => {
+		const user = await context.client.ensureQueryData(getMeQueryOptions);
+		return { user };
+	},
 	component: RootLayout,
 });
 
 function RootLayout() {
-	useAuth();
+	const router = useRouter();
+	const { user } = useAuth();
+	const prevUserRef = React.useRef(user);
+
+	React.useEffect(() => {
+		// 'useAuth' uses 'refetchInterval' to keep the session fresh
+		// if the session got invalidated, invalidate the router to re-apply route guards
+		if (prevUserRef.current?.id !== user?.id) {
+			router.invalidate();
+			prevUserRef.current = user;
+		}
+	}, [user, router]);
+
 	return (
 		<AppProvider>
 			<div className="grid min-h-dvh grid-rows-[auto_1fr_auto]">

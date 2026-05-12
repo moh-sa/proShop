@@ -33,6 +33,20 @@ export async function signOutApi(): Promise<void> {
 	await del("/auth/signout/current");
 }
 
-export async function fetchMeApi(signal: AbortSignal): Promise<User> {
-	return await get("/users/profile", userSchema, signal);
+export async function fetchMeApi(signal: AbortSignal): Promise<User | null> {
+	try {
+		return await get("/users/profile", userSchema, signal);
+	} catch (error) {
+		// axios interceptor already tried to refresh token and failed
+		// 401 here means the token is invalid or expired and must be re-authenticated
+		if (
+			error instanceof ClientApiError &&
+			error.details.kind === "SERVER" &&
+			error.details.status === 401
+		) {
+			return null;
+		}
+
+		throw error;
+	}
 }
