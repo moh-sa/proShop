@@ -64,8 +64,11 @@ export function TopRatedCarousel({ products }: TopRatedCarouselProps) {
 										Featured
 									</p>
 									<h2 className="mt-1 text-xl font-bold sm:text-3xl">
-										{/* TODO: update link to product-detail page */}
-										<Link to="/" className="after:absolute after:inset-0">
+										<Link
+											to="/products/$productId"
+											params={{ productId: product.id }}
+											className="after:absolute after:inset-0"
+										>
 											{product.name}
 										</Link>
 									</h2>
