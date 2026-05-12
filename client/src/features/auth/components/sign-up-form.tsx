@@ -1,14 +1,13 @@
-import { FormTextField } from "@/components/forms";
 import { Button } from "@/components/ui/button";
 import { signUpInputSchema, type SignUpInput } from "@/features/auth";
-import { useForm } from "@tanstack/react-form";
+import { useAppForm } from "@/shared/form";
 
 type SignUpFormProps = {
 	onSubmit: (values: SignUpInput) => void;
 };
 
 export function SignUpForm(props: SignUpFormProps) {
-	const form = useForm({
+	const form = useAppForm({
 		defaultValues: {
 			name: "",
 			email: "",
@@ -29,14 +28,14 @@ export function SignUpForm(props: SignUpFormProps) {
 			}}
 		>
 			<div>
-				<form.Field
+				<form.AppField
 					name="name"
 					validators={{
 						onChange: signUpInputSchema.shape.name,
 					}}
-					children={(field) => (
-						<FormTextField
-							field={field}
+				>
+					{(field) => (
+						<field.TextField
 							label="Username"
 							type="text"
 							autoComplete="username"
@@ -44,18 +43,18 @@ export function SignUpForm(props: SignUpFormProps) {
 							required
 						/>
 					)}
-				/>
+				</form.AppField>
 			</div>
 
 			<div>
-				<form.Field
+				<form.AppField
 					name="email"
 					validators={{
 						onChange: signUpInputSchema.shape.email,
 					}}
-					children={(field) => (
-						<FormTextField
-							field={field}
+				>
+					{(field) => (
+						<field.TextField
 							label="Email Address"
 							type="email"
 							autoComplete="email"
@@ -63,18 +62,18 @@ export function SignUpForm(props: SignUpFormProps) {
 							required
 						/>
 					)}
-				/>
+				</form.AppField>
 			</div>
 
 			<div>
-				<form.Field
+				<form.AppField
 					name="password"
 					validators={{
 						onChange: signUpInputSchema.shape.password,
 					}}
-					children={(field) => (
-						<FormTextField
-							field={field}
+				>
+					{(field) => (
+						<field.TextField
 							label="Password"
 							type="password"
 							autoComplete="current-password"
@@ -82,7 +81,7 @@ export function SignUpForm(props: SignUpFormProps) {
 							required
 						/>
 					)}
-				/>
+				</form.AppField>
 			</div>
 
 			<form.Subscribe

@@ -1,14 +1,13 @@
-import { FormTextField } from "@/components/forms";
 import { Button } from "@/components/ui/button";
 import { signInInputSchema, type SignInInput } from "@/features/auth";
-import { useForm } from "@tanstack/react-form";
+import { useAppForm } from "@/shared/form";
 
 type SignInFormProps = {
 	onSubmit: (values: SignInInput) => void;
 };
 
 export function SignInForm(props: SignInFormProps) {
-	const form = useForm({
+	const form = useAppForm({
 		defaultValues: {
 			email: "",
 			password: "",
@@ -28,14 +27,14 @@ export function SignInForm(props: SignInFormProps) {
 			}}
 		>
 			<div>
-				<form.Field
+				<form.AppField
 					name="email"
 					validators={{
 						onChange: signInInputSchema.shape.email,
 					}}
-					children={(field) => (
-						<FormTextField
-							field={field}
+				>
+					{(field) => (
+						<field.TextField
 							label="Email Address"
 							type="email"
 							autoComplete="email"
@@ -43,18 +42,18 @@ export function SignInForm(props: SignInFormProps) {
 							required
 						/>
 					)}
-				/>
+				</form.AppField>
 			</div>
 
 			<div>
-				<form.Field
+				<form.AppField
 					name="password"
 					validators={{
 						onChange: signInInputSchema.shape.password,
 					}}
-					children={(field) => (
-						<FormTextField
-							field={field}
+				>
+					{(field) => (
+						<field.TextField
 							label="Password"
 							type="password"
 							autoComplete="current-password"
@@ -62,7 +61,7 @@ export function SignInForm(props: SignInFormProps) {
 							required
 						/>
 					)}
-				/>
+				</form.AppField>
 			</div>
 
 			<form.Subscribe
