@@ -1,17 +1,15 @@
-import { cn } from "@/lib/utils";
 import { formatDate } from "@/shared/utils";
 import type { Review } from "../types/reviews.types";
 import { ReviewActionsMenu } from "./review-actions-menu.component";
 import { StarRatingList } from "./star-rating-list.component";
 
 export type ReviewCardItemProps = {
-	className?: string;
 	review: Review;
 };
 
 export function ReviewCardItem(props: ReviewCardItemProps) {
 	return (
-		<div className={cn("bg-white p-2", props.className)}>
+		<>
 			<div className="flex items-start justify-between gap-2">
 				<div className="flex flex-col">
 					<span className="text-sm font-semibold">
@@ -31,6 +29,6 @@ export function ReviewCardItem(props: ReviewCardItemProps) {
 			<p className="mt-1 text-sm text-muted-foreground">
 				{props.review.comment}
 			</p>
-		</div>
+		</>
 	);
 }

@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
+import { Frame, FramePanel } from "@/components/ui/frame";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { REVIEWS_PAGE_SIZE } from "../consts/reviews.consts";
 import type { Review } from "../types/reviews.types";
-import { ReviewCard } from "./review-card.component";
 import { ReviewCardItem } from "./review-card-item.component";
 
 export type ReviewListProps = {
@@ -26,11 +26,17 @@ export function ReviewList(props: ReviewListProps) {
 
 	return (
 		<div className="flex flex-col gap-2">
-			<ReviewCard className="divide-y divide-gray-200 [&>*:first-child]:rounded-t-md [&>*:last-child]:rounded-b-md">
-				{props.reviews.map((review) => (
-					<ReviewCardItem key={review.id} review={review} />
+			<Frame as="ul" className="divide-y divide-gray-200">
+				{props.reviews.map((r) => (
+					<FramePanel
+						as="li"
+						key={r.id}
+						className="rounded-none p-3 first:rounded-t-xl last:rounded-b-xl"
+					>
+						<ReviewCardItem review={r} />
+					</FramePanel>
 				))}
-			</ReviewCard>
+			</Frame>
 			{props.hasNextPage ? (
 				<Button
 					variant="outline"
@@ -55,11 +61,16 @@ export function ReviewList(props: ReviewListProps) {
 function ReviewListSkeleton() {
 	return (
 		<>
-			<ReviewCard className="divide-y divide-gray-200 [&>*:first-child]:rounded-t-md [&>*:last-child]:rounded-b-md">
-				{Array.from({ length: REVIEWS_PAGE_SIZE }).map((_, index) => (
-					<Skeleton key={index} className="min-h-[77px] w-full bg-white p-2" />
-				))}
-			</ReviewCard>
+			<Frame>
+				<FramePanel className="divide-y divide-gray-200 overflow-hidden p-0">
+					{Array.from({ length: REVIEWS_PAGE_SIZE }).map((_, index) => (
+						<Skeleton
+							key={index}
+							className="min-h-[77px] w-full rounded-none border-0 p-3 shadow-none"
+						/>
+					))}
+				</FramePanel>
+			</Frame>
 			<Skeleton className="mx-auto min-h-[32px] w-[114px] rounded-md p-2.5" />
 		</>
 	);
@@ -67,10 +78,10 @@ function ReviewListSkeleton() {
 
 function ReviewListEmpty() {
 	return (
-		<ReviewCard>
-			<div className="bg-white px-3 py-4">
+		<Frame>
+			<FramePanel className="px-3 py-4">
 				No reviews yet. Be the first to review this product!
-			</div>
-		</ReviewCard>
+			</FramePanel>
+		</Frame>
 	);
 }
