@@ -1,5 +1,6 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Frame, FramePanel } from "@/components/ui/frame";
 import { AddToCartButton, QuantityStepper } from "@/features/cart";
 import { productDetailQueryOptions, StarRating } from "@/features/products";
 import { formatPrice } from "@/shared/utils";
@@ -17,7 +18,7 @@ export function ProductDetailSection() {
 	const inStock = product.countInStock > 0;
 
 	return (
-		<div className="grid w-full grid-cols-1 gap-2 rounded-3xl bg-gray-100 p-2 md:grid-cols-2">
+		<Frame className="grid w-full grid-cols-1 gap-2 md:grid-cols-2">
 			<div className="aspect-square overflow-hidden rounded-xl bg-muted md:sticky md:top-20">
 				<img
 					src={product.image}
@@ -28,7 +29,7 @@ export function ProductDetailSection() {
 				/>
 			</div>
 
-			<div className="flex flex-col rounded-xl border border-gray-300/50 bg-gray-50 p-4">
+			<FramePanel className="flex flex-col p-4">
 				<div className="mb-4 flex items-center gap-4">
 					<Badge
 						variant="secondary"
@@ -72,8 +73,8 @@ export function ProductDetailSection() {
 						<OutOfStockAlert />
 					)}
 				</div>
-			</div>
-		</div>
+			</FramePanel>
+		</Frame>
 	);
 }
 
