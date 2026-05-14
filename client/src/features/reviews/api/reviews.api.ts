@@ -5,16 +5,22 @@ import {
 import {
 	buildSearchParams,
 	ClientApiError,
+	del,
 	get,
 	getPaginated,
 	normalizeError,
+	patch,
 	post,
 	type ApiPaginatedResponse,
 } from "@/shared/api";
 import { idSchema } from "@/shared/schemas";
 import z from "zod";
-import { createReviewSchema, reviewSchema } from "../schemas";
-import type { CreateReview, Review } from "../types";
+import {
+	createReviewSchema,
+	reviewSchema,
+	updateReviewApiInputSchema,
+} from "../schemas";
+import type { CreateReview, Review, UpdateReviewApiInput } from "../types";
 
 export function createReviewApi(input: CreateReview): Promise<Review> {
 	const parsedInput = createReviewSchema.safeParse(input);
@@ -45,6 +51,25 @@ export function hasReviewedProductApi(
 		z.boolean(),
 		signal,
 	);
+}
+
+export function updateReviewApi(input: UpdateReviewApiInput): Promise<Review> {
+	const parsedInput = updateReviewApiInputSchema.safeParse(input);
+	if (!parsedInput.success) {
+		throw new ClientApiError(normalizeError(parsedInput.error, "input"));
+	}
+
+	const { reviewId, ...body } = parsedInput.data;
+	return patch(`/reviews/${reviewId}`, body, reviewSchema);
+}
+
+export function deleteReviewApi(reviewId: string): Promise<void> {
+	const parsedId = idSchema.safeParse(reviewId);
+	if (!parsedId.success) {
+		throw new ClientApiError(normalizeError(parsedId.error, "input"));
+	}
+
+	return del(`/reviews/${parsedId.data}`);
 }
 
 export function getProductReviewsApi(
