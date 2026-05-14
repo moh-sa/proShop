@@ -8,10 +8,15 @@ import type { CreateReviewInput } from "../types/reviews.types";
 export type ReviewFormProps = {
 	className?: string;
 	initialValues?: CreateReviewInput;
+	submitLabel?: string;
+	submittingLabel?: string;
 	onSubmit: (values: CreateReviewInput) => Promise<void>;
 };
 
 export function ReviewForm(props: ReviewFormProps) {
+	const submitLabel = props.submitLabel ?? "Submit Review";
+	const submittingLabel = props.submittingLabel ?? "Submitting review…";
+
 	const form = useAppForm({
 		defaultValues: {
 			rating: props.initialValues?.rating ?? 5,
@@ -20,7 +25,9 @@ export function ReviewForm(props: ReviewFormProps) {
 		onSubmit: async ({ value }) => {
 			await props.onSubmit(value);
 
-			form.reset();
+			if (!props.initialValues) {
+				form.reset();
+			}
 		},
 	});
 
@@ -72,10 +79,10 @@ export function ReviewForm(props: ReviewFormProps) {
 						{isSubmitting ? (
 							<>
 								<Spinner />
-								Submitting review…
+								{submittingLabel}
 							</>
 						) : (
-							"Submit Review"
+							submitLabel
 						)}
 					</Button>
 				)}
