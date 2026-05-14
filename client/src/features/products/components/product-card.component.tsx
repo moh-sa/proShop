@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Frame, FramePanel } from "@/components/ui/frame";
 import { formatPrice } from "@/shared/utils";
 import { Link } from "@tanstack/react-router";
 import { StarIcon } from "lucide-react";
@@ -19,7 +20,10 @@ function ProductLink(props: { productId: string; children: React.ReactNode }) {
 
 export function ProductCard({ product }: ProductCardProps) {
 	return (
-		<article className="flex h-full flex-col justify-between gap-3 rounded-3xl bg-gray-100 p-3 shadow-sm">
+		<Frame
+			as="article"
+			className="flex h-full flex-col justify-between gap-3 p-3 shadow-sm"
+		>
 			<div className="relative shrink-0 grow overflow-hidden rounded-xl">
 				<ProductLink productId={product.id}>
 					<img
@@ -38,7 +42,7 @@ export function ProductCard({ product }: ProductCardProps) {
 				</Badge>
 			</div>
 
-			<div className="flex h-full shrink grow-0 flex-col justify-between gap-2 rounded-xl bg-gray-300/50 px-3 py-2">
+			<FramePanel className="flex h-full shrink grow-0 flex-col justify-between gap-2 px-3 py-2">
 				<h3
 					lang="en"
 					className="my-auto grow text-2xl font-medium hyphens-auto text-black"
@@ -53,7 +57,7 @@ export function ProductCard({ product }: ProductCardProps) {
 						Add to cart
 					</Button>
 				</div>
-			</div>
-		</article>
+			</FramePanel>
+		</Frame>
 	);
 }
