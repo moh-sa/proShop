@@ -23,3 +23,22 @@ export const createReviewInputSchema = baseSchema.pick({
 });
 
 export const reviewSchema = baseSchema.extend(selectSchema.shape);
+
+export const updateReviewInputSchema = baseSchema
+	.pick({ rating: true, comment: true })
+	.partial();
+
+export const updateReviewApiInputSchema = updateReviewInputSchema.extend({
+	reviewId: idSchema,
+});
+
+export const updateReviewMutationInputSchema =
+	updateReviewApiInputSchema.extend({
+		productId: idSchema,
+	});
+
+export const deleteReviewMutationInputSchema = z.object({
+	reviewId: idSchema,
+	productId: idSchema,
+	userId: idSchema,
+});
