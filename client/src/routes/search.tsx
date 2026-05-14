@@ -2,36 +2,33 @@ import { Pagination } from "@/features/pagination";
 import { ProductGrid } from "@/features/products/components";
 import { productSearchListQueryOptions } from "@/features/products/queries";
 import { productSearchParamsSchema } from "@/features/products/schemas";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { SearchRoutePending } from "./-search-pending";
 
 export const Route = createFileRoute("/search")({
 	validateSearch: productSearchParamsSchema,
 	loaderDeps: ({ search }) => search,
-	loader: async ({ context, deps }) => {
-		const paginatedProducts = await context.client.ensureQueryData(
-			productSearchListQueryOptions(deps),
-		);
-
-		return {
-			products: paginatedProducts.data,
-			meta: paginatedProducts.meta,
-		};
-	},
+	loader: async ({ context, deps }) =>
+		await context.client.ensureQueryData(productSearchListQueryOptions(deps)),
 	component: RouteComponent,
+	pendingComponent: SearchRoutePending,
 });
 
 function RouteComponent() {
 	const search = Route.useSearch();
-	const data = Route.useLoaderData();
+	const {
+		data: { data: products, meta },
+	} = useSuspenseQuery(productSearchListQueryOptions(search));
 
-	const hasResults = data.products.length > 0;
+	const hasResults = products.length > 0;
 
 	const resultsText =
-		data.meta.totalItems === 0
+		meta.totalItems === 0
 			? "No results found"
-			: data.meta.totalItems === 1
+			: meta.totalItems === 1
 				? "1 result found"
-				: `${data.meta.totalItems} results found`;
+				: `${meta.totalItems} results found`;
 
 	return (
 		<div className="flex h-full flex-col gap-8">
@@ -44,8 +41,8 @@ function RouteComponent() {
 
 			{hasResults ? (
 				<section className="flex h-full flex-col justify-between">
-					<ProductGrid products={data.products} />
-					<Pagination {...data.meta} />
+					<ProductGrid products={products} />
+					<Pagination {...meta} />
 				</section>
 			) : (
 				<div>
