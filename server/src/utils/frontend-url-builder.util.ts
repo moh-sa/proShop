@@ -4,7 +4,7 @@ const baseURL = env.CLIENT_URL;
 
 export const frontendUrlBuilder = {
 	checkoutFailure: (params: { orderId: string }) =>
-		`${baseURL}/order/${params.orderId}/failure`,
+		`${baseURL}/orders/${params.orderId}/failure`,
 	checkoutSuccess: (params: { orderId: string }) =>
-		`${baseURL}/order/${params.orderId}/success`,
+		`${baseURL}/orders/${params.orderId}/success`,
 };

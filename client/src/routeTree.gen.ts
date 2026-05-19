@@ -21,6 +21,8 @@ import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/_admin'
 import { Route as ProductsProductIdIndexRouteImport } from './routes/products/$productId/index'
 import { Route as AuthenticatedAdminDashboardIndexRouteImport } from './routes/_authenticated/_admin/dashboard/index'
+import { Route as AuthenticatedOrdersOrderidSuccessRouteImport } from './routes/_authenticated/orders/$orderid/success'
+import { Route as AuthenticatedOrdersOrderidFailureRouteImport } from './routes/_authenticated/orders/$orderid/failure'
 
 const UnauthorizedRoute = UnauthorizedRouteImport.update({
   id: '/unauthorized',
@@ -80,6 +82,18 @@ const AuthenticatedAdminDashboardIndexRoute =
     path: '/dashboard/',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedOrdersOrderidSuccessRoute =
+  AuthenticatedOrdersOrderidSuccessRouteImport.update({
+    id: '/orders/$orderid/success',
+    path: '/orders/$orderid/success',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedOrdersOrderidFailureRoute =
+  AuthenticatedOrdersOrderidFailureRouteImport.update({
+    id: '/orders/$orderid/failure',
+    path: '/orders/$orderid/failure',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -90,6 +104,8 @@ export interface FileRoutesByFullPath {
   '/signin': typeof GuestSigninRoute
   '/signup': typeof GuestSignupRoute
   '/products/$productId/': typeof ProductsProductIdIndexRoute
+  '/orders/$orderid/failure': typeof AuthenticatedOrdersOrderidFailureRoute
+  '/orders/$orderid/success': typeof AuthenticatedOrdersOrderidSuccessRoute
   '/dashboard/': typeof AuthenticatedAdminDashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -101,6 +117,8 @@ export interface FileRoutesByTo {
   '/signin': typeof GuestSigninRoute
   '/signup': typeof GuestSignupRoute
   '/products/$productId': typeof ProductsProductIdIndexRoute
+  '/orders/$orderid/failure': typeof AuthenticatedOrdersOrderidFailureRoute
+  '/orders/$orderid/success': typeof AuthenticatedOrdersOrderidSuccessRoute
   '/dashboard': typeof AuthenticatedAdminDashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -116,6 +134,8 @@ export interface FileRoutesById {
   '/_guest/signin': typeof GuestSigninRoute
   '/_guest/signup': typeof GuestSignupRoute
   '/products/$productId/': typeof ProductsProductIdIndexRoute
+  '/_authenticated/orders/$orderid/failure': typeof AuthenticatedOrdersOrderidFailureRoute
+  '/_authenticated/orders/$orderid/success': typeof AuthenticatedOrdersOrderidSuccessRoute
   '/_authenticated/_admin/dashboard/': typeof AuthenticatedAdminDashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -129,6 +149,8 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/products/$productId/'
+    | '/orders/$orderid/failure'
+    | '/orders/$orderid/success'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -140,6 +162,8 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/products/$productId'
+    | '/orders/$orderid/failure'
+    | '/orders/$orderid/success'
     | '/dashboard'
   id:
     | '__root__'
@@ -154,6 +178,8 @@ export interface FileRouteTypes {
     | '/_guest/signin'
     | '/_guest/signup'
     | '/products/$productId/'
+    | '/_authenticated/orders/$orderid/failure'
+    | '/_authenticated/orders/$orderid/success'
     | '/_authenticated/_admin/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -253,6 +279,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/orders/$orderid/success': {
+      id: '/_authenticated/orders/$orderid/success'
+      path: '/orders/$orderid/success'
+      fullPath: '/orders/$orderid/success'
+      preLoaderRoute: typeof AuthenticatedOrdersOrderidSuccessRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/orders/$orderid/failure': {
+      id: '/_authenticated/orders/$orderid/failure'
+      path: '/orders/$orderid/failure'
+      fullPath: '/orders/$orderid/failure'
+      preLoaderRoute: typeof AuthenticatedOrdersOrderidFailureRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
@@ -270,11 +310,17 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
+  AuthenticatedOrdersOrderidFailureRoute: typeof AuthenticatedOrdersOrderidFailureRoute
+  AuthenticatedOrdersOrderidSuccessRoute: typeof AuthenticatedOrdersOrderidSuccessRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
+  AuthenticatedOrdersOrderidFailureRoute:
+    AuthenticatedOrdersOrderidFailureRoute,
+  AuthenticatedOrdersOrderidSuccessRoute:
+    AuthenticatedOrdersOrderidSuccessRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
