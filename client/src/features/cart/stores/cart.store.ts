@@ -109,3 +109,9 @@ export const selectQuantityByProductId =
  *  */
 export const selectTotalQuantity = (state: CartStore) =>
 	Object.values(state.items).reduce((acc, item) => acc + item.quantity, 0);
+
+export const selectSubtotal = (state: CartStore) =>
+	Object.values(state.items).reduce(
+		(acc, item) => acc + item.price * item.quantity,
+		0,
+	);
