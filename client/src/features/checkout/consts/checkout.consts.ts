@@ -1,0 +1,1 @@
+export const SUCCESS_CARD_NUMBER = "4242 4242 4242 4242";
