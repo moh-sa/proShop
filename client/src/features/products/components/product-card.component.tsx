@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Frame, FramePanel } from "@/components/ui/frame";
+import { ProductCartControls } from "@/features/cart";
 import { formatPrice } from "@/shared/utils";
 import { Link } from "@tanstack/react-router";
 import { StarIcon } from "lucide-react";
@@ -19,6 +19,8 @@ function ProductLink(props: { productId: string; children: React.ReactNode }) {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+	const inStock = product.countInStock > 0;
+
 	return (
 		<Frame
 			as="article"
@@ -50,12 +52,18 @@ export function ProductCard({ product }: ProductCardProps) {
 					<ProductLink productId={product.id}>{product.name}</ProductLink>
 				</h3>
 				<div className="flex shrink gap-1">
-					<span className="m-auto rounded-lg bg-gray-100/70 px-2 py-1 text-center font-medium">
+					<span className="flex items-center justify-center rounded-lg bg-gray-100/70 px-2 py-1 text-center font-medium">
 						{formatPrice(product.price)}
 					</span>
-					<Button type="button" size="lg" className="flex-1 font-semibold">
-						Add to cart
-					</Button>
+					<div className="grow">
+						{inStock ? (
+							<ProductCartControls item={product} className="gap-1" />
+						) : (
+							<p className="m-auto text-sm text-muted-foreground">
+								Out of stock
+							</p>
+						)}
+					</div>
 				</div>
 			</FramePanel>
 		</Frame>
