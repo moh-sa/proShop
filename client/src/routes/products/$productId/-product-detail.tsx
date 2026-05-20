@@ -1,7 +1,7 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Frame, FramePanel } from "@/components/ui/frame";
-import { AddToCartButton, QuantityStepper } from "@/features/cart";
+import { ProductCartControls } from "@/features/cart";
 import { productDetailQueryOptions, StarRating } from "@/features/products";
 import { formatPrice } from "@/shared/utils";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -60,19 +60,7 @@ export function ProductDetailSection() {
 					<ProductFeatures />
 				</div>
 
-				<div className="flex">
-					{inStock ? (
-						<>
-							<AddToCartButton {...product} />
-							<QuantityStepper
-								productId={product.id}
-								maxQuantity={product.countInStock}
-							/>
-						</>
-					) : (
-						<OutOfStockAlert />
-					)}
-				</div>
+				{inStock ? <ProductCartControls item={product} /> : <OutOfStockAlert />}
 			</FramePanel>
 		</Frame>
 	);

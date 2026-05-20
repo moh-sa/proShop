@@ -15,7 +15,7 @@ export function QuantityStepper(props: QuantityStepperProps) {
 	if (quantity === 0) return null;
 
 	return (
-		<div className="flex grow items-center justify-center gap-1 rounded-lg border border-gray-100 bg-background p-0.5 text-foreground">
+		<div className="flex grow items-center justify-center gap-1 rounded-lg bg-background p-0.5 text-foreground ring-1 ring-gray-100">
 			<Button
 				variant="ghost"
 				size="icon"

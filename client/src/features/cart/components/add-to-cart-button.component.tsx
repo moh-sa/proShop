@@ -2,21 +2,23 @@ import { Button } from "@/components/ui/button";
 import { selectQuantityByProductId, useCartStore } from "../stores";
 import type { CartItemToAdd } from "../types";
 
-type AddToCartButtonProps = CartItemToAdd;
+type AddToCartButtonProps = {
+	item: CartItemToAdd;
+};
 
 export function AddToCartButton(props: AddToCartButtonProps) {
-	const quantity = useCartStore(selectQuantityByProductId(props.id));
+	const quantity = useCartStore(selectQuantityByProductId(props.item.id));
 	const addItem = useCartStore((s) => s.addItem);
 
 	if (quantity > 0) return null;
 
 	function handleAddToCart() {
 		addItem({
-			id: props.id,
-			name: props.name,
-			price: props.price,
-			image: props.image,
-			countInStock: props.countInStock,
+			id: props.item.id,
+			name: props.item.name,
+			price: props.item.price,
+			image: props.item.image,
+			countInStock: props.item.countInStock,
 		});
 	}
 
