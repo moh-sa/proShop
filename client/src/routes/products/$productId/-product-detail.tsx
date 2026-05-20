@@ -53,14 +53,20 @@ export function ProductDetailSection() {
 					</span>
 				</div>
 
-				<p className="mb-6 text-muted-foreground">{product.description}</p>
-
-				<div className="mb-8 grid grid-cols-2 gap-2 self-center">
+				<div className="mb-4 grid grid-cols-2 gap-2 self-center">
 					{inStock ? <StockIndicator inStock /> : <StockIndicator />}
 					<ProductFeatures />
 				</div>
 
-				{inStock ? <ProductCartControls item={product} /> : <OutOfStockAlert />}
+				<div className="mb-8">
+					{inStock ? (
+						<ProductCartControls item={product} />
+					) : (
+						<OutOfStockAlert />
+					)}
+				</div>
+
+				<p className="text-muted-foreground">{product.description}</p>
 			</FramePanel>
 		</Frame>
 	);
