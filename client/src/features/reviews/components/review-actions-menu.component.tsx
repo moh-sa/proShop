@@ -34,7 +34,7 @@ export function ReviewActionsMenu(props: ReviewActionsMenuProps) {
 			<DropdownMenu>
 				<DropdownMenuTrigger
 					aria-label="Review actions"
-					className="rounded-md p-0.5 text-muted-foreground hover:text-foreground"
+					className="cursor-pointer rounded-md p-0.5 text-muted-foreground hover:text-foreground"
 				>
 					<EllipsisVerticalIcon className="size-4" />
 				</DropdownMenuTrigger>
