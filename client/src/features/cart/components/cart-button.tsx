@@ -5,11 +5,9 @@ import { ShoppingCartIcon } from "lucide-react";
 import { selectTotalQuantity, useCartStore } from "../stores";
 
 export function CartButton() {
-	// TODO: update link to /cart
-
 	return (
 		<div className="relative">
-			<Button nativeButton={false} render={<Link to="/" />} variant="ghost">
+			<Button nativeButton={false} render={<Link to="/cart" />} variant="ghost">
 				<ShoppingCartIcon className="size-4" />
 				Cart
 			</Button>
