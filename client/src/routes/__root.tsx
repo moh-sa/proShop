@@ -83,7 +83,7 @@ function Header() {
 function Main() {
 	return (
 		<main id="main-content">
-			<div className="container mx-auto h-full px-4 py-4 sm:px-6 sm:py-6">
+			<div className="container mx-auto h-full p-4">
 				<Outlet />
 			</div>
 		</main>
