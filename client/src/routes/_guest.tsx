@@ -6,5 +6,13 @@ export const Route = createFileRoute("/_guest")({
 			throw redirect({ to: "/", replace: true });
 		}
 	},
-	component: Outlet,
+	component: GuestLayout,
 });
+
+function GuestLayout() {
+	return (
+		<div className="mx-auto w-full max-w-sm">
+			<Outlet />
+		</div>
+	);
+}

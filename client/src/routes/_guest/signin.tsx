@@ -68,45 +68,43 @@ function RouteComponent() {
 	}
 
 	return (
-		<div className="flex h-full items-center justify-center">
-			<Card className="max-w-96 border-none shadow-md">
-				<CardHeader className="px-8">
-					<CardTitle className="mb-1.5 text-2xl">Sign in to ProShop</CardTitle>
-				</CardHeader>
+		<Card className="border-none shadow-md">
+			<CardHeader className="px-8">
+				<CardTitle className="mb-1.5 text-2xl">Sign in to ProShop</CardTitle>
+			</CardHeader>
 
-				<CardContent className="px-8">
-					{/* Quick Login Buttons */}
-					<div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
-						<Button variant="outline" onClick={handleCustomerSignin}>
-							Login as Customer
-						</Button>
-						<Button variant="outline" onClick={handleAdminSignin}>
-							Login as Admin
-						</Button>
-					</div>
+			<CardContent className="px-8">
+				{/* Quick Login Buttons */}
+				<div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+					<Button variant="outline" onClick={handleCustomerSignin}>
+						Login as Customer
+					</Button>
+					<Button variant="outline" onClick={handleAdminSignin}>
+						Login as Admin
+					</Button>
+				</div>
 
-					<SeparatorText text="OR" className="my-3" />
+				<SeparatorText text="OR" className="my-3" />
 
-					{/* Login Form */}
-					<div className="space-y-4">
-						{errors.server && (
-							<p className="text-sm text-wrap text-destructive">
-								{errors.server}
-							</p>
-						)}
-						<SignInForm onSubmit={handleSubmit} />
-					</div>
-				</CardContent>
+				{/* Login Form */}
+				<div className="space-y-4">
+					{errors.server && (
+						<p className="text-sm text-wrap text-destructive">
+							{errors.server}
+						</p>
+					)}
+					<SignInForm onSubmit={handleSubmit} />
+				</div>
+			</CardContent>
 
-				<CardFooter className="justify-center">
-					<p className="text-muted-foreground">
-						New to ProShop?{" "}
-						<Link to="/signup" className="text-card-foreground hover:underline">
-							Sign up
-						</Link>
-					</p>
-				</CardFooter>
-			</Card>
-		</div>
+			<CardFooter className="justify-center">
+				<p className="text-muted-foreground">
+					New to ProShop?{" "}
+					<Link to="/signup" className="text-card-foreground hover:underline">
+						Sign up
+					</Link>
+				</p>
+			</CardFooter>
+		</Card>
 	);
 }

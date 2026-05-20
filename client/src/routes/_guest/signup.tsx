@@ -50,38 +50,36 @@ function RouteComponent() {
 	}
 
 	return (
-		<div className="flex h-full items-center justify-center">
-			<Card className="max-w-96 border-none shadow-md">
-				<CardHeader className="px-8">
-					<CardTitle className="mb-1.5 text-2xl">
-						Sign up for ProShop
-						<CardDescription className="mt-1.5 text-sm text-muted-foreground">
-							Create an account to get started
-						</CardDescription>
-					</CardTitle>
-				</CardHeader>
+		<Card className="border-none shadow-md">
+			<CardHeader className="px-8">
+				<CardTitle className="mb-1.5 text-2xl">
+					Sign up for ProShop
+					<CardDescription className="mt-1.5 text-sm text-muted-foreground">
+						Create an account to get started
+					</CardDescription>
+				</CardTitle>
+			</CardHeader>
 
-				<CardContent className="px-8">
-					{/* Signup Form */}
-					<div className="space-y-4">
-						{errors.server && (
-							<p className="text-sm text-wrap text-destructive">
-								{errors.server}
-							</p>
-						)}
-						<SignUpForm onSubmit={handleSubmit} />
-					</div>
-				</CardContent>
+			<CardContent className="px-8">
+				{/* Signup Form */}
+				<div className="space-y-4">
+					{errors.server && (
+						<p className="text-sm text-wrap text-destructive">
+							{errors.server}
+						</p>
+					)}
+					<SignUpForm onSubmit={handleSubmit} />
+				</div>
+			</CardContent>
 
-				<CardFooter className="justify-center">
-					<p className="text-muted-foreground">
-						Already have an account?{" "}
-						<Link to="/signin" className="text-card-foreground hover:underline">
-							Sign in
-						</Link>
-					</p>
-				</CardFooter>
-			</Card>
-		</div>
+			<CardFooter className="justify-center">
+				<p className="text-muted-foreground">
+					Already have an account?{" "}
+					<Link to="/signin" className="text-card-foreground hover:underline">
+						Sign in
+					</Link>
+				</p>
+			</CardFooter>
+		</Card>
 	);
 }
