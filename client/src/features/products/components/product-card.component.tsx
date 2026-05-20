@@ -45,7 +45,7 @@ export function ProductCard({ product }: ProductCardProps) {
 			</div>
 
 			<FramePanel className="relative flex h-full shrink grow-0 flex-col justify-between gap-2 px-3 py-2">
-				<h3 lang="en" className="text-2xl font-medium hyphens-auto text-black">
+				<h3 lang="en" className="truncate text-2xl font-medium text-black">
 					<ProductLink productId={product.id}>{product.name}</ProductLink>
 				</h3>
 
