@@ -30,7 +30,7 @@ export function ProductDetailSection() {
 			</div>
 
 			<FramePanel className="flex flex-col p-4">
-				<div className="mb-4 flex items-center gap-4">
+				<div className="mb-4 flex items-center justify-between gap-4">
 					<Badge
 						variant="secondary"
 						className="px-2 py-1 text-sm font-medium text-primary"
