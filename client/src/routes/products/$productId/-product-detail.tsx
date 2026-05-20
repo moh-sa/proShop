@@ -66,7 +66,9 @@ export function ProductDetailSection() {
 					)}
 				</div>
 
-				<p className="text-muted-foreground">{product.description}</p>
+				<p className="max-w-prose text-muted-foreground">
+					{product.description}
+				</p>
 			</FramePanel>
 		</Frame>
 	);
