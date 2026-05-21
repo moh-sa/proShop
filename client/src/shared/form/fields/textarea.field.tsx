@@ -4,6 +4,7 @@ import { useFieldContext } from "../form.context";
 
 type FormTextareaFieldProps = {
 	label: string;
+	description?: string;
 	placeholder?: string;
 	required?: boolean;
 };
@@ -32,6 +33,11 @@ export function FormTextareaField(props: FormTextareaFieldProps) {
 				onChange={(e) => field.handleChange(e.target.value)}
 				onBlur={field.handleBlur}
 			/>
+			{props.description ? (
+				<span className="text-sm leading-normal font-normal text-muted-foreground">
+					{props.description}
+				</span>
+			) : null}
 			{isInvalid && (
 				<p className="text-sm text-destructive">
 					{field.state.meta.errors.map((error) => error.message).join(", ")}

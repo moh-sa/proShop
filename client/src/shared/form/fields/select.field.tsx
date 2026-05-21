@@ -12,6 +12,7 @@ import { useFieldContext } from "../form.context";
 
 type FormSelectFieldProps<T extends string | number> = {
 	label: string;
+	description?: string;
 	items: Array<{ label: string; value: T }>;
 	placeholder?: string;
 	required?: boolean;
@@ -62,6 +63,11 @@ export function FormSelectField<T extends string | number>(
 					</SelectGroup>
 				</SelectContent>
 			</Select>
+			{props.description ? (
+				<span className="text-sm leading-normal font-normal text-muted-foreground">
+					{props.description}
+				</span>
+			) : null}
 			{isInvalid && (
 				<p className="text-sm text-destructive">
 					{field.state.meta.errors.map((error) => error.message).join(", ")}

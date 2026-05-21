@@ -4,6 +4,7 @@ import { useFieldContext } from "../form.context";
 
 type FormTextFieldProps = {
 	label: string;
+	description?: string;
 	placeholder?: string;
 	required?: boolean;
 	type: Extract<
@@ -27,6 +28,7 @@ export function FormTextField(props: FormTextFieldProps) {
 				{props.label}
 				{props.required ? <span className="text-destructive">*</span> : null}
 			</Label>
+
 			<Input
 				id={field.name}
 				name={field.name}
@@ -39,6 +41,11 @@ export function FormTextField(props: FormTextFieldProps) {
 				onChange={(e) => field.handleChange(e.target.value)}
 				onBlur={field.handleBlur}
 			/>
+			{props.description ? (
+				<span className="text-sm leading-normal font-normal text-muted-foreground">
+					{props.description}
+				</span>
+			) : null}
 			{isInvalid && (
 				<p className="text-sm text-destructive">
 					{field.state.meta.errors.map((error) => error.message).join(", ")}
