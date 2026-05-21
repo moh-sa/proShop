@@ -12,16 +12,10 @@ import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { HistoryIcon, LogOutIcon, SettingsIcon, UserIcon } from "lucide-react";
 import { toast } from "sonner";
+import { getUserInitials } from "../helpers/get-user-initials.helper";
 
 export function UserMenu(props: { user: User }) {
-	const initials = props.user.name
-		? props.user.name
-				.split(" ")
-				.map((name) => name[0])
-				.join("")
-				.toUpperCase()
-				.slice(0, 2)
-		: "??";
+	const initials = getUserInitials(props.user.name);
 
 	return (
 		<DropdownMenu>
