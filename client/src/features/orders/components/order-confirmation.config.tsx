@@ -44,7 +44,7 @@ export const ORDER_CONFIRMATION_CONFIG: Record<
 			{ label: "Continue Shopping", to: "/", icon: LayoutGrid },
 			{
 				label: "View All Orders",
-				to: "/",
+				to: "/profile/orders",
 				icon: ListOrdered,
 				buttonVariant: "outline",
 			},
@@ -63,7 +63,7 @@ export const ORDER_CONFIRMATION_CONFIG: Record<
 			{ label: "Continue Shopping", to: "/", icon: LayoutGrid },
 			{
 				label: "View All Orders",
-				to: "/",
+				to: "/profile/orders",
 				icon: ListOrdered,
 				buttonVariant: "outline",
 			},

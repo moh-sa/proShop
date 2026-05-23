@@ -27,16 +27,14 @@ export function UserMenu(props: { user: User }) {
 			<DropdownMenuContent>
 				<DropdownMenuItem
 					nativeButton={false}
-					// TODO: update link
-					render={<Link to="/" />}
+					render={<Link to="/profile" />}
 				>
 					<UserIcon className="size-4" />
 					Profile
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					nativeButton={false}
-					// TODO: update link
-					render={<Link to="/" />}
+					render={<Link to="/profile/orders" />}
 				>
 					<HistoryIcon className="size-4" />
 					Order History
