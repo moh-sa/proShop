@@ -95,3 +95,15 @@ export function getProductReviewsApi(
 		signal,
 	);
 }
+
+export function getUserReviewsCountApi(
+	userId: string,
+	signal: AbortSignal,
+): Promise<number> {
+	const parsedUserId = idSchema.safeParse(userId);
+	if (!parsedUserId.success) {
+		throw new ClientApiError(normalizeError(parsedUserId.error, "input"));
+	}
+
+	return get(`/reviews/count/user/${parsedUserId.data}`, z.number(), signal);
+}

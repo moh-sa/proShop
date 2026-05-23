@@ -1,5 +1,9 @@
 import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
-import { getProductReviewsApi, hasReviewedProductApi } from "../api";
+import {
+	getProductReviewsApi,
+	getUserReviewsCountApi,
+	hasReviewedProductApi,
+} from "../api";
 import { REVIEWS_PAGE_SIZE } from "../consts";
 import { reviewKeys } from "./reviews.keys";
 
@@ -36,5 +40,14 @@ export function productReviewsListQueryOptions(productId: string) {
 		refetchOnWindowFocus: false,
 		enabled: Boolean(productId),
 		staleTime: 10 * 60 * 1000, // 10 minutes
+	});
+}
+
+export function countUserReviewsQueryOptions(userId: string) {
+	return queryOptions({
+		queryKey: reviewKeys.countUser(userId),
+		queryFn: ({ signal }) => getUserReviewsCountApi(userId, signal),
+		refetchOnWindowFocus: false,
+		enabled: Boolean(userId),
 	});
 }
