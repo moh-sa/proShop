@@ -5,11 +5,14 @@ import { z } from "zod";
 
 const paymentProviderSchema = z.enum(["stripe"]);
 
-const paymentSchema = z.object({
+const pendingPaymentSchema = z.object({
 	id: z.string().nonempty("Payment ID is required"),
-	paidAt: z.coerce.date(),
 	provider: paymentProviderSchema,
 	sessionURL: z.url(),
+});
+
+const paymentSchema = pendingPaymentSchema.extend({
+	paidAt: z.coerce.date(),
 });
 
 export const orderItemSchema = z.object({
@@ -38,6 +41,7 @@ const baseOrderSchema = baseSchema.extend({
 
 export const orderPendingSchema = baseOrderSchema.extend({
 	status: z.literal("pending"),
+	payment: pendingPaymentSchema,
 });
 
 export const orderProcessingSchema = baseOrderSchema.extend({
@@ -47,6 +51,7 @@ export const orderProcessingSchema = baseOrderSchema.extend({
 
 export const orderDeliveredSchema = baseOrderSchema.extend({
 	status: z.literal("delivered"),
+	payment: paymentSchema,
 	deliveredAt: z.coerce.date(),
 });
 
@@ -69,3 +74,38 @@ export const createOrderResponseSchema = z.object({
 	order: orderPendingSchema,
 	session: paymentSessionSchema,
 });
+
+export const orderListItemSchema = z.discriminatedUnion("status", [
+	orderPendingSchema.pick({
+		id: true,
+		status: true,
+		createdAt: true,
+		totalPrice: true,
+		user: true,
+		payment: true,
+	}),
+	orderProcessingSchema.pick({
+		id: true,
+		status: true,
+		payment: true,
+		totalPrice: true,
+		user: true,
+		createdAt: true,
+	}),
+	orderDeliveredSchema.pick({
+		id: true,
+		status: true,
+		payment: true,
+		totalPrice: true,
+		user: true,
+		deliveredAt: true,
+		createdAt: true,
+	}),
+	orderCancelledSchema.pick({
+		id: true,
+		status: true,
+		totalPrice: true,
+		user: true,
+		createdAt: true,
+	}),
+]);
