@@ -1,5 +1,9 @@
+import type { PaginationParams } from "@/features/pagination";
 import { queryOptions } from "@tanstack/react-query";
-import { getOrderDetailApi } from "../api/orders.api";
+import {
+	getOrderDetailApi,
+	getUserPaginatedOrdersApi,
+} from "../api/orders.api";
 import {
 	ORDER_STATUS_PENDING_STALE_TIME,
 	ORDER_STATUS_POLL_INTERVAL,
@@ -51,5 +55,17 @@ export function orderDetailFailureQueryOptions(orderId: string) {
 	return queryOptions({
 		...orderDetailQueryOptions(orderId),
 		staleTime: Infinity, // never stale in failure case
+	});
+}
+
+export function userPaginatedOrdersQueryOptions(
+	userId: string,
+	params: PaginationParams,
+) {
+	return queryOptions({
+		queryKey: orderKeys.byUserList(userId, params),
+		queryFn: async ({ signal }) =>
+			getUserPaginatedOrdersApi(userId, params, signal),
+		refetchOnWindowFocus: false,
 	});
 }
