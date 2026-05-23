@@ -20,8 +20,13 @@ import { Route as GuestSignupRouteImport } from './routes/_guest/signup'
 import { Route as GuestSigninRouteImport } from './routes/_guest/signin'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/_admin'
+import { Route as AuthenticatedProfileRouteRouteImport } from './routes/_authenticated/profile/route'
 import { Route as ProductsProductIdIndexRouteImport } from './routes/products/$productId/index'
+import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
+import { Route as AuthenticatedProfileEditRouteImport } from './routes/_authenticated/profile/edit'
+import { Route as AuthenticatedProfileOrdersIndexRouteImport } from './routes/_authenticated/profile/orders/index'
 import { Route as AuthenticatedAdminDashboardIndexRouteImport } from './routes/_authenticated/_admin/dashboard/index'
+import { Route as AuthenticatedProfileOrdersOrderIdRouteImport } from './routes/_authenticated/profile/orders/$orderId'
 import { Route as AuthenticatedOrdersOrderidSuccessRouteImport } from './routes/_authenticated/orders/$orderid/success'
 import { Route as AuthenticatedOrdersOrderidFailureRouteImport } from './routes/_authenticated/orders/$orderid/failure'
 
@@ -77,16 +82,46 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/_admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedProfileRouteRoute =
+  AuthenticatedProfileRouteRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const ProductsProductIdIndexRoute = ProductsProductIdIndexRouteImport.update({
   id: '/products/$productId/',
   path: '/products/$productId/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedProfileIndexRoute =
+  AuthenticatedProfileIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedProfileRouteRoute,
+  } as any)
+const AuthenticatedProfileEditRoute =
+  AuthenticatedProfileEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AuthenticatedProfileRouteRoute,
+  } as any)
+const AuthenticatedProfileOrdersIndexRoute =
+  AuthenticatedProfileOrdersIndexRouteImport.update({
+    id: '/orders/',
+    path: '/orders/',
+    getParentRoute: () => AuthenticatedProfileRouteRoute,
+  } as any)
 const AuthenticatedAdminDashboardIndexRoute =
   AuthenticatedAdminDashboardIndexRouteImport.update({
     id: '/dashboard/',
     path: '/dashboard/',
     getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedProfileOrdersOrderIdRoute =
+  AuthenticatedProfileOrdersOrderIdRouteImport.update({
+    id: '/orders/$orderId',
+    path: '/orders/$orderId',
+    getParentRoute: () => AuthenticatedProfileRouteRoute,
   } as any)
 const AuthenticatedOrdersOrderidSuccessRoute =
   AuthenticatedOrdersOrderidSuccessRouteImport.update({
@@ -107,13 +142,18 @@ export interface FileRoutesByFullPath {
   '/not-found': typeof NotFoundRoute
   '/search': typeof SearchRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/profile': typeof AuthenticatedProfileRouteRouteWithChildren
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/signin': typeof GuestSigninRoute
   '/signup': typeof GuestSignupRoute
+  '/profile/edit': typeof AuthenticatedProfileEditRoute
+  '/profile/': typeof AuthenticatedProfileIndexRoute
   '/products/$productId/': typeof ProductsProductIdIndexRoute
   '/orders/$orderid/failure': typeof AuthenticatedOrdersOrderidFailureRoute
   '/orders/$orderid/success': typeof AuthenticatedOrdersOrderidSuccessRoute
+  '/profile/orders/$orderId': typeof AuthenticatedProfileOrdersOrderIdRoute
   '/dashboard/': typeof AuthenticatedAdminDashboardIndexRoute
+  '/profile/orders/': typeof AuthenticatedProfileOrdersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -124,10 +164,14 @@ export interface FileRoutesByTo {
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/signin': typeof GuestSigninRoute
   '/signup': typeof GuestSignupRoute
+  '/profile/edit': typeof AuthenticatedProfileEditRoute
+  '/profile': typeof AuthenticatedProfileIndexRoute
   '/products/$productId': typeof ProductsProductIdIndexRoute
   '/orders/$orderid/failure': typeof AuthenticatedOrdersOrderidFailureRoute
   '/orders/$orderid/success': typeof AuthenticatedOrdersOrderidSuccessRoute
+  '/profile/orders/$orderId': typeof AuthenticatedProfileOrdersOrderIdRoute
   '/dashboard': typeof AuthenticatedAdminDashboardIndexRoute
+  '/profile/orders': typeof AuthenticatedProfileOrdersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -138,14 +182,19 @@ export interface FileRoutesById {
   '/not-found': typeof NotFoundRoute
   '/search': typeof SearchRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRouteRouteWithChildren
   '/_authenticated/_admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_guest/signin': typeof GuestSigninRoute
   '/_guest/signup': typeof GuestSignupRoute
+  '/_authenticated/profile/edit': typeof AuthenticatedProfileEditRoute
+  '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/products/$productId/': typeof ProductsProductIdIndexRoute
   '/_authenticated/orders/$orderid/failure': typeof AuthenticatedOrdersOrderidFailureRoute
   '/_authenticated/orders/$orderid/success': typeof AuthenticatedOrdersOrderidSuccessRoute
+  '/_authenticated/profile/orders/$orderId': typeof AuthenticatedProfileOrdersOrderIdRoute
   '/_authenticated/_admin/dashboard/': typeof AuthenticatedAdminDashboardIndexRoute
+  '/_authenticated/profile/orders/': typeof AuthenticatedProfileOrdersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -155,13 +204,18 @@ export interface FileRouteTypes {
     | '/not-found'
     | '/search'
     | '/unauthorized'
+    | '/profile'
     | '/checkout'
     | '/signin'
     | '/signup'
+    | '/profile/edit'
+    | '/profile/'
     | '/products/$productId/'
     | '/orders/$orderid/failure'
     | '/orders/$orderid/success'
+    | '/profile/orders/$orderId'
     | '/dashboard/'
+    | '/profile/orders/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -172,10 +226,14 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/signin'
     | '/signup'
+    | '/profile/edit'
+    | '/profile'
     | '/products/$productId'
     | '/orders/$orderid/failure'
     | '/orders/$orderid/success'
+    | '/profile/orders/$orderId'
     | '/dashboard'
+    | '/profile/orders'
   id:
     | '__root__'
     | '/'
@@ -185,14 +243,19 @@ export interface FileRouteTypes {
     | '/not-found'
     | '/search'
     | '/unauthorized'
+    | '/_authenticated/profile'
     | '/_authenticated/_admin'
     | '/_authenticated/checkout'
     | '/_guest/signin'
     | '/_guest/signup'
+    | '/_authenticated/profile/edit'
+    | '/_authenticated/profile/'
     | '/products/$productId/'
     | '/_authenticated/orders/$orderid/failure'
     | '/_authenticated/orders/$orderid/success'
+    | '/_authenticated/profile/orders/$orderId'
     | '/_authenticated/_admin/dashboard/'
+    | '/_authenticated/profile/orders/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -285,6 +348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/products/$productId/': {
       id: '/products/$productId/'
       path: '/products/$productId'
@@ -292,12 +362,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsProductIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/profile/': {
+      id: '/_authenticated/profile/'
+      path: '/'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof AuthenticatedProfileIndexRouteImport
+      parentRoute: typeof AuthenticatedProfileRouteRoute
+    }
+    '/_authenticated/profile/edit': {
+      id: '/_authenticated/profile/edit'
+      path: '/edit'
+      fullPath: '/profile/edit'
+      preLoaderRoute: typeof AuthenticatedProfileEditRouteImport
+      parentRoute: typeof AuthenticatedProfileRouteRoute
+    }
+    '/_authenticated/profile/orders/': {
+      id: '/_authenticated/profile/orders/'
+      path: '/orders'
+      fullPath: '/profile/orders/'
+      preLoaderRoute: typeof AuthenticatedProfileOrdersIndexRouteImport
+      parentRoute: typeof AuthenticatedProfileRouteRoute
+    }
     '/_authenticated/_admin/dashboard/': {
       id: '/_authenticated/_admin/dashboard/'
       path: '/dashboard'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof AuthenticatedAdminDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/profile/orders/$orderId': {
+      id: '/_authenticated/profile/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/profile/orders/$orderId'
+      preLoaderRoute: typeof AuthenticatedProfileOrdersOrderIdRouteImport
+      parentRoute: typeof AuthenticatedProfileRouteRoute
     }
     '/_authenticated/orders/$orderid/success': {
       id: '/_authenticated/orders/$orderid/success'
@@ -316,6 +414,27 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedProfileRouteRouteChildren {
+  AuthenticatedProfileEditRoute: typeof AuthenticatedProfileEditRoute
+  AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
+  AuthenticatedProfileOrdersOrderIdRoute: typeof AuthenticatedProfileOrdersOrderIdRoute
+  AuthenticatedProfileOrdersIndexRoute: typeof AuthenticatedProfileOrdersIndexRoute
+}
+
+const AuthenticatedProfileRouteRouteChildren: AuthenticatedProfileRouteRouteChildren =
+  {
+    AuthenticatedProfileEditRoute: AuthenticatedProfileEditRoute,
+    AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
+    AuthenticatedProfileOrdersOrderIdRoute:
+      AuthenticatedProfileOrdersOrderIdRoute,
+    AuthenticatedProfileOrdersIndexRoute: AuthenticatedProfileOrdersIndexRoute,
+  }
+
+const AuthenticatedProfileRouteRouteWithChildren =
+  AuthenticatedProfileRouteRoute._addFileChildren(
+    AuthenticatedProfileRouteRouteChildren,
+  )
+
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminDashboardIndexRoute: typeof AuthenticatedAdminDashboardIndexRoute
 }
@@ -328,6 +447,7 @@ const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedProfileRouteRoute: typeof AuthenticatedProfileRouteRouteWithChildren
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
   AuthenticatedOrdersOrderidFailureRoute: typeof AuthenticatedOrdersOrderidFailureRoute
@@ -335,6 +455,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedProfileRouteRoute: AuthenticatedProfileRouteRouteWithChildren,
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedOrdersOrderidFailureRoute:
