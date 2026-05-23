@@ -1,20 +1,18 @@
-import { get } from "@/shared/api";
 import { queryOptions } from "@tanstack/react-query";
+import { getOrderDetailApi } from "../api/orders.api";
 import {
 	ORDER_STATUS_PENDING_STALE_TIME,
 	ORDER_STATUS_POLL_INTERVAL,
 	ORDER_STATUS_POLL_MAX_ATTEMPTS,
 } from "../consts";
-import { orderSchema } from "../schemas";
 import { orderKeys } from "./order.keys";
 
-export function orderDetailQueryOptions(orderId: string) {
+function orderDetailQueryOptions(orderId: string) {
 	return queryOptions({
 		queryKey: orderKeys.detail(orderId),
-		queryFn: async ({ signal }) => {
-			const response = await get(`/orders/${orderId}`, orderSchema, signal);
-			return response;
-		},
+		queryFn: ({ signal }) => getOrderDetailApi(orderId, signal),
+		enabled: Boolean(orderId),
+		refetchOnWindowFocus: false,
 	});
 }
 
