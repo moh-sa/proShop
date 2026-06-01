@@ -3,6 +3,7 @@ import { Frame, FramePanel } from "@/components/ui/frame";
 import { Spinner } from "@/components/ui/spinner";
 import type { UpdateProfile } from "@/features/profile/types";
 import type { User } from "@/features/users";
+import { DemoAccountAlert, isDemoAccountEmail } from "@/shared/demo";
 import { ErrorAlert } from "@/shared/errors";
 import { useAppForm } from "@/shared/form";
 import { PageHeader } from "@/shared/layout/page";
@@ -17,6 +18,8 @@ type ProfileEditFormProps = {
 };
 
 export function ProfileEditForm(props: ProfileEditFormProps) {
+	const isDemoAccount = isDemoAccountEmail(props.user.email);
+
 	const form = useAppForm({
 		defaultValues: {
 			name: props.user.name,
@@ -40,6 +43,7 @@ export function ProfileEditForm(props: ProfileEditFormProps) {
 					title="Edit Profile"
 					description="Update your account details. Leave password blank to keep your current password."
 				/>
+				{isDemoAccount ? <DemoAccountAlert className="mb-4" /> : null}
 			</header>
 
 			<Frame>
@@ -93,6 +97,7 @@ export function ProfileEditForm(props: ProfileEditFormProps) {
 									type="email"
 									autoComplete="email"
 									placeholder="you@example.com"
+									disabled={isDemoAccount}
 								/>
 							)}
 						</form.AppField>
@@ -104,6 +109,7 @@ export function ProfileEditForm(props: ProfileEditFormProps) {
 									type="password"
 									autoComplete="new-password"
 									placeholder="Enter your new password"
+									disabled={isDemoAccount}
 								/>
 							)}
 						</form.AppField>
@@ -115,6 +121,7 @@ export function ProfileEditForm(props: ProfileEditFormProps) {
 									type="password"
 									autoComplete="new-password"
 									placeholder="Confirm your new password"
+									disabled={isDemoAccount}
 								/>
 							)}
 						</form.AppField>
