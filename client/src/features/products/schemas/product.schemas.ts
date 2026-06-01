@@ -19,14 +19,21 @@ const numReviewsSchema = z.number().int().min(0);
 
 const ratingSchema = z.number().min(0).max(5);
 
-const imageSchema = z
-	.instanceof(File)
-	.refine((file) => file.size <= IMAGE_MAX_SIZE, {
-		message: `Image must be ${IMAGE_MAX_SIZE} or smaller`,
-	})
-	.refine((file) => IMAGE_MIMETYPES.includes(file.type), {
-		message: `Invalid image type. Allowed types: ${IMAGE_MIMETYPES.map((type) => type.replace("image/", "")).join(", ")}`,
-	});
+function buildImageSchema(isNullable: boolean) {
+	return z
+    .custom<File>((val) => isNullable ? val === null || val instanceof File : val instanceof File)
+    .refine(
+      (val) => val === null || val.size <= IMAGE_MAX_SIZE,
+      { message: `Image must be ${IMAGE_MAX_SIZE} or smaller` }
+    )
+    .refine(
+      (val) => val === null || IMAGE_MIMETYPES.includes(val.type),
+      { message: `Invalid image type. Allowed types: ${IMAGE_MIMETYPES.map((t) => t.replace("image/", "")).join(", ")}` }
+    );
+}
+
+export const createImageSchema = buildImageSchema(false);
+export const updateImageSchema = buildImageSchema(true);
 
 export const baseSchema = z.object({
 	name: nameSchema,
@@ -38,7 +45,7 @@ export const baseSchema = z.object({
 });
 
 export const createProductSchema = baseSchema.extend({
-	image: imageSchema,
+	image: buildImageSchema(false),
 });
 
 export const updateProductSchema = createProductSchema.partial().extend({
