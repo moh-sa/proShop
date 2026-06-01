@@ -68,6 +68,7 @@ router
 
 router
 	.route("/:reviewId")
-	.get(...adminGuard(adminLimiter), reviewController.getById);
+	.get(...adminGuard(adminLimiter), reviewController.getById)
+	.delete(...adminGuard(adminLimiter), reviewController.delete);
 
 export default router;
