@@ -1,13 +1,31 @@
 import type { User } from "@/features/users";
 import { userSchema } from "@/features/users/schemas/user.schemas";
 import { ClientApiError, del, get, normalizeError, post } from "@/shared/api";
-import { signInInputSchema, signUpInputSchema } from "../schemas";
+import {
+	demoSignInInputSchema,
+	signInInputSchema,
+	signUpInputSchema,
+} from "../schemas";
 import type {
+	DemoSignInInput,
+	DemoSignInOutput,
 	SignInInput,
 	SignInOutput,
 	SignUpInput,
 	SignUpOutput,
 } from "../types";
+
+export async function demoSignInApi(
+	input: DemoSignInInput,
+): Promise<DemoSignInOutput> {
+	const parsedInput = demoSignInInputSchema.safeParse(input);
+	if (!parsedInput.success) {
+		throw new ClientApiError(normalizeError(parsedInput.error, "input"));
+	}
+
+	const response = await post("/auth/demo-signin", parsedInput.data, userSchema);
+	return response;
+}
 
 export async function signUpApi(input: SignUpInput): Promise<SignUpOutput> {
 	const parsedInput = signUpInputSchema.safeParse(input);

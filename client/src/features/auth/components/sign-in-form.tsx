@@ -3,6 +3,7 @@ import { signInInputSchema, type SignInInput } from "@/features/auth";
 import { useAppForm } from "@/shared/form";
 
 type SignInFormProps = {
+	disabled?: boolean;
 	onSubmit: (values: SignInInput) => void;
 };
 
@@ -39,6 +40,7 @@ export function SignInForm(props: SignInFormProps) {
 							type="email"
 							autoComplete="email"
 							placeholder="Enter your email address"
+							disabled={props.disabled}
 							required
 						/>
 					)}
@@ -58,6 +60,7 @@ export function SignInForm(props: SignInFormProps) {
 							type="password"
 							autoComplete="current-password"
 							placeholder="Enter your password"
+							disabled={props.disabled}
 							required
 						/>
 					)}
@@ -67,7 +70,11 @@ export function SignInForm(props: SignInFormProps) {
 			<form.Subscribe
 				selector={(state) => [state.canSubmit, state.isSubmitting]}
 				children={([canSubmit, isSubmitting]) => (
-					<Button type="submit" className="w-full" disabled={!canSubmit}>
+					<Button
+						type="submit"
+						className="w-full"
+						disabled={!canSubmit || props.disabled}
+					>
 						{isSubmitting ? "Signing in…" : "Sign In"}
 					</Button>
 				)}

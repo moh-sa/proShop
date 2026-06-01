@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/card";
 import { SeparatorText } from "@/components/ui/separator-text";
 import {
+	demoSignInMutationOptions,
 	SignInForm,
 	signInMutationOptions,
 	type SignInInput,
@@ -29,19 +30,22 @@ function RouteComponent() {
 	const redirectTo = redirect ?? "/";
 
 	const mutation = useMutation(signInMutationOptions);
+	const demoMutation = useMutation(demoSignInMutationOptions);
+	const isSigningIn = mutation.isPending || demoMutation.isPending;
 
 	let serverError: string | undefined;
+	const error = mutation.error ?? demoMutation.error;
 
-	if (mutation.isError) {
-		const error = mutation.error.details;
+	if (error) {
+		const details = error.details;
 
-		if (error.kind === "NETWORK") {
+		if (details.kind === "NETWORK") {
 			serverError = "Please check your internet connection and try again.";
 		}
 
-		if (error.kind === "SERVER") {
+		if (details.kind === "SERVER") {
 			serverError =
-				error.details[0]?.message ?? "An unexpected error occurred.";
+				details.details[0]?.message ?? "An unexpected error occurred.";
 		}
 	}
 
@@ -49,22 +53,22 @@ function RouteComponent() {
 		server: serverError,
 	};
 
+	function handleAuthSuccess() {
+		navigate({ to: redirectTo, replace: true });
+	}
+
 	function handleSubmit(values: SignInInput) {
 		mutation.mutate(values, {
-			onSuccess: () => {
-				navigate({ to: redirectTo, replace: true });
-			},
+			onSuccess: handleAuthSuccess,
 		});
 	}
 
 	function handleCustomerSignin() {
-		// TODO: implement customer signin
-		console.log("Customer login");
+		demoMutation.mutate({ role: "customer" }, { onSuccess: handleAuthSuccess });
 	}
 
 	function handleAdminSignin() {
-		// TODO: implement admin signin
-		console.log("Admin login");
+		demoMutation.mutate({ role: "admin" }, { onSuccess: handleAuthSuccess });
 	}
 
 	return (
@@ -76,10 +80,18 @@ function RouteComponent() {
 			<CardContent className="px-8">
 				{/* Quick Login Buttons */}
 				<div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
-					<Button variant="outline" onClick={handleCustomerSignin}>
+					<Button
+						variant="outline"
+						onClick={handleCustomerSignin}
+						disabled={isSigningIn}
+					>
 						Login as Customer
 					</Button>
-					<Button variant="outline" onClick={handleAdminSignin}>
+					<Button
+						variant="outline"
+						onClick={handleAdminSignin}
+						disabled={isSigningIn}
+					>
 						Login as Admin
 					</Button>
 				</div>
@@ -93,7 +105,7 @@ function RouteComponent() {
 							{errors.server}
 						</p>
 					)}
-					<SignInForm onSubmit={handleSubmit} />
+					<SignInForm onSubmit={handleSubmit} disabled={isSigningIn} />
 				</div>
 			</CardContent>
 
