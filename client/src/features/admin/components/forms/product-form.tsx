@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Frame, FramePanel } from "@/components/ui/frame";
+import { createProductMutationOptions, updateProductMutationOptions } from "@/features/admin/queries";
 import {
-	createProductSchema,
+	createImageSchema,
 	productSchema,
+	updateImageSchema
 } from "@/features/products/schemas";
 import type { Product } from "@/features/products/types";
-import { updateProductMutationOptions, createProductMutationOptions } from "@/features/admin/queries";
 import { ErrorAlert } from "@/shared/errors";
 import { useAppForm } from "@/shared/form";
 import { BackButton, PageHeader } from "@/shared/layout/page";
@@ -15,9 +16,6 @@ import { useNavigate } from "@tanstack/react-router";
 type ProductFormMode = { mode: "create" } | { mode: "edit"; product: Product };
 
 type ProductFormProps = ProductFormMode & { search?: Record<string, unknown> };
-
-const createImageValidator = createProductSchema.shape.image;
-const editImageValidator = createProductSchema.shape.image.nullable();
 
 export function ProductForm(props: ProductFormProps) {
 	const navigate = useNavigate();
@@ -180,7 +178,7 @@ export function ProductForm(props: ProductFormProps) {
 						<form.AppField
 							name="image"
 							validators={{
-								onChange: isEdit ? editImageValidator : createImageValidator,
+								onChange: isEdit ? updateImageSchema : createImageSchema,
 							}}
 						>
 							{(field) => (
