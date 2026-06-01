@@ -1,4 +1,5 @@
 import {
+	ForbiddenError,
 	InternalError,
 	NotFoundError,
 	ValidationError,
@@ -24,7 +25,7 @@ import type {
 	User,
 	UserSelect,
 } from "../types/index.js";
-import { getLoggerFromContext } from "../utils/index.js";
+import { getLoggerFromContext, isDemoAccountEmail } from "../utils/index.js";
 import {
 	emailValidator,
 	objectIdStringValidator,
@@ -130,6 +131,31 @@ export class UserService implements IUserService {
 			{ validatedUserId: validationResult.data },
 			"Validated user ID",
 		);
+
+		const existingUserResult = await this._repository.getById({
+			userId: validationResult.data,
+		});
+		if (!existingUserResult.success) {
+			logger.warn(
+				{ error: existingUserResult.error, userId },
+				"Failed to get user before deletion",
+			);
+			return existingUserResult;
+		}
+		if (!existingUserResult.data) {
+			logger.warn({ userId }, "User not found");
+			return {
+				error: new NotFoundError("User"),
+				success: false,
+			};
+		}
+		if (this._isDemoUser(existingUserResult.data)) {
+			logger.warn({ userId }, "Blocked demo account deletion");
+			return {
+				error: new ForbiddenError("Demo accounts cannot be deleted"),
+				success: false,
+			};
+		}
 
 		const deleteResult = await this._repository.delete({
 			userId: validationResult.data,
@@ -416,6 +442,48 @@ export class UserService implements IUserService {
 			"Validated arguments data",
 		);
 
+		// check if user exists
+		const existingUserResult = await this._repository.getById({
+			userId: argsValidationResult.data.userId,
+		});
+		if (!existingUserResult.success) {
+			logger.warn(
+				{
+					error: existingUserResult.error,
+					userId: argsValidationResult.data.userId,
+				},
+				"Failed to get user before update",
+			);
+			return existingUserResult;
+		}
+		if (!existingUserResult.data) {
+			logger.warn(
+				{ userId: argsValidationResult.data.userId },
+				"User not found",
+			);
+			return {
+				error: new NotFoundError("User"),
+				success: false,
+			};
+		}
+
+		// check if 'user' is a demo account and if the update data contains protected fields
+		if (
+			this._isDemoUser(existingUserResult.data) &&
+			this._hasProtectedDemoAccountUpdateFields(argsValidationResult.data)
+		) {
+			logger.warn(
+				{ userId: argsValidationResult.data.userId },
+				"Blocked protected demo account field update",
+			);
+			return {
+				error: new ForbiddenError(
+					"Demo account email, password, and admin status cannot be changed",
+				),
+				success: false,
+			};
+		}
+
 		// repository call
 		const updateResult = await this._repository.update(
 			argsValidationResult.data,
@@ -600,6 +668,18 @@ export class UserService implements IUserService {
 
 	private _getLogger(args: { [key: string]: unknown; method: string }) {
 		return getLoggerFromContext().child({ layer: "user service", ...args });
+	}
+
+	private _hasProtectedDemoAccountUpdateFields(args: UpdateUserInput): boolean {
+		return (
+			args.email !== undefined ||
+			args.password !== undefined ||
+			args.isAdmin !== undefined
+		);
+	}
+
+	private _isDemoUser(user: User): boolean {
+		return isDemoAccountEmail(user.email);
 	}
 
 	// Validation Methods

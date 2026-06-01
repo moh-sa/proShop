@@ -1,7 +1,9 @@
 import assert from "node:assert";
 import test, { beforeEach, describe, suite } from "node:test";
 
+import { DEMO_ACCOUNT_EMAILS } from "../../constants/index.js";
 import {
+	ForbiddenError,
 	InternalError,
 	NotFoundError,
 	ValidationError,
@@ -303,6 +305,12 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'user object' without 'password' when 'repo.update' is called once with 'userId' and 'updateData'", async () => {
 			// Arrange
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: mockUser,
+					success: true,
+				}),
+			);
 			mockRepo.update.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					data: updatedData,
@@ -326,6 +334,12 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'NotFoundError' when 'repo.update' returns 'null'", async () => {
 			// Arrange
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: mockUser,
+					success: true,
+				}),
+			);
 			mockRepo.update.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					data: null,
@@ -377,6 +391,117 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 			assert.strictEqual(mockRepo.update.mock.callCount(), 0);
 		});
+
+		test("Should allow demo user to update name", async () => {
+			// Arrange
+			const demoUser = generateMockSelectUser({
+				email: DEMO_ACCOUNT_EMAILS.customer,
+			});
+			const demoUpdateData: UpdateUserInput = {
+				name: "Updated Demo Name",
+				userId: demoUser.id,
+			};
+			const demoUpdatedData = { ...demoUser, ...demoUpdateData };
+			const { password: _, userId: __, ...expectedDemoUser } =
+				demoUpdatedData;
+
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: demoUser,
+					success: true,
+				}),
+			);
+			mockRepo.update.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: demoUpdatedData,
+					success: true,
+				}),
+			);
+
+			// Act
+			const result = await service.updateById(demoUpdateData);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, expectedDemoUser);
+			assert.strictEqual(mockRepo.update.mock.callCount(), 1);
+		});
+
+		test("Should return 'ForbiddenError' when demo user email is updated", async () => {
+			// Arrange
+			const demoUser = generateMockSelectUser({
+				email: DEMO_ACCOUNT_EMAILS.customer,
+			});
+
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: demoUser,
+					success: true,
+				}),
+			);
+
+			// Act
+			const result = await service.updateById({
+				email: "new-customer@example.com",
+				userId: demoUser.id,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ForbiddenError);
+			assert.strictEqual(mockRepo.update.mock.callCount(), 0);
+		});
+
+		test("Should return 'ForbiddenError' when demo user password is updated", async () => {
+			// Arrange
+			const demoUser = generateMockSelectUser({
+				email: DEMO_ACCOUNT_EMAILS.customer,
+			});
+
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: demoUser,
+					success: true,
+				}),
+			);
+
+			// Act
+			const result = await service.updateById({
+				password: "new-password",
+				userId: demoUser.id,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ForbiddenError);
+			assert.strictEqual(mockRepo.update.mock.callCount(), 0);
+		});
+
+		test("Should return 'ForbiddenError' when demo user admin status is updated", async () => {
+			// Arrange
+			const demoUser = generateMockSelectUser({
+				email: DEMO_ACCOUNT_EMAILS.customer,
+				isAdmin: false,
+			});
+
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: demoUser,
+					success: true,
+				}),
+			);
+
+			// Act
+			const result = await service.updateById({
+				isAdmin: true,
+				userId: demoUser.id,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ForbiddenError);
+			assert.strictEqual(mockRepo.update.mock.callCount(), 0);
+		});
 	});
 
 	describe("delete", () => {
@@ -386,6 +511,12 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'user object' when 'repo.delete' is called once with 'userId'", async () => {
 			// Arrange
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: mockUser,
+					success: true,
+				}),
+			);
 			mockRepo.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					data: mockUser,
@@ -409,6 +540,12 @@ suite("User Service 〖 Unit Tests 〗", () => {
 
 		test("Should return 'NotFoundError' when 'repo.delete' returns 'null'", async () => {
 			// Arrange
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: mockUser,
+					success: true,
+				}),
+			);
 			mockRepo.delete.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					data: null,
@@ -435,6 +572,28 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			assert.strictEqual(result.success, false);
 			assert.ok(result.error instanceof ValidationError);
 
+			assert.strictEqual(mockRepo.delete.mock.callCount(), 0);
+		});
+
+		test("Should return 'ForbiddenError' when deleting a demo user", async () => {
+			// Arrange
+			const demoUser = generateMockSelectUser({
+				email: DEMO_ACCOUNT_EMAILS.admin,
+			});
+
+			mockRepo.getById.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: demoUser,
+					success: true,
+				}),
+			);
+
+			// Act
+			const result = await service.delete({ userId: demoUser.id });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ForbiddenError);
 			assert.strictEqual(mockRepo.delete.mock.callCount(), 0);
 		});
 	});

@@ -7,4 +7,5 @@ export * from "./product/index.js";
 export * from "./review/review.schema.js";
 export * from "./session/index.js";
 export * from "./shipping/shipping-address.schema.js";
+export * from "./stats/index.js";
 export * from "./user/index.js";

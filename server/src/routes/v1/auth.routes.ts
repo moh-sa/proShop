@@ -15,6 +15,8 @@ router.route("/signup").post(authLimiter, authController.signUp);
 
 router.route("/signin").post(authLimiter, authController.signIn);
 
+router.route("/demo-signin").post(authLimiter, authController.demoSignIn);
+
 //============= 🔒 PROTECTED ROUTES =============
 const protectedRouter = express.Router();
 

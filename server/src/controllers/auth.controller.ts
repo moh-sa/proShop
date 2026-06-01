@@ -1,13 +1,16 @@
 import type { Request, Response } from "express";
 
 import { HTTP_STATUS } from "../constants/index.js";
+import { ValidationError } from "../errors/index.js";
 import type { IAuthManager } from "../managers/index.js";
 import { authManager } from "../managers/index.js";
+import { demoRoleSchema } from "../schemas/demo/demo-role.schema.js";
 import type { ICookieService } from "../services/index.js";
 import { cookieService } from "../services/index.js";
 import type {
 	AsyncHandler,
 	CreateUser,
+	DemoRole,
 	GetAllSessionsByUserIdControllerParams,
 	PaginatedResponse,
 	SafeSelectUser,
@@ -22,6 +25,14 @@ import { jwtTokenValidator } from "../validators/index.js";
  */
 export interface IAuthController {
 	// User Registration & Authentication
+	/**
+	 * POST /auth/demo-signin
+	 */
+	demoSignIn: AsyncHandler<{
+		reqBody: DemoRole;
+		resBody: { data: SafeSelectUser };
+	}>;
+
 	/**
 	 * POST /auth/signup
 	 */
@@ -89,6 +100,42 @@ export class AuthController implements IAuthController {
 		this._authManager = auth ?? authManager;
 		this._cookieService = cookie ?? cookieService;
 	}
+
+	/**
+	 * POST /auth/demo-signin
+	 */
+	demoSignIn = asyncHandler<{
+		reqBody: DemoRole;
+		resBody: { data: SafeSelectUser };
+	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "demoSignIn" });
+		logger.debug({ args: req.body }, "Signing in demo user");
+
+		const validationResult = demoRoleSchema.safeParse(req.body);
+		if (!validationResult.success) {
+			throw new ValidationError("Invalid demo sign in data", {
+				cause: validationResult.error,
+			});
+		}
+
+		const result = await this._authManager.signInDemo(validationResult.data);
+		if (!result.success) {
+			throw result.error;
+		}
+
+		this._setAuthCookies(result.data.tokens, res);
+		logger.debug("Set access and refresh tokens in cookies successfully");
+
+		logger.info(
+			{ role: validationResult.data.role, userId: result.data.user.id },
+			"Demo user signed in successfully",
+		);
+
+		res.status(HTTP_STATUS.OK).json({
+			data: result.data.user,
+			success: true,
+		});
+	});
 
 	/**
 	 * POST /auth/signin

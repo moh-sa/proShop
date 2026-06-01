@@ -1,6 +1,7 @@
 import assert from "node:assert";
 import { beforeEach, describe, it, suite } from "node:test";
 
+import { DEMO_ACCOUNT_EMAILS } from "../../constants/index.js";
 import {
 	ConflictError,
 	InvalidCredentialsError,
@@ -722,6 +723,112 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 				mockSession.create.mock.calls[0].arguments[0].userId,
 				mockSelectUser.id,
 			);
+		});
+	});
+
+	describe("signInDemo", () => {
+		it("should sign in admin demo account without verifying a password", async () => {
+			// Arrange
+			const mockSelectUser = generateMockSelectUser({
+				email: DEMO_ACCOUNT_EMAILS.admin,
+				isAdmin: true,
+			});
+			const mockTokenPair = generateMockTokenPairWithData();
+			const session = generateMockSelectSession({
+				expiresAt: mockTokenPair.refresh.expiresAt,
+				tokenId: mockTokenPair.refresh.tokenId,
+				userId: mockSelectUser.id,
+			});
+
+			mockUser.getByEmail_UNSAFE.mock.mockImplementation(async () => ({
+				data: mockSelectUser,
+				success: true,
+			}));
+			mockUser.sanitizeUser.mock.mockImplementationOnce(() => ({
+				data: mockSelectUser,
+				success: true,
+			}));
+			mockJwt.generateTokenPair.mock.mockImplementation(() => ({
+				data: mockTokenPair,
+				success: true,
+			}));
+			mockSession.create.mock.mockImplementation(async () => ({
+				data: session,
+				success: true,
+			}));
+
+			// Act
+			const result = await manager.signInDemo({ role: "admin" });
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.sessionId, session.id);
+			assert.deepStrictEqual(result.data.tokens, mockTokenPair);
+			assert.deepStrictEqual(result.data.user, mockSelectUser);
+
+			assert.strictEqual(mockPassword.verify.mock.callCount(), 0);
+			assert.deepStrictEqual(
+				mockUser.getByEmail_UNSAFE.mock.calls[0].arguments[0],
+				{ email: DEMO_ACCOUNT_EMAILS.admin },
+			);
+		});
+
+		it("should map customer demo role to the customer demo email", async () => {
+			// Arrange
+			const mockSelectUser = generateMockSelectUser({
+				email: DEMO_ACCOUNT_EMAILS.customer,
+				isAdmin: false,
+			});
+			const mockTokenPair = generateMockTokenPairWithData();
+			const session = generateMockSelectSession({
+				expiresAt: mockTokenPair.refresh.expiresAt,
+				tokenId: mockTokenPair.refresh.tokenId,
+				userId: mockSelectUser.id,
+			});
+
+			mockUser.getByEmail_UNSAFE.mock.mockImplementation(async () => ({
+				data: mockSelectUser,
+				success: true,
+			}));
+			mockUser.sanitizeUser.mock.mockImplementationOnce(() => ({
+				data: mockSelectUser,
+				success: true,
+			}));
+			mockJwt.generateTokenPair.mock.mockImplementation(() => ({
+				data: mockTokenPair,
+				success: true,
+			}));
+			mockSession.create.mock.mockImplementation(async () => ({
+				data: session,
+				success: true,
+			}));
+
+			// Act
+			const result = await manager.signInDemo({ role: "customer" });
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(
+				mockUser.getByEmail_UNSAFE.mock.calls[0].arguments[0],
+				{ email: DEMO_ACCOUNT_EMAILS.customer },
+			);
+		});
+
+		it("should return InvalidCredentialsError when demo user is unavailable", async () => {
+			// Arrange
+			mockUser.getByEmail_UNSAFE.mock.mockImplementation(async () => ({
+				error: new NotFoundError("User"),
+				success: false,
+			}));
+
+			// Act
+			const result = await manager.signInDemo({ role: "admin" });
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof InvalidCredentialsError);
+			assert.strictEqual(mockPassword.verify.mock.callCount(), 0);
+			assert.strictEqual(mockSession.create.mock.callCount(), 0);
 		});
 	});
 

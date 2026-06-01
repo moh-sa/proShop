@@ -3,6 +3,7 @@ import { beforeEach, describe, it, suite } from "node:test";
 
 import { HTTP_STATUS } from "../../constants/index.js";
 import { AuthController } from "../../controllers/auth.controller.js";
+import { ValidationError } from "../../errors/index.js";
 import type { ICookieService } from "../../services/index.js";
 import {
 	generateMockInsertUser,
@@ -317,6 +318,108 @@ suite("Auth Controller〖 Unit Tests 〗", () => {
 				error,
 			);
 
+			assert.strictEqual(mockCookie.set.mock.callCount(), 0);
+		});
+	});
+
+	describe("demoSignIn", () => {
+		it("should authenticate demo user and return 200 with user data", async () => {
+			// Arrange
+			const mockTokens = generateMockTokenPairWithData();
+			const { password: _, ...safeUser } = generateMockSelectUser({
+				email: "admin@example.com",
+				isAdmin: true,
+			});
+
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.demoSignIn,
+			);
+			req.body = { role: "admin" };
+
+			mockManager.signInDemo.mock.mockImplementation(async () => ({
+				data: {
+					sessionId: "session-id",
+					tokens: mockTokens,
+					user: safeUser,
+				},
+				success: true,
+			}));
+			mockCookie.set.mock.mockImplementation(() => ({
+				data: undefined,
+				success: true,
+			}));
+
+			// Act
+			await controller.demoSignIn(req, res, next);
+
+			// Assert
+			const responseData = res._getJSONData();
+			const expectedUserData = JSON.parse(JSON.stringify(safeUser));
+
+			assert.strictEqual(res._getStatusCode(), HTTP_STATUS.OK);
+			assert.ok(responseData.success);
+			assert.deepStrictEqual(responseData.data, expectedUserData);
+			assert.deepStrictEqual(
+				mockManager.signInDemo.mock.calls[0].arguments[0],
+				{ role: "admin" },
+			);
+		});
+
+		it("should set both access and refresh tokens as cookies after demo signin", async () => {
+			// Arrange
+			const mockTokens = generateMockTokenPairWithData();
+			const { password: _, ...safeUser } = generateMockSelectUser({
+				email: "customer@example.com",
+				isAdmin: false,
+			});
+
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.demoSignIn,
+			);
+			req.body = { role: "customer" };
+
+			mockManager.signInDemo.mock.mockImplementation(async () => ({
+				data: {
+					sessionId: "session-id",
+					tokens: mockTokens,
+					user: safeUser,
+				},
+				success: true,
+			}));
+			mockCookie.set.mock.mockImplementation(() => ({
+				data: undefined,
+				success: true,
+			}));
+
+			// Act
+			await controller.demoSignIn(req, res, next);
+
+			// Assert
+			assert.strictEqual(mockCookie.set.mock.callCount(), 2);
+
+			const accessTokenCall = mockCookie.set.mock.calls[0].arguments[0];
+			assert.strictEqual(accessTokenCall.item.name, "accessToken");
+			assert.strictEqual(accessTokenCall.item.value, mockTokens.access.token);
+
+			const refreshTokenCall = mockCookie.set.mock.calls[1].arguments[0];
+			assert.strictEqual(refreshTokenCall.item.name, "refreshToken");
+			assert.strictEqual(refreshTokenCall.item.value, mockTokens.refresh.token);
+		});
+
+		it("should reject invalid role and prevent cookie setting", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.demoSignIn,
+			);
+			req.body = { role: "seller" } as never;
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.demoSignIn(req, res, next),
+				ValidationError,
+			);
+
+			assert.strictEqual(mockManager.signInDemo.mock.callCount(), 0);
 			assert.strictEqual(mockCookie.set.mock.callCount(), 0);
 		});
 	});

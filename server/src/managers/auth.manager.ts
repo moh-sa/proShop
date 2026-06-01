@@ -1,3 +1,4 @@
+import { DEMO_ACCOUNT_EMAILS } from "../constants/index.js";
 import {
 	ConflictError,
 	InvalidCredentialsError,
@@ -18,6 +19,7 @@ import {
 } from "../services/index.js";
 import type {
 	CreateUser,
+	DemoAccountRole,
 	GetAllSessionsByUserIdManagerParams,
 	MethodParams,
 	MethodReturn,
@@ -53,6 +55,14 @@ export interface IAuthManager {
 	revokeSession(args: { refreshToken: string }): Promise<AuthResult<undefined>>;
 
 	signIn(args: Pick<CreateUser, "email" | "password">): Promise<
+		AuthResult<{
+			sessionId: string;
+			tokens: TokenPair;
+			user: SafeSelectUser;
+		}>
+	>;
+
+	signInDemo(args: { role: DemoAccountRole }): Promise<
 		AuthResult<{
 			sessionId: string;
 			tokens: TokenPair;
@@ -287,6 +297,49 @@ export class AuthManager implements IAuthManager {
 			{ email: args.email, userId: sanitizeResult.data.id },
 			"User signed in successfully",
 		);
+		return authSessionResult;
+	}
+
+	public async signInDemo(
+		args: MethodParams<IAuthManager, "signInDemo">,
+	): MethodReturn<IAuthManager, "signInDemo"> {
+		const logger = this.getLogger({ method: "signInDemo" });
+
+		const email = args?.role && DEMO_ACCOUNT_EMAILS[args.role];
+		if (!email) {
+			logger.warn({ role: args?.role }, "Demo sign in failed - invalid role");
+			return {
+				error: new ValidationError("Invalid demo account role"),
+				success: false,
+			};
+		}
+
+		const userResult = await this._user.getByEmail_UNSAFE({ email });
+		if (!userResult.success) {
+			logger.warn({ email }, "Demo sign in failed - demo account unavailable");
+			return {
+				error: new InvalidCredentialsError("Demo account is unavailable"),
+				success: false,
+			};
+		}
+
+		const sanitizeResult = this._user.sanitizeUser(userResult.data);
+		if (!sanitizeResult.success) {
+			return sanitizeResult;
+		}
+
+		const authSessionResult = await this._createAuthSession(
+			sanitizeResult.data,
+		);
+		if (!authSessionResult.success) {
+			return authSessionResult;
+		}
+
+		logger.info(
+			{ email, role: args.role, userId: sanitizeResult.data.id },
+			"Demo user signed in successfully",
+		);
+
 		return authSessionResult;
 	}
 
