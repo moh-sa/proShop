@@ -23,7 +23,7 @@ export const orderItemSchema = z.object({
 	qty: z.number().int().positive("Quantity is required"),
 });
 
-const baseSchema = z.object({
+export const baseSchema = z.object({
 	orderItems: z.array(orderItemSchema).nonempty("Order items are required"),
 	shippingAddress: shippingAddressSchema,
 	itemsPrice: z.number().nonnegative("Items price is required"),
@@ -34,29 +34,36 @@ const baseSchema = z.object({
 
 export const createOrderSchema = baseSchema;
 
-const baseOrderSchema = baseSchema.extend({
+export const baseOrderSchema = baseSchema.extend({
 	...selectSchema.shape,
 	user: userSchema.pick({ id: true, name: true, email: true }),
 });
 
+export const orderStatusSchema = z.enum([
+	"pending",
+	"processing",
+	"delivered",
+	"cancelled",
+]);
+
 export const orderPendingSchema = baseOrderSchema.extend({
-	status: z.literal("pending"),
+	status: z.literal(orderStatusSchema.enum.pending),
 	payment: pendingPaymentSchema,
 });
 
 export const orderProcessingSchema = baseOrderSchema.extend({
-	status: z.literal("processing"),
+	status: z.literal(orderStatusSchema.enum.processing),
 	payment: paymentSchema,
 });
 
 export const orderDeliveredSchema = baseOrderSchema.extend({
-	status: z.literal("delivered"),
+	status: z.literal(orderStatusSchema.enum.delivered),
 	payment: paymentSchema,
 	deliveredAt: z.coerce.date(),
 });
 
 export const orderCancelledSchema = baseOrderSchema.extend({
-	status: z.literal("cancelled"),
+	status: z.literal(orderStatusSchema.enum.cancelled),
 });
 
 export const orderSchema = z.discriminatedUnion("status", [
@@ -71,7 +78,8 @@ const paymentSessionSchema = z.object({
 });
 
 export const createOrderResponseSchema = z.object({
-	order: orderPendingSchema,
+	// 'order manager' may fail to update order with payment details
+	order: orderPendingSchema.omit({ payment: true }),
 	session: paymentSessionSchema,
 });
 
