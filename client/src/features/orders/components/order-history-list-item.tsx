@@ -8,6 +8,7 @@ import { OrderStatusBadge } from "./order-status-badge";
 
 type OrderHistoryListItemProps = {
 	order: OrderListItem;
+	search: Record<string, unknown>;
 };
 
 export function OrderHistoryListItem(props: OrderHistoryListItemProps) {
@@ -57,6 +58,7 @@ export function OrderHistoryListItem(props: OrderHistoryListItemProps) {
 						<Link
 							to="/profile/orders/$orderId"
 							params={{ orderId: order.id }}
+							search={props.search}
 						/>
 					}
 					size="sm"

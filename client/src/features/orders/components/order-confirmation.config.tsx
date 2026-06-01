@@ -17,17 +17,10 @@ type ActionConfig = {
 	buttonVariant?: "default" | "outline";
 };
 
-type BadgeConfig = {
-	label: string;
-	variant: "secondary" | "destructive";
-	className?: string;
-};
-
 type VariantConfig = {
 	Icon: React.ComponentType<{ className?: string }>;
 	iconWrapperClassName: string;
 	heading: string;
-	badge: BadgeConfig;
 	actions: ActionConfig[];
 };
 
@@ -39,7 +32,6 @@ export const ORDER_CONFIRMATION_CONFIG: Record<
 		Icon: Spinner,
 		iconWrapperClassName: "bg-gray-500/10 text-gray-700",
 		heading: "Just a Moment",
-		badge: { label: "Pending", variant: "secondary" },
 		actions: [
 			{ label: "Continue Shopping", to: "/", icon: LayoutGrid },
 			{
@@ -54,11 +46,6 @@ export const ORDER_CONFIRMATION_CONFIG: Record<
 		Icon: CheckCircle2,
 		iconWrapperClassName: "bg-teal-500/10 text-teal-700",
 		heading: "Order Confirmed!",
-		badge: {
-			label: "Paid",
-			variant: "secondary",
-			className: "bg-teal-500/10 text-teal-700",
-		},
 		actions: [
 			{ label: "Continue Shopping", to: "/", icon: LayoutGrid },
 			{
@@ -73,7 +60,6 @@ export const ORDER_CONFIRMATION_CONFIG: Record<
 		Icon: AlertTriangle,
 		iconWrapperClassName: "bg-red-500/10 text-red-800/80",
 		heading: "Payment Didn't Go Through",
-		badge: { label: "Unpaid", variant: "destructive" },
 		actions: [
 			{ label: "Return to Cart", to: "/cart", icon: ShoppingBag },
 			{

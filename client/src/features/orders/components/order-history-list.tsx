@@ -1,6 +1,7 @@
 import { Frame, FramePanel } from "@/components/ui/frame";
 import { Pagination } from "@/features/pagination";
 import type { PaginationMeta } from "@/shared/api";
+import { PageHeader } from "@/shared/layout/page";
 import type { OrderListItem } from "../types";
 import { EmptyOrderHistory } from "./empty-order-history";
 import { OrderHistoryListItem } from "./order-history-list-item";
@@ -8,6 +9,7 @@ import { OrderHistoryListItem } from "./order-history-list-item";
 type OrderHistoryListProps = {
 	orders: OrderListItem[];
 	meta: PaginationMeta;
+	search: Record<string, unknown>;
 };
 
 export function OrderHistoryList(props: OrderHistoryListProps) {
@@ -23,10 +25,7 @@ export function OrderHistoryList(props: OrderHistoryListProps) {
 	return (
 		<div className="space-y-8">
 			<header>
-				<h1 className="font-heading text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
-					Order History
-				</h1>
-				<p className="mt-1 text-sm text-muted-foreground">{ordersText}</p>
+				<PageHeader title="Order History" description={ordersText} />
 			</header>
 
 			{hasOrders ? (
@@ -38,7 +37,7 @@ export function OrderHistoryList(props: OrderHistoryListProps) {
 								key={order.id}
 								className="rounded-none border-0 first:rounded-t-xl last:rounded-b-xl"
 							>
-								<OrderHistoryListItem order={order} />
+								<OrderHistoryListItem order={order} search={props.search} />
 							</FramePanel>
 						))}
 					</Frame>

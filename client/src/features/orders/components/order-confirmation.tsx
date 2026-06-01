@@ -1,6 +1,6 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Frame, FramePanel } from "@/components/ui/frame";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import type { Order } from "../types";
@@ -17,7 +17,7 @@ export type OrderConfirmationScreenProps = {
 
 export function OrderConfirmationScreen(props: OrderConfirmationScreenProps) {
 	const config = ORDER_CONFIRMATION_CONFIG[props.variant];
-	const { Icon, iconWrapperClassName, heading, badge, actions } = config;
+	const { Icon, iconWrapperClassName, heading, actions } = config;
 
 	return (
 		<div className="min-h-dvh">
@@ -37,20 +37,16 @@ export function OrderConfirmationScreen(props: OrderConfirmationScreenProps) {
 						</h1>
 					</header>
 
-					<OrderReceiptCard
-						headerExtra={
-							<Badge
-								className={cn(
-									"shrink-0 text-xs tracking-wide uppercase",
-									badge.className,
-								)}
-								variant={badge.variant}
-							>
-								{badge.label}
-							</Badge>
-						}
-						receipt={props.receipt}
-					/>
+					<OrderReceiptCard receipt={props.receipt}>
+						<OrderReceiptCard.Header />
+						<OrderReceiptCard.Content>
+							<OrderReceiptCard.Items />
+							<Separator />
+							<OrderReceiptCard.ShippingAddress />
+							<Separator />
+							<OrderReceiptCard.PriceSummary />
+						</OrderReceiptCard.Content>
+					</OrderReceiptCard>
 
 					<nav className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
 						{actions.map((action) => {
