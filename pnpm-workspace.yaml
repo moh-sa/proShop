@@ -1,7 +1,6 @@
 packages:
   - client
   - server
-  - packages/*
 
 onlyBuiltDependencies:
   - "@sentry/cli"

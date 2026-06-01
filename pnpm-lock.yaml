@@ -16,9 +16,6 @@ importers:
       '@fontsource-variable/geist':
         specifier: ^5.2.8
         version: 5.2.8
-      '@proshop/shared':
-        specifier: workspace:*
-        version: link:../packages/shared
       '@sentry/react':
         specifier: ^10.42.0
         version: 10.42.0(react@19.2.4)
@@ -171,21 +168,8 @@ importers:
         specifier: ^2.0.5
         version: 2.0.5(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.0.18)
 
-  packages/shared:
-    dependencies:
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
   server:
     dependencies:
-      '@proshop/shared':
-        specifier: workspace:*
-        version: link:../packages/shared
       '@sentry/node':
         specifier: ^8.54.0
         version: 8.55.0

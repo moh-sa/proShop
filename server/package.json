@@ -22,7 +22,6 @@
 		"type-check": "tsc -p tsconfig.json --noEmit"
 	},
 	"dependencies": {
-		"@proshop/shared": "workspace:*",
 		"@sentry/node": "^8.54.0",
 		"argon2": "^0.44.0",
 		"cloudinary": "^2.6.0",
