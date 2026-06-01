@@ -5,6 +5,7 @@ import type { UpdateProfile } from "@/features/profile/types";
 import type { User } from "@/features/users";
 import { ErrorAlert } from "@/shared/errors";
 import { useAppForm } from "@/shared/form";
+import { PageHeader } from "@/shared/layout/page";
 import { Link } from "@tanstack/react-router";
 import { buildUpdateProfilePayload } from "../helpers/build-update-profile-payload.helper";
 import { createUpdateProfileFormSchema } from "../schemas";
@@ -35,13 +36,10 @@ export function ProfileEditForm(props: ProfileEditFormProps) {
 	return (
 		<div className="space-y-8">
 			<header>
-				<h1 className="font-heading text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
-					Edit Profile
-				</h1>
-				<p className="mt-1 text-sm text-muted-foreground">
-					Update your account details. Leave password blank to keep your current
-					password.
-				</p>
+				<PageHeader
+					title="Edit Profile"
+					description="Update your account details. Leave password blank to keep your current password."
+				/>
 			</header>
 
 			<Frame>

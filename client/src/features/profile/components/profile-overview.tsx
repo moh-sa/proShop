@@ -4,6 +4,7 @@ import { QuickActionCard } from "@/components/ui/quick-action";
 import { StatCard } from "@/components/ui/stat-card";
 import type { User } from "@/features/users";
 import { getUserInitials } from "@/features/users/helpers/get-user-initials.helper";
+import { PageHeader } from "@/shared/layout/page";
 import { formatDate } from "@/shared/utils";
 import { HistoryIcon, MessageSquareIcon, PencilIcon } from "lucide-react";
 
@@ -18,12 +19,10 @@ export function ProfileOverview(props: ProfileOverviewProps) {
 	return (
 		<div className="space-y-8">
 			<header>
-				<h1 className="font-heading text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
-					Account Overview
-				</h1>
-				<p className="mt-1 text-sm text-muted-foreground">
-					Manage your profile and view your activity.
-				</p>
+				<PageHeader
+					title="Account Overview"
+					description="Manage your profile and view your activity."
+				/>
 			</header>
 
 			<Frame>
