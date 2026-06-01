@@ -36,10 +36,11 @@ export const Route = createFileRoute("/_authenticated/profile/orders/$orderId")(
 );
 
 function RouteComponent() {
+	const search = Route.useSearch();
 	const { orderId } = Route.useParams();
 	const { data: order } = useSuspenseQuery(
 		orderDetailSuccessQueryOptions(orderId),
 	);
 
-	return <OrderDetailView order={order} />;
+	return <OrderDetailView order={order} search={search} />;
 }

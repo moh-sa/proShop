@@ -24,5 +24,7 @@ function RouteComponent() {
 		userPaginatedOrdersQueryOptions(user.id, search),
 	);
 
-	return <OrderHistoryList orders={data.data} meta={data.meta} />;
+	return (
+		<OrderHistoryList orders={data.data} meta={data.meta} search={search} />
+	);
 }
