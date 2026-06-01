@@ -1,62 +1,140 @@
-<br/>
-<p align="center">
-  <h3 align="center">ProShop</h3>
-  <p align="center">
-    A MERN eCommerce project based on Brad Traversy's course.
-  </p>
-</p>
+# ProShop
 
-## Demo
-  **URL**: https://proshop.moh-sa.dev
-  
-  
-## Built With
+A full-stack TypeScript e-commerce app built to demonstrate production-grade
+architecture, secure auth, Stripe payments, and a layered REST API.
 
-**Client**: ReactJS, Axios, bootstrap, react-router, redux, and PayPal SDK.
+**Live demo:** [proshop.moh-sa.dev](https://proshop.moh-sa.dev) · **Portfolio:**
+[moh-sa.dev](https://moh-sa.dev) · **LinkedIn:**
+[linkedin.com/in/moh-sa](https://linkedin.com/in/moh-sa)
 
-**Server**: ExpressJs, Mongoose, JWT, morgan, Multer, express-async-handler, cors, bcrypt, and dontenv.
+## Screenshots
 
-## Order Creation and Payment Flow
+![ProShop storefront](assets/hero.webp)
+
+<details>
+<summary>More screenshots</summary>
+
+![Product detail](assets/product-detail.webp)
+![Admin dashboard](assets/dashboard.webp) ![Shopping cart](assets/cart.webp)
+![Order confirmation](assets/order-confirmation.webp)
+![Order history](assets/order-history.webp)
+
+</details>
+
+## Features
+
+- Product catalog with search and product detail pages.
+- Shopping cart and Stripe Checkout with webhook-driven order status updates.
+- User accounts: registration, sign-in, profile management, and order history.
+- Product reviews with user-owned create, edit, and delete per product.
+- Admin panel: manage products, orders, users, and reviews. Stats dashboard.
+- Cookie-based auth with httpOnly access and refresh JWTs backed by server-side
+  sessions.
+- Demo sign-in page includes one-click login as customer or admin. No account
+  creation needed.
+- REST API at `/api/v1` with role-based access control (user and admin roles).
+- Error monitoring via Sentry on both client and server.
+
+## Engineering highlights
+
+- **Auth:** httpOnly cookies for access and refresh JWTs. Refresh tokens backed
+  by MongoDB sessions. Argon2 password hashing. Rate-limited auth routes.
+- **Payments:** Orders created on the server. Stripe Checkout session. Webhooks
+  verify signatures and update order status.
+- **API design:** Layered architecture — Routers → Controllers → Managers →
+  Services → Repositories. Zod validation. Centralized error handling and
+  middleware chains (`userGuard`, `adminGuard`).
+- **Caching:** Custom in-memory caching service (`node-cache`) used for product
+  queries and rate limiting. Zod-validated inputs and memory capacity guards.
+- **Security:** Helmet, CORS with credentials, mongo sanitization, signed
+  cookies.
+- **Frontend:** File-based TanStack Router with authenticated and admin layouts.
+  React Query for server state. Optimistic updates where appropriate.
+- **Testing:** 1,589 tests (1,036 unit, 553 integration) with 96% line coverage.
+- **Observability:** Structured logging (Pino), Sentry on both apps.
+
+## Tech stack
+
+| Layer             | Technologies                                                                      |
+| ----------------- | --------------------------------------------------------------------------------- |
+| **Frontend**      | React 19, Vite, TypeScript, TanStack Router & Query, Tailwind CSS, Zustand, Axios |
+| **Backend**       | Node.js, Express, TypeScript, Mongoose, Zod                                       |
+| **Data**          | MongoDB                                                                           |
+| **Payments**      | Stripe (Checkout + webhooks)                                                      |
+| **Media**         | Cloudinary                                                                        |
+| **Observability** | Sentry, Pino                                                                      |
+
+## Architecture
+
+### Auth and session flow
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant Frontend as Frontend
-    participant Backend as Backend
-    participant Order_Manager as Order Manager
-    participant Order_Service as Order Service
-    participant Payment_Service as Payment Service
-    participant Stripe_API as Stripe API
+  participant Browser
+  participant Client as React client
+  participant API as Express API
+  participant DB as MongoDB
 
-    User->>Frontend: Clicks "Checkout"
-    Frontend->>Backend: Send checkout request
-    Backend->>Order_Manager: Create order and payment session
-    Order_Manager->>Order_Service: Create order (status: pending)
-    Order_Service-->>Order_Manager: Order created (order ID)
-    Order_Manager->>Payment_Service: Create Stripe session (order ID, amount)
-    Payment_Service->>Stripe_API: Create checkout session
-    Stripe_API-->>Payment_Service: Checkout session URL
-    Payment_Service-->>Order_Manager: Stripe session URL
-    Order_Manager-->>Backend: Stripe session URL
-    Backend-->>Frontend: Stripe session URL
-    Frontend->>User: Redirect to Stripe checkout
-    Frontend->>Stripe_API: Load Stripe checkout
-
-    alt Payment successful
-        Stripe_API->>Backend: POST /api/v1/webhooks/stripe (payment successful)
-        Backend->>Order_Manager: Update order status to "paid"
-        Order_Manager->>Order_Service: Set status to "paid"
-        Order_Service-->>Order_Manager: Order updated
-        Order_Manager-->>Backend: Order status updated
-        Backend-->>Frontend: Notify payment success
-        Frontend->>User: Show order confirmation
-    else Payment failed
-        Stripe_API->>Backend: POST /api/v1/webhooks/stripe (payment failed)
-        Backend->>Order_Manager: Update order status to "canceled"
-        Order_Manager->>Order_Service: Set status to "canceled"
-        Order_Service-->>Order_Manager: Order updated
-        Order_Manager-->>Backend: Order status updated
-        Backend-->>Frontend: Notify payment failure
-        Frontend->>User: Show payment failed page
-    end
+  Browser->>Client: Sign in
+  Client->>API: POST /api/v1/auth/signin
+  API->>DB: Validate user, create session
+  API-->>Browser: Set httpOnly accessToken + refreshToken cookies
+  Client->>API: Protected request + cookies
+  alt Access token valid
+    API-->>Client: 200 + data
+  else Access expired
+    API->>DB: Validate refresh session
+    API-->>Browser: New access cookie
+    API-->>Client: 200 + data
+  end
 ```
+
+### Order and Stripe flow
+
+```mermaid
+sequenceDiagram
+  participant Browser
+  participant Client as React client
+  participant API as Express API
+  participant Stripe as Stripe
+  participant DB as MongoDB
+
+  Browser->>Client: Checkout
+  Client->>API: POST /api/v1/orders (authenticated)
+  API->>DB: Create order
+  API->>Stripe: Create Checkout Session
+  API-->>Client: checkout URL
+  Client->>Stripe: Redirect to pay
+  Stripe-->>Browser: Success / cancel redirect
+  Stripe->>API: POST /api/v1/webhooks/stripe
+  API->>API: Verify signature
+  API->>DB: Update order payment status
+```
+
+## Quick start
+
+**Prerequisites:** Node.js 22+, pnpm 10+, MongoDB,
+[Stripe CLI](https://stripe.com/docs/stripe-cli), and accounts for Stripe,
+Cloudinary, and Sentry.
+
+```bash
+# Terminal 1 — API (default: http://localhost:5000)
+cd server && pnpm install && cp .env.example .env
+pnpm dev
+
+# Terminal 2 — Stripe webhook forwarding
+stripe listen --forward-to http://localhost:5000/api/v1/webhooks/stripe
+
+# Terminal 3 — Client (default: https://localhost:5173)
+cd client && pnpm install && cp .env.example .env
+pnpm dev
+
+# Run server tests
+cd server && pnpm test
+```
+
+**Stripe webhooks:** Run `stripe listen` once first to get your webhook signing
+secret, then set `STRIPE_WEBHOOK_SECRET` in `server/.env` and restart the API.
+
+Fill in all remaining values in each `.env` file. Both `.env.example` files
+document every required variable.
