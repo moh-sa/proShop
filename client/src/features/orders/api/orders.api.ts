@@ -8,6 +8,7 @@ import {
 	get,
 	getPaginated,
 	normalizeError,
+	patch,
 	post,
 	type ApiPaginatedResponse,
 } from "@/shared/api";
@@ -17,8 +18,9 @@ import {
 	createOrderSchema,
 	orderListItemSchema,
 	orderSchema,
+	orderStatusSchema,
 } from "../schemas";
-import type { CreateOrder, Order, OrderListItem } from "../types";
+import type { CreateOrder, Order, OrderListItem, OrderStatus } from "../types";
 
 export async function createOrderApi(data: CreateOrder) {
 	const parsedData = createOrderSchema.safeParse(data);
@@ -68,4 +70,62 @@ export async function getOrderDetailApi(
 	}
 
 	return await get(`/orders/${parsedOrderId.data}`, orderSchema, signal);
+}
+
+export async function getAdminOrdersApi(
+	params: PaginationParams & { status?: OrderStatus },
+	signal: AbortSignal,
+): Promise<ApiPaginatedResponse<OrderListItem>> {
+	const parsedParams = paginationParamsSchema
+		.extend({ status: orderStatusSchema.optional() })
+		.transform(buildSearchParams)
+		.safeParse(params);
+	if (!parsedParams.success) {
+		throw new ClientApiError(normalizeError(parsedParams.error, "input"));
+	}
+
+	return await getPaginated(
+		`/orders?${parsedParams.data}`,
+		orderListItemSchema,
+		signal,
+	);
+}
+
+export async function getAdminOrderDetailApi(
+	orderId: string,
+	signal: AbortSignal,
+): Promise<Order> {
+	const parsedId = idSchema.safeParse(orderId);
+	if (!parsedId.success) {
+		throw new ClientApiError(normalizeError(parsedId.error, "input"));
+	}
+
+	return await get(`/orders/${parsedId.data}`, orderSchema, signal);
+}
+
+export async function markOrderAsDeliveredApi(orderId: string): Promise<Order> {
+	const parsedId = idSchema.safeParse(orderId);
+	if (!parsedId.success) {
+		throw new ClientApiError(normalizeError(parsedId.error, "input"));
+	}
+
+	return await patch(`/orders/${parsedId.data}/deliver`, {}, orderSchema);
+}
+
+export async function cancelOrderApi(orderId: string): Promise<Order> {
+	const parsedId = idSchema.safeParse(orderId);
+	if (!parsedId.success) {
+		throw new ClientApiError(normalizeError(parsedId.error, "input"));
+	}
+
+	return await patch(`/orders/${parsedId.data}/cancel`, {}, orderSchema);
+}
+
+export async function adminCancelOrderApi(orderId: string): Promise<Order> {
+	const parsedId = idSchema.safeParse(orderId);
+	if (!parsedId.success) {
+		throw new ClientApiError(normalizeError(parsedId.error, "input"));
+	}
+
+	return await patch(`/orders/${parsedId.data}/admin/cancel`, {}, orderSchema);
 }

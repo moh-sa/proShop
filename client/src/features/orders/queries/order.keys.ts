@@ -6,4 +6,10 @@ export const orderKeys = {
 	byUserList: (userId: string, params: PaginationParams) =>
 		[...orderKeys._lists(), "user", userId, params] as const,
 	detail: (orderId: string) => [...orderKeys.all, "detail", orderId] as const,
+	admin: {
+		list: (params?: Record<string, unknown>) =>
+			[...orderKeys.all, "admin", "list", params] as const,
+		detail: (orderId: string) =>
+			[...orderKeys.all, "admin", "detail", orderId] as const,
+	},
 } as const;
