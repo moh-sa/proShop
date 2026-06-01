@@ -22,6 +22,29 @@ import {
 } from "../schemas";
 import type { CreateReview, Review, UpdateReviewApiInput } from "../types";
 
+export function getAdminReviewsApi(
+	params: PaginationParams,
+	signal: AbortSignal,
+): Promise<ApiPaginatedResponse<Review>> {
+	const parsedParams = paginationParamsSchema
+		.transform(buildSearchParams)
+		.safeParse(params);
+	if (!parsedParams.success) {
+		throw new ClientApiError(normalizeError(parsedParams.error, "input"));
+	}
+
+	return getPaginated(`/reviews?${parsedParams.data}`, reviewSchema, signal);
+}
+
+export function adminDeleteReviewApi(reviewId: string): Promise<void> {
+	const parsedId = idSchema.safeParse(reviewId);
+	if (!parsedId.success) {
+		throw new ClientApiError(normalizeError(parsedId.error, "input"));
+	}
+
+	return del(`/reviews/${parsedId.data}`);
+}
+
 export function createReviewApi(input: CreateReview): Promise<Review> {
 	const parsedInput = createReviewSchema.safeParse(input);
 	if (!parsedInput.success) {

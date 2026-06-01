@@ -8,4 +8,8 @@ export const reviewKeys = {
 		[...reviewKeys.all, "exists", { userId, productId }] as const,
 	countUser: (userId: string) =>
 		[...reviewKeys._counts(), "user", userId] as const,
+	admin: {
+		list: (params?: Record<string, unknown>) =>
+			[...reviewKeys.all, "admin", "list", params] as const,
+	},
 } as const;
