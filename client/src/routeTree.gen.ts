@@ -24,11 +24,20 @@ import { Route as AuthenticatedProfileRouteRouteImport } from './routes/_authent
 import { Route as ProductsProductIdIndexRouteImport } from './routes/products/$productId/index'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
 import { Route as AuthenticatedProfileEditRouteImport } from './routes/_authenticated/profile/edit'
+import { Route as AuthenticatedAdminDashboardRouteRouteImport } from './routes/_authenticated/_admin/dashboard/route'
 import { Route as AuthenticatedProfileOrdersIndexRouteImport } from './routes/_authenticated/profile/orders/index'
 import { Route as AuthenticatedAdminDashboardIndexRouteImport } from './routes/_authenticated/_admin/dashboard/index'
 import { Route as AuthenticatedProfileOrdersOrderIdRouteImport } from './routes/_authenticated/profile/orders/$orderId'
 import { Route as AuthenticatedOrdersOrderidSuccessRouteImport } from './routes/_authenticated/orders/$orderid/success'
 import { Route as AuthenticatedOrdersOrderidFailureRouteImport } from './routes/_authenticated/orders/$orderid/failure'
+import { Route as AuthenticatedAdminDashboardUsersIndexRouteImport } from './routes/_authenticated/_admin/dashboard/users/index'
+import { Route as AuthenticatedAdminDashboardReviewsIndexRouteImport } from './routes/_authenticated/_admin/dashboard/reviews/index'
+import { Route as AuthenticatedAdminDashboardProductsIndexRouteImport } from './routes/_authenticated/_admin/dashboard/products/index'
+import { Route as AuthenticatedAdminDashboardOrdersIndexRouteImport } from './routes/_authenticated/_admin/dashboard/orders/index'
+import { Route as AuthenticatedAdminDashboardProductsNewRouteImport } from './routes/_authenticated/_admin/dashboard/products/new'
+import { Route as AuthenticatedAdminDashboardOrdersOrderIdRouteImport } from './routes/_authenticated/_admin/dashboard/orders/$orderId'
+import { Route as AuthenticatedAdminDashboardUsersUserIdEditRouteImport } from './routes/_authenticated/_admin/dashboard/users/$userId/edit'
+import { Route as AuthenticatedAdminDashboardProductsProductIdEditRouteImport } from './routes/_authenticated/_admin/dashboard/products/$productId/edit'
 
 const UnauthorizedRoute = UnauthorizedRouteImport.update({
   id: '/unauthorized',
@@ -105,6 +114,12 @@ const AuthenticatedProfileEditRoute =
     path: '/edit',
     getParentRoute: () => AuthenticatedProfileRouteRoute,
   } as any)
+const AuthenticatedAdminDashboardRouteRoute =
+  AuthenticatedAdminDashboardRouteRouteImport.update({
+    id: '/dashboard',
+    path: '/dashboard',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedProfileOrdersIndexRoute =
   AuthenticatedProfileOrdersIndexRouteImport.update({
     id: '/orders/',
@@ -113,9 +128,9 @@ const AuthenticatedProfileOrdersIndexRoute =
   } as any)
 const AuthenticatedAdminDashboardIndexRoute =
   AuthenticatedAdminDashboardIndexRouteImport.update({
-    id: '/dashboard/',
-    path: '/dashboard/',
-    getParentRoute: () => AuthenticatedAdminRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAdminDashboardRouteRoute,
   } as any)
 const AuthenticatedProfileOrdersOrderIdRoute =
   AuthenticatedProfileOrdersOrderIdRouteImport.update({
@@ -135,6 +150,54 @@ const AuthenticatedOrdersOrderidFailureRoute =
     path: '/orders/$orderid/failure',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminDashboardUsersIndexRoute =
+  AuthenticatedAdminDashboardUsersIndexRouteImport.update({
+    id: '/users/',
+    path: '/users/',
+    getParentRoute: () => AuthenticatedAdminDashboardRouteRoute,
+  } as any)
+const AuthenticatedAdminDashboardReviewsIndexRoute =
+  AuthenticatedAdminDashboardReviewsIndexRouteImport.update({
+    id: '/reviews/',
+    path: '/reviews/',
+    getParentRoute: () => AuthenticatedAdminDashboardRouteRoute,
+  } as any)
+const AuthenticatedAdminDashboardProductsIndexRoute =
+  AuthenticatedAdminDashboardProductsIndexRouteImport.update({
+    id: '/products/',
+    path: '/products/',
+    getParentRoute: () => AuthenticatedAdminDashboardRouteRoute,
+  } as any)
+const AuthenticatedAdminDashboardOrdersIndexRoute =
+  AuthenticatedAdminDashboardOrdersIndexRouteImport.update({
+    id: '/orders/',
+    path: '/orders/',
+    getParentRoute: () => AuthenticatedAdminDashboardRouteRoute,
+  } as any)
+const AuthenticatedAdminDashboardProductsNewRoute =
+  AuthenticatedAdminDashboardProductsNewRouteImport.update({
+    id: '/products/new',
+    path: '/products/new',
+    getParentRoute: () => AuthenticatedAdminDashboardRouteRoute,
+  } as any)
+const AuthenticatedAdminDashboardOrdersOrderIdRoute =
+  AuthenticatedAdminDashboardOrdersOrderIdRouteImport.update({
+    id: '/orders/$orderId',
+    path: '/orders/$orderId',
+    getParentRoute: () => AuthenticatedAdminDashboardRouteRoute,
+  } as any)
+const AuthenticatedAdminDashboardUsersUserIdEditRoute =
+  AuthenticatedAdminDashboardUsersUserIdEditRouteImport.update({
+    id: '/users/$userId/edit',
+    path: '/users/$userId/edit',
+    getParentRoute: () => AuthenticatedAdminDashboardRouteRoute,
+  } as any)
+const AuthenticatedAdminDashboardProductsProductIdEditRoute =
+  AuthenticatedAdminDashboardProductsProductIdEditRouteImport.update({
+    id: '/products/$productId/edit',
+    path: '/products/$productId/edit',
+    getParentRoute: () => AuthenticatedAdminDashboardRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -146,6 +209,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/signin': typeof GuestSigninRoute
   '/signup': typeof GuestSignupRoute
+  '/dashboard': typeof AuthenticatedAdminDashboardRouteRouteWithChildren
   '/profile/edit': typeof AuthenticatedProfileEditRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
   '/products/$productId/': typeof ProductsProductIdIndexRoute
@@ -154,6 +218,14 @@ export interface FileRoutesByFullPath {
   '/profile/orders/$orderId': typeof AuthenticatedProfileOrdersOrderIdRoute
   '/dashboard/': typeof AuthenticatedAdminDashboardIndexRoute
   '/profile/orders/': typeof AuthenticatedProfileOrdersIndexRoute
+  '/dashboard/orders/$orderId': typeof AuthenticatedAdminDashboardOrdersOrderIdRoute
+  '/dashboard/products/new': typeof AuthenticatedAdminDashboardProductsNewRoute
+  '/dashboard/orders/': typeof AuthenticatedAdminDashboardOrdersIndexRoute
+  '/dashboard/products/': typeof AuthenticatedAdminDashboardProductsIndexRoute
+  '/dashboard/reviews/': typeof AuthenticatedAdminDashboardReviewsIndexRoute
+  '/dashboard/users/': typeof AuthenticatedAdminDashboardUsersIndexRoute
+  '/dashboard/products/$productId/edit': typeof AuthenticatedAdminDashboardProductsProductIdEditRoute
+  '/dashboard/users/$userId/edit': typeof AuthenticatedAdminDashboardUsersUserIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -172,6 +244,14 @@ export interface FileRoutesByTo {
   '/profile/orders/$orderId': typeof AuthenticatedProfileOrdersOrderIdRoute
   '/dashboard': typeof AuthenticatedAdminDashboardIndexRoute
   '/profile/orders': typeof AuthenticatedProfileOrdersIndexRoute
+  '/dashboard/orders/$orderId': typeof AuthenticatedAdminDashboardOrdersOrderIdRoute
+  '/dashboard/products/new': typeof AuthenticatedAdminDashboardProductsNewRoute
+  '/dashboard/orders': typeof AuthenticatedAdminDashboardOrdersIndexRoute
+  '/dashboard/products': typeof AuthenticatedAdminDashboardProductsIndexRoute
+  '/dashboard/reviews': typeof AuthenticatedAdminDashboardReviewsIndexRoute
+  '/dashboard/users': typeof AuthenticatedAdminDashboardUsersIndexRoute
+  '/dashboard/products/$productId/edit': typeof AuthenticatedAdminDashboardProductsProductIdEditRoute
+  '/dashboard/users/$userId/edit': typeof AuthenticatedAdminDashboardUsersUserIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -187,6 +267,7 @@ export interface FileRoutesById {
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_guest/signin': typeof GuestSigninRoute
   '/_guest/signup': typeof GuestSignupRoute
+  '/_authenticated/_admin/dashboard': typeof AuthenticatedAdminDashboardRouteRouteWithChildren
   '/_authenticated/profile/edit': typeof AuthenticatedProfileEditRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/products/$productId/': typeof ProductsProductIdIndexRoute
@@ -195,6 +276,14 @@ export interface FileRoutesById {
   '/_authenticated/profile/orders/$orderId': typeof AuthenticatedProfileOrdersOrderIdRoute
   '/_authenticated/_admin/dashboard/': typeof AuthenticatedAdminDashboardIndexRoute
   '/_authenticated/profile/orders/': typeof AuthenticatedProfileOrdersIndexRoute
+  '/_authenticated/_admin/dashboard/orders/$orderId': typeof AuthenticatedAdminDashboardOrdersOrderIdRoute
+  '/_authenticated/_admin/dashboard/products/new': typeof AuthenticatedAdminDashboardProductsNewRoute
+  '/_authenticated/_admin/dashboard/orders/': typeof AuthenticatedAdminDashboardOrdersIndexRoute
+  '/_authenticated/_admin/dashboard/products/': typeof AuthenticatedAdminDashboardProductsIndexRoute
+  '/_authenticated/_admin/dashboard/reviews/': typeof AuthenticatedAdminDashboardReviewsIndexRoute
+  '/_authenticated/_admin/dashboard/users/': typeof AuthenticatedAdminDashboardUsersIndexRoute
+  '/_authenticated/_admin/dashboard/products/$productId/edit': typeof AuthenticatedAdminDashboardProductsProductIdEditRoute
+  '/_authenticated/_admin/dashboard/users/$userId/edit': typeof AuthenticatedAdminDashboardUsersUserIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -208,6 +297,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/signin'
     | '/signup'
+    | '/dashboard'
     | '/profile/edit'
     | '/profile/'
     | '/products/$productId/'
@@ -216,6 +306,14 @@ export interface FileRouteTypes {
     | '/profile/orders/$orderId'
     | '/dashboard/'
     | '/profile/orders/'
+    | '/dashboard/orders/$orderId'
+    | '/dashboard/products/new'
+    | '/dashboard/orders/'
+    | '/dashboard/products/'
+    | '/dashboard/reviews/'
+    | '/dashboard/users/'
+    | '/dashboard/products/$productId/edit'
+    | '/dashboard/users/$userId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -234,6 +332,14 @@ export interface FileRouteTypes {
     | '/profile/orders/$orderId'
     | '/dashboard'
     | '/profile/orders'
+    | '/dashboard/orders/$orderId'
+    | '/dashboard/products/new'
+    | '/dashboard/orders'
+    | '/dashboard/products'
+    | '/dashboard/reviews'
+    | '/dashboard/users'
+    | '/dashboard/products/$productId/edit'
+    | '/dashboard/users/$userId/edit'
   id:
     | '__root__'
     | '/'
@@ -248,6 +354,7 @@ export interface FileRouteTypes {
     | '/_authenticated/checkout'
     | '/_guest/signin'
     | '/_guest/signup'
+    | '/_authenticated/_admin/dashboard'
     | '/_authenticated/profile/edit'
     | '/_authenticated/profile/'
     | '/products/$productId/'
@@ -256,6 +363,14 @@ export interface FileRouteTypes {
     | '/_authenticated/profile/orders/$orderId'
     | '/_authenticated/_admin/dashboard/'
     | '/_authenticated/profile/orders/'
+    | '/_authenticated/_admin/dashboard/orders/$orderId'
+    | '/_authenticated/_admin/dashboard/products/new'
+    | '/_authenticated/_admin/dashboard/orders/'
+    | '/_authenticated/_admin/dashboard/products/'
+    | '/_authenticated/_admin/dashboard/reviews/'
+    | '/_authenticated/_admin/dashboard/users/'
+    | '/_authenticated/_admin/dashboard/products/$productId/edit'
+    | '/_authenticated/_admin/dashboard/users/$userId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -376,6 +491,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileEditRouteImport
       parentRoute: typeof AuthenticatedProfileRouteRoute
     }
+    '/_authenticated/_admin/dashboard': {
+      id: '/_authenticated/_admin/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedAdminDashboardRouteRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/profile/orders/': {
       id: '/_authenticated/profile/orders/'
       path: '/orders'
@@ -385,10 +507,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/_admin/dashboard/': {
       id: '/_authenticated/_admin/dashboard/'
-      path: '/dashboard'
+      path: '/'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof AuthenticatedAdminDashboardIndexRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
+      parentRoute: typeof AuthenticatedAdminDashboardRouteRoute
     }
     '/_authenticated/profile/orders/$orderId': {
       id: '/_authenticated/profile/orders/$orderId'
@@ -410,6 +532,62 @@ declare module '@tanstack/react-router' {
       fullPath: '/orders/$orderid/failure'
       preLoaderRoute: typeof AuthenticatedOrdersOrderidFailureRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/_admin/dashboard/users/': {
+      id: '/_authenticated/_admin/dashboard/users/'
+      path: '/users'
+      fullPath: '/dashboard/users/'
+      preLoaderRoute: typeof AuthenticatedAdminDashboardUsersIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminDashboardRouteRoute
+    }
+    '/_authenticated/_admin/dashboard/reviews/': {
+      id: '/_authenticated/_admin/dashboard/reviews/'
+      path: '/reviews'
+      fullPath: '/dashboard/reviews/'
+      preLoaderRoute: typeof AuthenticatedAdminDashboardReviewsIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminDashboardRouteRoute
+    }
+    '/_authenticated/_admin/dashboard/products/': {
+      id: '/_authenticated/_admin/dashboard/products/'
+      path: '/products'
+      fullPath: '/dashboard/products/'
+      preLoaderRoute: typeof AuthenticatedAdminDashboardProductsIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminDashboardRouteRoute
+    }
+    '/_authenticated/_admin/dashboard/orders/': {
+      id: '/_authenticated/_admin/dashboard/orders/'
+      path: '/orders'
+      fullPath: '/dashboard/orders/'
+      preLoaderRoute: typeof AuthenticatedAdminDashboardOrdersIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminDashboardRouteRoute
+    }
+    '/_authenticated/_admin/dashboard/products/new': {
+      id: '/_authenticated/_admin/dashboard/products/new'
+      path: '/products/new'
+      fullPath: '/dashboard/products/new'
+      preLoaderRoute: typeof AuthenticatedAdminDashboardProductsNewRouteImport
+      parentRoute: typeof AuthenticatedAdminDashboardRouteRoute
+    }
+    '/_authenticated/_admin/dashboard/orders/$orderId': {
+      id: '/_authenticated/_admin/dashboard/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/dashboard/orders/$orderId'
+      preLoaderRoute: typeof AuthenticatedAdminDashboardOrdersOrderIdRouteImport
+      parentRoute: typeof AuthenticatedAdminDashboardRouteRoute
+    }
+    '/_authenticated/_admin/dashboard/users/$userId/edit': {
+      id: '/_authenticated/_admin/dashboard/users/$userId/edit'
+      path: '/users/$userId/edit'
+      fullPath: '/dashboard/users/$userId/edit'
+      preLoaderRoute: typeof AuthenticatedAdminDashboardUsersUserIdEditRouteImport
+      parentRoute: typeof AuthenticatedAdminDashboardRouteRoute
+    }
+    '/_authenticated/_admin/dashboard/products/$productId/edit': {
+      id: '/_authenticated/_admin/dashboard/products/$productId/edit'
+      path: '/products/$productId/edit'
+      fullPath: '/dashboard/products/$productId/edit'
+      preLoaderRoute: typeof AuthenticatedAdminDashboardProductsProductIdEditRouteImport
+      parentRoute: typeof AuthenticatedAdminDashboardRouteRoute
     }
   }
 }
@@ -435,12 +613,52 @@ const AuthenticatedProfileRouteRouteWithChildren =
     AuthenticatedProfileRouteRouteChildren,
   )
 
-interface AuthenticatedAdminRouteChildren {
+interface AuthenticatedAdminDashboardRouteRouteChildren {
   AuthenticatedAdminDashboardIndexRoute: typeof AuthenticatedAdminDashboardIndexRoute
+  AuthenticatedAdminDashboardOrdersOrderIdRoute: typeof AuthenticatedAdminDashboardOrdersOrderIdRoute
+  AuthenticatedAdminDashboardProductsNewRoute: typeof AuthenticatedAdminDashboardProductsNewRoute
+  AuthenticatedAdminDashboardOrdersIndexRoute: typeof AuthenticatedAdminDashboardOrdersIndexRoute
+  AuthenticatedAdminDashboardProductsIndexRoute: typeof AuthenticatedAdminDashboardProductsIndexRoute
+  AuthenticatedAdminDashboardReviewsIndexRoute: typeof AuthenticatedAdminDashboardReviewsIndexRoute
+  AuthenticatedAdminDashboardUsersIndexRoute: typeof AuthenticatedAdminDashboardUsersIndexRoute
+  AuthenticatedAdminDashboardProductsProductIdEditRoute: typeof AuthenticatedAdminDashboardProductsProductIdEditRoute
+  AuthenticatedAdminDashboardUsersUserIdEditRoute: typeof AuthenticatedAdminDashboardUsersUserIdEditRoute
+}
+
+const AuthenticatedAdminDashboardRouteRouteChildren: AuthenticatedAdminDashboardRouteRouteChildren =
+  {
+    AuthenticatedAdminDashboardIndexRoute:
+      AuthenticatedAdminDashboardIndexRoute,
+    AuthenticatedAdminDashboardOrdersOrderIdRoute:
+      AuthenticatedAdminDashboardOrdersOrderIdRoute,
+    AuthenticatedAdminDashboardProductsNewRoute:
+      AuthenticatedAdminDashboardProductsNewRoute,
+    AuthenticatedAdminDashboardOrdersIndexRoute:
+      AuthenticatedAdminDashboardOrdersIndexRoute,
+    AuthenticatedAdminDashboardProductsIndexRoute:
+      AuthenticatedAdminDashboardProductsIndexRoute,
+    AuthenticatedAdminDashboardReviewsIndexRoute:
+      AuthenticatedAdminDashboardReviewsIndexRoute,
+    AuthenticatedAdminDashboardUsersIndexRoute:
+      AuthenticatedAdminDashboardUsersIndexRoute,
+    AuthenticatedAdminDashboardProductsProductIdEditRoute:
+      AuthenticatedAdminDashboardProductsProductIdEditRoute,
+    AuthenticatedAdminDashboardUsersUserIdEditRoute:
+      AuthenticatedAdminDashboardUsersUserIdEditRoute,
+  }
+
+const AuthenticatedAdminDashboardRouteRouteWithChildren =
+  AuthenticatedAdminDashboardRouteRoute._addFileChildren(
+    AuthenticatedAdminDashboardRouteRouteChildren,
+  )
+
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminDashboardRouteRoute: typeof AuthenticatedAdminDashboardRouteRouteWithChildren
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
-  AuthenticatedAdminDashboardIndexRoute: AuthenticatedAdminDashboardIndexRoute,
+  AuthenticatedAdminDashboardRouteRoute:
+    AuthenticatedAdminDashboardRouteRouteWithChildren,
 }
 
 const AuthenticatedAdminRouteWithChildren =
