@@ -738,6 +738,49 @@ suite("OrderService 〖 Integration Tests 〗", async () => {
 		});
 	});
 
+	describe("markAsDelivered", async () => {
+		test("Should update order status to delivered and set deliveredAt when order exists", async () => {
+			// Arrange
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({ status: "processing" }),
+			);
+			const orderId = createdOrder.id;
+
+			const beforeTime = new Date();
+
+			// Act
+			const result = await orderService.markAsDelivered({ orderId });
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.ok(result.data);
+			assert.strictEqual(result.data.status, "delivered");
+			assert.ok(result.data.deliveredAt);
+			assert.ok(result.data.deliveredAt >= beforeTime);
+
+			// Verify in DB
+			const dbOrder = await orderRepository.getById({ orderId });
+			assert.ok(dbOrder.success);
+			assert.ok(dbOrder.data);
+			assert.strictEqual(dbOrder.data.status, "delivered");
+			assert.ok(dbOrder.data.deliveredAt);
+		});
+
+		test("Should return NotFoundError when order does not exist", async () => {
+			// Arrange
+			const nonExistentId = generateMockObjectId();
+
+			// Act
+			const result = await orderService.markAsDelivered({
+				orderId: nonExistentId,
+			});
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
+		});
+	});
+
 	describe("updatePayment", async () => {
 		test("Should update payment on existing order and persist to database", async () => {
 			// Arrange

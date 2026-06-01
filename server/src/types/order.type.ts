@@ -4,6 +4,7 @@ import type {
 	allOrdersResponseSchema,
 	createOrderSchema,
 	markAsCancelledParamsSchema,
+	markAsDeliveredParamsSchema,
 	markAsProcessingParamsSchema,
 	orderModelSchema,
 	orderPaginationFiltersSchema,
@@ -61,6 +62,8 @@ export type GetAllOrdersServiceParams = PaginationParamsStringified & {
 };
 
 export type MarkAsCancelledParams = z.infer<typeof markAsCancelledParamsSchema>;
+
+export type MarkAsDeliveredParams = z.infer<typeof markAsDeliveredParamsSchema>;
 
 export type MarkAsProcessingParams = z.infer<
 	typeof markAsProcessingParamsSchema

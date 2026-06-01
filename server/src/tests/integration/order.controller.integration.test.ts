@@ -2,7 +2,11 @@ import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 
 import { OrderController } from "../../controllers/index.js";
-import { ForbiddenError, NotFoundError } from "../../errors/index.js";
+import {
+	ForbiddenError,
+	NotFoundError,
+	ValidationError,
+} from "../../errors/index.js";
 import { OrderManager } from "../../managers/index.js";
 import { OrderModel } from "../../models/order.model.js";
 import { orderRepository } from "../../repositories/order.repository.js";
@@ -1123,6 +1127,269 @@ suite("Order Controller 〖 Integration Tests 〗", () => {
 			response.data.orderItems.forEach((order, index) => {
 				assert.strictEqual(order.price, expectedData.orderItems[index].price);
 			});
+		});
+	});
+
+	describe("markAsDelivered", () => {
+		test("Should return 200 and mark order as delivered when order exists", async () => {
+			// Arrange
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({ status: "processing" }),
+			);
+			const orderId = createdOrder.id;
+
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.markAsDelivered,
+			);
+			req.params = { orderId };
+
+			// Act
+			await controller.markAsDelivered(req, res, next);
+
+			// Assert
+			const code = res._getStatusCode();
+			assert.strictEqual(code, 200);
+
+			const response = res._getJSONData();
+			assert.ok(response.success);
+			assert.strictEqual(response.data.status, "delivered");
+			assert.ok(response.data.deliveredAt);
+		});
+
+		test("Should persist delivered status to database when order is marked as delivered", async () => {
+			// Arrange
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({ status: "processing" }),
+			);
+			const orderId = createdOrder.id;
+
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.markAsDelivered,
+			);
+			req.params = { orderId };
+
+			// Act
+			await controller.markAsDelivered(req, res, next);
+
+			// Assert
+			const dbOrder = await orderRepository.getById({ orderId });
+			assert.ok(dbOrder.success);
+			assert.ok(dbOrder.data);
+			assert.strictEqual(dbOrder.data.status, "delivered");
+		});
+
+		test("Should throw NotFoundError when order does not exist", async () => {
+			// Arrange
+			const nonExistentId = generateMockObjectId();
+
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.markAsDelivered,
+			);
+			req.params = { orderId: nonExistentId };
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.markAsDelivered(req, res, next),
+				(error: unknown) => {
+					assert.ok(error instanceof Error);
+					assert.ok(error.message.toLowerCase().includes("order"));
+					return true;
+				},
+			);
+		});
+	});
+
+	describe("cancelOrder (user)", () => {
+		test("Should return 200 and cancel a pending order when the owner requests it", async () => {
+			// Arrange
+			const orderOwner = generateMockSelectUser({ isAdmin: false });
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({ status: "pending", user: orderOwner }),
+			);
+			const orderId = createdOrder.id;
+
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.cancelOrder,
+			);
+			req.params = { orderId };
+			res.locals.user = orderOwner;
+
+			// Act
+			await controller.cancelOrder(req, res, next);
+
+			// Assert
+			const code = res._getStatusCode();
+			assert.strictEqual(code, 200);
+
+			const response = res._getJSONData();
+			assert.ok(response.success);
+			assert.strictEqual(response.data.status, "cancelled");
+		});
+
+		test("Should persist cancelled status to database when user cancels a pending order", async () => {
+			// Arrange
+			const orderOwner = generateMockSelectUser({ isAdmin: false });
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({ status: "pending", user: orderOwner }),
+			);
+			const orderId = createdOrder.id;
+
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.cancelOrder,
+			);
+			req.params = { orderId };
+			res.locals.user = orderOwner;
+
+			// Act
+			await controller.cancelOrder(req, res, next);
+
+			// Assert
+			const dbOrder = await orderRepository.getById({ orderId });
+			assert.ok(dbOrder.success);
+			assert.ok(dbOrder.data);
+			assert.strictEqual(dbOrder.data.status, "cancelled");
+		});
+
+		test("Should throw ValidationError when the order status is not pending", async () => {
+			// Arrange
+			const orderOwner = generateMockSelectUser({ isAdmin: false });
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({ status: "processing", user: orderOwner }),
+			);
+			const orderId = createdOrder.id;
+
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.cancelOrder,
+			);
+			req.params = { orderId };
+			res.locals.user = orderOwner;
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.cancelOrder(req, res, next),
+				(error: unknown) => {
+					assert.ok(error instanceof ValidationError);
+					return true;
+				},
+			);
+		});
+
+		test("Should throw ForbiddenError when a different non-admin user tries to cancel the order", async () => {
+			// Arrange
+			const orderOwner = generateMockSelectUser({ isAdmin: false });
+			const anotherUser = generateMockSelectUser({ isAdmin: false });
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({ status: "pending", user: orderOwner }),
+			);
+			const orderId = createdOrder.id;
+
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.cancelOrder,
+			);
+			req.params = { orderId };
+			res.locals.user = anotherUser;
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.cancelOrder(req, res, next),
+				(error: unknown) => {
+					assert.ok(error instanceof ForbiddenError);
+					return true;
+				},
+			);
+		});
+	});
+
+	describe("adminCancelOrder", () => {
+		test("Should return 200 and cancel any user's pending order when admin requests it", async () => {
+			// Arrange
+			const orderOwner = generateMockSelectUser({ isAdmin: false });
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({ status: "pending", user: orderOwner }),
+			);
+			const orderId = createdOrder.id;
+
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.adminCancelOrder,
+			);
+			req.params = { orderId };
+
+			// Act
+			await controller.adminCancelOrder(req, res, next);
+
+			// Assert
+			const code = res._getStatusCode();
+			assert.strictEqual(code, 200);
+
+			const response = res._getJSONData();
+			assert.ok(response.success);
+			assert.strictEqual(response.data.status, "cancelled");
+		});
+
+		test("Should persist cancelled status to database when admin cancels a pending order", async () => {
+			// Arrange
+			const orderOwner = generateMockSelectUser({ isAdmin: false });
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({ status: "pending", user: orderOwner }),
+			);
+			const orderId = createdOrder.id;
+
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.adminCancelOrder,
+			);
+			req.params = { orderId };
+
+			// Act
+			await controller.adminCancelOrder(req, res, next);
+
+			// Assert
+			const dbOrder = await orderRepository.getById({ orderId });
+			assert.ok(dbOrder.success);
+			assert.ok(dbOrder.data);
+			assert.strictEqual(dbOrder.data.status, "cancelled");
+		});
+
+		test("Should throw ValidationError when the order status is not pending", async () => {
+			// Arrange
+			const orderOwner = generateMockSelectUser({ isAdmin: false });
+			const createdOrder = await createOrder(
+				generateMockInsertOrder({ status: "processing", user: orderOwner }),
+			);
+			const orderId = createdOrder.id;
+
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.adminCancelOrder,
+			);
+			req.params = { orderId };
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.adminCancelOrder(req, res, next),
+				(error: unknown) => {
+					assert.ok(error instanceof ValidationError);
+					return true;
+				},
+			);
+		});
+
+		test("Should throw NotFoundError when the order does not exist", async () => {
+			// Arrange
+			const nonExistentId = generateMockObjectId();
+
+			const { next, req, res } = createMockExpressContextFromHandler(
+				controller.adminCancelOrder,
+			);
+			req.params = { orderId: nonExistentId };
+
+			// Act & Assert
+			await assert.rejects(
+				async () => await controller.adminCancelOrder(req, res, next),
+				(error: unknown) => {
+					assert.ok(error instanceof Error);
+					assert.ok(error.message.toLowerCase().includes("order"));
+					return true;
+				},
+			);
 		});
 	});
 

@@ -78,7 +78,10 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			id: true,
 			createdAt: true,
 			deliveredAt: true,
+			"payment.id": true,
 			"payment.paidAt": true,
+			"payment.provider": true,
+			"payment.sessionURL": true,
 			status: true,
 			totalPrice: true,
 			"user.id": true,
@@ -785,6 +788,99 @@ suite("Order Service 〖 Unit Tests 〗", () => {
 			// Assert
 			assert.strictEqual(result.success, false);
 			assert.strictEqual(result.error, error);
+		});
+	});
+
+	describe("markAsDelivered", () => {
+		const validParams = {
+			orderId: generateMockObjectId(),
+		};
+		const invalidParams = {
+			orderId: "invalid-id",
+		};
+
+		test("Should return order object when repo.markAsDelivered returns success with data", async () => {
+			// Arrange
+			const mockOrder = generateMockSelectOrder({ status: "delivered" });
+			mockRepo.markAsDelivered.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrder, success: true }),
+			);
+
+			// Act
+			const result = await service.markAsDelivered(validParams);
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.deepStrictEqual(result.data, mockOrder);
+			assert.strictEqual(mockRepo.markAsDelivered.mock.callCount(), 1);
+		});
+
+		test("Should call repository with validated orderId when validation passes", async () => {
+			// Arrange
+			const mockOrder = generateMockSelectOrder({ status: "delivered" });
+			mockRepo.markAsDelivered.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: mockOrder, success: true }),
+			);
+
+			// Act
+			await service.markAsDelivered(validParams);
+
+			// Assert
+			const args = mockRepo.markAsDelivered.mock.calls[0].arguments[0];
+			assert.strictEqual(args.orderId, validParams.orderId);
+		});
+
+		test("Should return ValidationError when orderId is invalid", async () => {
+			// Act
+			const result = await service.markAsDelivered(invalidParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+			assert.strictEqual(mockRepo.markAsDelivered.mock.callCount(), 0);
+		});
+
+		test("Should return ValidationError when orderId is missing", async () => {
+			// Arrange
+			const params = {};
+
+			// Act
+			// @ts-expect-error - test case
+			const result = await service.markAsDelivered(params);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof ValidationError);
+			assert.strictEqual(mockRepo.markAsDelivered.mock.callCount(), 0);
+		});
+
+		test("Should return NotFoundError when repo returns null", async () => {
+			// Arrange
+			mockRepo.markAsDelivered.mock.mockImplementationOnce(() =>
+				Promise.resolve({ data: null, success: true }),
+			);
+
+			// Act
+			const result = await service.markAsDelivered(validParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.ok(result.error instanceof NotFoundError);
+		});
+
+		test("Should return repository error when repo returns failure", async () => {
+			// Arrange
+			const repositoryError = new DatabaseBaseError("Database error");
+			mockRepo.markAsDelivered.mock.mockImplementationOnce(() =>
+				Promise.resolve({ error: repositoryError, success: false }),
+			);
+
+			// Act
+			const result = await service.markAsDelivered(validParams);
+
+			// Assert
+			assert.strictEqual(result.success, false);
+			assert.strictEqual(result.error, repositoryError);
 		});
 	});
 });

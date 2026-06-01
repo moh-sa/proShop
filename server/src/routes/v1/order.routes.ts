@@ -17,11 +17,24 @@ router
 	.route("/:orderId")
 	.get(...userGuard(defaultLimiter), orderController.getById);
 
-// Admin route
+// User routes
+router
+	.route("/:orderId/cancel")
+	.patch(...userGuard(strictLimiter), orderController.cancelOrder);
+
+// Admin routes
 router.route("/").get(...adminGuard(defaultLimiter), orderController.getAll);
 
 router
 	.route("/:orderId/payment")
 	.patch(...adminGuard(strictLimiter), orderController.updatePayment);
+
+router
+	.route("/:orderId/deliver")
+	.patch(...adminGuard(strictLimiter), orderController.markAsDelivered);
+
+router
+	.route("/:orderId/admin/cancel")
+	.patch(...adminGuard(strictLimiter), orderController.adminCancelOrder);
 
 export default router;

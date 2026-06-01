@@ -8,6 +8,7 @@ import type {
 	FailureResult,
 	GetAllOrdersRepositoryParams,
 	MarkAsCancelledParams,
+	MarkAsDeliveredParams,
 	MarkAsProcessingParams,
 	MethodParams,
 	MethodReturn,
@@ -32,6 +33,9 @@ export interface IOrderRepository {
 	getById({ orderId }: { orderId: string }): Promise<OrderResult<null | Order>>;
 	markAsCancelled(
 		params: MarkAsCancelledParams,
+	): Promise<OrderResult<null | Order>>;
+	markAsDelivered(
+		params: MarkAsDeliveredParams,
 	): Promise<OrderResult<null | Order>>;
 	markAsProcessing(
 		params: MarkAsProcessingParams,
@@ -116,6 +120,32 @@ export class OrderRepository implements IOrderRepository {
 					{
 						$set: {
 							status: "cancelled",
+						},
+					},
+					{ returnDocument: "after" },
+				)
+				.lean();
+
+			return {
+				data: serializeMongoResult(result),
+				success: true,
+			};
+		} catch (error) {
+			return this._errorHandler(error);
+		}
+	}
+
+	public async markAsDelivered(
+		params: MethodParams<IOrderRepository, "markAsDelivered">,
+	): MethodReturn<IOrderRepository, "markAsDelivered"> {
+		try {
+			const result = await this._db
+				.findByIdAndUpdate(
+					params.orderId,
+					{
+						$set: {
+							deliveredAt: new Date(),
+							status: "delivered",
 						},
 					},
 					{ returnDocument: "after" },

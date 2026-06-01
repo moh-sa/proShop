@@ -6,6 +6,8 @@ import type {
 	CreateOrderResponse,
 	GetAllOrdersManagerParams,
 	LineItem,
+	MarkAsCancelledParams,
+	MarkAsDeliveredParams,
 	MethodParams,
 	MethodReturn,
 	Order,
@@ -34,6 +36,16 @@ export interface IOrderManager {
 	 * Gets an order by its ID
 	 */
 	getById(params: { orderId: string }): Promise<OrderManagerResult<Order>>;
+
+	/**
+	 * Marks an order as cancelled
+	 */
+	markAsCancelled(params: MarkAsCancelledParams): Promise<OrderManagerResult<Order>>;
+
+	/**
+	 * Marks an order as delivered (admin-only action)
+	 */
+	markAsDelivered(params: MarkAsDeliveredParams): Promise<OrderManagerResult<Order>>;
 
 	/**
 	 * Processes Stripe webhook events for checkout sessions.
@@ -227,6 +239,18 @@ export class OrderManager implements IOrderManager {
 				return { data: undefined, success: true };
 			}
 		}
+	}
+
+	public async markAsCancelled(
+		params: MethodParams<IOrderManager, "markAsCancelled">,
+	): MethodReturn<IOrderManager, "markAsCancelled"> {
+		return this._orderService.markAsCancelled(params);
+	}
+
+	public async markAsDelivered(
+		params: MethodParams<IOrderManager, "markAsDelivered">,
+	): MethodReturn<IOrderManager, "markAsDelivered"> {
+		return this._orderService.markAsDelivered(params);
 	}
 
 	public async updatePayment(

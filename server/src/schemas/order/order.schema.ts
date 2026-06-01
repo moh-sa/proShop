@@ -76,3 +76,5 @@ export const markAsProcessingParamsSchema = markAsBaseParamsSchema.extend({
 });
 
 export const markAsCancelledParamsSchema = markAsBaseParamsSchema;
+
+export const markAsDeliveredParamsSchema = markAsBaseParamsSchema;

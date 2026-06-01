@@ -6,6 +6,7 @@ import {
 import {
 	createOrderSchema,
 	markAsCancelledParamsSchema,
+	markAsDeliveredParamsSchema,
 	markAsProcessingParamsSchema,
 	orderPaginationParamsSchema,
 	paymentSchema,
@@ -15,6 +16,7 @@ import type {
 	CreateOrder,
 	GetAllOrdersServiceParams,
 	MarkAsCancelledParams,
+	MarkAsDeliveredParams,
 	MarkAsProcessingParams,
 	MethodParams,
 	MethodReturn,
@@ -33,6 +35,7 @@ export interface IOrderService {
 	): Promise<OrderResult<PaginatedResponse<AllOrdersResponse>>>;
 	getById(data: { orderId: string }): Promise<OrderResult<Order>>;
 	markAsCancelled(params: MarkAsCancelledParams): Promise<OrderResult<Order>>;
+	markAsDelivered(params: MarkAsDeliveredParams): Promise<OrderResult<Order>>;
 	markAsProcessing(params: MarkAsProcessingParams): Promise<OrderResult<Order>>;
 	updatePayment(
 		params: Partial<Order["payment"]> & { orderId: string },
@@ -247,6 +250,64 @@ export class OrderService implements IOrderService {
 		logger.info(
 			{ orderId: validationResult.data.orderId },
 			"Order marked as cancelled successfully",
+		);
+
+		return {
+			data: result.data,
+			success: true,
+		};
+	}
+
+	public async markAsDelivered(
+		params: MethodParams<IOrderService, "markAsDelivered">,
+	): MethodReturn<IOrderService, "markAsDelivered"> {
+		const logger = this._getLogger({ method: "markAsDelivered" });
+		logger.debug({ params }, "Marking order as delivered");
+
+		const validationResult = markAsDeliveredParamsSchema.safeParse(params);
+		if (!validationResult.success) {
+			logger.warn(
+				{ error: validationResult.error, params },
+				"Invalid parameters",
+			);
+			return {
+				error: new ValidationError("Invalid parameters", {
+					cause: validationResult.error,
+				}),
+				success: false,
+			};
+		}
+
+		logger.debug(
+			{ validatedParams: validationResult.data },
+			"Validated parameters",
+		);
+
+		const result = await this._repository.markAsDelivered(
+			validationResult.data,
+		);
+		if (!result.success) {
+			logger.error(
+				{ error: result.error },
+				"Failed to mark order as delivered",
+			);
+			return result;
+		}
+
+		if (!result.data) {
+			logger.warn(
+				{ orderId: validationResult.data.orderId },
+				"Order not found",
+			);
+			return {
+				error: new NotFoundError("Order"),
+				success: false,
+			};
+		}
+
+		logger.info(
+			{ orderId: validationResult.data.orderId },
+			"Order marked as delivered successfully",
 		);
 
 		return {

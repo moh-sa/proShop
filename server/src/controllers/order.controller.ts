@@ -1,6 +1,6 @@
 import { ERROR_TYPE } from "../constants/error-type.constants.js";
 import { HTTP_STATUS } from "../constants/http-status.constants.js";
-import { ForbiddenError } from "../errors/index.js";
+import { ForbiddenError, ValidationError } from "../errors/index.js";
 import type { IOrderManager } from "../managers/index.js";
 import { orderManager } from "../managers/index.js";
 import type {
@@ -24,6 +24,15 @@ import {
 } from "../utils/index.js";
 
 export interface IOrderController {
+	adminCancelOrder: AsyncHandler<{
+		params: { orderId: string };
+		resBody: { data: Order };
+	}>;
+	cancelOrder: AsyncHandler<{
+		locals: { user: SafeSelectUser };
+		params: { orderId: string };
+		resBody: { data: Order };
+	}>;
 	create: AsyncHandler<{
 		locals: { user: SafeSelectUser };
 		reqBody: CreateOrder;
@@ -50,6 +59,10 @@ export interface IOrderController {
 	}>;
 	handleStripeWebhook: AsyncHandler<{
 		resBody: { data: { success: boolean } };
+	}>;
+	markAsDelivered: AsyncHandler<{
+		params: { orderId: string };
+		resBody: { data: Order };
 	}>;
 	updatePayment: AsyncHandler<{
 		params: { orderId: string };
@@ -299,8 +312,116 @@ export class OrderController implements IOrderController {
 		});
 	});
 
+	adminCancelOrder = asyncHandler<{
+		params: { orderId: string };
+		resBody: { data: Order };
+	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "adminCancelOrder" });
+		logger.debug({ orderId: req.params.orderId }, "Admin cancelling order");
+
+		const order = await this._cancelPendingOrder({
+			logger,
+			orderId: req.params.orderId,
+		});
+
+		logger.info({ orderId: order.id }, "Order cancelled by admin successfully");
+
+		const dataToSend = this._convertOrderToDollars(order);
+		res.status(HTTP_STATUS.OK).json({ data: dataToSend, success: true });
+	});
+
+	cancelOrder = asyncHandler<{
+		locals: { user: SafeSelectUser };
+		params: { orderId: string };
+		resBody: { data: Order };
+	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "cancelOrder" });
+		logger.debug(
+			{ orderId: req.params.orderId, userId: res.locals.user.id },
+			"User cancelling order",
+		);
+
+		// Verify the requesting user owns this order
+		const getResult = await this._manager.getById({
+			orderId: req.params.orderId,
+		});
+		if (!getResult.success) {
+			throw getResult.error;
+		}
+
+		this._authorizeResourceAccess({
+			localUser: res.locals.user,
+			logger,
+			userId: getResult.data.user.id,
+		});
+
+		const order = await this._cancelPendingOrder({
+			logger,
+			orderId: req.params.orderId,
+		});
+
+		logger.info({ orderId: order.id }, "Order cancelled by user successfully");
+
+		const dataToSend = this._convertOrderToDollars(order);
+		res.status(HTTP_STATUS.OK).json({ data: dataToSend, success: true });
+	});
+
+	markAsDelivered = asyncHandler<{
+		params: { orderId: string };
+		resBody: { data: Order };
+	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "markAsDelivered" });
+		logger.debug({ orderId: req.params.orderId }, "Marking order as delivered");
+
+		const result = await this._manager.markAsDelivered({
+			orderId: req.params.orderId,
+		});
+		if (!result.success) {
+			throw result.error;
+		}
+
+		logger.info(
+			{ orderId: result.data.id },
+			"Order marked as delivered successfully",
+		);
+
+		const dataToSend = this._convertOrderToDollars(result.data);
+		res.status(HTTP_STATUS.OK).json({ data: dataToSend, success: true });
+	});
+
 	constructor(manager?: IOrderManager) {
 		this._manager = manager ?? orderManager;
+	}
+
+	private async _cancelPendingOrder(params: {
+		logger: ReturnType<typeof getLoggerFromContext>;
+		orderId: string;
+	}): Promise<Order> {
+		const getResult = await this._manager.getById({
+			orderId: params.orderId,
+		});
+		if (!getResult.success) {
+			throw getResult.error;
+		}
+
+		if (getResult.data.status !== "pending") {
+			params.logger.warn(
+				{ orderId: params.orderId, status: getResult.data.status },
+				"Cannot cancel a non-pending order",
+			);
+			throw new ValidationError(
+				"Only pending orders can be cancelled. Paid orders are not eligible for cancellation.",
+			);
+		}
+
+		const cancelResult = await this._manager.markAsCancelled({
+			orderId: params.orderId,
+		});
+		if (!cancelResult.success) {
+			throw cancelResult.error;
+		}
+
+		return cancelResult.data;
 	}
 
 	private _authorizeResourceAccess(params: {
