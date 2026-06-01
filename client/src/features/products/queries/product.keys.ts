@@ -11,4 +11,10 @@ export const productKeys = {
 	topRated: () => [...productKeys._lists(), "top-rated"] as const,
 	detail: (productId: string) =>
 		[...productKeys.all, "detail", productId] as const,
+	admin: {
+		list: (params?: Record<string, unknown>) =>
+			[...productKeys.all, "admin", "list", params] as const,
+		detail: (productId: string) =>
+			[...productKeys.all, "admin", "detail", productId] as const,
+	},
 } as const;

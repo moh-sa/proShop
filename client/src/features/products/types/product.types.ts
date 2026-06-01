@@ -9,7 +9,11 @@ import type {
 } from "../schemas";
 
 export type CreateProduct = z.infer<typeof createProductSchema>;
+/** Alias used by the product form component to indicate file upload input */
+export type CreateProductFormInput = CreateProduct;
 export type UpdateProduct = z.infer<typeof updateProductSchema>;
+/** Alias used by the product form component to indicate file upload input */
+export type UpdateProductFormInput = UpdateProduct;
 export type Product = z.infer<typeof productSchema>;
 
 export type ProductTopRatedList = z.infer<typeof productTopRatedListSchema>;

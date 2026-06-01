@@ -13,7 +13,7 @@ const categorySchema = z.string().trim().nonempty().max(100);
 
 const priceSchema = z.number().positive();
 
-const countInStockSchema = z.number().int().positive();
+const countInStockSchema = z.number().int().nonnegative();
 
 const numReviewsSchema = z.number().int().min(0);
 
