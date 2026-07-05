@@ -41,7 +41,7 @@ export default defineConfig(({ mode }) => {
 					],
 				},
 			}),
-			mkcert(),
+			...(mode === "development" ? [mkcert()] : []),
 		],
 	};
 });
