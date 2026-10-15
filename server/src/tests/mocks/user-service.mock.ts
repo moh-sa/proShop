@@ -1,5 +1,3 @@
- 
-
 import { mock } from "node:test";
 
 import type { IUserService } from "../../services/index.js";
@@ -10,6 +8,7 @@ export function mockUserService(): FunctionMocksWithReset<IUserService> {
 		create: mock.fn(),
 		delete: mock.fn(),
 		updateById: mock.fn(),
+		updatePassword: mock.fn(),
 		getAll: mock.fn(),
 		getByEmail: mock.fn(),
 		getById: mock.fn(),
@@ -25,6 +24,7 @@ export function mockUserService(): FunctionMocksWithReset<IUserService> {
 			this.getById.mock.resetCalls();
 			this.getByEmail.mock.resetCalls();
 			this.updateById.mock.resetCalls();
+			this.updatePassword.mock.resetCalls();
 			this.delete.mock.resetCalls();
 			this.existsByEmail.mock.resetCalls();
 			this.create_UNSAFE.mock.resetCalls();

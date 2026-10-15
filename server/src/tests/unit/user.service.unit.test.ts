@@ -402,8 +402,7 @@ suite("User Service 〖 Unit Tests 〗", () => {
 				userId: demoUser.id,
 			};
 			const demoUpdatedData = { ...demoUser, ...demoUpdateData };
-			const { password: _, userId: __, ...expectedDemoUser } =
-				demoUpdatedData;
+			const { password: _, userId: __, ...expectedDemoUser } = demoUpdatedData;
 
 			mockRepo.getById.mock.mockImplementationOnce(() =>
 				Promise.resolve({
@@ -466,8 +465,8 @@ suite("User Service 〖 Unit Tests 〗", () => {
 			);
 
 			// Act
-			const result = await service.updateById({
-				password: "new-password",
+			const result = await service.updatePassword({
+				hashedPassword: "hashed-new-password",
 				userId: demoUser.id,
 			});
 

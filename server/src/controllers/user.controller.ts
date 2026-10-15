@@ -1,5 +1,7 @@
 import { HTTP_STATUS } from "../constants/index.js";
 import { ValidationError } from "../errors/index.js";
+import type { IUserManager } from "../managers/index.js";
+import { userManager } from "../managers/index.js";
 import {
 	adminUpdateUserBodySchema,
 	updateProfileBodySchema,
@@ -47,6 +49,7 @@ export interface IUserController {
 }
 
 export class UserController implements IUserController {
+	private readonly _manager: IUserManager;
 	private readonly _service: IUserService;
 
 	delete = asyncHandler<{
@@ -191,7 +194,7 @@ export class UserController implements IUserController {
 			});
 		}
 
-		const result = await this._service.updateById({
+		const result = await this._manager.updateProfile({
 			...validationResult.data,
 			userId: res.locals.user.id,
 		});
@@ -201,7 +204,9 @@ export class UserController implements IUserController {
 
 		logger.info(
 			{
-				fields: Object.keys(validationResult.data),
+				fields: Object.keys(validationResult.data).filter(
+					(field) => field !== "currentPassword",
+				),
 				userId: result.data.id,
 			},
 			"Profile updated successfully",
@@ -213,8 +218,9 @@ export class UserController implements IUserController {
 		});
 	});
 
-	constructor(service?: IUserService) {
+	constructor(service?: IUserService, manager?: IUserManager) {
 		this._service = service ?? userService;
+		this._manager = manager ?? userManager;
 	}
 
 	private _getLogger(args: { [key: string]: unknown; method: string }) {

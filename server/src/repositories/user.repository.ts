@@ -31,7 +31,9 @@ export interface IUserRepository {
 	): Promise<UserResult<PaginatedResponse<User>>>;
 	getByEmail(data: { email: string }): Promise<UserResult<null | User>>;
 	getById(data: { userId: string }): Promise<UserResult<null | User>>;
-	update(args: UpdateUserInput): Promise<UserResult<null | User>>;
+	update(
+		args: UpdateUserInput & { password?: string },
+	): Promise<UserResult<null | User>>;
 }
 
 type UserResult<T> = Result<T, DatabaseBaseError>;

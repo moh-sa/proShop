@@ -1,8 +1,9 @@
 import assert from "node:assert";
 import { after, before, beforeEach, describe, suite, test } from "node:test";
 
+import { DEMO_ACCOUNT_EMAILS } from "../../constants/index.js";
 import { AuthController, UserController } from "../../controllers/index.js";
-import { ValidationError } from "../../errors/index.js";
+import { ForbiddenError, ValidationError } from "../../errors/index.js";
 import { SessionModel } from "../../models/session.model.js";
 import { UserModel } from "../../models/user.model.js";
 import { passwordService } from "../../services/index.js";
@@ -92,6 +93,91 @@ suite("User Privilege & Password 〖 Integration Tests 〗", () => {
 			assert.equal(response.data.isAdmin, false);
 			const stored = await UserModel.findById(user.id).lean();
 			assert.equal(stored?.isAdmin, false);
+		});
+
+		test("Should throw 'ValidationError' when 'password' is given without 'currentPassword'", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContextFromHandler(
+				userController.updateProfile,
+			);
+			const user = await createUserWithHashedPassword();
+			res.locals = { user };
+			req.body = { password: NEW_PASSWORD };
+
+			// Act & Assert
+			await assert.rejects(
+				async () => userController.updateProfile(req, res, next),
+				ValidationError,
+			);
+		});
+
+		test("Should throw 'ValidationError' and keep the old password when 'currentPassword' is wrong", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContextFromHandler(
+				userController.updateProfile,
+			);
+			const user = await createUserWithHashedPassword();
+			const passwordBefore = await getStoredPassword(user.id);
+			res.locals = { user };
+			req.body = {
+				currentPassword: "WrongPassword789!",
+				name: "Should Not Apply",
+				password: NEW_PASSWORD,
+			};
+
+			// Act & Assert
+			await assert.rejects(
+				async () => userController.updateProfile(req, res, next),
+				ValidationError,
+			);
+			const stored = await UserModel.findById(user.id).lean();
+			assert.equal(stored?.password, passwordBefore);
+			assert.equal(stored?.name, user.name);
+		});
+
+		test("Should store a hash of the new password when 'currentPassword' is correct", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContextFromHandler(
+				userController.updateProfile,
+			);
+			const user = await createUserWithHashedPassword();
+			res.locals = { user };
+			req.body = { currentPassword: CURRENT_PASSWORD, password: NEW_PASSWORD };
+
+			// Act
+			await userController.updateProfile(req, res, next);
+
+			// Assert
+			const response = res._getJSONData();
+			assert.ok(response.success);
+			assert.ok(!("password" in response.data));
+			const storedPassword = await getStoredPassword(user.id);
+			assert.notEqual(storedPassword, NEW_PASSWORD);
+			const verifyResult = await passwordService.verify({
+				hashedPassword: storedPassword,
+				password: NEW_PASSWORD,
+			});
+			assert.ok(verifyResult.success);
+		});
+
+		test("Should throw 'ForbiddenError' when a demo account changes its password", async () => {
+			// Arrange
+			const { next, req, res } = createMockExpressContextFromHandler(
+				userController.updateProfile,
+			);
+			const user = await createUserWithHashedPassword({
+				email: DEMO_ACCOUNT_EMAILS.customer,
+			});
+			const passwordBefore = await getStoredPassword(user.id);
+			res.locals = { user };
+			req.body = { currentPassword: CURRENT_PASSWORD, password: NEW_PASSWORD };
+
+			// Act & Assert
+			await assert.rejects(
+				async () => userController.updateProfile(req, res, next),
+				ForbiddenError,
+			);
+			assert.equal(await getStoredPassword(user.id), passwordBefore);
 		});
 	});
 

@@ -44,6 +44,10 @@ export interface IUserService {
 	getById: (data: { userId: string }) => Promise<UserResult<SafeSelectUser>>;
 	sanitizeUser: (user: User) => UserResult<SafeSelectUser>;
 	updateById: (args: UpdateUserInput) => Promise<UserResult<SafeSelectUser>>;
+	updatePassword: (args: {
+		hashedPassword: string;
+		userId: string;
+	}) => Promise<UserResult<undefined>>;
 
 	// UNSAFE METHODS - returns full user object
 	/****ONLY FOR INTERNAL USE***/
@@ -478,7 +482,7 @@ export class UserService implements IUserService {
 			);
 			return {
 				error: new ForbiddenError(
-					"Demo account email, password, and admin status cannot be changed",
+					"Demo account email and admin status cannot be changed",
 				),
 				success: false,
 			};
@@ -666,16 +670,74 @@ export class UserService implements IUserService {
 		};
 	}
 
+	public async updatePassword(
+		args: MethodParams<IUserService, "updatePassword">,
+	): MethodReturn<IUserService, "updatePassword"> {
+		const logger = this._getLogger({ method: "updatePassword" });
+
+		const userIdValidationResult = objectIdStringValidator.safeParse(
+			args.userId,
+		);
+		if (!userIdValidationResult.success) {
+			return {
+				error: new ValidationError("Invalid user ID", {
+					cause: userIdValidationResult.error,
+				}),
+				success: false,
+			};
+		}
+
+		const existingUserResult = await this._repository.getById({
+			userId: userIdValidationResult.data,
+		});
+		if (!existingUserResult.success) {
+			return existingUserResult;
+		}
+		if (!existingUserResult.data) {
+			return {
+				error: new NotFoundError("User"),
+				success: false,
+			};
+		}
+
+		if (this._isDemoUser(existingUserResult.data)) {
+			logger.warn(
+				{ userId: args.userId },
+				"Blocked demo account password update",
+			);
+			return {
+				error: new ForbiddenError("Demo account password cannot be changed"),
+				success: false,
+			};
+		}
+
+		const updateResult = await this._repository.update({
+			password: args.hashedPassword,
+			userId: userIdValidationResult.data,
+		});
+		if (!updateResult.success) {
+			return updateResult;
+		}
+		if (!updateResult.data) {
+			return {
+				error: new NotFoundError("User"),
+				success: false,
+			};
+		}
+
+		logger.info({ userId: args.userId }, "User password updated");
+		return {
+			data: undefined,
+			success: true,
+		};
+	}
+
 	private _getLogger(args: { [key: string]: unknown; method: string }) {
 		return getLoggerFromContext().child({ layer: "user service", ...args });
 	}
 
 	private _hasProtectedDemoAccountUpdateFields(args: UpdateUserInput): boolean {
-		return (
-			args.email !== undefined ||
-			args.password !== undefined ||
-			args.isAdmin !== undefined
-		);
+		return args.email !== undefined || args.isAdmin !== undefined;
 	}
 
 	private _isDemoUser(user: User): boolean {

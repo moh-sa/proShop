@@ -33,13 +33,28 @@ export const signUpSchema = baseSchema.pick({
 	password: true,
 });
 
-export const updateUserSchema = baseSchema.partial().extend({
-	userId: objectIdStringValidator,
-});
+// passwords are changed only through `UserManager.updateProfile`, which hashes them
+export const updateUserSchema = baseSchema
+	.omit({ password: true })
+	.partial()
+	.extend({
+		userId: objectIdStringValidator,
+	});
 
 export const updateProfileBodySchema = baseSchema
-	.pick({ email: true, name: true, password: true })
-	.partial();
+	.pick({ email: true, name: true })
+	.partial()
+	.extend({
+		currentPassword: z.string().min(1).optional(),
+		password: passwordValidator.optional(),
+	})
+	.refine(
+		(data) => data.password === undefined || data.currentPassword !== undefined,
+		{
+			error: "Current password is required to set a new password",
+			path: ["currentPassword"],
+		},
+	);
 
 export const adminUpdateUserBodySchema = baseSchema
 	.pick({ email: true, name: true })

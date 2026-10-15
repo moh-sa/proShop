@@ -272,23 +272,6 @@ suite("User Service 〖 Integration Tests 〗", () => {
 			assert.ok(result.error instanceof ValidationError);
 		});
 
-		test("Should return 'ValidationError' when 'repo.updateById' is called with a short password", async () => {
-			// Arrange
-			const createdUser = await createUser(mockUser);
-
-			const updateData: UpdateUserInput = {
-				password: "123",
-				userId: createdUser.id,
-			};
-
-			// Act
-			const result = await userService.updateById(updateData);
-
-			// Assert
-			assert.strictEqual(result.success, false);
-			assert.ok(result.error instanceof ValidationError);
-		});
-
 		test("Should return 'ValidationError' when 'repo.updateById' is called with invalid 'userId'", async () => {
 			// Arrange
 			const userId = "invalid-user-id";

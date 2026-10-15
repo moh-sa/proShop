@@ -177,7 +177,7 @@ export class AuthController implements IAuthController {
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "signUp" });
-		logger.debug("Signing up user");
+		logger.debug({ args: req.body }, "Signing up user");
 
 		const validationResult = signUpSchema.safeParse(req.body);
 		if (!validationResult.success) {
