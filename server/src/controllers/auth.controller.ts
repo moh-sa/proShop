@@ -5,6 +5,7 @@ import { ValidationError } from "../errors/index.js";
 import type { IAuthManager } from "../managers/index.js";
 import { authManager } from "../managers/index.js";
 import { demoRoleSchema } from "../schemas/demo/demo-role.schema.js";
+import { signUpSchema } from "../schemas/index.js";
 import type { ICookieService } from "../services/index.js";
 import { cookieService } from "../services/index.js";
 import type {
@@ -15,6 +16,7 @@ import type {
 	PaginatedResponse,
 	SafeSelectUser,
 	Session,
+	SignUpInput,
 	TokenPair,
 } from "../types/index.js";
 import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
@@ -37,7 +39,7 @@ export interface IAuthController {
 	 * POST /auth/signup
 	 */
 	signUp: AsyncHandler<{
-		reqBody: CreateUser;
+		reqBody: SignUpInput;
 		resBody: { data: SafeSelectUser };
 	}>;
 
@@ -171,14 +173,21 @@ export class AuthController implements IAuthController {
 	 * POST /auth/signup
 	 */
 	signUp = asyncHandler<{
-		reqBody: CreateUser;
+		reqBody: SignUpInput;
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "signUp" });
-		logger.debug({ args: req.body }, "Signing up user");
+		logger.debug("Signing up user");
+
+		const validationResult = signUpSchema.safeParse(req.body);
+		if (!validationResult.success) {
+			throw new ValidationError("Invalid sign up data", {
+				cause: validationResult.error,
+			});
+		}
 
 		// Create a session
-		const result = await this._authManager.signUp(req.body);
+		const result = await this._authManager.signUp(validationResult.data);
 		if (!result.success) {
 			throw result.error;
 		}

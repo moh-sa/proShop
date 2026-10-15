@@ -27,6 +27,7 @@ import type {
 	Result,
 	SafeSelectUser,
 	Session,
+	SignUpInput,
 	TokenPair,
 	UnSafeSelectUser,
 } from "../types/index.js";
@@ -74,7 +75,7 @@ export interface IAuthManager {
 
 	signOutAll(args: { refreshToken: string }): Promise<AuthResult<number>>;
 
-	signUp(args: CreateUser): Promise<
+	signUp(args: SignUpInput): Promise<
 		AuthResult<{
 			sessionId: string;
 			tokens: TokenPair;
@@ -465,7 +466,9 @@ export class AuthManager implements IAuthManager {
 		}
 
 		const createUserResult = await this._user.create({
-			...args,
+			email: args.email,
+			isAdmin: false,
+			name: args.name,
 			password: hashedPasswordResult.data,
 		});
 		if (!createUserResult.success) {

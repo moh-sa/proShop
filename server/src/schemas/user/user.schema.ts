@@ -24,7 +24,14 @@ const baseSchema = z.object({
 	password: passwordValidator,
 });
 
+// internal only (seeds, tests) - `isAdmin` must never come from a client
 export const createUserSchema = baseSchema;
+
+export const signUpSchema = baseSchema.pick({
+	email: true,
+	name: true,
+	password: true,
+});
 
 export const updateUserSchema = baseSchema.partial().extend({
 	userId: objectIdStringValidator,

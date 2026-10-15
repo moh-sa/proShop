@@ -1237,10 +1237,10 @@ suite("Auth Manager 〖 Unit Tests 〗", () => {
 			assert.deepStrictEqual(result.data.user, mockSelectUser);
 
 			assert.strictEqual(mockUser.create.mock.callCount(), 1);
-			assert.deepStrictEqual(
-				mockUser.create.mock.calls[0].arguments[0],
-				mockInsertUser,
-			);
+			assert.deepStrictEqual(mockUser.create.mock.calls[0].arguments[0], {
+				...mockInsertUser,
+				isAdmin: false,
+			});
 
 			assert.strictEqual(mockJwt.generateTokenPair.mock.callCount(), 1);
 			assert.deepStrictEqual(
