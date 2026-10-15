@@ -17,7 +17,7 @@ router
 
 router
 	.route("/profile")
-	.patch(...userGuard(strictLimiter), userController.update);
+	.patch(...userGuard(strictLimiter), userController.updateProfile);
 
 // Admin routes
 router.route("/").get(...adminGuard(adminLimiter), userController.getAll);

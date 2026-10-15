@@ -37,7 +37,16 @@ export const updateUserSchema = baseSchema.partial().extend({
 	userId: objectIdStringValidator,
 });
 
-export const updateUserBodySchema = updateUserSchema.omit({ userId: true });
+export const updateProfileBodySchema = baseSchema
+	.pick({ email: true, name: true, password: true })
+	.partial();
+
+export const adminUpdateUserBodySchema = baseSchema
+	.pick({ email: true, name: true })
+	.partial()
+	.extend({
+		isAdmin: z.boolean().optional(),
+	});
 
 export const userSchema = baseSchema.extend({
 	createdAt: z.date(),

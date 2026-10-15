@@ -1,9 +1,10 @@
 import type { z } from "zod";
 
 import type {
+	adminUpdateUserBodySchema,
 	createUserSchema,
 	signUpSchema,
-	updateUserBodySchema,
+	updateProfileBodySchema,
 	updateUserSchema,
 	userModelSchema,
 	userPaginationFiltersSchema,
@@ -19,9 +20,12 @@ import type {
 import type { Stringify } from "./stringify.type.js";
 
 export type CreateUser = z.infer<typeof createUserSchema>;
-export type SignUpInput = z.infer<typeof signUpSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
-export type UpdateUserBodyInput = z.infer<typeof updateUserBodySchema>;
+export type SignUpInput = z.infer<typeof signUpSchema>;
+export type UpdateProfileBodyInput = z.infer<typeof updateProfileBodySchema>;
+export type AdminUpdateUserBodyInput = z.infer<
+	typeof adminUpdateUserBodySchema
+>;
 export type User = z.infer<typeof userSchema>;
 export type UserSchema = z.infer<typeof userModelSchema>;
 

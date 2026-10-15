@@ -3,7 +3,7 @@ import test, { beforeEach, describe, suite } from "node:test";
 
 import { UserController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
-import type { UpdateUserBodyInput } from "../../types/index.js";
+import type { AdminUpdateUserBodyInput } from "../../types/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
 import {
 	generateMockSelectUser,
@@ -282,7 +282,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 
 		test("Should call 'service.updateById' once with the correct 'userId'", async (t) => {
 			// Arrange
-			const updateData: UpdateUserBodyInput = { name: "new-name" };
+			const updateData: AdminUpdateUserBodyInput = { name: "new-name" };
 
 			const { next, req, res } = mockExpressCall({
 				req: {
@@ -312,7 +312,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.status' once with '200' after successfully updating user data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId } },
+				req: { body: {}, params: { userId } },
 				testContext: t,
 			});
 
@@ -332,7 +332,7 @@ suite("User Controller 〖 Unit Tests 〗", () => {
 		test("Should call 'res.json' once with the success response object containing user data", async (t) => {
 			// Arrange
 			const { next, req, res } = mockExpressCall({
-				req: { params: { userId } },
+				req: { body: {}, params: { userId } },
 				testContext: t,
 			});
 

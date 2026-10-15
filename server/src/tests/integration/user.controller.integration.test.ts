@@ -294,39 +294,6 @@ suite("User Controller 〖 Integration Tests 〗", () => {
 			assert.equal(response.data.name, "Updated Name");
 		});
 
-		test("Should return success response when 'service.update' is called with valid user id from locals", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContextFromHandler(
-				controller.update,
-			);
-
-			const createdUser = await createUser(generateMockInsertUser());
-			const userId = createdUser.id;
-
-			res.locals = {
-				review: generateMockInsertReview({
-					user: { id: userId, name: createdUser.name },
-				}),
-				token: {
-					id: userId,
-					exp: Math.floor(Date.now() / 1000) + 3600,
-					iat: Math.floor(Date.now() / 1000),
-				},
-				user: createdUser,
-			};
-
-			req.body = { name: "Updated Name" };
-
-			// Act
-			await controller.update(req, res, next);
-
-			// Assert
-			const response = res._getJSONData();
-			assert.ok(response.success);
-			assert.ok(response.data);
-			assert.equal(response.data.name, "Updated Name");
-		});
-
 		test("Should throw 'NotFoundError' when user does not exist", async () => {
 			// Arrange
 			const { next, req, res } = createMockExpressContextFromHandler(

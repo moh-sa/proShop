@@ -1,13 +1,19 @@
 import { HTTP_STATUS } from "../constants/index.js";
+import { ValidationError } from "../errors/index.js";
+import {
+	adminUpdateUserBodySchema,
+	updateProfileBodySchema,
+} from "../schemas/index.js";
 import type { IUserService } from "../services/index.js";
 import { userService } from "../services/index.js";
 import type {
+	AdminUpdateUserBodyInput,
 	AsyncHandler,
 	GetAllUsersControllerParams,
 	GetAllUsersServiceParams,
 	PaginatedResponse,
 	SafeSelectUser,
-	UpdateUserBodyInput,
+	UpdateProfileBodyInput,
 } from "../types/index.js";
 import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
 
@@ -29,9 +35,13 @@ export interface IUserController {
 		resBody: { data: SafeSelectUser };
 	}>;
 	update: AsyncHandler<{
-		locals: { user: SafeSelectUser };
 		params: { userId: string };
-		reqBody: UpdateUserBodyInput;
+		reqBody: AdminUpdateUserBodyInput;
+		resBody: { data: SafeSelectUser };
+	}>;
+	updateProfile: AsyncHandler<{
+		locals: { user: SafeSelectUser };
+		reqBody: UpdateProfileBodyInput;
 		resBody: { data: SafeSelectUser };
 	}>;
 }
@@ -120,28 +130,81 @@ export class UserController implements IUserController {
 		});
 	});
 
+	/**
+	 * PATCH /users/:userId (admin)
+	 */
 	update = asyncHandler<{
-		locals: { user: SafeSelectUser };
 		params: { userId: string };
-		reqBody: UpdateUserBodyInput;
+		reqBody: AdminUpdateUserBodyInput;
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
 		const logger = this._getLogger({ method: "update" });
+		logger.debug(
+			{ data: { ...req.body }, userId: req.params.userId },
+			"Updating user",
+		);
 
-		const dataToUpdate = {
-			...req.body,
-			userId: req.params.userId || res.locals.user.id,
-		};
-		logger.debug({ data: dataToUpdate }, "Updating user");
+		const validationResult = adminUpdateUserBodySchema.safeParse(req.body);
+		if (!validationResult.success) {
+			throw new ValidationError("Invalid user update data", {
+				cause: validationResult.error,
+			});
+		}
 
-		const result = await this._service.updateById(dataToUpdate);
+		const result = await this._service.updateById({
+			...validationResult.data,
+			userId: req.params.userId,
+		});
 		if (!result.success) {
 			throw result.error;
 		}
 
 		logger.info(
-			{ updateData: req.body, userId: result.data.id },
+			{ fields: Object.keys(validationResult.data), userId: result.data.id },
 			"User updated successfully",
+		);
+
+		res.status(HTTP_STATUS.OK).json({
+			data: result.data,
+			success: true,
+		});
+	});
+
+	/**
+	 * PATCH /users/profile
+	 */
+	updateProfile = asyncHandler<{
+		locals: { user: SafeSelectUser };
+		reqBody: UpdateProfileBodyInput;
+		resBody: { data: SafeSelectUser };
+	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "updateProfile" });
+		logger.debug(
+			{ data: { ...req.body }, userId: res.locals.user.id },
+			"Updating profile",
+		);
+
+		const validationResult = updateProfileBodySchema.safeParse(req.body);
+		if (!validationResult.success) {
+			throw new ValidationError("Invalid profile update data", {
+				cause: validationResult.error,
+			});
+		}
+
+		const result = await this._service.updateById({
+			...validationResult.data,
+			userId: res.locals.user.id,
+		});
+		if (!result.success) {
+			throw result.error;
+		}
+
+		logger.info(
+			{
+				fields: Object.keys(validationResult.data),
+				userId: result.data.id,
+			},
+			"Profile updated successfully",
 		);
 
 		res.status(HTTP_STATUS.OK).json({
