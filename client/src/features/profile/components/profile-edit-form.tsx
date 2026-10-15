@@ -24,6 +24,7 @@ export function ProfileEditForm(props: ProfileEditFormProps) {
 		defaultValues: {
 			name: props.user.name,
 			email: props.user.email,
+			currentPassword: "",
 			password: "",
 			confirmPassword: "",
 		},
@@ -97,6 +98,18 @@ export function ProfileEditForm(props: ProfileEditFormProps) {
 									type="email"
 									autoComplete="email"
 									placeholder="you@example.com"
+									disabled={isDemoAccount}
+								/>
+							)}
+						</form.AppField>
+						<form.AppField name="currentPassword">
+							{(field) => (
+								<field.TextField
+									label="Current Password"
+									description="Required only when setting a new password"
+									type="password"
+									autoComplete="current-password"
+									placeholder="Enter your current password"
 									disabled={isDemoAccount}
 								/>
 							)}

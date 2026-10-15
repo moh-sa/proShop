@@ -4,6 +4,7 @@ import type { UpdateProfile } from "../types";
 export type FormValues = {
 	name: string;
 	email: string;
+	currentPassword: string;
 	password: string;
 	confirmPassword: string;
 };
@@ -21,6 +22,7 @@ export function buildUpdateProfilePayload(
 	}
 	if (value.password.length > 0) {
 		payload.password = value.password;
+		payload.currentPassword = value.currentPassword;
 	}
 	return payload;
 }

@@ -10,7 +10,8 @@ import { hasProfileChanges } from "../helpers/has-profile-changes.helper";
 
 export const updateProfileSchema = createUserSchema
 	.omit({ isAdmin: true })
-	.partial();
+	.partial()
+	.extend({ currentPassword: z.string().min(1).optional() });
 
 export function createUpdateProfileFormSchema(
 	currentUser: Pick<User, "name" | "email">,
@@ -19,6 +20,7 @@ export function createUpdateProfileFormSchema(
 		.object({
 			name: z.string().trim(),
 			email: z.string().trim(),
+			currentPassword: z.string(),
 			password: z.string().trim(),
 			confirmPassword: z.string().trim(),
 		})
@@ -63,6 +65,13 @@ export function createUpdateProfileFormSchema(
 					result.error.issues.forEach((issue) =>
 						ctx.addIssue({ ...issue, path: ["password"] }),
 					);
+				}
+				if (data.currentPassword.length === 0) {
+					ctx.addIssue({
+						code: "custom",
+						message: "Enter your current password to set a new one",
+						path: ["currentPassword"],
+					});
 				}
 				if (!hasConfirmPassword) {
 					ctx.addIssue({
