@@ -184,7 +184,7 @@ export class CookieService implements ICookieService {
 		const nameValidationResult = this._validateName(args.item.name);
 		if (!nameValidationResult.success) {
 			logger.warn(
-				{ error: nameValidationResult.error, item: args.item },
+				{ error: nameValidationResult.error, name: args.item.name },
 				"Invalid cookie name",
 			);
 			return nameValidationResult;
@@ -210,7 +210,7 @@ export class CookieService implements ICookieService {
 		const valueResult = this._stringifyValue(args.item.value);
 		if (!valueResult.success) {
 			logger.warn(
-				{ error: valueResult.error, item: args.item },
+				{ error: valueResult.error, name: args.item.name },
 				"Failed to stringify cookie value",
 			);
 			return valueResult;
@@ -226,13 +226,13 @@ export class CookieService implements ICookieService {
 		});
 		if (!setResult.success) {
 			logger.warn(
-				{ error: setResult.error, item: args.item },
+				{ error: setResult.error, name: args.item.name },
 				"Failed to set cookie",
 			);
 			return setResult;
 		}
 
-		logger.info({ item: args.item }, "Cookie set successfully");
+		logger.info({ name: args.item.name }, "Cookie set successfully");
 
 		return setResult;
 	}
