@@ -5,4 +5,3 @@ export * from "./cookie/index.js";
 export * from "./database/index.js";
 export * from "./password/index.js";
 export * from "./rate-limit.error.js";
-export * from "./session/index.js";
