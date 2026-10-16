@@ -32,7 +32,7 @@ app.use("/api/v1/webhooks/*", express.raw({ type: "application/json" }));
 // Request parsing middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser(env.COOKIE_SECRET, { decode: decodeURIComponent }));
+app.use(cookieParser(undefined, { decode: decodeURIComponent }));
 
 // Logging middlewares
 app.use(requestId);

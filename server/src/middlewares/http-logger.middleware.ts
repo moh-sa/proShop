@@ -26,7 +26,7 @@ export const httpLogger = pinoHttp({
 	// Additional properties attached to each log
 	customProps: (req, res: Response) => ({
 		requestId: req.id,
-		userId: res.locals.userId,
+		userId: res.locals.user?.id,
 	}),
 
 	// Success message

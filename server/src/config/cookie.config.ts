@@ -4,7 +4,7 @@ export const DEFAULT_COOKIE_CONFIG: CookieConfig = {
 	encode: encodeURIComponent,
 	httpOnly: true,
 	path: "/",
-	sameSite: "none",
+	sameSite: "strict",
 	secure: true,
-	signed: true,
+	signed: false,
 };

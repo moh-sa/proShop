@@ -1,7 +1,7 @@
 import express from "express";
 
 import { authController } from "../../controllers/auth.controller.js";
-import { refreshGuard, userGuard } from "../../middlewares/index.js";
+import { userGuard } from "../../middlewares/index.js";
 import {
 	authLimiter,
 	defaultLimiter,
@@ -20,20 +20,6 @@ router.route("/demo-signin").post(authLimiter, authController.demoSignIn);
 //============= 🔒 PROTECTED ROUTES =============
 const protectedRouter = express.Router();
 
-// Sign out routes
-protectedRouter
-	.route("/signout/current")
-	.delete(...userGuard(defaultLimiter), authController.signOut);
-
-protectedRouter
-	.route("/signout")
-	.delete(...userGuard(strictLimiter), authController.signOutAll);
-
-// Token routes
-protectedRouter
-	.route("/token/refresh")
-	.post(...refreshGuard(strictLimiter), authController.refreshAccessToken);
-
 // Session routes
 protectedRouter
 	.route("/sessions")
@@ -41,11 +27,11 @@ protectedRouter
 
 protectedRouter
 	.route("/sessions/current")
-	.delete(...userGuard(strictLimiter), authController.revokeSession);
+	.delete(...userGuard(defaultLimiter), authController.signOut);
 
 protectedRouter
 	.route("/sessions")
-	.delete(...userGuard(strictLimiter), authController.revokeAllSessions);
+	.delete(...userGuard(strictLimiter), authController.signOutAll);
 
 // Mount protected routes
 router.use("/", protectedRouter);

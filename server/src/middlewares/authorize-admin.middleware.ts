@@ -6,7 +6,7 @@ import { asyncHandler } from "../utils/async-handler.util.js";
  *
  * Verifies that the user is an admin.
  *
- * This middleware must be used *after* `verifyUserExist` middleware.
+ * This middleware must be used *after* `authenticate` middleware.
  */
 export const authorizeAdmin = asyncHandler(async (_req, res, next) => {
 	// get user from res.locals

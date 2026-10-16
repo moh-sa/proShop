@@ -6,97 +6,75 @@ import {
 	ValidationError,
 } from "../errors/index.js";
 import type {
-	IJwtService,
 	IPasswordService,
 	ISessionService,
 	IUserService,
 } from "../services/index.js";
 import {
-	jwtService,
 	passwordService,
 	sessionService,
 	userService,
 } from "../services/index.js";
 import type {
-	CreateUser,
 	DemoAccountRole,
-	GetAllSessionsByUserIdManagerParams,
 	MethodParams,
 	MethodReturn,
-	PaginatedResponse,
+	PublicSession,
 	Result,
 	SafeSelectUser,
 	Session,
 	SignUpInput,
-	TokenPair,
-	UnSafeSelectUser,
 } from "../types/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
 
 // helpers types
 type AuthResult<T> = Result<T>;
 
+type AuthSession = {
+	session: Session;
+	// raw session token for the cookie - never log or store it
+	token: string;
+	user: SafeSelectUser;
+};
+
+type SessionContext = {
+	// token from an existing cookie, replaced on sign-in
+	previousToken?: string;
+	userAgent: string;
+};
+
 // interfaces
 export interface IAuthManager {
-	getUserSessions(
-		args: GetAllSessionsByUserIdManagerParams,
-	): Promise<AuthResult<PaginatedResponse<Session>>>;
+	getUserSessions(args: {
+		currentSessionId: string;
+		userId: string;
+	}): Promise<AuthResult<Array<PublicSession>>>;
 
-	refreshAccessToken(args: { refreshToken: string }): Promise<
-		AuthResult<{
-			expiresAt: Date;
-			token: string;
-		}>
-	>;
+	signIn(
+		args: SessionContext & { email: string; password: string },
+	): Promise<AuthResult<AuthSession>>;
 
-	revokeAllSessions(args: {
-		refreshToken: string;
-	}): Promise<AuthResult<number>>;
+	signInDemo(
+		args: SessionContext & { role: DemoAccountRole },
+	): Promise<AuthResult<AuthSession>>;
 
-	revokeSession(args: { refreshToken: string }): Promise<AuthResult<undefined>>;
+	signOut(args: { sessionId: string }): Promise<AuthResult<undefined>>;
 
-	signIn(args: Pick<CreateUser, "email" | "password">): Promise<
-		AuthResult<{
-			sessionId: string;
-			tokens: TokenPair;
-			user: SafeSelectUser;
-		}>
-	>;
+	signOutAll(args: { userId: string }): Promise<AuthResult<number>>;
 
-	signInDemo(args: { role: DemoAccountRole }): Promise<
-		AuthResult<{
-			sessionId: string;
-			tokens: TokenPair;
-			user: SafeSelectUser;
-		}>
-	>;
-
-	signOut(args: { refreshToken: string }): Promise<AuthResult<undefined>>;
-
-	signOutAll(args: { refreshToken: string }): Promise<AuthResult<number>>;
-
-	signUp(args: SignUpInput): Promise<
-		AuthResult<{
-			sessionId: string;
-			tokens: TokenPair;
-			user: SafeSelectUser;
-		}>
-	>;
+	signUp(args: SessionContext & SignUpInput): Promise<AuthResult<AuthSession>>;
 }
 
 export class AuthManager implements IAuthManager {
-	private readonly _jwt: IJwtService;
 	private readonly _password: IPasswordService;
 	private readonly _session: ISessionService;
 	private readonly _user: IUserService;
 
 	constructor(
-		jwt?: IJwtService,
 		password?: IPasswordService,
 		session?: ISessionService,
 		user?: IUserService,
 	) {
-		this._jwt = jwt ?? jwtService;
 		this._password = password ?? passwordService;
 		this._session = session ?? sessionService;
 		this._user = user ?? userService;
@@ -105,138 +83,19 @@ export class AuthManager implements IAuthManager {
 	public async getUserSessions(
 		args: MethodParams<IAuthManager, "getUserSessions">,
 	): MethodReturn<IAuthManager, "getUserSessions"> {
-		if (!args?.refreshToken) {
-			return {
-				error: new ValidationError("Refresh token is required"),
-				success: false,
-			};
-		}
-
-		const refreshTokenValidationResult = this._jwt.verify({
-			expectedType: "refresh",
-			token: args.refreshToken,
-		});
-		if (!refreshTokenValidationResult.success) {
-			return refreshTokenValidationResult;
-		}
-
-		const userId = refreshTokenValidationResult.data.userId;
-
-		const result = await this._session.getActiveByUserId({
-			...args,
-			userId,
-		});
+		const result = await this._session.getAllByUserId({ userId: args.userId });
 		if (!result.success) {
 			return result;
 		}
 
 		return {
-			data: result.data,
-			success: true,
-		};
-	}
-
-	public async refreshAccessToken(
-		args: MethodParams<IAuthManager, "refreshAccessToken">,
-	): MethodReturn<IAuthManager, "refreshAccessToken"> {
-		if (!args?.refreshToken) {
-			return {
-				error: new ValidationError("Refresh token is required"),
-				success: false,
-			};
-		}
-
-		const tokenValidationResult = this._jwt.verify({
-			expectedType: "refresh",
-			token: args.refreshToken,
-		});
-		if (!tokenValidationResult.success) {
-			return tokenValidationResult;
-		}
-
-		const sessionValidationResult = await this._session.validate({
-			tokenId: tokenValidationResult.data.tokenId,
-			userId: tokenValidationResult.data.userId,
-		});
-		if (!sessionValidationResult.success) {
-			return sessionValidationResult;
-		}
-
-		const accessTokenResult = this._jwt.generateAccessToken({
-			userId: tokenValidationResult.data.userId,
-		});
-		if (!accessTokenResult.success) {
-			return accessTokenResult;
-		}
-
-		return {
-			data: {
-				expiresAt: accessTokenResult.data.expiresAt,
-				token: accessTokenResult.data.token,
-			},
-			success: true,
-		};
-	}
-
-	public async revokeAllSessions(args: {
-		refreshToken: string;
-	}): Promise<AuthResult<number>> {
-		if (!args?.refreshToken) {
-			return {
-				error: new ValidationError("Refresh token is required"),
-				success: false,
-			};
-		}
-
-		const refreshTokenValidationResult = this._jwt.verify({
-			expectedType: "refresh",
-			token: args.refreshToken,
-		});
-		if (!refreshTokenValidationResult.success) {
-			return refreshTokenValidationResult;
-		}
-
-		const result = await this._session.revokeAllByUserId({
-			userId: refreshTokenValidationResult.data.userId,
-		});
-		if (!result.success) {
-			return result;
-		}
-
-		return {
-			data: result.data,
-			success: true,
-		};
-	}
-
-	public async revokeSession(
-		args: MethodParams<IAuthManager, "revokeSession">,
-	): MethodReturn<IAuthManager, "revokeSession"> {
-		if (!args?.refreshToken) {
-			return {
-				error: new ValidationError("Refresh token is required"),
-				success: false,
-			};
-		}
-
-		const refreshTokenValidationResult = this._jwt.verify({
-			expectedType: "refresh",
-			token: args.refreshToken,
-		});
-		if (!refreshTokenValidationResult.success) {
-			return refreshTokenValidationResult;
-		}
-
-		const result = await this._session.revokeByTokenIdAndUserId({
-			tokenId: refreshTokenValidationResult.data.tokenId,
-			userId: refreshTokenValidationResult.data.userId,
-		});
-		if (!result.success) {
-			return result;
-		}
-
-		return {
-			data: undefined,
+			data: result.data.map((session) => ({
+				createdAt: session.createdAt,
+				id: session.id,
+				isCurrent: session.id === args.currentSessionId,
+				lastSeenAt: session.lastSeenAt,
+				userAgent: session.userAgent,
+			})),
 			success: true,
 		};
 	}
@@ -286,9 +145,11 @@ export class AuthManager implements IAuthManager {
 			return sanitizeResult;
 		}
 
-		const authSessionResult = await this._createAuthSession(
-			sanitizeResult.data,
-		);
+		const authSessionResult = await this._createAuthSession({
+			previousToken: args.previousToken,
+			user: sanitizeResult.data,
+			userAgent: args.userAgent,
+		});
 		if (!authSessionResult.success) {
 			// Error already logged in _createAuthSession
 			return authSessionResult;
@@ -329,9 +190,11 @@ export class AuthManager implements IAuthManager {
 			return sanitizeResult;
 		}
 
-		const authSessionResult = await this._createAuthSession(
-			sanitizeResult.data,
-		);
+		const authSessionResult = await this._createAuthSession({
+			previousToken: args.previousToken,
+			user: sanitizeResult.data,
+			userAgent: args.userAgent,
+		});
 		if (!authSessionResult.success) {
 			return authSessionResult;
 		}
@@ -349,33 +212,14 @@ export class AuthManager implements IAuthManager {
 	): MethodReturn<IAuthManager, "signOut"> {
 		const logger = this.getLogger({ method: "signOut" });
 
-		if (!args?.refreshToken) {
-			logger.warn("Sign out failed - missing refresh token");
-			return {
-				error: new ValidationError("Refresh token is required"),
-				success: false,
-			};
-		}
-
-		const tokenResult = this._jwt.verify({
-			expectedType: "refresh",
-			token: args.refreshToken as string,
+		const result = await this._session.deleteById({
+			sessionId: args.sessionId,
 		});
-		if (!tokenResult.success) {
-			// Error already logged in JWT service
-			return tokenResult;
+		if (!result.success) {
+			return result;
 		}
 
-		const deletedSessionResult = await this._session.deleteByTokenIdAndUserId({
-			tokenId: tokenResult.data.tokenId,
-			userId: tokenResult.data.userId,
-		});
-		if (!deletedSessionResult.success) {
-			// Error already logged in session service
-			return deletedSessionResult;
-		}
-
-		logger.info({ userId: tokenResult.data.userId }, "User signed out");
+		logger.info({ sessionId: args.sessionId }, "User signed out");
 		return {
 			data: undefined,
 			success: true,
@@ -387,35 +231,15 @@ export class AuthManager implements IAuthManager {
 	): MethodReturn<IAuthManager, "signOutAll"> {
 		const logger = this.getLogger({ method: "signOutAll" });
 
-		if (!args?.refreshToken) {
-			logger.warn("Sign out all failed - missing refresh token");
-			return {
-				error: new ValidationError("Refresh token is required"),
-				success: false,
-			};
-		}
-
-		const refreshTokenResult = this._jwt.verify({
-			expectedType: "refresh",
-			token: args.refreshToken,
-		});
-		if (!refreshTokenResult.success) {
-			// Error already logged in JWT service
-			return refreshTokenResult;
-		}
-
-		const userId = refreshTokenResult.data.userId;
-
 		const result = await this._session.deleteAllByUserId({
-			userId,
+			userId: args.userId,
 		});
 		if (!result.success) {
-			// Error already logged in session service
 			return result;
 		}
 
 		logger.info(
-			{ deletedCount: result.data, userId },
+			{ deletedCount: result.data, userId: args.userId },
 			"All sessions signed out",
 		);
 		return {
@@ -476,9 +300,11 @@ export class AuthManager implements IAuthManager {
 			return createUserResult;
 		}
 
-		const authSessionResult = await this._createAuthSession(
-			createUserResult.data,
-		);
+		const authSessionResult = await this._createAuthSession({
+			previousToken: args.previousToken,
+			user: createUserResult.data,
+			userAgent: args.userAgent,
+		});
 		if (!authSessionResult.success) {
 			// Error already logged in _createAuthSession
 			return authSessionResult;
@@ -492,28 +318,23 @@ export class AuthManager implements IAuthManager {
 	}
 
 	private async _createAuthSession(
-		user: SafeSelectUser | UnSafeSelectUser,
-	): Promise<
-		AuthResult<{
-			sessionId: string;
-			tokens: TokenPair;
-			user: SafeSelectUser;
-		}>
-	> {
+		args: SessionContext & { user: SafeSelectUser },
+	): Promise<AuthResult<AuthSession>> {
 		const logger = this.getLogger({ method: "_createAuthSession" });
 
-		const tokensResult = this._jwt.generateTokenPair({
-			userId: user.id,
-		});
-		if (!tokensResult.success) {
-			// Error already logged in JWT service
-			return tokensResult;
+		// a new sign-in always gets a fresh token (prevents session fixation)
+		if (args.previousToken) {
+			const deleteResult = await this._session.deleteByToken({
+				token: args.previousToken,
+			});
+			if (!deleteResult.success) {
+				return deleteResult;
+			}
 		}
 
 		const sessionResult = await this._session.create({
-			expiresAt: tokensResult.data.refresh.expiresAt,
-			tokenId: tokensResult.data.refresh.tokenId,
-			userId: user.id,
+			userAgent: args.userAgent,
+			userId: args.user.id,
 		});
 		if (!sessionResult.success) {
 			// Error already logged in session service
@@ -521,15 +342,11 @@ export class AuthManager implements IAuthManager {
 		}
 
 		logger.debug(
-			{ sessionId: sessionResult.data.id, userId: user.id },
+			{ sessionId: sessionResult.data.session.id, userId: args.user.id },
 			"Auth session created",
 		);
 		return {
-			data: {
-				sessionId: sessionResult.data.id,
-				tokens: tokensResult.data,
-				user,
-			},
+			data: { ...sessionResult.data, user: args.user },
 			success: true,
 		};
 	}

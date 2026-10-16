@@ -2,28 +2,21 @@ import assert from "node:assert";
 import test, { after, before, beforeEach, describe, suite } from "node:test";
 
 import {
-	AuthenticationError,
 	ForbiddenError,
 	InternalError,
 	NotFoundError,
 	ValidationError,
 } from "../../errors/index.js";
 import {
-	authenticateAccessToken,
-	authenticateRefreshSession,
 	authorizeAdmin,
-	checkUserExists,
 	verifyReviewOwnership,
 } from "../../middlewares/index.js";
 import { ProductModel } from "../../models/product.model.js";
 import { ReviewModel } from "../../models/review.model.js";
 import { SessionModel } from "../../models/session.model.js";
 import { UserModel } from "../../models/user.model.js";
-import { JwtService } from "../../services/index.js";
 import {
 	generateMockInsertReview,
-	generateMockInsertSession,
-	generateMockInsertUser,
 	generateMockObjectId,
 	generateMockSelectUser,
 } from "../mocks/index.js";
@@ -31,8 +24,6 @@ import {
 	connectTestDatabase,
 	createMockExpressContextFromHandler,
 	createReview,
-	createSession,
-	createUser,
 	disconnectTestDatabase,
 } from "../utils/index.js";
 
@@ -44,69 +35,6 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 		await SessionModel.deleteMany({});
 		await ReviewModel.deleteMany({});
 		await ProductModel.deleteMany({});
-	});
-
-	describe("checkUserIdExists", () => {
-		test("Should set res.locals.user when user exists for res.locals.userId", async () => {
-			// Arrange
-			const { next, req, res } =
-				createMockExpressContextFromHandler(checkUserExists);
-
-			const user = await createUser(generateMockInsertUser());
-
-			res.locals.userId = user.id;
-
-			// Act
-			await checkUserExists(req, res, next);
-
-			// Assert
-			assert.ok(res.locals.user);
-		});
-
-		test("Should set the correct user in res.locals.user", async () => {
-			// Arrange
-			const { next, req, res } =
-				createMockExpressContextFromHandler(checkUserExists);
-
-			const user = await createUser(generateMockInsertUser());
-
-			const userId = user.id;
-
-			res.locals.userId = userId;
-
-			// Act
-			await checkUserExists(req, res, next);
-
-			// Assert
-			assert.equal(res.locals.user?.id, userId);
-		});
-
-		test("Should throw NotFoundError when user does not exist", async () => {
-			// Arrange
-			const { next, req, res } =
-				createMockExpressContextFromHandler(checkUserExists);
-
-			const mockId = generateMockObjectId();
-			res.locals.userId = mockId;
-
-			// Act & Assert
-			await assert.rejects(
-				async () => checkUserExists(req, res, next),
-				NotFoundError,
-			);
-		});
-
-		test("Should throw InternalError when res.locals.userId is missing", async () => {
-			// Arrange
-			const { next, req, res } =
-				createMockExpressContextFromHandler(checkUserExists);
-
-			// Act & Assert
-			await assert.rejects(
-				async () => checkUserExists(req, res, next),
-				InternalError,
-			);
-		});
 	});
 
 	describe("checkIfUserIsAdmin", () => {
@@ -264,169 +192,6 @@ suite("Middlewares 〖 Integration Tests 〗", () => {
 			await assert.rejects(
 				async () => verifyReviewOwnership(req, res, next),
 				NotFoundError,
-			);
-		});
-	});
-
-	describe("authenticateRefreshSession", () => {
-		const jwtService = new JwtService();
-
-		test("Should throw AuthenticationError when refresh token cookie is missing", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContextFromHandler(
-				authenticateRefreshSession,
-			);
-			req.cookies = {};
-			req.signedCookies = {};
-
-			// Act & Assert
-			await assert.rejects(
-				async () => authenticateRefreshSession(req, res, next),
-				AuthenticationError,
-			);
-		});
-
-		test("Should throw AuthenticationError when refresh token is invalid", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContextFromHandler(
-				authenticateRefreshSession,
-			);
-			req.cookies = {};
-			req.signedCookies = {
-				refreshToken: JSON.stringify("invalid"),
-			};
-
-			// Act & Assert
-			await assert.rejects(
-				async () => authenticateRefreshSession(req, res, next),
-				AuthenticationError,
-			);
-		});
-
-		test("Should throw AuthenticationError when session does not exist", async () => {
-			// Arrange
-			const userId = generateMockObjectId();
-			const refresh = jwtService.generateRefreshToken({ userId });
-			assert.ok(refresh.success);
-
-			const { next, req, res } = createMockExpressContextFromHandler(
-				authenticateRefreshSession,
-			);
-			req.cookies = {};
-			req.signedCookies = {
-				refreshToken: JSON.stringify(refresh.data.token),
-			};
-
-			// Act & Assert
-			await assert.rejects(
-				async () => authenticateRefreshSession(req, res, next),
-				AuthenticationError,
-			);
-		});
-
-		test("Should set res.locals.userId when refresh token and session are valid", async () => {
-			// Arrange
-			const userId = generateMockObjectId();
-			const refresh = jwtService.generateRefreshToken({ userId });
-			assert.ok(refresh.success);
-
-			await createSession(
-				generateMockInsertSession({
-					tokenId: refresh.data.tokenId,
-					userId,
-				}),
-			);
-
-			const { next, req, res } = createMockExpressContextFromHandler(
-				authenticateRefreshSession,
-			);
-			req.cookies = {};
-			req.signedCookies = {
-				refreshToken: JSON.stringify(refresh.data.token),
-			};
-
-			// Act
-			await authenticateRefreshSession(req, res, next);
-
-			// Assert
-			assert.strictEqual(res.locals.userId, userId);
-		});
-	});
-
-	describe("authenticateAccessToken", () => {
-		const jwtService = new JwtService();
-
-		test("Should throw InternalError when res.locals.userId is missing", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContextFromHandler(
-				authenticateAccessToken,
-			);
-			req.cookies = {};
-			req.signedCookies = {};
-
-			// Act & Assert
-			await assert.rejects(
-				async () => authenticateAccessToken(req, res, next),
-				InternalError,
-			);
-		});
-
-		test("Should throw AuthenticationError when access token cookie is missing", async () => {
-			// Arrange
-			const { next, req, res } = createMockExpressContextFromHandler(
-				authenticateAccessToken,
-			);
-			res.locals.userId = generateMockObjectId();
-			req.cookies = {};
-			req.signedCookies = {};
-
-			// Act & Assert
-			await assert.rejects(
-				async () => authenticateAccessToken(req, res, next),
-				AuthenticationError,
-			);
-		});
-
-		test("Should throw ValidationError when token pair userIds mismatch", async () => {
-			// Arrange
-			const userId = generateMockObjectId();
-			const access = jwtService.generateAccessToken({ userId });
-			assert.ok(access.success);
-
-			const { next, req, res } = createMockExpressContextFromHandler(
-				authenticateAccessToken,
-			);
-			res.locals.userId = generateMockObjectId();
-			req.cookies = {};
-			req.signedCookies = {
-				accessToken: JSON.stringify(access.data.token),
-			};
-
-			// Act & Assert
-			await assert.rejects(
-				async () => authenticateAccessToken(req, res, next),
-				ValidationError,
-			);
-		});
-
-		test("Should not throw when access token matches res.locals.userId", async () => {
-			// Arrange
-			const userId = generateMockObjectId();
-			const access = jwtService.generateAccessToken({ userId });
-			assert.ok(access.success);
-
-			const { next, req, res } = createMockExpressContextFromHandler(
-				authenticateAccessToken,
-			);
-			res.locals.userId = userId;
-			req.cookies = {};
-			req.signedCookies = {
-				accessToken: JSON.stringify(access.data.token),
-			};
-
-			// Act & Assert
-			await assert.doesNotReject(async () =>
-				authenticateAccessToken(req, res, next),
 			);
 		});
 	});

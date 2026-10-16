@@ -1,68 +1,48 @@
-import { z } from "zod";
+import { createHash, randomBytes } from "node:crypto";
 
-import type { SessionBaseError } from "../errors/index.js";
 import {
-	DatabaseDuplicateKeyError,
-	SessionAlreadyExistsError,
-	SessionAlreadyRevokedError,
-	SessionExpiredError,
-	SessionNotFoundError,
-	SessionValidationError,
-} from "../errors/index.js";
+	MAX_USER_AGENT_LENGTH,
+	SESSION_ABSOLUTE_TIMEOUT_MS,
+	SESSION_IDLE_TIMEOUT_MS,
+	SESSION_TOKEN_BYTES,
+	SESSION_TOUCH_INTERVAL_MS,
+} from "../constants/index.js";
+import { AuthenticationError } from "../errors/index.js";
+import type { ISessionRepository } from "../repositories/index.js";
 import { sessionRepository } from "../repositories/index.js";
-import type { ISessionRepository } from "../repositories/session.repository.js";
-import {
-	createSessionSchema,
-	sessionByUserIdPaginationParamsSchema,
-} from "../schemas/index.js";
 import type {
-	CreateSession,
-	GetAllSessionsByUserIdServiceParams,
 	MethodParams,
 	MethodReturn,
-	PaginatedResponse,
 	Result,
 	Session,
 } from "../types/index.js";
 import { getLoggerFromContext } from "../utils/index.js";
-import { objectIdStringValidator, uuidValidator } from "../validators/index.js";
 
 export interface ISessionService {
-	create(args: CreateSession): Promise<SessionResult<Session>>;
-
-	deleteAllByUserId(args: { userId: string }): Promise<SessionResult<number>>;
-
-	deleteByTokenIdAndUserId(args: {
-		tokenId: string;
-		userId: string;
-	}): Promise<SessionResult<Session>>;
-
-	getActiveByUserId(
-		args: GetAllSessionsByUserIdServiceParams,
-	): Promise<SessionResult<PaginatedResponse<Session>>>;
-
-	getByTokenIdAndUserId(args: {
-		tokenId: string;
-		userId: string;
-	}): Promise<SessionResult<Session>>;
-
-	revokeAllByUserId(args: { userId: string }): Promise<SessionResult<number>>;
-
-	revokeByTokenIdAndUserId(args: {
-		tokenId: string;
-		userId: string;
-	}): Promise<SessionResult<Session>>;
-
 	/**
-	 * Validates a session by checking if it exists, is not revoked, and is not expired.
+	 * Returns the raw token exactly once - only its hash is stored.
 	 */
-	validate(args: {
-		tokenId: string;
+	create(args: {
+		userAgent: string;
 		userId: string;
-	}): Promise<SessionResult<Session>>;
+	}): Promise<Result<{ session: Session; token: string }>>;
+	deleteAllByUserId(args: { userId: string }): Promise<Result<number>>;
+	deleteAllByUserIdExcept(args: {
+		exceptSessionId: string;
+		userId: string;
+	}): Promise<Result<number>>;
+	deleteById(args: { sessionId: string }): Promise<Result<number>>;
+	deleteByToken(args: { token: string }): Promise<Result<number>>;
+	getAllByUserId(args: { userId: string }): Promise<Result<Array<Session>>>;
+	/**
+	 * Resolves a token to a live session, enforcing idle and absolute
+	 * timeouts, and records activity at most once per touch interval.
+	 */
+	validate(args: { token: string }): Promise<Result<Session>>;
 }
 
-type SessionResult<T> = Result<T, SessionBaseError>;
+const INVALID_SESSION_MESSAGE =
+	"Session expired or invalid. Please sign in again.";
 
 export class SessionService implements ISessionService {
 	private readonly _repository: ISessionRepository;
@@ -75,48 +55,31 @@ export class SessionService implements ISessionService {
 		args: MethodParams<ISessionService, "create">,
 	): MethodReturn<ISessionService, "create"> {
 		const logger = this._getLogger({ method: "create" });
-		logger.debug({ args }, "Creating session");
 
-		const argsValidationResult = this._validateCreateArgs(args);
-		if (!argsValidationResult.success) {
-			logger.warn(
-				{ error: argsValidationResult.error },
-				"Invalid session creation data",
-			);
-			return argsValidationResult;
-		}
+		const token = randomBytes(SESSION_TOKEN_BYTES).toString("base64url");
+		const now = new Date();
 
-		logger.debug(
-			{ validatedData: argsValidationResult.data },
-			"Validated session creation data",
-		);
-
-		const session = await this._repository.create(args);
-		if (!session.success) {
-			logger.warn(
-				{ error: session.error, tokenId: args.tokenId, userId: args.userId },
+		const createResult = await this._repository.create({
+			expiresAt: new Date(now.getTime() + SESSION_IDLE_TIMEOUT_MS),
+			lastSeenAt: now,
+			tokenHash: this._hashToken(token),
+			userAgent: args.userAgent.slice(0, MAX_USER_AGENT_LENGTH),
+			userId: args.userId,
+		});
+		if (!createResult.success) {
+			logger.error(
+				{ error: createResult.error, userId: args.userId },
 				"Failed to create session",
 			);
-
-			if (session.error instanceof DatabaseDuplicateKeyError) {
-				return {
-					error: new SessionAlreadyExistsError({ cause: session.error }),
-					success: false,
-				};
-			}
-			return session;
+			return createResult;
 		}
 
 		logger.info(
-			{
-				sessionId: session.data.id,
-				tokenId: args.tokenId,
-				userId: args.userId,
-			},
-			"Session created successfully",
+			{ sessionId: createResult.data.id, userId: args.userId },
+			"Session created",
 		);
 		return {
-			data: session.data,
+			data: { session: createResult.data, token },
 			success: true,
 		};
 	}
@@ -124,408 +87,87 @@ export class SessionService implements ISessionService {
 	public async deleteAllByUserId(
 		args: MethodParams<ISessionService, "deleteAllByUserId">,
 	): MethodReturn<ISessionService, "deleteAllByUserId"> {
-		const logger = this._getLogger({ method: "deleteAllByUserId" });
-		logger.debug({ args }, "Deleting all sessions by user ID");
+		return this._repository.deleteAllByUserId(args);
+	}
 
-		const userIdResult = this._validateUserId(args.userId);
-		if (!userIdResult.success) {
-			logger.warn(
-				{ error: userIdResult.error, userId: args.userId },
-				"Invalid user ID",
-			);
-			return userIdResult;
-		}
+	public async deleteAllByUserIdExcept(
+		args: MethodParams<ISessionService, "deleteAllByUserIdExcept">,
+	): MethodReturn<ISessionService, "deleteAllByUserIdExcept"> {
+		return this._repository.deleteAllByUserIdExcept(args);
+	}
 
-		logger.debug({ validatedUserId: userIdResult.data }, "Validated user ID");
+	public async deleteById(
+		args: MethodParams<ISessionService, "deleteById">,
+	): MethodReturn<ISessionService, "deleteById"> {
+		return this._repository.deleteById(args);
+	}
 
-		const result = await this._repository.deleteAllByUserId({
-			userId: userIdResult.data,
+	public async deleteByToken(
+		args: MethodParams<ISessionService, "deleteByToken">,
+	): MethodReturn<ISessionService, "deleteByToken"> {
+		return this._repository.deleteByTokenHash({
+			tokenHash: this._hashToken(args.token),
 		});
-		if (!result.success) {
-			logger.warn(
-				{ error: result.error, userId: args.userId },
-				"Failed to delete all sessions",
-			);
-			return result;
-		}
-
-		logger.info(
-			{ deletedCount: result.data, userId: args.userId },
-			"All sessions deleted",
-		);
-		return {
-			data: result.data,
-			success: true,
-		};
 	}
 
-	public async deleteByTokenIdAndUserId(
-		args: MethodParams<ISessionService, "deleteByTokenIdAndUserId">,
-	): MethodReturn<ISessionService, "deleteByTokenIdAndUserId"> {
-		const logger = this._getLogger({ method: "deleteByTokenIdAndUserId" });
-		logger.debug({ args }, "Deleting session by token ID and user ID");
-
-		const argsValidationResult = this._validateTokenIdAndUserId(
-			args.tokenId,
-			args.userId,
-		);
-		if (!argsValidationResult.success) {
-			logger.warn(
-				{
-					error: argsValidationResult.error,
-					tokenId: args.tokenId,
-					userId: args.userId,
-				},
-				"Invalid token ID or user ID",
-			);
-			return argsValidationResult;
-		}
-
-		logger.debug(
-			{ validatedData: argsValidationResult.data },
-			"Validated token ID and user ID",
-		);
-
-		const session = await this._repository.deleteByTokenIdAndUserId(
-			argsValidationResult.data,
-		);
-		if (!session.success) {
-			logger.warn(
-				{ error: session.error, tokenId: args.tokenId, userId: args.userId },
-				"Failed to delete session",
-			);
-			return session;
-		}
-
-		if (!session.data) {
-			logger.warn(
-				{ tokenId: args.tokenId, userId: args.userId },
-				"Session not found",
-			);
-			return {
-				error: new SessionNotFoundError(),
-				success: false,
-			};
-		}
-
-		logger.info(
-			{
-				sessionId: session.data.id,
-				tokenId: args.tokenId,
-				userId: args.userId,
-			},
-			"Session deleted successfully",
-		);
-
-		return {
-			data: session.data,
-			success: true,
-		};
+	public async getAllByUserId(
+		args: MethodParams<ISessionService, "getAllByUserId">,
+	): MethodReturn<ISessionService, "getAllByUserId"> {
+		return this._repository.getAllByUserId(args);
 	}
 
-	public async getActiveByUserId(
-		args: MethodParams<ISessionService, "getActiveByUserId">,
-	): MethodReturn<ISessionService, "getActiveByUserId"> {
-		const logger = this._getLogger({ method: "getActiveByUserId" });
-		logger.debug({ args }, "Getting active sessions by user ID");
-
-		// validate arguments
-		const argsValidationResult = sessionByUserIdPaginationParamsSchema
-			.omit({ filters: true })
-			.safeParse(args);
-		if (!argsValidationResult.success) {
-			logger.warn(
-				{ error: argsValidationResult.error, userId: args.userId },
-				"Invalid arguments data",
-			);
-			return {
-				error: new SessionValidationError({
-					cause: argsValidationResult.error,
-				}),
-				success: false,
-			};
-		}
-
-		logger.debug(
-			{ validatedArgs: argsValidationResult.data },
-			"Validated arguments data",
-		);
-
-		// repository call
-		const sessions = await this._repository.getAllActiveByUserId(
-			argsValidationResult.data,
-		);
-		if (!sessions.success) {
-			logger.warn(
-				{ error: sessions.error, userId: args.userId },
-				"Failed to get active sessions",
-			);
-			return sessions;
-		}
-
-		logger.info(
-			{ totalSessions: sessions.data.meta.totalItems, userId: args.userId },
-			"Active sessions retrieved successfully",
-		);
-
-		return {
-			data: sessions.data,
-			success: true,
-		};
-	}
-
-	public async getByTokenIdAndUserId(
-		args: MethodParams<ISessionService, "getByTokenIdAndUserId">,
-	): MethodReturn<ISessionService, "getByTokenIdAndUserId"> {
-		const logger = this._getLogger({ method: "getByTokenIdAndUserId" });
-		logger.debug({ args }, "Getting session by token ID and user ID");
-
-		const argsValidationResult = this._validateTokenIdAndUserId(
-			args.tokenId,
-			args.userId,
-		);
-		if (!argsValidationResult.success) {
-			logger.warn(
-				{
-					error: argsValidationResult.error,
-					tokenId: args.tokenId,
-					userId: args.userId,
-				},
-				"Invalid token ID or user ID",
-			);
-			return argsValidationResult;
-		}
-
-		logger.debug(
-			{ validatedData: argsValidationResult.data },
-			"Validated token ID and user ID",
-		);
-
-		const session = await this._repository.getByTokenIdAndUserId(
-			argsValidationResult.data,
-		);
-		if (!session.success) {
-			logger.warn(
-				{ error: session.error, tokenId: args.tokenId, userId: args.userId },
-				"Failed to get session",
-			);
-			return session;
-		}
-
-		if (!session.data) {
-			logger.warn(
-				{ tokenId: args.tokenId, userId: args.userId },
-				"Session not found",
-			);
-			return {
-				error: new SessionNotFoundError(),
-				success: false,
-			};
-		}
-
-		logger.info(
-			{
-				sessionId: session.data.id,
-				tokenId: args.tokenId,
-				userId: args.userId,
-			},
-			"Session retrieved successfully",
-		);
-
-		return {
-			data: session.data,
-			success: true,
-		};
-	}
-
-	public async revokeAllByUserId(
-		args: MethodParams<ISessionService, "revokeAllByUserId">,
-	): MethodReturn<ISessionService, "revokeAllByUserId"> {
-		const logger = this._getLogger({ method: "revokeAllByUserId" });
-		logger.debug({ args }, "Revoking all sessions by user ID");
-
-		const userIdResult = this._validateUserId(args.userId);
-		if (!userIdResult.success) {
-			logger.warn(
-				{ error: userIdResult.error, userId: args.userId },
-				"Invalid user ID",
-			);
-			return userIdResult;
-		}
-
-		logger.debug({ validatedUserId: userIdResult.data }, "Validated user ID");
-
-		const result = await this._repository.revokeAllByUserId({
-			userId: userIdResult.data,
-		});
-		if (!result.success) {
-			logger.warn(
-				{ error: result.error, userId: args.userId },
-				"Failed to revoke all sessions",
-			);
-			return result;
-		}
-
-		logger.info(
-			{ revokedCount: result.data, userId: args.userId },
-			"All sessions revoked",
-		);
-		return { data: result.data, success: true };
-	}
-
-	public async revokeByTokenIdAndUserId(
-		args: MethodParams<ISessionService, "revokeByTokenIdAndUserId">,
-	): MethodReturn<ISessionService, "revokeByTokenIdAndUserId"> {
-		const logger = this._getLogger({ method: "revokeByTokenIdAndUserId" });
-		logger.debug({ args }, "Revoking session by token ID and user ID");
-
-		const argsValidationResult = this._validateTokenIdAndUserId(
-			args.tokenId,
-			args.userId,
-		);
-		if (!argsValidationResult.success) {
-			logger.warn(
-				{
-					error: argsValidationResult.error,
-					tokenId: args.tokenId,
-					userId: args.userId,
-				},
-				"Invalid token ID or user ID",
-			);
-			return argsValidationResult;
-		}
-
-		logger.debug(
-			{ validatedData: argsValidationResult.data },
-			"Validated token ID and user ID",
-		);
-
-		const revokedSession = await this._repository.revokeByTokenIdAndUserId(
-			argsValidationResult.data,
-		);
-
-		if (!revokedSession.success) {
-			logger.warn(
-				{
-					error: revokedSession.error,
-					tokenId: args.tokenId,
-					userId: args.userId,
-				},
-				"Failed to revoke session",
-			);
-			return revokedSession;
-		}
-
-		if (!revokedSession.data) {
-			logger.warn(
-				{ tokenId: args.tokenId, userId: args.userId },
-				"Session not found",
-			);
-			return {
-				error: new SessionNotFoundError(),
-				success: false,
-			};
-		}
-
-		logger.info(
-			{
-				sessionId: revokedSession.data.id,
-				tokenId: args.tokenId,
-				userId: args.userId,
-			},
-			"Session revoked successfully",
-		);
-
-		return {
-			data: revokedSession.data,
-			success: true,
-		};
-	}
-
-	/**
-	 * Validates a session by checking if it exists, is not revoked, and is not expired.
-	 */
 	public async validate(
 		args: MethodParams<ISessionService, "validate">,
 	): MethodReturn<ISessionService, "validate"> {
 		const logger = this._getLogger({ method: "validate" });
-		logger.debug({ args }, "Validating session by token ID and user ID");
 
-		const argsValidationResult = this._validateTokenIdAndUserId(
-			args.tokenId,
-			args.userId,
+		if (!args.token) {
+			return this._invalidSession();
+		}
+
+		const sessionResult = await this._repository.getByTokenHash({
+			tokenHash: this._hashToken(args.token),
+		});
+		if (!sessionResult.success) {
+			return sessionResult;
+		}
+		const session = sessionResult.data;
+		if (!session) {
+			return this._invalidSession();
+		}
+
+		const now = Date.now();
+		const absoluteExpiresAt =
+			session.createdAt.getTime() + SESSION_ABSOLUTE_TIMEOUT_MS;
+		const idleExpiresAt =
+			session.lastSeenAt.getTime() + SESSION_IDLE_TIMEOUT_MS;
+		if (now >= Math.min(absoluteExpiresAt, idleExpiresAt)) {
+			// the TTL index would remove it within a minute; don't wait
+			await this._repository.deleteById({ sessionId: session.id });
+			logger.info({ sessionId: session.id }, "Session expired");
+			return this._invalidSession();
+		}
+
+		if (now - session.lastSeenAt.getTime() < SESSION_TOUCH_INTERVAL_MS) {
+			return { data: session, success: true };
+		}
+
+		const lastSeenAt = new Date(now);
+		const expiresAt = new Date(
+			Math.min(now + SESSION_IDLE_TIMEOUT_MS, absoluteExpiresAt),
 		);
-		if (!argsValidationResult.success) {
-			logger.warn(
-				{ error: argsValidationResult.error, tokenId: args.tokenId },
-				"Invalid token ID or user ID",
-			);
-			return argsValidationResult;
+		const touchResult = await this._repository.touch({
+			expiresAt,
+			lastSeenAt,
+			sessionId: session.id,
+			touchedBefore: new Date(now - SESSION_TOUCH_INTERVAL_MS),
+		});
+		if (!touchResult.success) {
+			return touchResult;
 		}
 
-		logger.debug(
-			{ validatedData: argsValidationResult.data },
-			"Validated token ID and user ID",
-		);
-
-		const session = await this._repository.getByTokenIdAndUserId(
-			argsValidationResult.data,
-		);
-		if (!session.success) {
-			logger.warn(
-				{ error: session.error, tokenId: args.tokenId, userId: args.userId },
-				"Failed to get session",
-			);
-			return session;
-		}
-
-		if (!session.data) {
-			logger.warn(
-				{ tokenId: args.tokenId, userId: args.userId },
-				"Session not found",
-			);
-			return {
-				error: new SessionNotFoundError(),
-				success: false,
-			};
-		}
-
-		if (session.data.revokedAt) {
-			logger.warn(
-				{ sessionId: session.data.id, tokenId: args.tokenId },
-				"Session already revoked",
-			);
-			return {
-				error: new SessionAlreadyRevokedError(),
-				success: false,
-			};
-		}
-
-		if (session.data.expiresAt <= new Date()) {
-			logger.warn(
-				{
-					expiresAt: session.data.expiresAt,
-					sessionId: session.data.id,
-					tokenId: args.tokenId,
-				},
-				"Session expired",
-			);
-			return {
-				error: new SessionExpiredError(),
-				success: false,
-			};
-		}
-
-		logger.info(
-			{
-				sessionId: session.data.id,
-				tokenId: args.tokenId,
-				userId: args.userId,
-			},
-			"Session validated successfully",
-		);
 		return {
-			data: session.data,
+			data: { ...session, expiresAt, lastSeenAt },
 			success: true,
 		};
 	}
@@ -534,52 +176,16 @@ export class SessionService implements ISessionService {
 		return getLoggerFromContext().child({ layer: "session service", ...args });
 	}
 
-	private _validateCreateArgs(args: CreateSession): SessionResult<undefined> {
-		const argsValidationResult = createSessionSchema.safeParse(args);
-		if (!argsValidationResult.success) {
-			return {
-				error: new SessionValidationError({
-					cause: argsValidationResult.error,
-				}),
-				success: false,
-			};
-		}
-		return { data: undefined, success: true };
+	private _hashToken(token: string): string {
+		// SHA-256 is enough: the token is 256 random bits, so there is nothing to brute-force
+		return createHash("sha256").update(token).digest("hex");
 	}
 
-	private _validateTokenIdAndUserId(
-		tokenId: string,
-		userId: string,
-	): SessionResult<{ tokenId: string; userId: string }> {
-		const argsValidationResult = z
-			.object({
-				tokenId: uuidValidator,
-				userId: objectIdStringValidator,
-			})
-			.safeParse({ tokenId, userId });
-		if (!argsValidationResult.success) {
-			return {
-				error: new SessionValidationError({
-					cause: argsValidationResult.error,
-				}),
-				success: false,
-			};
-		}
-
-		return { data: argsValidationResult.data, success: true };
-	}
-
-	private _validateUserId(userId: string): SessionResult<string> {
-		const userIdValidationResult = objectIdStringValidator.safeParse(userId);
-		if (!userIdValidationResult.success) {
-			return {
-				error: new SessionValidationError({
-					cause: userIdValidationResult.error,
-				}),
-				success: false,
-			};
-		}
-		return { data: userIdValidationResult.data, success: true };
+	private _invalidSession(): Result<never> {
+		return {
+			error: new AuthenticationError(INVALID_SESSION_MESSAGE),
+			success: false,
+		};
 	}
 }
 

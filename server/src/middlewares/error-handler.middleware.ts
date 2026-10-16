@@ -22,7 +22,7 @@ export function errorHandler(
 			},
 			level: "error",
 			user: {
-				id: res.locals.userId,
+				id: res.locals.user?.id,
 				ip_address: getClientIp(req),
 			},
 		});

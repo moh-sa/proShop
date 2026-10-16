@@ -21,7 +21,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 	describe("set", () => {
 		it("should set cookie with default options", () => {
 			// Arrange
-			const name = "accessToken";
+			const name = "__Host-session";
 			const value = { isAdmin: false, userId: "123" };
 			const { res } = createMockExpressContext();
 
@@ -39,7 +39,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 		it("should set cookie with merged options", () => {
 			// Arrange
-			const name = "accessToken";
+			const name = "__Host-session";
 			const value = { isAdmin: false, userId: "123" };
 			const overrideOptions: CookieItemOptions = {
 				httpOnly: false,
@@ -101,7 +101,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.set({
-				item: { name: "accessToken", value: "x" },
+				item: { name: "__Host-session", value: "x" },
 				response: invalidRes,
 			});
 
@@ -117,7 +117,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 			// Act
 			const result = service.set({
 				item: {
-					name: "accessToken",
+					name: "__Host-session",
 					value: BigInt(1),
 				},
 				response: res,
@@ -137,7 +137,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.set({
-				item: { name: "accessToken", value: { a: 1 } },
+				item: { name: "__Host-session", value: { a: 1 } },
 				response: res,
 			});
 
@@ -150,10 +150,10 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 	describe("get", () => {
 		it("should get cookie without schema", () => {
 			// Arrange
-			const name = "refreshToken";
+			const name = "__Host-session";
 			const data = { theme: "dark" };
 			const { req } = createMockExpressContext();
-			req.signedCookies = { [name]: JSON.stringify(data) };
+			req.cookies = { [name]: JSON.stringify(data) };
 
 			// Act
 			const result = service.get<typeof data>({ name, request: req });
@@ -165,10 +165,10 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 		it("should get cookie and validate with schema", () => {
 			// Arrange
-			const name = "accessToken";
+			const name = "__Host-session";
 			const data = { age: 30, id: "u1" };
 			const { req } = createMockExpressContext();
-			req.signedCookies = { [name]: JSON.stringify(data) };
+			req.cookies = { [name]: JSON.stringify(data) };
 
 			const schema = z.object({ age: z.number(), id: z.string() });
 
@@ -205,7 +205,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.get({
-				name: "accessToken",
+				name: "__Host-session",
 				request: invalidReq,
 			});
 
@@ -217,11 +217,11 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 		it("should fail when cookie is not found", () => {
 			// Arrange
 			const { req } = createMockExpressContext();
-			req.signedCookies = {};
+			req.cookies = {};
 
 			// Act
 			const result = service.get({
-				name: "accessToken",
+				name: "__Host-session",
 				request: req,
 			});
 
@@ -232,9 +232,9 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 		it("should fail when parsing JSON throws", () => {
 			// Arrange
-			const name = "accessToken";
+			const name = "__Host-session";
 			const { req } = createMockExpressContext();
-			req.signedCookies = { [name]: "{" };
+			req.cookies = { [name]: "{" };
 
 			// Act
 			const result = service.get({ name, request: req });
@@ -246,10 +246,10 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 		it("should fail when schema validation fails", () => {
 			// Arrange
-			const name = "refreshToken";
+			const name = "__Host-session";
 			const data = { age: "30", id: "u1" };
 			const { req } = createMockExpressContext();
-			req.signedCookies = { [name]: JSON.stringify(data) };
+			req.cookies = { [name]: JSON.stringify(data) };
 
 			const schema = z.object({ age: z.number(), id: z.string() });
 
@@ -270,7 +270,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 	describe("delete", () => {
 		it("should clear cookie with merged options and without expires/maxAge", () => {
 			// Arrange
-			const name = "accessToken";
+			const name = "__Host-session";
 			const { res } = createMockExpressContext();
 
 			// Act
@@ -304,7 +304,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.delete({
-				name: "accessToken",
+				name: "__Host-session",
 				response: invalidRes,
 			});
 
@@ -322,7 +322,7 @@ suite("Cookie Service〖 Unit Tests 〗", () => {
 
 			// Act
 			const result = service.delete({
-				name: "accessToken",
+				name: "__Host-session",
 				response: res,
 			});
 

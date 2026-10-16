@@ -261,7 +261,7 @@ export class CookieService implements ICookieService {
 
 	private _getCookie(req: Request, name: string): CookieResult<string> {
 		try {
-			const cookie = req.signedCookies[name] ?? null;
+			const cookie = req.cookies[name] ?? null;
 			if (!cookie) {
 				return {
 					error: CookieNotFoundError.byName(name),
@@ -363,7 +363,7 @@ export class CookieService implements ICookieService {
 	}
 
 	private _validateRequest(req: Request): CookieResult<undefined> {
-		if (!req || typeof req !== "object" || !req.cookies || !req.signedCookies) {
+		if (!req || typeof req !== "object" || !req.cookies) {
 			return {
 				error: CookieValidationError.invalidRequest(),
 				success: false,

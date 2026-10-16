@@ -1,98 +1,58 @@
-import { Types } from "mongoose";
-
 import type { DatabaseBaseError } from "../errors/index.js";
 import { SessionModel } from "../models/session.model.js";
 import type {
 	CreateSession,
 	FailureResult,
-	GetAllSessionsByUserIdRepositoryParams,
-	GetAllSessionsRepositoryParams,
 	MethodParams,
 	MethodReturn,
-	PaginatedResponse,
-	PaginationQuery,
 	Result,
 	Session,
-	SessionFilter,
-	SessionSchema,
 } from "../types/index.js";
 import {
 	handleDatabaseErrorResult,
-	Paginator,
 	serializeMongoResult,
 } from "../utils/index.js";
 
 export interface ISessionRepository {
-	countActiveByUserId(args: { userId: string }): Promise<SessionResult<number>>;
 	create(args: CreateSession): Promise<SessionResult<Session>>;
 	deleteAllByUserId(args: { userId: string }): Promise<SessionResult<number>>;
-	deleteByTokenIdAndUserId(args: {
-		tokenId: string;
+	deleteAllByUserIdExcept(args: {
+		exceptSessionId: string;
 		userId: string;
+	}): Promise<SessionResult<number>>;
+	deleteById(args: { sessionId: string }): Promise<SessionResult<number>>;
+	deleteByIdAndUserId(args: {
+		sessionId: string;
+		userId: string;
+	}): Promise<SessionResult<number>>;
+	deleteByTokenHash(args: {
+		tokenHash: string;
+	}): Promise<SessionResult<number>>;
+	getAllByUserId(args: {
+		userId: string;
+	}): Promise<SessionResult<Array<Session>>>;
+	getByTokenHash(args: {
+		tokenHash: string;
 	}): Promise<SessionResult<null | Session>>;
-	existsByTokenIdAndUserId(args: {
-		tokenId: string;
-		userId: string;
-	}): Promise<SessionResult<null | { id: string }>>;
-	getAll(
-		args: GetAllSessionsRepositoryParams,
-	): Promise<SessionResult<PaginatedResponse<Session>>>;
-	getAllActiveByUserId(
-		args: GetAllSessionsByUserIdRepositoryParams,
-	): Promise<SessionResult<PaginatedResponse<Session>>>;
-	getAllByUserId(
-		args: GetAllSessionsByUserIdRepositoryParams,
-	): Promise<SessionResult<PaginatedResponse<Session>>>;
-	getAllRevoked(
-		args: GetAllSessionsRepositoryParams,
-	): Promise<SessionResult<PaginatedResponse<Session>>>;
-	getAllRevokedByUserId(
-		args: GetAllSessionsByUserIdRepositoryParams,
-	): Promise<SessionResult<PaginatedResponse<Session>>>;
-	getByTokenIdAndUserId(args: {
-		tokenId: string;
-		userId: string;
-	}): Promise<SessionResult<null | Session>>;
-	revokeAllByUserId(args: { userId: string }): Promise<SessionResult<number>>;
-	revokeByTokenIdAndUserId(args: {
-		tokenId: string;
-		userId: string;
-	}): Promise<SessionResult<null | Session>>;
-	updateByTokenIdAndUserId(args: {
-		data: Partial<CreateSession>;
-		tokenId: string;
-		userId: string;
-	}): Promise<SessionResult<null | Session>>;
+	/**
+	 * Updates activity only if `lastSeenAt` is older than `touchedBefore`,
+	 * so concurrent requests write at most once.
+	 */
+	touch(args: {
+		expiresAt: Date;
+		lastSeenAt: Date;
+		sessionId: string;
+		touchedBefore: Date;
+	}): Promise<SessionResult<boolean>>;
 }
 
 type SessionResult<T> = Result<T, DatabaseBaseError>;
 
 export class SessionRepository implements ISessionRepository {
 	private readonly _db: typeof SessionModel;
-	private _paginator: Paginator<SessionSchema, Session>;
 
 	constructor(db?: typeof SessionModel) {
 		this._db = db ?? SessionModel;
-		this._paginator = new Paginator(this._db);
-	}
-
-	public async countActiveByUserId(
-		args: MethodParams<ISessionRepository, "countActiveByUserId">,
-	): MethodReturn<ISessionRepository, "countActiveByUserId"> {
-		try {
-			const result = await this._db.countDocuments({
-				expiresAt: { $gt: new Date() },
-				revokedAt: null,
-				userId: args.userId,
-			});
-
-			return {
-				data: result,
-				success: true,
-			};
-		} catch (error) {
-			return this._errorHandler(error);
-		}
 	}
 
 	public async create(
@@ -114,7 +74,7 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "deleteAllByUserId">,
 	): MethodReturn<ISessionRepository, "deleteAllByUserId"> {
 		try {
-			const result = await this._db.deleteMany({ userId: args.userId }).lean();
+			const result = await this._db.deleteMany({ userId: args.userId });
 
 			return {
 				data: result.deletedCount,
@@ -125,54 +85,17 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async deleteByTokenIdAndUserId(
-		args: MethodParams<ISessionRepository, "deleteByTokenIdAndUserId">,
-	): MethodReturn<ISessionRepository, "deleteByTokenIdAndUserId"> {
+	public async deleteAllByUserIdExcept(
+		args: MethodParams<ISessionRepository, "deleteAllByUserIdExcept">,
+	): MethodReturn<ISessionRepository, "deleteAllByUserIdExcept"> {
 		try {
-			const result = await this._db
-				.findOneAndDelete({ tokenId: args.tokenId, userId: args.userId })
-				.lean();
-
-			return {
-				data: serializeMongoResult(result),
-				success: true,
-			};
-		} catch (error) {
-			return this._errorHandler(error);
-		}
-	}
-
-	public async existsByTokenIdAndUserId(
-		args: MethodParams<ISessionRepository, "existsByTokenIdAndUserId">,
-	): MethodReturn<ISessionRepository, "existsByTokenIdAndUserId"> {
-		try {
-			const result = await this._db
-				.exists({ tokenId: args.tokenId, userId: args.userId })
-				.lean();
-
-			return {
-				data: serializeMongoResult(result),
-				success: true,
-			};
-		} catch (error) {
-			return this._errorHandler(error);
-		}
-	}
-
-	public async getAll(
-		args: MethodParams<ISessionRepository, "getAll">,
-	): MethodReturn<ISessionRepository, "getAll"> {
-		try {
-			const result = await this._paginator.paginate({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				query: args.filters && this._prepareFilters(args.filters),
-				select: args.select,
-				sort: args.sort,
+			const result = await this._db.deleteMany({
+				_id: { $ne: args.exceptSessionId },
+				userId: args.userId,
 			});
 
 			return {
-				data: result,
+				data: result.deletedCount,
 				success: true,
 			};
 		} catch (error) {
@@ -180,27 +103,47 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async getAllActiveByUserId(
-		args: MethodParams<ISessionRepository, "getAllActiveByUserId">,
-	): MethodReturn<ISessionRepository, "getAllActiveByUserId"> {
+	public async deleteById(
+		args: MethodParams<ISessionRepository, "deleteById">,
+	): MethodReturn<ISessionRepository, "deleteById"> {
 		try {
-			const parsedUserId = new Types.ObjectId(args.userId);
+			const result = await this._db.deleteOne({ _id: args.sessionId });
 
-			const result = await this._paginator.paginate({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				query: {
-					...(args.filters && this._prepareFilters(args.filters)),
-					expiresAt: { $gt: new Date() },
-					revokedAt: null,
-					userId: parsedUserId,
-				},
-				select: args.select,
-				sort: args.sort,
+			return {
+				data: result.deletedCount,
+				success: true,
+			};
+		} catch (error) {
+			return this._errorHandler(error);
+		}
+	}
+
+	public async deleteByIdAndUserId(
+		args: MethodParams<ISessionRepository, "deleteByIdAndUserId">,
+	): MethodReturn<ISessionRepository, "deleteByIdAndUserId"> {
+		try {
+			const result = await this._db.deleteOne({
+				_id: args.sessionId,
+				userId: args.userId,
 			});
 
 			return {
-				data: result,
+				data: result.deletedCount,
+				success: true,
+			};
+		} catch (error) {
+			return this._errorHandler(error);
+		}
+	}
+
+	public async deleteByTokenHash(
+		args: MethodParams<ISessionRepository, "deleteByTokenHash">,
+	): MethodReturn<ISessionRepository, "deleteByTokenHash"> {
+		try {
+			const result = await this._db.deleteOne({ tokenHash: args.tokenHash });
+
+			return {
+				data: result.deletedCount,
 				success: true,
 			};
 		} catch (error) {
@@ -212,21 +155,13 @@ export class SessionRepository implements ISessionRepository {
 		args: MethodParams<ISessionRepository, "getAllByUserId">,
 	): MethodReturn<ISessionRepository, "getAllByUserId"> {
 		try {
-			const parsedUserId = new Types.ObjectId(args.userId);
-
-			const result = await this._paginator.paginate({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				query: {
-					...(args.filters && this._prepareFilters(args.filters)),
-					userId: parsedUserId,
-				},
-				select: args.select,
-				sort: args.sort,
-			});
+			const result = await this._db
+				.find({ userId: args.userId })
+				.sort({ lastSeenAt: -1 })
+				.lean();
 
 			return {
-				data: result,
+				data: result.map((session) => serializeMongoResult(session)),
 				success: true,
 			};
 		} catch (error) {
@@ -234,63 +169,12 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async getAllRevoked(
-		args: MethodParams<ISessionRepository, "getAllRevoked">,
-	): MethodReturn<ISessionRepository, "getAllRevoked"> {
-		try {
-			const result = await this._paginator.paginate({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				query: {
-					...(args.filters ? this._prepareFilters(args.filters) : undefined),
-					revokedAt: { $ne: null },
-				},
-				select: args.select,
-				sort: args.sort,
-			});
-
-			return {
-				data: result,
-				success: true,
-			};
-		} catch (error) {
-			return this._errorHandler(error);
-		}
-	}
-
-	public async getAllRevokedByUserId(
-		args: MethodParams<ISessionRepository, "getAllRevokedByUserId">,
-	): MethodReturn<ISessionRepository, "getAllRevokedByUserId"> {
-		try {
-			const parsedUserId = new Types.ObjectId(args.userId);
-
-			const result = await this._paginator.paginate({
-				pageNumber: args.pageNumber,
-				pageSize: args.pageSize,
-				query: {
-					...(args.filters ? this._prepareFilters(args.filters) : undefined),
-					revokedAt: { $ne: null },
-					userId: parsedUserId,
-				},
-				select: args.select,
-				sort: args.sort,
-			});
-
-			return {
-				data: result,
-				success: true,
-			};
-		} catch (error) {
-			return this._errorHandler(error);
-		}
-	}
-
-	public async getByTokenIdAndUserId(
-		args: MethodParams<ISessionRepository, "getByTokenIdAndUserId">,
-	): MethodReturn<ISessionRepository, "getByTokenIdAndUserId"> {
+	public async getByTokenHash(
+		args: MethodParams<ISessionRepository, "getByTokenHash">,
+	): MethodReturn<ISessionRepository, "getByTokenHash"> {
 		try {
 			const result = await this._db
-				.findOne({ tokenId: args.tokenId, userId: args.userId })
+				.findOne({ tokenHash: args.tokenHash })
 				.lean();
 
 			return {
@@ -302,57 +186,17 @@ export class SessionRepository implements ISessionRepository {
 		}
 	}
 
-	public async revokeAllByUserId(
-		args: MethodParams<ISessionRepository, "revokeAllByUserId">,
-	): MethodReturn<ISessionRepository, "revokeAllByUserId"> {
+	public async touch(
+		args: MethodParams<ISessionRepository, "touch">,
+	): MethodReturn<ISessionRepository, "touch"> {
 		try {
-			const result = await this._db
-				.updateMany({ userId: args.userId }, { revokedAt: new Date() })
-				.lean();
+			const result = await this._db.updateOne(
+				{ _id: args.sessionId, lastSeenAt: { $lt: args.touchedBefore } },
+				{ $set: { expiresAt: args.expiresAt, lastSeenAt: args.lastSeenAt } },
+			);
 
 			return {
-				data: result.modifiedCount,
-				success: true,
-			};
-		} catch (error) {
-			return this._errorHandler(error);
-		}
-	}
-
-	public async revokeByTokenIdAndUserId(
-		args: MethodParams<ISessionRepository, "revokeByTokenIdAndUserId">,
-	): MethodReturn<ISessionRepository, "revokeByTokenIdAndUserId"> {
-		try {
-			const result = await this._db
-				.findOneAndUpdate(
-					{ tokenId: args.tokenId, userId: args.userId },
-					{ revokedAt: new Date() },
-				)
-				.lean();
-
-			return {
-				data: serializeMongoResult(result),
-				success: true,
-			};
-		} catch (error) {
-			return this._errorHandler(error);
-		}
-	}
-
-	public async updateByTokenIdAndUserId(
-		args: MethodParams<ISessionRepository, "updateByTokenIdAndUserId">,
-	): MethodReturn<ISessionRepository, "updateByTokenIdAndUserId"> {
-		try {
-			const result = await this._db
-				.findOneAndUpdate(
-					{ tokenId: args.tokenId, userId: args.userId },
-					args.data,
-					{ returnDocument: "after" },
-				)
-				.lean();
-
-			return {
-				data: serializeMongoResult(result),
+				data: result.modifiedCount === 1,
 				success: true,
 			};
 		} catch (error) {
@@ -362,30 +206,6 @@ export class SessionRepository implements ISessionRepository {
 
 	private _errorHandler(error: unknown): FailureResult<DatabaseBaseError> {
 		return handleDatabaseErrorResult(error);
-	}
-
-	private _prepareFilters(
-		filters?: SessionFilter,
-	): Partial<PaginationQuery<SessionSchema>> {
-		if (!filters) {
-			return {};
-		}
-
-		const newFilter: Partial<PaginationQuery<SessionSchema>> = {};
-
-		if (filters.tokenId !== undefined) {
-			newFilter.tokenId = filters.tokenId;
-		}
-
-		if (filters.userId !== undefined) {
-			newFilter.userId = new Types.ObjectId(filters.userId);
-		}
-
-		if (filters.revokedAt !== undefined) {
-			newFilter.revokedAt = filters.revokedAt;
-		}
-
-		return newFilter;
 	}
 }
 

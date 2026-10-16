@@ -12,7 +12,7 @@ import { objectIdStringValidator } from "../validators/object-id.validator.js";
  *
  * Verifies that the user is the owner of the review.
  *
- * This middleware must be used *after* `checkUserExists` middleware.
+ * This middleware must be used *after* `authenticate` middleware.
  */
 export const verifyReviewOwnership = asyncHandler(async (req, res, next) => {
 	// Get user from res.locals

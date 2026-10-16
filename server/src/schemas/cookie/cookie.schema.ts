@@ -1,3 +1,5 @@
 import z from "zod";
 
-export const cookieNameSchema = z.enum(["accessToken", "refreshToken"]);
+import { SESSION_COOKIE_NAME } from "../../constants/index.js";
+
+export const cookieNameSchema = z.enum([SESSION_COOKIE_NAME]);
