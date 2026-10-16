@@ -5,7 +5,6 @@ import { ValidationError } from "../errors/index.js";
 import type { IAuthManager } from "../managers/index.js";
 import { authManager } from "../managers/index.js";
 import { demoRoleSchema } from "../schemas/demo/demo-role.schema.js";
-import { signUpSchema } from "../schemas/index.js";
 import type { ICookieService } from "../services/index.js";
 import { cookieService } from "../services/index.js";
 import type {
@@ -179,15 +178,8 @@ export class AuthController implements IAuthController {
 		const logger = this._getLogger({ method: "signUp" });
 		logger.debug({ args: req.body }, "Signing up user");
 
-		const validationResult = signUpSchema.safeParse(req.body);
-		if (!validationResult.success) {
-			throw new ValidationError("Invalid sign up data", {
-				cause: validationResult.error,
-			});
-		}
-
 		// Create a session
-		const result = await this._authManager.signUp(validationResult.data);
+		const result = await this._authManager.signUp(req.body);
 		if (!result.success) {
 			throw result.error;
 		}

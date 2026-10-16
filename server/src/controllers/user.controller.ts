@@ -1,11 +1,6 @@
 import { HTTP_STATUS } from "../constants/index.js";
-import { ValidationError } from "../errors/index.js";
 import type { IUserManager } from "../managers/index.js";
 import { userManager } from "../managers/index.js";
-import {
-	adminUpdateUserBodySchema,
-	updateProfileBodySchema,
-} from "../schemas/index.js";
 import type { IUserService } from "../services/index.js";
 import { userService } from "../services/index.js";
 import type {
@@ -147,15 +142,8 @@ export class UserController implements IUserController {
 			"Updating user",
 		);
 
-		const validationResult = adminUpdateUserBodySchema.safeParse(req.body);
-		if (!validationResult.success) {
-			throw new ValidationError("Invalid user update data", {
-				cause: validationResult.error,
-			});
-		}
-
 		const result = await this._service.updateById({
-			...validationResult.data,
+			...req.body,
 			userId: req.params.userId,
 		});
 		if (!result.success) {
@@ -163,7 +151,7 @@ export class UserController implements IUserController {
 		}
 
 		logger.info(
-			{ fields: Object.keys(validationResult.data), userId: result.data.id },
+			{ fields: Object.keys(req.body), userId: result.data.id },
 			"User updated successfully",
 		);
 
@@ -187,15 +175,8 @@ export class UserController implements IUserController {
 			"Updating profile",
 		);
 
-		const validationResult = updateProfileBodySchema.safeParse(req.body);
-		if (!validationResult.success) {
-			throw new ValidationError("Invalid profile update data", {
-				cause: validationResult.error,
-			});
-		}
-
 		const result = await this._manager.updateProfile({
-			...validationResult.data,
+			...req.body,
 			userId: res.locals.user.id,
 		});
 		if (!result.success) {
@@ -204,7 +185,7 @@ export class UserController implements IUserController {
 
 		logger.info(
 			{
-				fields: Object.keys(validationResult.data).filter(
+				fields: Object.keys(req.body).filter(
 					(field) => field !== "currentPassword",
 				),
 				userId: result.data.id,

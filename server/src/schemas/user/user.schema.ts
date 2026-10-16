@@ -27,12 +27,6 @@ const baseSchema = z.object({
 // internal only (seeds, tests) - `isAdmin` must never come from a client
 export const createUserSchema = baseSchema;
 
-export const signUpSchema = baseSchema.pick({
-	email: true,
-	name: true,
-	password: true,
-});
-
 // passwords are changed only through `UserManager.updateProfile`, which hashes them
 export const updateUserSchema = baseSchema
 	.omit({ password: true })
@@ -55,13 +49,6 @@ export const updateProfileBodySchema = baseSchema
 			path: ["currentPassword"],
 		},
 	);
-
-export const adminUpdateUserBodySchema = baseSchema
-	.pick({ email: true, name: true })
-	.partial()
-	.extend({
-		isAdmin: z.boolean().optional(),
-	});
 
 export const userSchema = baseSchema.extend({
 	createdAt: z.date(),

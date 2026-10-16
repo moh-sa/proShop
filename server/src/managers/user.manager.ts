@@ -1,4 +1,5 @@
 import { ValidationError } from "../errors/index.js";
+import { updateProfileBodySchema } from "../schemas/index.js";
 import type { IPasswordService, IUserService } from "../services/index.js";
 import { passwordService, userService } from "../services/index.js";
 import type {
@@ -29,7 +30,19 @@ export class UserManager implements IUserManager {
 		args: MethodParams<IUserManager, "updateProfile">,
 	): MethodReturn<IUserManager, "updateProfile"> {
 		const logger = this._getLogger({ method: "updateProfile" });
-		const { currentPassword, password, userId, ...fields } = args;
+		const { userId, ...body } = args;
+
+		const validationResult = updateProfileBodySchema.safeParse(body);
+		if (!validationResult.success) {
+			return {
+				error: new ValidationError("Invalid profile update data", {
+					cause: validationResult.error,
+				}),
+				success: false,
+			};
+		}
+
+		const { currentPassword, password, ...fields } = validationResult.data;
 
 		// verify and hash before any write, so a wrong current password changes nothing
 		let hashedPassword: string | undefined;
