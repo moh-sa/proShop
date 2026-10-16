@@ -10,7 +10,7 @@ import {
 
 const baseSchema = z.object({
 	email: emailValidator,
-	isAdmin: z.coerce.boolean(),
+	isAdmin: z.boolean(),
 	name: z
 		.string()
 		.trim()

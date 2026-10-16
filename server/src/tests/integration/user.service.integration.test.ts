@@ -162,6 +162,36 @@ suite("User Service 〖 Integration Tests 〗", () => {
 				assert.strictEqual(item.isAdmin, true);
 			});
 		});
+
+		test("Should return only non-admins when 'isAdmin' filter is \"false\"", async () => {
+			// Arrange
+			const regularUsers = generateMockInsertUsers({
+				count: 2,
+				options: { isAdmin: false },
+			});
+
+			await createUsers([
+				...generateMockInsertUsers({
+					count: 3,
+					options: { isAdmin: true },
+				}),
+				...regularUsers,
+			]);
+
+			// Act
+			const result = await userService.getAll({
+				filters: { isAdmin: "false" },
+				pageNumber: "1",
+				pageSize: "10",
+			});
+
+			// Assert
+			assert.strictEqual(result.success, true);
+			assert.strictEqual(result.data.items.length, regularUsers.length);
+			result.data.items.forEach((item) => {
+				assert.strictEqual(item.isAdmin, false);
+			});
+		});
 	});
 
 	describe("updateById", () => {
