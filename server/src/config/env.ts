@@ -4,7 +4,8 @@ import { z } from "zod";
 import { InternalError } from "../errors/index.js";
 
 const EnvSchema = z.object({
-	CLIENT_URL: z.url(),
+	// the single public origin, e.g. https://proshop.moh-sa.dev
+	APP_URL: z.url(),
 	CLOUDINARY_API_KEY: z.string().min(1),
 	CLOUDINARY_API_SECRET: z.string().min(1),
 	CLOUDINARY_CLOUD_NAME: z.string().min(1),

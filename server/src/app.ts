@@ -20,7 +20,7 @@ app.set("trust proxy", "loopback, uniquelocal");
 app.use(
 	cors({
 		credentials: true,
-		origin: [env.CLIENT_URL],
+		origin: [env.APP_URL],
 	}),
 );
 app.use(helmet());

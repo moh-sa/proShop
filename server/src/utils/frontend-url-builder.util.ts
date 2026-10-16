@@ -1,6 +1,6 @@
 import { env } from "../config/env.js";
 
-const baseURL = env.CLIENT_URL;
+const baseURL = env.APP_URL;
 
 export const frontendUrlBuilder = {
 	checkoutFailure: (params: { orderId: string }) =>
