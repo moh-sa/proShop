@@ -3,7 +3,11 @@ import type { NextFunction, Request, Response } from "express";
 import { RATE_LIMIT_CONFIG } from "../config/index.js";
 import { RateLimitError } from "../errors/index.js";
 import type { RateLimitConfig } from "../types/index.js";
-import { getLoggerFromContext } from "../utils/index.js";
+import {
+	getClientIp,
+	getLoggerFromContext,
+	toIpBucket,
+} from "../utils/index.js";
 import { CacheService } from "./cache.service.js";
 
 interface RateLimitData {
@@ -44,7 +48,13 @@ export class RateLimiterService {
 	}
 
 	private _generateId(req: Request): string {
-		return `${req.ip}:${req.baseUrl + req.path}`;
+		// key on the route pattern, so `/SignIn` or `/signin/` can't open a new bucket
+		const routePath: string = req.route?.path ?? req.path;
+		const route = `${req.baseUrl}${routePath}`
+			.toLowerCase()
+			.replace(/\/+$/, "");
+
+		return `${toIpBucket(getClientIp(req))}:${route}`;
 	}
 
 	private _getLogger(args: { [key: string]: unknown; method: string }) {
