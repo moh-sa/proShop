@@ -104,4 +104,16 @@ suite("CSRF protection 〖 Integration Tests 〗", () => {
 
 		assert.strictEqual(isCsrfBlocked(res), false);
 	});
+
+	test("Should not accept HTML form bodies", async () => {
+		const res = await request(app)
+			.post("/api/v1/auth/signin")
+			.set("X-Forwarded-For", nextClientIp())
+			.type("form")
+			.send({ email: "nobody@example.com", password: "Password123!" });
+
+		// without a body parser for forms, the fields never reach the handler
+		assert.notStrictEqual(res.status, 401);
+		assert.ok(!JSON.stringify(res.body).includes("Invalid email or password"));
+	});
 });
