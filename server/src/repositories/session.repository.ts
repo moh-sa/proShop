@@ -21,10 +21,6 @@ export interface ISessionRepository {
 		userId: string;
 	}): Promise<SessionResult<number>>;
 	deleteById(args: { sessionId: string }): Promise<SessionResult<number>>;
-	deleteByIdAndUserId(args: {
-		sessionId: string;
-		userId: string;
-	}): Promise<SessionResult<number>>;
 	deleteByTokenHash(args: {
 		tokenHash: string;
 	}): Promise<SessionResult<number>>;
@@ -108,24 +104,6 @@ export class SessionRepository implements ISessionRepository {
 	): MethodReturn<ISessionRepository, "deleteById"> {
 		try {
 			const result = await this._db.deleteOne({ _id: args.sessionId });
-
-			return {
-				data: result.deletedCount,
-				success: true,
-			};
-		} catch (error) {
-			return this._errorHandler(error);
-		}
-	}
-
-	public async deleteByIdAndUserId(
-		args: MethodParams<ISessionRepository, "deleteByIdAndUserId">,
-	): MethodReturn<ISessionRepository, "deleteByIdAndUserId"> {
-		try {
-			const result = await this._db.deleteOne({
-				_id: args.sessionId,
-				userId: args.userId,
-			});
 
 			return {
 				data: result.deletedCount,
