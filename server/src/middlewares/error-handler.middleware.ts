@@ -6,7 +6,7 @@ import { ZodError } from "zod";
 import { env } from "../config/index.js";
 import { ERROR_TYPE, HTTP_STATUS } from "../constants/index.js";
 import { BaseError, JwtBaseError } from "../errors/index.js";
-import { sendErrorResponse } from "../utils/index.js";
+import { getClientIp, sendErrorResponse } from "../utils/index.js";
 
 export function errorHandler(
 	error: Error,
@@ -23,7 +23,7 @@ export function errorHandler(
 			level: "error",
 			user: {
 				id: res.locals.userId,
-				ip_address: req.ip,
+				ip_address: getClientIp(req),
 			},
 		});
 	}

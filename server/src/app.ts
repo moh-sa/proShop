@@ -13,6 +13,9 @@ import routes from "./routes/index.js";
 
 const app = express();
 
+// Traefik and Docker networking sit in front of Express; see `getClientIp`
+app.set("trust proxy", "loopback, uniquelocal");
+
 // Security middlewares
 app.use(
 	cors({
