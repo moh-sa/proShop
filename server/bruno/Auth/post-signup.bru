@@ -13,8 +13,7 @@ body:json {
   {
     "name": "Test User",
     "email": "test@example.com",
-    "password": "SecurePass123!",
-    "isAdmin": false
+    "password": "SecurePass123!"
   }
 }
 
@@ -23,7 +22,7 @@ headers {
 }
 
 script:post-response {
-  // Store accessToken and refreshToken cookies from Set-Cookie headers for subsequent requests
+  // Store the session cookie from the Set-Cookie header for subsequent requests
   const jar = bru.cookies.jar();
   const cookieUrl = (bru.getEnvVar('baseUrl') || 'http://localhost:5000/api').replace(/\/api\/?$/, '') || 'http://localhost:5000';
   const setCookie = res.headers['set-cookie'] || res.headers['Set-Cookie'];
@@ -33,7 +32,7 @@ script:post-response {
       const parts = cookieStr.split(';')[0].split('=');
       const name = parts[0].trim();
       const value = parts.slice(1).join('=').trim();
-      if (name === 'accessToken' || name === 'refreshToken') {
+      if (name === '__Host-session') {
         jar.setCookie(cookieUrl, name, value);
       }
     });
