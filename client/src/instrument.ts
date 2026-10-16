@@ -22,7 +22,6 @@ export function initSentry(router: Router<typeof routeTree>): void {
 		],
 
 		tracesSampleRate: env.DEV ? 1.0 : 0.2,
-		tracePropagationTargets: ["localhost", /^https:\/\/.*/],
 
 		replaysSessionSampleRate: 0.1,
 		replaysOnErrorSampleRate: 1.0,
