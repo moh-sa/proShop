@@ -7,7 +7,6 @@ import { ZodError } from "zod";
 
 import {
 	emailValidator,
-	jwtTokenValidator,
 	objectIdValidator,
 	passwordValidator,
 } from "../../validators/index.js";
@@ -194,97 +193,6 @@ suite("Zod Schemas 〖 Unit Tests 〗", () => {
 					assert.ok(error instanceof ZodError);
 					assert.equal(error.issues.length, 1);
 					assert.equal(error.issues[0].message, "Invalid email format.");
-					return true;
-				},
-			);
-		});
-	});
-
-	describe("jwtTokenValidator", () => {
-		test("Should return the same JWT token as given", () => {
-			// Arrange
-			const token = faker.internet.jwt();
-
-			// Act
-			const result = jwtTokenValidator.parse(token);
-
-			// Assert
-			assert.ok(result);
-			assert.equal(result, token);
-		});
-
-		test("Should return jwt token without whitespace", () => {
-			// Arrange
-			const token = `   ${faker.internet.jwt()}   `;
-
-			// Act
-			const result = jwtTokenValidator.parse(token);
-
-			// Assert
-			assert.ok(result);
-			assert.equal(result, token.trim());
-		});
-
-		test("Should throw 'ZodError' when 'empty string' is given", () => {
-			// Arrange
-			const token = "";
-
-			// Act & Assert
-			assert.throws(
-				() => jwtTokenValidator.parse(token),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.equal(error.issues.length, 1);
-					assert.equal(error.issues[0].message, "Invalid jwt token format.");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'whitespace-only' is given", () => {
-			// Arrange
-			const token = "   ";
-
-			// Act & Assert
-			assert.throws(
-				() => jwtTokenValidator.parse(token),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.equal(error.issues.length, 1);
-					assert.equal(error.issues[0].message, "Invalid jwt token format.");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'invalid jwt token' is given", () => {
-			// Arrange
-			const jwt = faker.internet.jwt();
-			const token = `${jwt.slice(0, 10)}#$%${jwt.slice(10)}`;
-
-			// Act & Assert
-			assert.throws(
-				() => jwtTokenValidator.parse(token),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.equal(error.issues.length, 1);
-					assert.equal(error.issues[0].message, "Invalid jwt token format.");
-					return true;
-				},
-			);
-		});
-
-		test("Should throw 'ZodError' when 'not-a-jwt-token' is given", () => {
-			// Arrange
-			const token = "not-a-jwt-token";
-
-			// Act & Assert
-			assert.throws(
-				() => jwtTokenValidator.parse(token),
-				(error: Error) => {
-					assert.ok(error instanceof ZodError);
-					assert.equal(error.issues.length, 1);
-					assert.equal(error.issues[0].message, "Invalid jwt token format.");
 					return true;
 				},
 			);

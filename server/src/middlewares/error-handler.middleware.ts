@@ -5,7 +5,7 @@ import { ZodError } from "zod";
 
 import { env } from "../config/index.js";
 import { ERROR_TYPE, HTTP_STATUS } from "../constants/index.js";
-import { BaseError, JwtBaseError } from "../errors/index.js";
+import { BaseError } from "../errors/index.js";
 import { getClientIp, sendErrorResponse } from "../utils/index.js";
 
 export function errorHandler(
@@ -39,21 +39,6 @@ export function errorHandler(
 			})),
 			responseContext: res,
 			statusCode: HTTP_STATUS.BAD_REQUEST,
-		});
-	}
-
-	// Handle JWT errors
-	if (error instanceof JwtBaseError) {
-		return sendErrorResponse({
-			code: error.type,
-			errors: [
-				{
-					message: error.message,
-					path: req.path,
-				},
-			],
-			responseContext: res,
-			statusCode: error.statusCode,
 		});
 	}
 

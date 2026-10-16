@@ -8,8 +8,6 @@ export * from "./cache-set.mock.js";
 export * from "./express-http-call.mock.js";
 export * from "./image-storage.mock.js";
 export * from "./image.mock.js";
-export * from "./jwt-service.mock.js";
-export * from "./jwt.mock.js";
 export * from "./objectid.mock.js";
 export * from "./order-manager.mock.js";
 export * from "./order-repository.mock.js";
