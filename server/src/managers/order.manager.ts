@@ -40,12 +40,16 @@ export interface IOrderManager {
 	/**
 	 * Marks an order as cancelled
 	 */
-	markAsCancelled(params: MarkAsCancelledParams): Promise<OrderManagerResult<Order>>;
+	markAsCancelled(
+		params: MarkAsCancelledParams,
+	): Promise<OrderManagerResult<Order>>;
 
 	/**
 	 * Marks an order as delivered (admin-only action)
 	 */
-	markAsDelivered(params: MarkAsDeliveredParams): Promise<OrderManagerResult<Order>>;
+	markAsDelivered(
+		params: MarkAsDeliveredParams,
+	): Promise<OrderManagerResult<Order>>;
 
 	/**
 	 * Processes Stripe webhook events for checkout sessions.

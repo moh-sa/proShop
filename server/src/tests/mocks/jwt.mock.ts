@@ -1,4 +1,3 @@
- 
 import { mock } from "node:test";
 
 import { faker } from "@faker-js/faker";

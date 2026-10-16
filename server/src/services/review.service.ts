@@ -30,9 +30,7 @@ export interface IReviewService {
 	countByUserId: (data: { userId: string }) => Promise<ReviewResult<number>>;
 	create: (data: CreateReview) => Promise<ReviewResult<Review>>;
 	delete: (data: { reviewId: string }) => Promise<ReviewResult<Review>>;
-	existsById: (data: {
-		reviewId: string;
-	}) => Promise<ReviewResult<boolean>>;
+	existsById: (data: { reviewId: string }) => Promise<ReviewResult<boolean>>;
 	existsByUserIdAndProductId: (data: {
 		productId: string;
 		userId: string;

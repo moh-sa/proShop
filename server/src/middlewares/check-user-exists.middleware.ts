@@ -23,7 +23,7 @@ export const checkUserExists = asyncHandler(async (_req, res, next) => {
 	}
 
 	// Set user in res.locals
-	 
+
 	res.locals.user = getUserByIdResult.data;
 
 	next();

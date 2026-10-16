@@ -17,7 +17,10 @@ import { generateMockObjectId, mockJwt } from "../mocks/index.js";
 
 suite("JWT Service〖 Unit Tests 〗", () => {
 	const mockJWT = mockJwt();
-	const service = new JwtService(DEFAULT_JWT_CONFIG, mockJWT as unknown as typeof jwt);
+	const service = new JwtService(
+		DEFAULT_JWT_CONFIG,
+		mockJWT as unknown as typeof jwt,
+	);
 
 	const userId = generateMockObjectId();
 	const tokenId = crypto.randomUUID();

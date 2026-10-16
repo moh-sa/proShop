@@ -1,4 +1,3 @@
- 
 import { mock } from "node:test";
 
 import type { IAuthManager } from "../../managers/auth.manager.js";

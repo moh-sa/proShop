@@ -205,7 +205,9 @@ suite("Review Repository 〖 Unit Tests 〗", () => {
 			const paginateArgs = mockPaginate.mock.calls[0].arguments[0];
 			assert.ok(paginateArgs);
 			assert.ok(paginateArgs.query);
-			assert.ok(paginateArgs.query.productId instanceof mongoose.Types.ObjectId);
+			assert.ok(
+				paginateArgs.query.productId instanceof mongoose.Types.ObjectId,
+			);
 			assert.ok(
 				paginateArgs.query["user.id"] instanceof mongoose.Types.ObjectId,
 			);

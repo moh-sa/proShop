@@ -1,5 +1,3 @@
- 
-
 import { mock } from "node:test";
 
 import type * as argon2 from "argon2";

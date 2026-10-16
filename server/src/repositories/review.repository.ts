@@ -83,9 +83,7 @@ export class ReviewRepository implements IReviewRepository {
 		"countByProductId"
 	> {
 		try {
-			const result = await this._db
-				.countDocuments({ productId })
-				.lean();
+			const result = await this._db.countDocuments({ productId }).lean();
 
 			return {
 				data: result,
