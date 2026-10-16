@@ -28,8 +28,8 @@ architecture, secure auth, Stripe payments, and a layered REST API.
 - User accounts: registration, sign-in, profile management, and order history.
 - Product reviews with user-owned create, edit, and delete per product.
 - Admin panel: manage products, orders, users, and reviews. Stats dashboard.
-- Cookie-based auth with httpOnly access and refresh JWTs backed by server-side
-  sessions.
+- Session-based auth with a single httpOnly cookie. Users can sign out
+  everywhere; admins can ban users, which signs them out immediately.
 - Demo sign-in page includes one-click login as customer or admin. No account
   creation needed.
 - REST API at `/api/v1` with role-based access control (user and admin roles).
@@ -37,8 +37,10 @@ architecture, secure auth, Stripe payments, and a layered REST API.
 
 ## Engineering highlights
 
-- **Auth:** httpOnly cookies for access and refresh JWTs. Refresh tokens backed
-  by MongoDB sessions. Argon2 password hashing. Rate-limited auth routes.
+- **Auth:** Opaque server-side sessions in MongoDB; only a SHA-256 hash of the
+  token is stored. `__Host-` cookie (HttpOnly, Secure, SameSite=Strict) with a
+  7-day idle and 30-day absolute timeout. Revocation and bans take effect on the
+  next request. Argon2 password hashing. Rate-limited auth routes.
 - **Payments:** Orders created on the server. Stripe Checkout session. Webhooks
   verify signatures and update order status.
 - **API design:** Layered architecture — Routers → Controllers → Managers →
@@ -46,11 +48,13 @@ architecture, secure auth, Stripe payments, and a layered REST API.
   middleware chains (`userGuard`, `adminGuard`).
 - **Caching:** Custom in-memory caching service (`node-cache`) used for product
   queries and rate limiting. Zod-validated inputs and memory capacity guards.
-- **Security:** Helmet, CORS with credentials, mongo sanitization, signed
-  cookies.
+- **Security:** Single origin (no CORS). CSRF blocked with `SameSite=Strict`
+  plus a `Sec-Fetch-Site`/`Origin` check. Helmet, mongo sanitization. Real
+  client IP behind Cloudflare for rate limiting.
 - **Frontend:** File-based TanStack Router with authenticated and admin layouts.
   React Query for server state. Optimistic updates where appropriate.
-- **Testing:** 1,589 tests (1,036 unit, 553 integration) with 96% line coverage.
+- **Testing:** 1,371 tests (776 unit, 595 integration, including HTTP tests of
+  the auth flow) with 96% line coverage.
 - **Observability:** Structured logging (Pino), Sentry on both apps.
 
 ## Tech stack
@@ -77,15 +81,15 @@ sequenceDiagram
 
   Browser->>Client: Sign in
   Client->>API: POST /api/v1/auth/signin
-  API->>DB: Validate user, create session
-  API-->>Browser: Set httpOnly accessToken + refreshToken cookies
-  Client->>API: Protected request + cookies
-  alt Access token valid
+  API->>DB: Verify password, store hash of a new random token
+  API-->>Browser: Set __Host-session cookie (HttpOnly, Secure, SameSite=Strict)
+  Client->>API: Protected request + cookie (same origin)
+  API->>DB: Find session by token hash, load user
+  alt Session live and user not banned
     API-->>Client: 200 + data
-  else Access expired
-    API->>DB: Validate refresh session
-    API-->>Browser: New access cookie
-    API-->>Client: 200 + data
+  else Expired, revoked or banned
+    API-->>Browser: 401 + clear cookie
+    Client->>Client: Drop cached user, redirect to sign-in
   end
 ```
 
