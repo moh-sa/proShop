@@ -15,6 +15,9 @@ const baseSchema = z.object({
 	userId: objectIdStringValidator,
 });
 
+// the cookie value; anything else (a number, an object) is treated as no session
+export const sessionTokenSchema = z.string().min(1);
+
 export const createSessionSchema = baseSchema;
 
 export const sessionSchema = baseSchema.extend({

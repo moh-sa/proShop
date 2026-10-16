@@ -9,6 +9,7 @@ import { ValidationError } from "../errors/index.js";
 import type { IAuthManager } from "../managers/index.js";
 import { authManager } from "../managers/index.js";
 import { demoRoleSchema } from "../schemas/demo/demo-role.schema.js";
+import { sessionTokenSchema } from "../schemas/index.js";
 import type { ICookieService } from "../services/index.js";
 import { cookieService } from "../services/index.js";
 import type {
@@ -297,9 +298,10 @@ export class AuthController implements IAuthController {
 		previousToken?: string;
 		userAgent: string;
 	} {
-		const cookieResult = this._cookieService.get<string>({
+		const cookieResult = this._cookieService.get({
 			name: SESSION_COOKIE_NAME,
 			request: req,
+			schema: sessionTokenSchema,
 		});
 
 		return {

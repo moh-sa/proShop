@@ -161,6 +161,27 @@ suite("Auth over HTTP 〖 Integration Tests 〗", () => {
 			assert.match(getSessionSetCookie(res) ?? "", /Expires=Thu, 01 Jan 1970/);
 		});
 
+		for (const value of ["1", "%7B%7D", "null"]) {
+			test(`Should treat a malformed cookie value (${value}) as signed out`, async () => {
+				const res = await api()
+					.get("/users/profile")
+					.set("Cookie", `${SESSION_COOKIE_NAME}=${value}`);
+
+				assert.strictEqual(res.status, 401);
+			});
+
+			test(`Should let a user sign in over a malformed cookie (${value})`, async () => {
+				const { user } = await signUp();
+
+				const res = await api()
+					.post("/auth/signin")
+					.set("Cookie", `${SESSION_COOKIE_NAME}=${value}`)
+					.send({ email: user.email, password: PASSWORD });
+
+				assert.strictEqual(res.status, 200);
+			});
+		}
+
 		test("Should return the server message for a wrong password", async () => {
 			const { user } = await signUp();
 
