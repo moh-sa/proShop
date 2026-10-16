@@ -1,10 +1,8 @@
 import cookieParser from "cookie-parser";
-import cors from "cors";
 import express from "express";
 import mongoSanitize from "express-mongo-sanitize";
 import helmet from "helmet";
 
-import { env } from "./config/env.js";
 import { addLoggerToContext } from "./middlewares/add-logger-to-context.middleware.js";
 import { errorHandler } from "./middlewares/error-handler.middleware.js";
 import { httpLogger } from "./middlewares/http-logger.middleware.js";
@@ -17,13 +15,7 @@ const app = express();
 // Traefik and Docker networking sit in front of Express; see `getClientIp`
 app.set("trust proxy", "loopback, uniquelocal");
 
-// Security middlewares
-app.use(
-	cors({
-		credentials: true,
-		origin: [env.APP_URL],
-	}),
-);
+// Security middlewares - no CORS: the app and the API share one origin
 app.use(helmet());
 app.use(mongoSanitize({}));
 
