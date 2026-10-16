@@ -9,6 +9,7 @@ import { addLoggerToContext } from "./middlewares/add-logger-to-context.middlewa
 import { errorHandler } from "./middlewares/error-handler.middleware.js";
 import { httpLogger } from "./middlewares/http-logger.middleware.js";
 import { requestId } from "./middlewares/request-id.middleware.js";
+import { verifySameOrigin } from "./middlewares/verify-same-origin.middleware.js";
 import routes from "./routes/index.js";
 
 const app = express();
@@ -38,6 +39,13 @@ app.use(cookieParser(undefined, { decode: decodeURIComponent }));
 app.use(requestId);
 app.use(addLoggerToContext);
 app.use(httpLogger);
+
+// CSRF protection - webhooks are server-to-server calls, so they are skipped
+app.use((req, res, next) =>
+	req.path.startsWith("/api/v1/webhooks/")
+		? next()
+		: verifySameOrigin(req, res, next),
+);
 
 // Routes
 app.get("/", (_req, res) => res.send("API is running..."));
