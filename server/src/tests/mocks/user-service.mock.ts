@@ -8,6 +8,7 @@ export function mockUserService(): FunctionMocksWithReset<IUserService> {
 		create: mock.fn(),
 		delete: mock.fn(),
 		updateById: mock.fn(),
+		updateBannedAt: mock.fn(),
 		updatePassword: mock.fn(),
 		getAll: mock.fn(),
 		getByEmail: mock.fn(),
@@ -24,6 +25,7 @@ export function mockUserService(): FunctionMocksWithReset<IUserService> {
 			this.getById.mock.resetCalls();
 			this.getByEmail.mock.resetCalls();
 			this.updateById.mock.resetCalls();
+			this.updateBannedAt.mock.resetCalls();
 			this.updatePassword.mock.resetCalls();
 			this.delete.mock.resetCalls();
 			this.existsByEmail.mock.resetCalls();

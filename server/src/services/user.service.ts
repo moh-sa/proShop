@@ -44,6 +44,10 @@ export interface IUserService {
 	getById: (data: { userId: string }) => Promise<UserResult<SafeSelectUser>>;
 	sanitizeUser: (user: User) => UserResult<SafeSelectUser>;
 	updateById: (args: UpdateUserInput) => Promise<UserResult<SafeSelectUser>>;
+	updateBannedAt: (args: {
+		bannedAt: Date | null;
+		userId: string;
+	}) => Promise<UserResult<SafeSelectUser>>;
 	updatePassword: (args: {
 		hashedPassword: string;
 		userId: string;
@@ -668,6 +672,65 @@ export class UserService implements IUserService {
 			data: result.data,
 			success: true,
 		};
+	}
+
+	public async updateBannedAt(
+		args: MethodParams<IUserService, "updateBannedAt">,
+	): MethodReturn<IUserService, "updateBannedAt"> {
+		const logger = this._getLogger({ method: "updateBannedAt" });
+
+		const userIdValidationResult = objectIdStringValidator.safeParse(
+			args.userId,
+		);
+		if (!userIdValidationResult.success) {
+			return {
+				error: new ValidationError("Invalid user ID", {
+					cause: userIdValidationResult.error,
+				}),
+				success: false,
+			};
+		}
+
+		const existingUserResult = await this._repository.getById({
+			userId: userIdValidationResult.data,
+		});
+		if (!existingUserResult.success) {
+			return existingUserResult;
+		}
+		if (!existingUserResult.data) {
+			return {
+				error: new NotFoundError("User"),
+				success: false,
+			};
+		}
+
+		if (this._isDemoUser(existingUserResult.data)) {
+			logger.warn({ userId: args.userId }, "Blocked demo account ban");
+			return {
+				error: new ForbiddenError("Demo accounts cannot be banned"),
+				success: false,
+			};
+		}
+
+		const updateResult = await this._repository.update({
+			bannedAt: args.bannedAt,
+			userId: userIdValidationResult.data,
+		});
+		if (!updateResult.success) {
+			return updateResult;
+		}
+		if (!updateResult.data) {
+			return {
+				error: new NotFoundError("User"),
+				success: false,
+			};
+		}
+
+		logger.info(
+			{ banned: args.bannedAt !== null, userId: args.userId },
+			"User ban status updated",
+		);
+		return this.sanitizeUser(updateResult.data);
 	}
 
 	public async updatePassword(

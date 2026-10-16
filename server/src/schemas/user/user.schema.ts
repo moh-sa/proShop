@@ -50,7 +50,11 @@ export const updateProfileBodySchema = baseSchema
 		},
 	);
 
+export const setBannedBodySchema = z.object({ banned: z.boolean() });
+
+// `bannedAt` is set only through `UserManager.setBanned`, never from create or update input
 export const userSchema = baseSchema.extend({
+	bannedAt: z.date().nullable().default(null),
 	createdAt: z.date(),
 	id: objectIdStringValidator,
 	updatedAt: z.date(),

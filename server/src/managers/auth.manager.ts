@@ -1,6 +1,7 @@
 import { DEMO_ACCOUNT_EMAILS } from "../constants/index.js";
 import {
 	ConflictError,
+	ForbiddenError,
 	InvalidCredentialsError,
 	NotFoundError,
 	ValidationError,
@@ -321,6 +322,15 @@ export class AuthManager implements IAuthManager {
 		args: SessionContext & { user: SafeSelectUser },
 	): Promise<AuthResult<AuthSession>> {
 		const logger = this.getLogger({ method: "_createAuthSession" });
+
+		// checked after the password, so the response never reveals a ban to a guesser
+		if (args.user.bannedAt) {
+			logger.warn({ userId: args.user.id }, "Sign in blocked - user is banned");
+			return {
+				error: new ForbiddenError("Account suspended"),
+				success: false,
+			};
+		}
 
 		// a new sign-in always gets a fresh token (prevents session fixation)
 		if (args.previousToken) {

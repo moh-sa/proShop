@@ -32,7 +32,7 @@ export interface IUserRepository {
 	getByEmail(data: { email: string }): Promise<UserResult<null | User>>;
 	getById(data: { userId: string }): Promise<UserResult<null | User>>;
 	update(
-		args: UpdateUserInput & { password?: string },
+		args: UpdateUserInput & { bannedAt?: Date | null; password?: string },
 	): Promise<UserResult<null | User>>;
 }
 

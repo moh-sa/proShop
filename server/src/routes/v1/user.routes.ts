@@ -34,4 +34,8 @@ router
 	.route("/:userId")
 	.delete(...adminGuard(adminLimiter), userController.delete);
 
+router
+	.route("/:userId/ban")
+	.patch(...adminGuard(adminLimiter), userController.setBanned);
+
 export default router;

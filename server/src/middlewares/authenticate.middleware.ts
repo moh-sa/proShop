@@ -44,6 +44,15 @@ export const authenticate = asyncHandler(async (req, res, next) => {
 		);
 	}
 
+	// a ban deletes all sessions; this catches one created while the ban was being applied
+	if (userResult.data.bannedAt) {
+		await sessionService.deleteAllByUserId({ userId: userResult.data.id });
+		cookieService.delete({ name: SESSION_COOKIE_NAME, response: res });
+		return next(
+			new AuthenticationError("Authentication required. Please sign in."),
+		);
+	}
+
 	res.locals.session = sessionResult.data;
 	res.locals.user = userResult.data;
 

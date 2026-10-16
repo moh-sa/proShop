@@ -10,6 +10,7 @@ import type {
 	GetAllUsersServiceParams,
 	PaginatedResponse,
 	SafeSelectUser,
+	Session,
 	UpdateProfileBodyInput,
 } from "../types/index.js";
 import { asyncHandler, getLoggerFromContext } from "../utils/index.js";
@@ -36,8 +37,14 @@ export interface IUserController {
 		reqBody: AdminUpdateUserBodyInput;
 		resBody: { data: SafeSelectUser };
 	}>;
-	updateProfile: AsyncHandler<{
+	setBanned: AsyncHandler<{
 		locals: { user: SafeSelectUser };
+		params: { userId: string };
+		reqBody: { banned: boolean };
+		resBody: { data: SafeSelectUser };
+	}>;
+	updateProfile: AsyncHandler<{
+		locals: { session: Session; user: SafeSelectUser };
 		reqBody: UpdateProfileBodyInput;
 		resBody: { data: SafeSelectUser };
 	}>;
@@ -54,7 +61,7 @@ export class UserController implements IUserController {
 		const logger = this._getLogger({ method: "delete" });
 		logger.debug({ userId: req.params.userId }, "Deleting user");
 
-		const result = await this._service.delete({ userId: req.params.userId });
+		const result = await this._manager.delete({ userId: req.params.userId });
 		if (!result.success) {
 			throw result.error;
 		}
@@ -129,6 +136,41 @@ export class UserController implements IUserController {
 	});
 
 	/**
+	 * PATCH /users/:userId/ban (admin)
+	 */
+	setBanned = asyncHandler<{
+		locals: { user: SafeSelectUser };
+		params: { userId: string };
+		reqBody: { banned: boolean };
+		resBody: { data: SafeSelectUser };
+	}>(async (req, res) => {
+		const logger = this._getLogger({ method: "setBanned" });
+		logger.debug(
+			{ body: req.body, userId: req.params.userId },
+			"Updating user ban status",
+		);
+
+		const result = await this._manager.setBanned({
+			actorId: res.locals.user.id,
+			body: req.body,
+			userId: req.params.userId,
+		});
+		if (!result.success) {
+			throw result.error;
+		}
+
+		logger.info(
+			{ banned: result.data.bannedAt !== null, userId: result.data.id },
+			"User ban status updated successfully",
+		);
+
+		res.status(HTTP_STATUS.OK).json({
+			data: result.data,
+			success: true,
+		});
+	});
+
+	/**
 	 * PATCH /users/:userId (admin)
 	 */
 	update = asyncHandler<{
@@ -165,7 +207,7 @@ export class UserController implements IUserController {
 	 * PATCH /users/profile
 	 */
 	updateProfile = asyncHandler<{
-		locals: { user: SafeSelectUser };
+		locals: { session: Session; user: SafeSelectUser };
 		reqBody: UpdateProfileBodyInput;
 		resBody: { data: SafeSelectUser };
 	}>(async (req, res) => {
@@ -177,6 +219,7 @@ export class UserController implements IUserController {
 
 		const result = await this._manager.updateProfile({
 			...req.body,
+			currentSessionId: res.locals.session.id,
 			userId: res.locals.user.id,
 		});
 		if (!result.success) {

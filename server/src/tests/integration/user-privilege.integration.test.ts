@@ -6,7 +6,7 @@ import { AuthController, UserController } from "../../controllers/index.js";
 import { ForbiddenError, ValidationError } from "../../errors/index.js";
 import { SessionModel } from "../../models/session.model.js";
 import { UserModel } from "../../models/user.model.js";
-import { passwordService } from "../../services/index.js";
+import { passwordService, sessionService } from "../../services/index.js";
 import { generateMockInsertUser } from "../mocks/index.js";
 import {
 	connectTestDatabase,
@@ -31,6 +31,16 @@ async function createUserWithHashedPassword(
 			password: hashResult.data,
 		}),
 	);
+}
+
+// the signed-in state `authenticate` would set
+async function signedInLocals(user: Awaited<ReturnType<typeof createUser>>) {
+	const sessionResult = await sessionService.create({
+		userAgent: "",
+		userId: user.id,
+	});
+	assert.ok(sessionResult.success);
+	return { session: sessionResult.data.session, user };
 }
 
 async function getStoredPassword(userId: string): Promise<string> {
@@ -80,7 +90,7 @@ suite("User Privilege & Password 〖 Integration Tests 〗", () => {
 				userController.updateProfile,
 			);
 			const user = await createUserWithHashedPassword();
-			res.locals = { user };
+			res.locals = await signedInLocals(user);
 			req.body = { isAdmin: true, name: "Updated Name" } as typeof req.body;
 
 			// Act
@@ -101,7 +111,7 @@ suite("User Privilege & Password 〖 Integration Tests 〗", () => {
 				userController.updateProfile,
 			);
 			const user = await createUserWithHashedPassword();
-			res.locals = { user };
+			res.locals = await signedInLocals(user);
 			req.body = { password: NEW_PASSWORD };
 
 			// Act & Assert
@@ -118,7 +128,7 @@ suite("User Privilege & Password 〖 Integration Tests 〗", () => {
 			);
 			const user = await createUserWithHashedPassword();
 			const passwordBefore = await getStoredPassword(user.id);
-			res.locals = { user };
+			res.locals = await signedInLocals(user);
 			req.body = {
 				currentPassword: "WrongPassword789!",
 				name: "Should Not Apply",
@@ -141,7 +151,7 @@ suite("User Privilege & Password 〖 Integration Tests 〗", () => {
 				userController.updateProfile,
 			);
 			const user = await createUserWithHashedPassword();
-			res.locals = { user };
+			res.locals = await signedInLocals(user);
 			req.body = { currentPassword: CURRENT_PASSWORD, password: NEW_PASSWORD };
 
 			// Act
@@ -169,7 +179,7 @@ suite("User Privilege & Password 〖 Integration Tests 〗", () => {
 				email: DEMO_ACCOUNT_EMAILS.customer,
 			});
 			const passwordBefore = await getStoredPassword(user.id);
-			res.locals = { user };
+			res.locals = await signedInLocals(user);
 			req.body = { currentPassword: CURRENT_PASSWORD, password: NEW_PASSWORD };
 
 			// Act & Assert

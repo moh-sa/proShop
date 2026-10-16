@@ -1,7 +1,18 @@
-import { ValidationError } from "../errors/index.js";
-import { updateProfileBodySchema } from "../schemas/index.js";
-import type { IPasswordService, IUserService } from "../services/index.js";
-import { passwordService, userService } from "../services/index.js";
+import { ForbiddenError, ValidationError } from "../errors/index.js";
+import {
+	setBannedBodySchema,
+	updateProfileBodySchema,
+} from "../schemas/index.js";
+import type {
+	IPasswordService,
+	ISessionService,
+	IUserService,
+} from "../services/index.js";
+import {
+	passwordService,
+	sessionService,
+	userService,
+} from "../services/index.js";
 import type {
 	MethodParams,
 	MethodReturn,
@@ -12,25 +23,114 @@ import type {
 import { getLoggerFromContext } from "../utils/index.js";
 
 export interface IUserManager {
+	/**
+	 * Deletes the user and all their sessions.
+	 */
+	delete(args: { userId: string }): Promise<Result<SafeSelectUser>>;
+
+	/**
+	 * Bans or unbans a user. A ban signs the user out everywhere.
+	 */
+	setBanned(args: {
+		actorId: string;
+		body: unknown;
+		userId: string;
+	}): Promise<Result<SafeSelectUser>>;
+
+	/**
+	 * A password change signs out every other session of the user.
+	 */
 	updateProfile(
-		args: UpdateProfileBodyInput & { userId: string },
+		args: UpdateProfileBodyInput & {
+			currentSessionId: string;
+			userId: string;
+		},
 	): Promise<Result<SafeSelectUser>>;
 }
 
 export class UserManager implements IUserManager {
 	private readonly _password: IPasswordService;
+	private readonly _session: ISessionService;
 	private readonly _user: IUserService;
 
-	constructor(password?: IPasswordService, user?: IUserService) {
+	constructor(
+		password?: IPasswordService,
+		session?: ISessionService,
+		user?: IUserService,
+	) {
 		this._password = password ?? passwordService;
+		this._session = session ?? sessionService;
 		this._user = user ?? userService;
+	}
+
+	public async delete(
+		args: MethodParams<IUserManager, "delete">,
+	): MethodReturn<IUserManager, "delete"> {
+		const deleteResult = await this._user.delete({ userId: args.userId });
+		if (!deleteResult.success) {
+			return deleteResult;
+		}
+
+		const sessionsResult = await this._session.deleteAllByUserId({
+			userId: args.userId,
+		});
+		if (!sessionsResult.success) {
+			return sessionsResult;
+		}
+
+		return deleteResult;
+	}
+
+	public async setBanned(
+		args: MethodParams<IUserManager, "setBanned">,
+	): MethodReturn<IUserManager, "setBanned"> {
+		const logger = this._getLogger({ method: "setBanned" });
+
+		const validationResult = setBannedBodySchema.safeParse(args.body);
+		if (!validationResult.success) {
+			return {
+				error: new ValidationError("Invalid ban data", {
+					cause: validationResult.error,
+				}),
+				success: false,
+			};
+		}
+
+		if (args.actorId === args.userId) {
+			logger.warn({ userId: args.userId }, "Blocked self ban");
+			return {
+				error: new ForbiddenError("You cannot ban yourself"),
+				success: false,
+			};
+		}
+
+		// ban first: the guard rejects banned users, so a failed session cleanup still locks them out
+		const banned = validationResult.data.banned;
+		const updateResult = await this._user.updateBannedAt({
+			bannedAt: banned ? new Date() : null,
+			userId: args.userId,
+		});
+		if (!updateResult.success) {
+			return updateResult;
+		}
+
+		if (banned) {
+			const sessionsResult = await this._session.deleteAllByUserId({
+				userId: args.userId,
+			});
+			if (!sessionsResult.success) {
+				return sessionsResult;
+			}
+		}
+
+		return updateResult;
 	}
 
 	public async updateProfile(
 		args: MethodParams<IUserManager, "updateProfile">,
 	): MethodReturn<IUserManager, "updateProfile"> {
 		const logger = this._getLogger({ method: "updateProfile" });
-		const { userId, ...body } = args;
+		const { currentSessionId, userId, ...body } = args;
 
 		const validationResult = updateProfileBodySchema.safeParse(body);
 		if (!validationResult.success) {
@@ -81,6 +181,14 @@ export class UserManager implements IUserManager {
 			});
 			if (!updatePasswordResult.success) {
 				return updatePasswordResult;
+			}
+
+			const sessionsResult = await this._session.deleteAllByUserIdExcept({
+				exceptSessionId: currentSessionId,
+				userId,
+			});
+			if (!sessionsResult.success) {
+				return sessionsResult;
 			}
 		}
 

@@ -24,6 +24,10 @@ const userSchema = new Schema<UserSchema>(
 				},
 			},
 		},
+		bannedAt: {
+			default: null,
+			type: Date,
+		},
 		isAdmin: {
 			default: false,
 			required: true,

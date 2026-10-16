@@ -4,9 +4,13 @@ import { after, before, beforeEach, describe, suite, test } from "node:test";
 import request from "supertest";
 
 import app from "../../app.js";
-import { SESSION_COOKIE_NAME } from "../../constants/index.js";
+import {
+	DEMO_ACCOUNT_EMAILS,
+	SESSION_COOKIE_NAME,
+} from "../../constants/index.js";
 import { SessionModel } from "../../models/session.model.js";
 import { UserModel } from "../../models/user.model.js";
+import { passwordService } from "../../services/index.js";
 import { generateMockInsertUser } from "../mocks/index.js";
 import { connectTestDatabase, disconnectTestDatabase } from "../utils/index.js";
 
@@ -58,12 +62,33 @@ suite("Auth over HTTP 〖 Integration Tests 〗", () => {
 					.get(`/api/v1${path}`)
 					.set("X-Forwarded-For", clientIp)
 					.set("User-Agent", USER_AGENT),
+			patch: (path: string) =>
+				request(app)
+					.patch(`/api/v1${path}`)
+					.set("X-Forwarded-For", clientIp)
+					.set("User-Agent", USER_AGENT),
 			post: (path: string) =>
 				request(app)
 					.post(`/api/v1${path}`)
 					.set("X-Forwarded-For", clientIp)
 					.set("User-Agent", USER_AGENT),
 		};
+	}
+
+	// inserts a user with a real hash, for accounts sign-up can't create
+	async function insertUser(options: { email?: string; isAdmin: boolean }) {
+		const hashResult = await passwordService.hash({ password: PASSWORD });
+		assert.ok(hashResult.success);
+		const user = await UserModel.create(
+			generateMockInsertUser({ ...options, password: hashResult.data }),
+		);
+		return { email: user.email, id: user._id.toString() };
+	}
+
+	async function getUserId(email: string): Promise<string> {
+		const user = await UserModel.findOne({ email }).lean();
+		assert.ok(user);
+		return user._id.toString();
 	}
 
 	async function signUp() {
@@ -209,6 +234,155 @@ suite("Auth over HTTP 〖 Integration Tests 〗", () => {
 				.set("Cookie", secondCookie);
 			assert.strictEqual(secondRes.status, 401);
 			assert.strictEqual(await SessionModel.countDocuments(), 0);
+		});
+	});
+
+	describe("password change", () => {
+		test("Should sign out other sessions but keep the current one", async () => {
+			const { cookie: currentCookie, user } = await signUp();
+			const otherCookie = await signIn(user.email);
+
+			const res = await api()
+				.patch("/users/profile")
+				.set("Cookie", currentCookie)
+				.send({ currentPassword: PASSWORD, password: "NewPassword456!" });
+
+			assert.strictEqual(res.status, 200);
+			const current = await api()
+				.get("/users/profile")
+				.set("Cookie", currentCookie);
+			assert.strictEqual(current.status, 200);
+			const other = await api()
+				.get("/users/profile")
+				.set("Cookie", otherCookie);
+			assert.strictEqual(other.status, 401);
+		});
+
+		test("Should keep other sessions when only the name changes", async () => {
+			const { cookie: currentCookie, user } = await signUp();
+			const otherCookie = await signIn(user.email);
+
+			await api()
+				.patch("/users/profile")
+				.set("Cookie", currentCookie)
+				.send({ name: "Renamed User" });
+
+			const other = await api()
+				.get("/users/profile")
+				.set("Cookie", otherCookie);
+			assert.strictEqual(other.status, 200);
+		});
+	});
+
+	describe("ban", () => {
+		test("Should sign out a banned user everywhere and block sign-in", async () => {
+			const admin = await insertUser({ isAdmin: true });
+			const adminCookie = await signIn(admin.email);
+			const { cookie: userCookie, user } = await signUp();
+			const userId = await getUserId(user.email);
+
+			const banRes = await api()
+				.patch(`/users/${userId}/ban`)
+				.set("Cookie", adminCookie)
+				.send({ banned: true });
+
+			assert.strictEqual(banRes.status, 200);
+			const profile = await api()
+				.get("/users/profile")
+				.set("Cookie", userCookie);
+			assert.strictEqual(profile.status, 401);
+			const signInRes = await api()
+				.post("/auth/signin")
+				.send({ email: user.email, password: PASSWORD });
+			assert.strictEqual(signInRes.status, 403);
+			assert.match(JSON.stringify(signInRes.body), /Account suspended/);
+		});
+
+		test("Should let a user sign in again after unban", async () => {
+			const admin = await insertUser({ isAdmin: true });
+			const adminCookie = await signIn(admin.email);
+			const { user } = await signUp();
+			const userId = await getUserId(user.email);
+			await api()
+				.patch(`/users/${userId}/ban`)
+				.set("Cookie", adminCookie)
+				.send({ banned: true });
+
+			const unbanRes = await api()
+				.patch(`/users/${userId}/ban`)
+				.set("Cookie", adminCookie)
+				.send({ banned: false });
+
+			assert.strictEqual(unbanRes.status, 200);
+			await signIn(user.email);
+		});
+
+		test("Should block a session that survived the ban (guard check)", async () => {
+			const { cookie, user } = await signUp();
+			await UserModel.updateOne(
+				{ email: user.email },
+				{ $set: { bannedAt: new Date() } },
+			);
+
+			const res = await api().get("/users/profile").set("Cookie", cookie);
+
+			assert.strictEqual(res.status, 401);
+			assert.strictEqual(await SessionModel.countDocuments(), 0);
+		});
+
+		const forbiddenCases = [
+			{ name: "the admin themselves", target: "self" },
+			{ name: "a demo account", target: "demo" },
+		] as const;
+		for (const { name, target } of forbiddenCases) {
+			test(`Should not let an admin ban ${name}`, async () => {
+				const admin = await insertUser({ isAdmin: true });
+				const adminCookie = await signIn(admin.email);
+				const targetId =
+					target === "self"
+						? admin.id
+						: (
+								await insertUser({
+									email: DEMO_ACCOUNT_EMAILS.customer,
+									isAdmin: false,
+								})
+							).id;
+
+				const res = await api()
+					.patch(`/users/${targetId}/ban`)
+					.set("Cookie", adminCookie)
+					.send({ banned: true });
+
+				assert.strictEqual(res.status, 403);
+			});
+		}
+
+		test("Should not let a regular user ban anyone", async () => {
+			const { cookie } = await signUp();
+			const other = await insertUser({ isAdmin: false });
+
+			const res = await api()
+				.patch(`/users/${other.id}/ban`)
+				.set("Cookie", cookie)
+				.send({ banned: true });
+
+			assert.strictEqual(res.status, 403);
+		});
+	});
+
+	describe("user deletion", () => {
+		test("Should delete the sessions of a deleted user", async () => {
+			const admin = await insertUser({ isAdmin: true });
+			const adminCookie = await signIn(admin.email);
+			const { user } = await signUp();
+			const userId = await getUserId(user.email);
+
+			const res = await api()
+				.delete(`/users/${userId}`)
+				.set("Cookie", adminCookie);
+
+			assert.strictEqual(res.status, 204);
+			assert.strictEqual(await SessionModel.countDocuments({ userId }), 0);
 		});
 	});
 });

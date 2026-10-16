@@ -1,8 +1,10 @@
 import assert from "node:assert";
-import test, { beforeEach, describe, suite } from "node:test";
+import test, { beforeEach, describe, mock, suite } from "node:test";
 
 import { UserController } from "../../controllers/index.js";
 import { NotFoundError } from "../../errors/index.js";
+import { UserManager } from "../../managers/index.js";
+import type { ISessionService } from "../../services/index.js";
 import type { AdminUpdateUserBodyInput } from "../../types/index.js";
 import { createSuccessResponseObject } from "../../utils/index.js";
 import {
@@ -14,7 +16,15 @@ import {
 
 suite("User Controller 〖 Unit Tests 〗", () => {
 	const mockService = mockUserService();
-	const controller = new UserController(mockService);
+	const stubSessionService = {
+		deleteAllByUserId: mock.fn(() =>
+			Promise.resolve({ data: 0, success: true }),
+		),
+	} as unknown as ISessionService;
+	const controller = new UserController(
+		mockService,
+		new UserManager(undefined, stubSessionService, mockService),
+	);
 
 	beforeEach(() => {
 		mockService.reset();
