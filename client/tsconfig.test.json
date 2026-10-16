@@ -3,6 +3,7 @@
 	"compilerOptions": {
 		"types": ["vitest/globals"]
 	},
-	"include": ["**/*.test.*", "**/*.spec.*"],
+	// the router file declares the app's router types (`Register`) that app code imported by tests relies on
+	"include": ["**/*.test.*", "**/*.spec.*", "src/shared/router/router.ts"],
 	"exclude": []
 }

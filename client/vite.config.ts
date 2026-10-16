@@ -12,6 +12,12 @@ export default defineConfig(({ mode }) => {
 
 	return {
 		build: { sourcemap: "hidden" },
+		// same origin in dev too: the browser only talks to Vite, which forwards `/api`
+		server: {
+			proxy: {
+				"/api": env.DEV_API_PROXY_TARGET || "http://localhost:3000",
+			},
+		},
 		resolve: {
 			alias: {
 				"@": resolve(__dirname, "./src"),

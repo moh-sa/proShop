@@ -1,66 +1,37 @@
-import { env } from "@/env";
-import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
+import { authKeys } from "@/features/auth/query/keys";
+import { queryClient } from "@/shared/query/client";
+import axios, { AxiosError } from "axios";
 
-const REFRESH_ENDPOINT = "/auth/token/refresh";
+// a 401 here means wrong credentials, not an ended session
+const SIGN_IN_ENDPOINTS = new Set([
+	"/auth/signin",
+	"/auth/signup",
+	"/auth/demo-signin",
+]);
 
-type RetryableRequestConfig = InternalAxiosRequestConfig & {
-	// prevents endless retry loops after a 401 error - Internal flag
-	_hasRetriedAfterRefresh?: boolean;
-	// lets a request skip the refresh logic when needed - Internal flag
-	_skipTokenRefresh?: boolean;
-};
-
+// same origin as the app: the session cookie is sent automatically
 export const api = axios.create({
-	baseURL: env.API_URL + "/api/v1",
+	baseURL: "/api/v1",
 	timeout: 10_000,
 	headers: {
 		"Content-Type": "application/json",
 	},
-	withCredentials: true,
 });
-
-function isRefreshRequest(url?: string, skipTokenRefresh?: boolean): boolean {
-	if (skipTokenRefresh) return true;
-	if (!url) return false;
-
-	const [path] = url.split("?");
-	return path === REFRESH_ENDPOINT;
-}
 
 api.interceptors.response.use(
 	(response) => response,
-	async (error) => {
-		if (!(error instanceof AxiosError)) {
-			return Promise.reject(error);
+	(error) => {
+		if (error instanceof AxiosError && error.response?.status === 401) {
+			const [path] = (error.config?.url ?? "").split("?");
+
+			if (!SIGN_IN_ENDPOINTS.has(path)) {
+				// the session ended (expired, signed out elsewhere, banned):
+				// drop the cached user so the route guards redirect to sign-in
+				queryClient.setQueryData(authKeys.me(), null);
+			}
 		}
 
-		const originalRequest = error.config as RetryableRequestConfig | undefined;
-		const status = error.response?.status;
-
-		if (!originalRequest || status !== 401) {
-			return Promise.reject(error);
-		}
-
-		if (
-			// do not refresh token for refresh endpoint itself
-			isRefreshRequest(
-				originalRequest.url,
-				originalRequest._skipTokenRefresh,
-			) ||
-			// retry only one time per failed request
-			originalRequest._hasRetriedAfterRefresh
-		) {
-			return Promise.reject(error);
-		}
-
-		originalRequest._hasRetriedAfterRefresh = true;
-
-		try {
-			// ask server for a new access token then repeat original request
-			await api.post(REFRESH_ENDPOINT);
-			return api(originalRequest);
-		} catch (refreshError) {
-			return Promise.reject(refreshError);
-		}
+		// always the original error, so forms show the server's message
+		return Promise.reject(error);
 	},
 );

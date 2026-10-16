@@ -23,7 +23,11 @@ export async function demoSignInApi(
 		throw new ClientApiError(normalizeError(parsedInput.error, "input"));
 	}
 
-	const response = await post("/auth/demo-signin", parsedInput.data, userSchema);
+	const response = await post(
+		"/auth/demo-signin",
+		parsedInput.data,
+		userSchema,
+	);
 	return response;
 }
 
@@ -48,15 +52,14 @@ export async function signInApi(input: SignInInput): Promise<SignInOutput> {
 }
 
 export async function signOutApi(): Promise<void> {
-	await del("/auth/signout/current");
+	await del("/auth/sessions/current");
 }
 
 export async function fetchMeApi(signal: AbortSignal): Promise<User | null> {
 	try {
 		return await get("/users/profile", userSchema, signal);
 	} catch (error) {
-		// axios interceptor already tried to refresh token and failed
-		// 401 here means the token is invalid or expired and must be re-authenticated
+		// 401 means there is no live session: the user is signed out
 		if (
 			error instanceof ClientApiError &&
 			error.details.kind === "SERVER" &&
