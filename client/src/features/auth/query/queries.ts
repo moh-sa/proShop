@@ -10,7 +10,6 @@ export const getMeQueryOptions = queryOptions({
 
 	refetchOnWindowFocus: true,
 	refetchOnReconnect: true,
-	refetchInterval: 5 * 60 * 1000, // 5 minutes
 
 	retry: false,
 });

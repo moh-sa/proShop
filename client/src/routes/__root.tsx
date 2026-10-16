@@ -28,7 +28,7 @@ function RootLayout() {
 	const prevUserRef = React.useRef(user);
 
 	React.useEffect(() => {
-		// 'useAuth' uses 'refetchInterval' to keep the session fresh
+		// the user changes on sign-in/out, or when a 401 ends the session (see `lib/axios`)
 		// if the session got invalidated, invalidate the router to re-apply route guards
 		if (prevUserRef.current?.id !== user?.id) {
 			router.invalidate();
