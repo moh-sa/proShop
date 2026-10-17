@@ -37,7 +37,7 @@ export default defineConfig(({ mode }) => {
 			sentryVitePlugin({
 				org: "self-yki",
 				project: "proshop-client",
-				authToken: env.VITE_SENTRY_AUTH_TOKEN,
+				authToken: env.SENTRY_AUTH_TOKEN,
 				telemetry: false,
 				sourcemaps: {
 					filesToDeleteAfterUpload: [
